@@ -1,0 +1,3 @@
+#!/bin/sh
+rm $1.ts2
+sqlite3 -init $1.sql $1.ts2 '.quit'

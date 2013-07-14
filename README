@@ -1,0 +1,22 @@
+PyQt4 Application Template
+--------------------------
+
+You need PyQt4 from your distribution.
+
+To run the template: 
+first generate the python module from the Designer myCalendar.ui file
+pyuic4 -o myCalendar.py myCalendar.ui
+then start your project:
+python APPNAME.py
+(where you replace APPNAME by your project name)
+
+Some PyQt4 tutorials links
+http://zetcode.com/tutorials/pyqt4/
+http://chaos.troll.no/~dboddie/Python/Designer/PyCon_UK_2007_PyQt_and_Qt_Designer.pdf
+http://www.rkblog.rk.edu.pl/w/p/introduction-pyqt4/
+
+PyQt website
+http://www.riverbankcomputing.co.uk/pyqt/index.php
+
+GUI programming with Python - Qt Edition
+http://www.commandprompt.com/community/pyqt/book1
