@@ -18,22 +18,26 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from PyQt4.QtCore import *
-import sys
-from mainwindow import *
+from trackitem import *
+from simulation import *
+from PyQt4.QtSql import *
 
-def Main():
-    app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(QPixmap(":/ts2.png")))
-    #try:
-    mw = MainWindow()
-    mw.show()
-    return app.exec_();
-    #except Exception as e:
-        #QMessageBox.critical(None, QObject.trUtf8(QObject(), "Erreur"), str(e), QMessageBox.StandardButtons(QMessageBox.Ok))
-        #return 1;
-    #else:    
-        #return 0;
+BIG = 1000000000
+
+class EndItem(TrackItem):
+    """ TODO Document EndItem class"""
     
-if __name__ == "__main__":
-    Main()
+    def __init__(self, simulation, record):
+        super().__init__(simulation, record)
+        self._tiType = "E"
+        self._realLength = BIG
+        self._end = QPointF(-1,-1)
+        self._gi = QGraphicsLineItem(0,0,0,0,None)
+        simulation.registerGraphicsItem(self._gi)
+
+    def getFollowingItem(self, precedingItem, direction = -1):
+        if precedingItem == self._previousItem:
+            return None
+        else:
+            return self._previousItem
+

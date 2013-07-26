@@ -19,74 +19,79 @@
 #
 
 from PyQt4.QtGui import *
-from Clock import *
+from PyQt4.QtCore import *
+from clock import *
+from simulation import *
 
 class Panel(QWidget):
 
-    def __init__(self, parent):
+    def __init__(self, parent, simulation):
         super().__init__(parent)
+        self._simulation = simulation
         # Clock
         self._clock = Clock(self)
         # Pause button
-        self._pauseButton = QPushButton(tr("Pause"), self)
-        self._pauseButton.setCheckable(true)
-        self._pauseButton.toggled.connect(Simulation.instance().pause)
+        self._pauseButton = QPushButton(self.tr("Pause"), self)
+        self._pauseButton.setCheckable(True)
+        self._pauseButton.toggled.connect(self._simulation.pause)
         self._pauseButton.toggled.connect(self.changePauseButtonText)
         # Time factor spinBox
         self._timeFactorSpinBox = QSpinBox(self)
-        self._timeFactorSpinBox.setRange(0, 50)
+        self._timeFactorSpinBox.setRange(0, 10)
         self._timeFactorSpinBox.setSingleStep(1)
         self._timeFactorSpinBox.setValue(1)
         self._timeFactorSpinBox.setSuffix("x")
-        self._timeFactorSpinBox.valueChanged.connect(Simulation.instance().setTimeFactor)
+        self._timeFactorSpinBox.valueChanged.connect(self._simulation.setTimeFactor)
         # Zoom spinBox
         self._zoomSpinBox = QSpinBox(self)
         self._zoomSpinBox.setRange(10,200)
         self._zoomSpinBox.setSingleStep(10)
         self._zoomSpinBox.setValue(100)
-        self._zoomSpinBox.valueChanged.connect(MainWindow.instance().zoom)
+        self._zoomSpinBox.valueChanged.connect(self.zoomSpinBoxChanged)
 
-        layout = QHBoxLayout
+        layout = QHBoxLayout()
         layout.addSpacing(5)
         layout.addWidget(self._clock)
         layout.addSpacing(5)
         layout.addWidget(self._pauseButton)
         layout.addSpacing(5)
-        layout.addWidget(QLabel(tr("Simulation speed: ")))
+        layout.addWidget(QLabel(self.tr("Simulation speed: ")))
         layout.addWidget(self._timeFactorSpinBox)
         layout.addSpacing(5)
-        layout.addWidget(QLabel(tr("Zoom: ")))
+        layout.addWidget(QLabel(self.tr("Zoom: ")))
         layout.addWidget(self._zoomSpinBox)
         layout.addStretch()
         self.setLayout(layout)
 
-        Simulation.instance().simulationLoaded.connect(self.updateWidgets)
+        self._simulation.simulationLoaded.connect(self.updateWidgets)
 
-    @pyqtProperty(Clock)
+    zoomChanged = pyqtSignal(int)
+
+    @property
     def clock(self):
-        return _clock
+        return self._clock
 
-    @pyqtProperty(QSize)
     def sizeHint(self): 
         return QSize(800,40)
     
-    @pyqtProperty(QSize) 
     def minimumSizeHint(self): 
         return QSize(200,40)
     
-    @pyqtProperty(QSizePolicy)
     def sizePolicy(self): 
         return QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
     @pyqtSlot()
     def updateWidgets(self):
-        self._timeFactorSpinBox.setValue(Simulation.instance().option("timeFactor"))
+        self._timeFactorSpinBox.setValue(float(self._simulation.option("timeFactor")))
 
     @pyqtSlot(bool)
     def changePauseButtonText(self, paused):
         if paused:
-            self._pauseButton.setText(tr("Continue"));
+            self._pauseButton.setText(self.tr("Continue"));
         else:
-            self._pauseButton.setText(tr("Pause"));
+            self._pauseButton.setText(self.tr("Pause"));
 
+    @pyqtSlot(int)
+    def zoomSpinBoxChanged(self, percent):
+        self.zoomChanged.emit(percent)
 

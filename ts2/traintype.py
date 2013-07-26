@@ -19,21 +19,46 @@
 #
 
 from PyQt4.QtCore import *
-import sys
-from mainwindow import *
 
-def Main():
-    app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(QPixmap(":/ts2.png")))
-    #try:
-    mw = MainWindow()
-    mw.show()
-    return app.exec_();
-    #except Exception as e:
-        #QMessageBox.critical(None, QObject.trUtf8(QObject(), "Erreur"), str(e), QMessageBox.StandardButtons(QMessageBox.Ok))
-        #return 1;
-    #else:    
-        #return 0;
+class TrainType(QObject):
+    """ TODO Document TrainType class"""
     
-if __name__ == "__main__":
-    Main()
+    def __init__(self, code, description, maxSpeed, stdAccel, stdBraking, emergBraking, length):
+        super().__init__()
+        self._code = code
+        self._description = description
+        self._maxSpeed = float(maxSpeed)
+        self._stdAccel = float(stdAccel)
+        self._stdBraking = float(stdBraking)
+        self._emergBraking = float(emergBraking)
+        self._length = float(length)
+
+    @property
+    def code(self):
+        return self._code
+    
+    @property
+    def description(self):
+        return self._description
+    
+    @property
+    def maxSpeed(self): 
+        return self._maxSpeed
+    
+    @property
+    def stdAccel(self):
+        return self._stdAccel
+    
+    @property
+    def stdBraking(self):
+        return self._stdBraking
+    
+    @property
+    def emergBraking(self):
+        return self._emergBraking
+    
+    @property
+    def length(self): 
+        return self._length
+    
+

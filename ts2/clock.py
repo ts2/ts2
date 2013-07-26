@@ -18,8 +18,8 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from PyQt4.QtCore import QTime, QFrame, pyqtSlot
-from PyQt4.QtGui import QLCDNumber
+from PyQt4.QtCore import QTime, pyqtSlot
+from PyQt4.QtGui import QLCDNumber, QFrame
 
 class Clock(QLCDNumber):
 

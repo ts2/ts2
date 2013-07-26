@@ -19,16 +19,33 @@
 #
 
 from PyQt4.QtCore import *
+from PyQt4.QtCore import *
 from PyQt4.QtSql import *
+from PyQt4.QtGui import *
 from math import sqrt
+from route import *
+from signalitem import *
+from pointsitem import *
+from train import *
+from lineitem import *
+from trackitem import *
+from platformitem import *
+from bumperitem import *
+from enditem import *
+from signaltimeritem import *
+from traintype import *
 
 class Simulation(QObject):
-    def __init__(self):
+    
+    _self = None
+    
+    def __init__(self, simulationWindow):
         """ Creates the unique Simulation instance (which is accessible through Simulation::instance())
         or throws an Exception, if a simulation is already loaded. """
         super().__init__()
-        if not Simulation._self.hasattr(_scene):
+        if Simulation._self is None or not Simulation._self.hasattr("_scene"):
             Simulation._self = self
+            self._simulationWindow = simulationWindow
             self._scene = QGraphicsScene()
             self._selectedSignal = None
             self._timer = QTimer(self)
@@ -41,17 +58,20 @@ class Simulation(QObject):
             self._places = {}
             self._trains = []
             self._time = QTime()
-            self._timer = QTimer()
+            self._serviceListModel = ServiceListModel(self)
+            self._selectedServiceModel = ServiceInfoModel(self)
+            self._trainListModel = TrainListModel(self)
+            self._selectedTrainModel = TrainInfoModel(self)
         else:
-            raise Exception(tr("A simulation is already loaded"))
-    
-    @staticmethod
-    def instance():
-        return Simulation._self
+            raise Exception(self.tr("A simulation is already loaded"))
 
-    @pyqtProperty(QGraphicsScene)
+    @property
     def scene(self):
         return self._scene
+    
+    @property
+    def simulationWindow(self):
+        return self._simulationWindow
     
     def option(self, key):
         return self._options[key]
@@ -59,11 +79,27 @@ class Simulation(QObject):
     def setOption(self, key, value): 
         self._options[key] = value
 
-    @pyqtProperty(QTime)
+    @property
     def currentTime(self):
         return self._time
+    
+    @property
+    def serviceListModel(self):
+        return self._serviceListModel
+    
+    @property
+    def selectedServiceModel(self):
+        return self._selectedServiceModel
+    
+    @property
+    def trainListModel(self):
+        return self._trainListModel
+    
+    @property
+    def selectedTrainModel(self):
+        return self._selectedTrainModel
 
-    def reload():
+    def reload(self):
         """Load or reload all the data of the simulation from the database."""
         self.loadOptions()
         self.loadPlaces()
@@ -73,13 +109,12 @@ class Simulation(QObject):
         self.loadServices()
         self.loadTrains()
         self.setupConnections()
-        QSqlDatabase.database.close()
+        QSqlDatabase.database().close()
         self.simulationLoaded.emit()
         self._scene.update()
-        
-        self._time = QTime.fromString(option("currentTime"), "hh:mm:ss")
+        self._time = QTime.fromString(self.option("currentTime"), "hh:mm:ss")
         self._timer.timeout.connect(self.timerOut)
-        self.interval = qBound(100, (int)(5000 / option("timeFactor").toDouble()), 500);
+        interval = min(max (100, 5000 / float(self.option("timeFactor"))), 500)
         self._timer.setInterval(interval)
         self._timer.start()
     
@@ -97,13 +132,19 @@ class Simulation(QObject):
         return self._trackItems[id]
     
     def place(self, placeCode):
-        return self._places[placeCode]
+        if (placeCode != "") and (not isinstance(placeCode, QPyNullVariant)):
+            return self._places[placeCode]
+        else:
+            return None
     
     def service(self, serviceCode):
         return self._services[serviceCode]
     
     def services(self):
         return self._services
+    
+    def servicesList(self):
+        return list(self._services.values())
 
     def registerGraphicsItem(self, graphicItem):
         self._scene.addItem(graphicItem)
@@ -115,9 +156,10 @@ class Simulation(QObject):
     routeDeleted = pyqtSignal(Route)
     timeChanged = pyqtSignal(QTime)
     timeElapsed = pyqtSignal(float)
+    trainSelected = pyqtSignal(str)
 
-    @pyqtSlot(SignalItem, bool)
-    def createRoute(self, si, persistent = false):
+    @pyqtSlot(int, bool)
+    def createRoute(self, siId, persistent = False):
         """This slot is normally connected to the signal SignalItem.signalSelected(SignalItem),
         which itself is emitted when a signal is left-clicked.
         It is in charge of:
@@ -133,15 +175,16 @@ class Simulation(QObject):
         - conflictingRoute
         @param si Pointer to the signalItem owner of the signalGraphicsItem that has been
         left-clicked."""
+        si = self._trackItems[siId]
         if self._selectedSignal is None or self._selectedSignal == si:
             # First signal selected
             self._selectedSignal = si
         else:
             # Second signal selected
-            r = findRoute(self._selectedSignal, si)
+            r = self.findRoute(self._selectedSignal, si)
             if r is not None:
                 # There exists a route between both signals
-                if r.isActivable:
+                if r.isActivable():
                     # We can activate it
                     r.activate(persistent)
                     self._selectedSignal.unselect()
@@ -151,27 +194,28 @@ class Simulation(QObject):
                     # We cannot activate it (another route is conflicting)
                     self.conflictingRoute.emit(r)
                     si.unselect()
-                    qWarning.add(tr("Conflicting route"))
+                    qWarning(self.tr("Conflicting route"))
             else:
                 # No route between both signals
-                self.noRouteBetweenSignals.emit(_selectedSignal, si)
+                self.noRouteBetweenSignals.emit(self._selectedSignal, si)
                 si.unselect()
-                qWarning.add(tr("No route between signals"))
+                qWarning(self.tr("No route between signals"))
   
-    @pyqtSlot(SignalItem)
-    def deleteRoute(self, si):
+    @pyqtSlot(int)
+    def deleteRoute(self, siId):
         """ This slot is normally connected to the signal SignalItem.signalUnselected(SignalItem),
         which itself is emitted when a signal is right-clicked.
         It is in charge of deactivating the routes starting from this signal.
         @param si Pointer to the signalItem owner of the signalGraphicsItem that has been
         right-clicked."""
+        si = self._trackItems[siId]
         if self._selectedSignal is not None:
             # Unselect the selected signal if any
             self._selectedSignal.unselect()
             self._selectedSignal = None
-        r = si.nextActiveRoute()
+        r = si.nextActiveRoute
         if r is not None:
-            r.desactivate
+            r.desactivate()
             self.routeDeleted.emit(r)
     
     @pyqtSlot(bool)
@@ -188,7 +232,7 @@ class Simulation(QObject):
     def setTimeFactor(self, timeFactor):
         """Sets the time factor to timeFactor."""
         self._timer.stop()
-        self.setOption("timeFactor", timeFactor)
+        self.setOption("timeFactor", min(timeFactor, 10))
         if timeFactor != 0:
             self._timer.start()
     
@@ -197,58 +241,53 @@ class Simulation(QObject):
         """ Changes the simulation time and emits the timeChanged and the
         timeElapsed signals
         This function is normally connected to the timer timeout signal."""
-        timeFactor = self.option("timeFactor");
-        self._time = self._time.addMSecs((self._timer.interval) * timeFactor)
+        timeFactor = float(self.option("timeFactor"))
+        self._time = self._time.addMSecs((self._timer.interval()) * timeFactor)
         self.timeChanged.emit(self._time)
-        secs = self._timer.interval * timeFactor / 1000
+        secs = self._timer.interval() * timeFactor / 1000
         self.timeElapsed.emit(secs)
-
+            
     def loadRoutes(self):
         """Creates the instances of routes from the data of the database."""
         routeModel = QSqlQueryModel()
         routeModel.setQuery("SELECT * FROM routes")
         for i in range(routeModel.rowCount()):
-            routeNum = routeModel.record(i).value("routenum").toInt()
-            beginSignal = routeModel.record(i).value("beginsignal").toInt()
-            endSignal = routeModel.record(i).value("endsignal").toInt()
-            bs = self._trackItems[beginSignal]
-            es = self._trackItems[endSignal]
+            routeNum = self.dbReadInt(routeModel, i, "routenum")
+            beginSignalId = self.dbReadInt(routeModel, i, "beginsignal")
+            endSignalId = self.dbReadInt(routeModel, i, "endsignal")
+            bs = self._trackItems[beginSignalId]
+            es = self._trackItems[endSignalId]
             route = Route(self, routeNum, bs, es)
             self._routes[routeNum] = route
 
         routeModel.setQuery("SELECT * FROM directions")
         for i in range(routeModel.rowCount()):
-            routeNum = routeModel.record(i).value("routenum").toInt()
-            tiId = routeModel.record(i).value("tiid").toInt()
-            direction = routeModel.record(i).value("direction").toInt()
+            routeNum = self.dbReadInt(routeModel, i, "routenum")
+            tiId = self.dbReadInt(routeModel, i, "tiid")
+            direction = self.dbReadInt(routeModel, i, "direction")
             self._routes[routeNum].appendDirection(tiId, direction)
 
-        routeModel.setQuery("SELECT * FROM routeconflicts")
-        for i in (routeModel.rowCount()):
-            routeNum1 = routeModel.record(i).value("routenum1").toInt()
-            routeNum2 = routeModel.record(i).value("routenum2").toInt()
-            self._routes[routeNum1].addConflictRouteNumber(routeNum2)
-            self._routes[routeNum2].addConflictRouteNumber(routeNum1)
-
-        check = true
-        for route in self._routes:
+        check = True
+        for route in self._routes.values():
             check = (route.createPositionsList() and check)
 
         if not check:
-            qFatal("Invalid simulation: Some routes are not valid.\nSee stderr for more information")
+            qCritical(self.tr("Invalid simulation: Some routes are not valid.\nSee stderr for more information"))
+            ### DEBUG 
+            #qFatal(self.tr("Invalid simulation: Some routes are not valid.\nSee stderr for more information"))
     
     def loadTrainTypes(self):
         """Creates the instances of TrainType from the data of the database."""
         ttModel = QSqlQueryModel()
         ttModel.setQuery("SELECT * FROM traintypes")
         for i in range(ttModel.rowCount()):
-            code = ttModel.record(i).value("code").toString()
-            description = ttModel.record(i).value("description").toString()
-            maxSpeed = ttModel.record(i).value("maxspeed").toDouble()
-            stdAccel = ttModel.record(i).value("stdaccel").toDouble()
-            stdBraking = ttModel.record(i).value("stdbraking").toDouble()
-            emergBraking = ttModel.record(i).value("emergbraking").toDouble()
-            length = ttModel.record(i).value("tlength").toDouble()
+            code = ttModel.record(i).value("code")
+            description = ttModel.record(i).value("description")
+            maxSpeed = ttModel.record(i).value("maxspeed")
+            stdAccel = ttModel.record(i).value("stdaccel")
+            stdBraking = ttModel.record(i).value("stdbraking")
+            emergBraking = ttModel.record(i).value("emergbraking")
+            length = ttModel.record(i).value("tlength")
             self._trainTypes[code] = TrainType(code, description, maxSpeed, stdAccel, stdBraking, emergBraking, length)
     
     def loadTrains(self):
@@ -256,16 +295,16 @@ class Simulation(QObject):
         trainModel = QSqlQueryModel()
         trainModel.setQuery("SELECT * FROM trains")
         for i in range(trainModel.rowCount()):
-            serviceCode = trainModel.record(i).value("servicecode").toString()
-            trainType = trainModel.record(i).value("traintype").toString()
-            speed = trainModel.record(i).value("speed").toDouble()
-            accel = trainModel.record(i).value("accel").toDouble()
-            tiId = trainModel.record(i).value("tiid").toInt()
-            previousTiId = trainModel.record(i).value("previoustiid").toInt()
-            posOnTI = trainModel.record(i).value("posonti").toDouble()
-            appearTime = trainModel.record(i).value("appeartime").toTime()
-            train = Train(serviceCode, _trainTypes[trainType], speed, accel, Position( \
-                    _trackItems[tiId], _trackItems[previousTiId], posOnTI), appearTime)
+            serviceCode = self.dbReadStr(trainModel, i, "servicecode")
+            trainType = self.dbReadStr(trainModel, i, "traintype")
+            speed = self.dbReadFloat(trainModel, i, "speed")
+            accel = self.dbReadFloat(trainModel, i, "accel")
+            tiId = self.dbReadInt(trainModel, i, "tiid")
+            previousTiId = self.dbReadInt(trainModel, i, "previoustiid")
+            posOnTI = self.dbReadFloat(trainModel, i, "posonti")
+            appearTime = QTime.fromString(self.dbReadStr(trainModel, i, "appeartime"))
+            train = Train(self, serviceCode, self._trainTypes[trainType], speed, accel, Position( \
+                    self._trackItems[tiId], self._trackItems[previousTiId], posOnTI), appearTime)
             self._trains.append(train)
     
     def loadOptions(self):
@@ -273,9 +312,10 @@ class Simulation(QObject):
         optionModel = QSqlQueryModel()
         optionModel.setQuery("SELECT * FROM options")
         for i in range(optionModel.rowCount()):
-            key = optionModel.record(i).value("optionKey").toString()
-            value = optionModel.record(i).value("optionValue").toString()
-            self._options[key] = value
+            key = self.dbReadStr(optionModel, i, "optionKey")
+            value = self.dbReadStr(optionModel, i, "optionValue")
+            if key != "":
+                self._options[key] = value
     
     def loadTrackItems(self):
         """Creates the instances of trackItems and its subclasses from the data of the database."""
@@ -284,8 +324,8 @@ class Simulation(QObject):
 
         for i in range(tiModel.rowCount()):
             record = tiModel.record(i)
-            tiId = record.value("tiid").toInt()
-            tiType = record.value("titype").toString()
+            tiId = self.dbReadInt(tiModel, i, "tiid")
+            tiType = self.dbReadStr(tiModel, i, "titype")
             if tiType == "L":
                 ti = LineItem(self, record)
             elif tiType == "LP":
@@ -295,7 +335,7 @@ class Simulation(QObject):
             elif tiType == "SB":
                 ti = BumperItem(self, record)
             elif tiType == "ST":
-                ti = SignalTimerItem(self, record)
+                ti = SignalTimerItem(self, record, float(self.option("timeFactor")))
             elif tiType == "P":
                 ti = PointsItem(self, record)
             elif tiType == "E":
@@ -306,54 +346,54 @@ class Simulation(QObject):
 
         # Set the explicit links (i.e. those that are recorded in db)
         for i in range(tiModel.rowCount()):
-            tiId = tiModel.record(i).value("tiid").toInt()
-            nextTiId = tiModel.record(i).value("ntiid").toInt()
-            previousTiId = tiModel.record(i).value("ptiid").toInt()
-            reverseTiId = tiModel.record(i).value("rtiid").toInt()
+            tiId = self.dbReadInt(tiModel, i, "tiid")
+            nextTiId = self.dbReadInt(tiModel, i, "ntiid")
+            previousTiId = self.dbReadInt(tiModel, i, "ptiid")
+            reverseTiId = self.dbReadInt(tiModel, i , "rtiid")
             if nextTiId != 0:
-                self._trackItems[tiId].setNextItem(self._trackItems[nextTiId])
+                self._trackItems[tiId].nextItem = self._trackItems[nextTiId]
             if previousTiId != 0:
-                self._trackItems[tiId].setPreviousItem(self._trackItems[previousTiId])
-            if reverseTiId != 0 and self._trackItems[tiId].tiType == "P":
-                self._trackItems[tiId].setReverseItem(self._trackItems[reverseTiId])
+                self._trackItems[tiId].previousItem = self._trackItems[previousTiId]
+            if reverseTiId != 0:
+                self._trackItems[tiId].reverseItem = self._trackItems[reverseTiId]
         
         # Set the implicit links
         self.createTrackItemsLinks()
 
-        
         # Create trackItem conflicts
         for i in range(tiModel.rowCount()):
-            conflictTiId = tiModel.record(i).value("conflicttiid").toInt()
+            conflictTiId = self.dbReadInt(tiModel, i, "conflicttiid")
             if conflictTiId != 0:
-                tiId = tiModel.record(i).value("tiid").toInt()
-                self._trackItems[tiId].setConflictTI(self._trackItems[conflictTiId])
-                self._trackItems[conflictTiId].setConflictTI(self._trackItems[tiId])
+                tiId = self.dbReadInt(tiModel, i, "tiid")
+                self._trackItems[tiId].conflictTI = self._trackItems[conflictTiId]
+                self._trackItems[conflictTiId].conflictTI = self._trackItems[tiId]
 
         # Check that all the items are linked
-        if not checkTrackItemsLinks():
+        if not self.checkTrackItemsLinks():
             qFatal("Invalid simulation: Not all items are linked.\nSee stderr for more information")
+            
   
     def loadServices(self):
         """Creates the instances of Service from the data of the database."""
         serviceModel = QSqlQueryModel ()
         serviceModel.setQuery("SELECT * FROM services")
         for i in range(serviceModel.rowCount()):
-            serviceCode = serviceModel.record(i).value("servicecode").toString()
-            description = serviceModel.record(i).value("description").toString()
-            nextService = serviceModel.record(i).value("nextservice").toString()
-            self._services[serviceCode] = Service(serviceCode, description, nextService)
+            serviceCode = self.dbReadStr(serviceModel, i, "servicecode")
+            description = self.dbReadStr(serviceModel, i, "description")
+            nextService = self.dbReadStr(serviceModel, i, "nextservice")
+            self._services[serviceCode] = Service(self, serviceCode, description, nextService)
 
         serviceModel.setQuery("SELECT * FROM serviceLines")
         for i in range(serviceModel.rowCount()):
-            serviceCode = serviceModel.record(i).value("servicecode").toString()
-            placeCode = serviceModel.record(i).value("placecode").toString()
-            scheduledArrivalTime = serviceModel.record(i).value("scheduledarrivaltime").toTime()
-            scheduledDepartureTime = serviceModel.record(i).value("scheduleddeparturetime").toTime()
-            trackCode = serviceModel.record(i).value("trackcode").toString()
-            stop = serviceModel.record(i).value("stop").toBool()
+            serviceCode = self.dbReadStr(serviceModel, i, "servicecode")
+            placeCode = self.dbReadStr(serviceModel, i, "placecode")
+            scheduledArrivalTime = QTime.fromString(self.dbReadStr(serviceModel, i, "scheduledarrivaltime"))
+            scheduledDepartureTime = QTime.fromString(self.dbReadStr(serviceModel, i, "scheduleddeparturetime"))
+            trackCode = self.dbReadStr(serviceModel, i, "trackcode")
+            stop = self.dbReadInt(serviceModel, i, "stop")
             self._services[serviceCode].addLine(placeCode, scheduledArrivalTime, scheduledDepartureTime, trackCode, stop)
 
-        for s in _services:
+        for s in self._services.values():
             s.start()
     
     def loadPlaces(self):
@@ -361,22 +401,23 @@ class Simulation(QObject):
         placeModel = QSqlQueryModel()
         placeModel.setQuery("SELECT * FROM places")
         for i in range(placeModel.rowCount()):
-            placeCode = placeModel.record(i).value("placecode").toString()
-            placeName = placeModel.record(i).value("placename").toString()
-            x = placeModel.record(i).value("x").toDouble()
-            y = placeModel.record(i).value("y").toDouble()
-            self._places[placeCode] = Place(placeCode, placeName, x, y)
+            placeCode = self.dbReadStr(placeModel, i, "placecode")
+            placeName = self.dbReadStr(placeModel, i, "placename")
+            x = self.dbReadFloat(placeModel, i, "x")
+            y = self.dbReadFloat(placeModel, i, "y")
+            place = Place(self, placeCode, placeName, x, y)
+            self._places[placeCode] = place
     
     def setupConnections(self):
         """Sets up the connections which need a simulation loaded"""
-        self.timeChanged.connect(Train.selectedTrainModel.update)
+        self.timeChanged.connect(self.selectedTrainModel.update)
 
     def findRoute(self, si1, si2):
         """Checks whether a route exists between two signals, and return this route or 0.
         @param si1 The signalItem of the first signal
         @param si2 The signalItem of the second signal
         @return The route between signal si1 and si2 if it exists, 0 otherwise"""
-        for r in _routes:
+        for r in self._routes.values():
             if r.links(si1, si2):
                 return r;
         return None;
@@ -384,44 +425,39 @@ class Simulation(QObject):
     def createTrackItemsLinks(self):
         """Find the items that are linked together through their coordinates and populate the 
         _nextItem and _previousItem variables of each items."""
-        keys = self._trackItems.keys()
-        values = self._trackItems.values()
-        for i in range(len(keys)): # this iteration on the index of the keys is really dirty ...
-            ri = values[i]
-            if ri != 0:
-                for j in values[i+1:]:
-                    rj = values[j]
-                    if rj != 0:
-                        if distanceBetween(ri.origin, rj.origin) <= 1.0:
-                            ri.setPreviousItem(rj)
-                            rj.setPreviousItem(ri)
-                        elif distanceBetween(ri.origin(), rj.end()) <= 1.0:
-                            ri.setPreviousItem(rj)
-                            rj.setNextItem(ri)
-                        elif distanceBetween(ri.end(), rj.origin()) <= 1.0:
-                            ri.setNextItem(rj)
-                            rj.setPreviousItem(ri)
-                        elif distanceBetween(ri.end(), rj.end()) <= 1.0:
-                            ri.setNextItem(rj)
-                            rj.setNextItem(ri)
-    
+        for ki, vi in self._trackItems.items():
+            for kj, vj in self._trackItems.items():
+                if ki < kj:
+                    if self.distanceBetween(vi.origin, vj.origin) <= 1.0:
+                        vi.previousItem = vj
+                        vj.previousItem = vi
+                    elif self.distanceBetween(vi.origin, vj.end) <= 1.0:
+                        vi.previousItem = vj
+                        vj.nextItem = vi
+                    elif self.distanceBetween(vi.end, vj.origin) <= 1.0:
+                        vi.nextItem = vj
+                        vj.previousItem = vi
+                    elif self.distanceBetween(vi.end, vj.end) <= 1.0:
+                        vi.nextItem = vj
+                        vj.nextItem = vi
     
     def checkTrackItemsLinks(self):
         """Checks that all TrackItems are linked together"""
-        result = true;
-        for ti in _trackItems:
+        result = True;
+        qDebug(self.tr("Checking TrackItem links"))
+        for ti in self._trackItems.values():
             if ti.nextItem is None:
-                qCritical(tr("TrackItem %1 is unlinked at (%2, %3)") \
+                qCritical(self.tr("TrackItem %1 is unlinked at (%2, %3)") \
                               .arg(ti.tiId()) \
                               .arg(ti.end().x()) \
                               .arg(ti.end().y())) 
-                result = false
+                result = False
             if ti.previousItem is None:
-                qCritical(tr("TrackItem %1 is unlinked at (%2, %3)") \
+                qCritical(self.tr("TrackItem %1 is unlinked at (%2, %3)") \
                               .arg(ti.tiId()) \
                               .arg(ti.origin().x()) \
                               .arg(ti.origin().y())) 
-                result = false
+                result = False
         return result
 
     def distanceBetween(self, p1, p2):
@@ -431,3 +467,24 @@ class Simulation(QObject):
         @return"""
         return sqrt((p1.x() - p2.x()) ** 2 + (p1.y() - p2.y()) ** 2)
 
+    def dbReadInt(self, model, row, column):
+        dbOutput = model.record(row).value(column)
+        if not isinstance(dbOutput, QPyNullVariant):
+            return int(dbOutput)
+        else:
+            return 0
+    
+    def dbReadFloat(self, model, row, column):
+        dbOutput = model.record(row).value(column)
+        if not isinstance(dbOutput, QPyNullVariant):
+            return int(dbOutput)
+        else:
+            return 0
+        
+    def dbReadStr(self, model, row, column):
+        dbOutput = model.record(row).value(column)
+        if not isinstance(dbOutput, QPyNullVariant):
+            return str(dbOutput)
+        else:
+            return ""
+        

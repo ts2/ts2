@@ -283,7 +283,7 @@ INSERT INTO routeconflicts VALUES (101, 102);
 --
 
 
-INSERT INTO traintypes VALUES ("UT", "Underground train", 25, 1.0, 1.0, 2.5, 70);
+INSERT INTO traintypes VALUES ("UT", "Underground train", 25.0, 0.5, 0.5, 1.5, 70);
 --
 -- ################################### TRAINS ###################################
 --

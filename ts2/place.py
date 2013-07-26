@@ -23,46 +23,6 @@ from lineitem import *
 from service import *
 
 
-class Place(QObject):
-
-    selectedPlaceModel = PlaceInfoModel()
-    
-    def __init__(self, placeCode, placeName, x, y):
-        super().__init__()
-        self._placeCode = placeCode
-        self._placeName = placeName
-        self._origin = QPointF(x, y)
-        self._gi = QGraphicsSimpleTextItem(_placeName)
-        self._gi.setBrush(QBrush(Qt.white))
-        self._gi.setPos(self._origin)
-        Simulation.instance().registerGraphicsItem(_gi)
-        self._timetable = {}
-        self._tracks = {}
-        
-
-    def addTrack(self, li):
-        self._tracks[li.trackCode()] = li
-    
-    def addTimetable(self, sl):
-        self._timetable[sl.scheduledDepartureTime()] = sl
-
-    @pyqtProperty(str)
-    def placeName(self):
-        return self._placeName
-    
-    @pyqtProperty(int)
-    def timetable(self):
-        return self._timetable
-
-    def track(self, trackCode):
-        qDebug() << "Place: trackCode" << trackCode << self._tracks.value(trackCode).tiId()
-        return self._tracks[trackCode]
-    
-    @staticmethod
-    def findByCode(placeCode):
-        return Simulation.instance().place(placeCode)
-
-
 class PlaceInfoModel(QAbstractTableModel):
     def __init__(self):
         super().__init__()
@@ -70,7 +30,7 @@ class PlaceInfoModel(QAbstractTableModel):
 
     def rowCount(self, parent = QModelIndex()):
         if self._place is not None:
-            return self._place.timetable().count() + 2
+            return len(self._place.timetable) + 2
         else:
             return 0
 
@@ -84,57 +44,102 @@ class PlaceInfoModel(QAbstractTableModel):
         if self._place is not None and role == Qt.DisplayRole:
             if index.row() == 0:
                 if index.column() == 0:
-                    return tr("Station:")
+                    return self.tr("Station:")
                 if index.column() == 1:
-                    return _place.placeName()
+                    return self._place.placeName
             elif index.row() == 1:
                 return ""
             else:
-                line = self._place.timetable().values().value(index.row() - 2)
+                line = self._place.timetable[index.row() - 2]
                 if index.column() == 0:
-                    return line.scheduledDepartureTime()
+                    return line.scheduledDepartureTime
                 elif index.column() == 1:
-                    return line.service().serviceCode()
+                    return line.service.serviceCode
                 elif index.column() == 2:
-                    return line.service().destination()
+                    return line.service.destination
                 elif index.column() == 3:
-                    return line.trackCode()
+                    return line.trackCode
                 elif index.column() == 4:
                     return ""
-        return QVariant()
+        return None
 
-    def headerData (self, section, orientation, role = Qt.DisplayRole):
+    def headerData (self, column, orientation, role = Qt.DisplayRole):
         if self._place is not None and orientation == Qt.Horizontal and role == Qt.DisplayRole:
             if column == 0:
-                return tr("Time")
+                return self.tr("Time")
             elif column == 1:
-                return tr("Code")
+                return self.tr("Code")
             elif column == 2:
-                return tr("Destination")
+                return self.tr("Destination")
             elif column == 3:
-                return tr("Platform")
+                return self.tr("Platform")
             elif column == 4:
-                return tr("Remarks")
+                return self.tr("Remarks")
             else:
                 return ""
-        return QVariant()
+        return None
     
     def flags (self, index):
         return Qt.ItemIsEnabled
     
-    @pyqtProperty(Place)
+    @property
     def place(self):
         return self._place
 
+    @place.setter
+    def place(self, place):
+        self._place = place
+        self.reset()
+        
+    @pyqtSlot(str)
+    def setPlace(self, place):
+        self.place = place
 
     @pyqtSlot()
     def update(self):
         self.reset()
 
-    @pyqtSlot(Place)
-    @place.setter
-    def setPlace(self, place):
-        self._place = place
-        self.reset()
+
+
+class Place(QObject):
+
+    selectedPlaceModel = PlaceInfoModel()
+    
+    def __init__(self, simulation, placeCode, placeName, x, y):
+        super().__init__()
+        self._simulation = simulation
+        self._placeCode = placeCode
+        self._placeName = placeName
+        self._origin = QPointF(x, y)
+        self._gi = QGraphicsSimpleTextItem(self._placeName)
+        self._gi.setBrush(QBrush(Qt.white))
+        self._gi.setPos(self._origin)
+        self._simulation.registerGraphicsItem(self._gi)
+        self._timetable = []
+        self._tracks = {}
+
+    def addTrack(self, li):
+        self._tracks[li.trackCode] = li
+    
+    def addTimetable(self, sl):
+        self._timetable.append(sl)
+        self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
+        
+    @property
+    def graphicsItem(self):
+        return self._gi
+
+    @property
+    def placeName(self):
+        return self._placeName
+    
+    @property
+    def timetable(self):
+        return self._timetable
+    
+    def track(self, trackCode):
+        qDebug("Place: trackCode %s, %i" % (trackCode, self._tracks[trackCode].tiId))
+        return self._tracks[trackCode]
+    
 
 

@@ -18,22 +18,31 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from PyQt4.QtCore import *
-import sys
-from mainwindow import *
+from PyQt4.QtGui import *
+from service import *
+from servicelistview import *
 
-def Main():
-    app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(QPixmap(":/ts2.png")))
-    #try:
-    mw = MainWindow()
-    mw.show()
-    return app.exec_();
-    #except Exception as e:
-        #QMessageBox.critical(None, QObject.trUtf8(QObject(), "Erreur"), str(e), QMessageBox.StandardButtons(QMessageBox.Ok))
-        #return 1;
-    #else:    
-        #return 0;
+class ServiceAssignDialog(QDialog):
+    """TODO Document ServiceAssignDialog"""
     
-if __name__ == "__main__":
-    Main()
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setWindowTitle(self.tr("Choose a service to assign to this train"))
+        self._serviceListView = ServiceListView(self, parent.simulation)
+        self._serviceListView.setupServiceList()
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+        layout = QVBoxLayout()
+        layout.addWidget(self._serviceListView)
+        layout.addWidget(buttonBox)
+        self.setLayout(layout)
+        self.resize(600, 300)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+    def getServiceCode(self):
+        index = self._serviceListView.selectionModel().selection().indexes()[0]
+        if index.isValid():
+            return index.data()
+        else:
+            return ""
+
