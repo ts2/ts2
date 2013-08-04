@@ -25,6 +25,7 @@ from simulation import *
 from servicelistview import ServiceListView
 from trainlistview import *
 from panel import *
+from ressources_rc import *
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -134,7 +135,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.board)
         
         # DEBUG 
-        self.loadSimulation()
+        #self.loadSimulation()
  
     @property
     def trainInfoView(self):
@@ -164,13 +165,13 @@ class MainWindow(QMainWindow):
     def loadSimulation(self):
         QSqlDatabase.database().close()
         ### DEBUG 
-        fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain.ts2";
+        #fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain.ts2";
 
-#        fileName = QFileDialog.getOpenFileName(
-#                            self,
-#                            tr("Open a simulation"),
-#                            QDir.currentPath,
-#                            tr("TS2 simulation files (*.ts2)"))
+        fileName = QFileDialog.getOpenFileName(\
+                           self,\
+                           self.tr("Open a simulation"),\
+                           QDir.currentPath(),\
+                           self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
             qDebug("Simulation loading")
             self.db = QSqlDatabase.addDatabase("QSQLITE")

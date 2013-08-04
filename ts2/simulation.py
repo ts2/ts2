@@ -43,7 +43,7 @@ class Simulation(QObject):
         """ Creates the unique Simulation instance (which is accessible through Simulation::instance())
         or throws an Exception, if a simulation is already loaded. """
         super().__init__()
-        if Simulation._self is None or not Simulation._self.hasattr("_scene"):
+        if (Simulation._self is None) or (not Simulation._self.hasattr("_scene")):
             Simulation._self = self
             self._simulationWindow = simulationWindow
             self._scene = QGraphicsScene()
