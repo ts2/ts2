@@ -19,8 +19,8 @@
 #
 
 from PyQt4.QtGui import *
-from lineitem import *
-from service import *
+from ts2.lineitem import *
+from ts2.service import *
 
 
 class PlaceInfoModel(QAbstractTableModel):

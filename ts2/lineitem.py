@@ -21,11 +21,11 @@
 from PyQt4.QtSql import *
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from simulation import *
-from service import *
-from trackitem import *
+from ts2.simulation import *
+from ts2.service import *
+from ts2.trackitem import *
 # TODO Remove dependancy from mainwindow
-from mainwindow import *
+#from mainwindow import *
 from math import *
 
 class LineItem(TrackItem):

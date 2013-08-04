@@ -21,7 +21,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
-from trackitem import *
+from ts2.trackitem import *
 
 class PointsGraphicsItem(QGraphicsItem):
     """@brief Graphical item for points

@@ -19,8 +19,8 @@
 #
 
 from PyQt4.QtGui import *
-from service import *
-from servicelistview import *
+from ts2.service import *
+from ts2.servicelistview import *
 
 class ServiceAssignDialog(QDialog):
     """TODO Document ServiceAssignDialog"""

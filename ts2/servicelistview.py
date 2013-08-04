@@ -19,8 +19,8 @@
 #
 
 from PyQt4.QtGui import *
-from simulation import *
-from service import *
+from ts2.simulation import *
+from ts2.service import *
 
 class ServiceListView(QTreeView):
     """TODO Document ServiceListView"""    

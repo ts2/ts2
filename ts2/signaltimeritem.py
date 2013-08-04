@@ -21,7 +21,7 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4.QtSql import *
-from signalitem import *
+from ts2.signalitem import *
 
 class SignalTimerItem(SignalItem):
     """ TODO Document SignalTimerItem class"""

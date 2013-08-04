@@ -21,11 +21,11 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4.QtSql import *
-from simulation import *
-from servicelistview import ServiceListView
-from trainlistview import *
-from panel import *
-from ressources_rc import *
+from ts2.simulation import *
+from ts2.servicelistview import ServiceListView
+from ts2.trainlistview import *
+from ts2.panel import *
+from ts2.ressources_rc import *
 
 class MainWindow(QMainWindow):
     def __init__(self):

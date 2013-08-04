@@ -19,9 +19,9 @@
 #
 
 from PyQt4.QtCore import *
-from place import *
-from lineitem import *
-from simulation import *
+from ts2.place import *
+from ts2.lineitem import *
+from ts2.simulation import *
 
 
 class ServiceInfoModel(QAbstractTableModel):

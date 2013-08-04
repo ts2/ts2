@@ -18,7 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from signalitem import *
+from ts2.signalitem import *
 from PyQt4.QtSql import *
 
 class BumperItem(SignalItem):

@@ -23,17 +23,17 @@ from PyQt4.QtCore import *
 from PyQt4.QtSql import *
 from PyQt4.QtGui import *
 from math import sqrt
-from route import *
-from signalitem import *
-from pointsitem import *
-from train import *
-from lineitem import *
-from trackitem import *
-from platformitem import *
-from bumperitem import *
-from enditem import *
-from signaltimeritem import *
-from traintype import *
+from ts2.route import *
+from ts2.signalitem import *
+from ts2.pointsitem import *
+from ts2.train import *
+from ts2.lineitem import *
+from ts2.trackitem import *
+from ts2.platformitem import *
+from ts2.bumperitem import *
+from ts2.enditem import *
+from ts2.signaltimeritem import *
+from ts2.traintype import *
 
 class Simulation(QObject):
     

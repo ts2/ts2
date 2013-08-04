@@ -21,9 +21,9 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4.QtSql import *
-from trackitem import *
-from lineitem import *
-from place import *
+from ts2.trackitem import *
+from ts2.lineitem import *
+from ts2.place import *
 
 class PFGraphicsItem(QGraphicsRectItem):
     """@brief Graphical item for platforms

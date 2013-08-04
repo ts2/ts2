@@ -21,12 +21,12 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from math import sqrt
-from position import *
-from signalitem import *
-from service import *
-from simulation import *
-from serviceassigndialog import *
-from mainwindow import *
+from ts2.position import *
+from ts2.signalitem import *
+from ts2.service import *
+from ts2.simulation import *
+from ts2.serviceassigndialog import *
+#from ts2.mainwindow import *
 # FIXME remove dependency to MainWindow
 
 class TrainStatus:

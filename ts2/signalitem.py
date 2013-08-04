@@ -21,8 +21,8 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4.QtSql import *
-from trackitem import *
-from route import *
+from ts2.trackitem import *
+from ts2.route import *
 
 class SignalState:
 

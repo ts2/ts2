@@ -20,8 +20,8 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from simulation import Simulation
-from train import Train
+from ts2.simulation import Simulation
+from ts2.train import Train
 
 class TrainListView(QTreeView):
     """ TODO Document TrainListView class"""
