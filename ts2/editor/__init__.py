@@ -18,19 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from PyQt4 import QtCore
+from ts2.editor.editorscenebackground import EditorSceneBackground
+from ts2.editor.editor import Editor
+from ts2.editor.editorwindow import EditorWindow
 
-def recordToDict(record):
-    """This helper function returns a dictionary from a QSqlRecord"""
-    retDict = {}
-    for i in range(record.count()):
-        if not isinstance(record.value(i), QtCore.QPyNullVariant):
-            retDict[record.fieldName(i)] = record.value(i)
-        else:
-            retDict[record.fieldName(i)] = None
-    return retDict
-
-class Context():
-    """This class holds the different context for ts2."""
-    GAME = 10
-    EDITOR = 20

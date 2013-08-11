@@ -20,9 +20,6 @@
 
 from PyQt4.QtCore import *
 from ts2.position import *
-from ts2.trackitem import *
-from ts2.signalitem import *
-
 
 
 class Route(QObject):

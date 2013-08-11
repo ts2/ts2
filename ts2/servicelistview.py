@@ -18,11 +18,10 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from PyQt4.QtGui import *
-from ts2.simulation import *
-from ts2.service import *
+from PyQt4 import QtGui, QtCore
+from ts2.service import Service
 
-class ServiceListView(QTreeView):
+class ServiceListView(QtGui.QTreeView):
     """TODO Document ServiceListView"""    
 
     def __init__(self, parent, simulation):
@@ -33,30 +32,41 @@ class ServiceListView(QTreeView):
         self.setHeaderHidden(False)
         self._simulation.simulationLoaded.connect(self.setupServiceList)
 
-    serviceSelected = pyqtSignal(str)
+    serviceSelected = QtCore.pyqtSignal(str)
 
-    @pyqtSlot(str)
+    @QtCore.pyqtSlot(str)
     def updateServiceSelection(self, serviceCode):
-        pass
+        """Update the selection by selecting the service given by serviceCode.
+        """
+        for i in range(self.model().rowCount()):
+            index = self.model().index(i, 0)
+            if self.model().data(index) == serviceCode:
+                self.selectionModel().select( \
+                                index, \
+                                QtGui.QItemSelectionModel.Rows| \
+                                QtGui.QItemSelectionModel.ClearAndSelect)
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def setupServiceList(self):
         """Updates the service list view."""
         if self.model() is None:
             self.setModel(self._simulation.serviceListModel)
             self.setSortingEnabled(True)
-            for i in range(0,4):
+            for i in range(0, 4):
                 self.resizeColumnToContents(i)
             self.header().setStretchLastSection(False)
             self.header().setSortIndicatorShown(False)
-            self.setSelectionBehavior(QAbstractItemView.SelectRows)
-            self.serviceSelected.connect(self._simulation.selectedServiceModel.setServiceCode)
-            self._simulation.simulationWindow.trainListView.trainSelected.connect(\
-                self.updateServiceSelection)
+            self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+            self.serviceSelected.connect( \
+                    self._simulation.selectedServiceModel.setServiceCode)
+            self._simulation.simulationWindow.trainListView.\
+                    trainSelected.connect( \
+                    self.updateServiceSelection)
 
-    @pyqtSlot(QItemSelection, QItemSelection)
+    @QtCore.pyqtSlot(QtGui.QItemSelection, QtGui.QItemSelection)
     def selectionChanged(self, selected, deselected):
-        """This function is called when a line is selected in the service list view.
+        """This function is called when a line is selected in the
+        serviceListView.
         It emits the serviceSelected signal for others to connect to."""
         index = selected.indexes()[0]
         if index.isValid():

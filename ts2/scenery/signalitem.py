@@ -18,66 +18,33 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-from PyQt4.QtSql import *
-from ts2.trackitem import *
-from ts2.route import *
+from PyQt4 import QtGui, QtCore, QtSql
+from PyQt4.Qt import Qt
+from ts2.scenery import TrackItem, TrackGraphicsItem, TIProperty
+from ts2.route import Route
+from ts2.position import Position
+from ts2 import utils
+
+tr = QtCore.QObject().tr
 
 class SignalState:
-
+    """This class holds the different possible states of a signal"""
     CLEAR = 0
     WARNING = 50
     STOP = 100
-
-class SignalGraphicsItem(QGraphicsItem):
-    """@brief Graphical item for signals
-    This class is the graphics of a SignalItem on the scene.
-    Each instance belongs to a SignalItem which is defined in the constructor.
-    @author Nicolas Piganeau"""
-
-    def __init__(self, signalItem, parent = None):
-        """Constructor for the SignalGraphicsItem class.
-        @param signalItem Pointer to the SignalItem to which this
-        SignalGraphicsItem belongs to."""
-        super().__init__(parent)
-        self._signalItem = signalItem
-        self.setZValue(100)
-
-    def boundingRect(self):
-        """Returns the bounding rectangle of the SignalGraphicsItem.
-        See QGraphicsItem::boundingRect() for more info."""
-        return QRectF(0, 0, 60, 25)
-
-    def paint(self, painter, option, widget = 0):
-        """Painting function for the SignalGraphicsItem.
-        This function asks for the owning SignalItem to paint its painter."""
-        self._signalItem.drawSignal(painter)
-
-    def mousePressEvent(self, event):
-        """mousePressEvent function, called when the signalGraphicsItem is
-        clicked. This function calls the select function of the owning
-        SignalItem."""
-        self._signalItem.select(event)
 
 
 class SignalItem(TrackItem):
     """ @brief Logical item for signals
     This class holds the logics of a basic signal (CLEAR, WARNING, STOP).
     A signal is the item from and to which routes are created.
-    Each instance owns a SignalGraphicsItem which is the graphical item drawn on the scene.
-    @author Nicolas Piganeau"""
+    Each instance owns a SignalGraphicsItem which is the graphical item drawn
+    on the scene."""
 
-    def __init__(self, simulation, record):
-        """ Constructor for the SignalItem class.
-        trainSelected is  lists of the slots to which the 
-        corresponding signals will be connected to"""
-        super().__init__(simulation, record)
-        reverse = record.value("reverse")
-        if reverse:
-            self._end = self._origin + QPointF(-60, 0)
-        else:
-            self._end = self._origin + QPointF(60, 0)
+    def __init__(self, simulation, parameters):
+        """ Constructor for the SignalItem class."""
+        super().__init__(simulation, parameters)
+        reverse = parameters["reverse"]
         self._tiType = "S"
         self._selected = False
         self._reverse = reverse
@@ -86,24 +53,71 @@ class SignalItem(TrackItem):
         self._nextActiveRoute = None
         self._trainServiceCode = ""
         self._signalPos = 0
-        sgi = SignalGraphicsItem(self)
+        sgi = TrackGraphicsItem(self)
         sgi.setPos(self.realOrigin)
         sgi.setCursor(Qt.PointingHandCursor)
-        sgi.setToolTip(self.tr("Signal: %s") % self.name)
+        sgi.setToolTip(self.toolTipText)
+        sgi.setZValue(50)
         self._gi = sgi
-        simulation.registerGraphicsItem(self._gi)
+        self._simulation.registerGraphicsItem(self._gi)
         self.updateGraphics()
         self.signalSelected.connect(simulation.createRoute)
         self.signalUnselected.connect(simulation.deleteRoute)
-        self.trainSelected.connect(simulation.simulationWindow.trainListView.updateTrainSelection)
+        self.trainSelected.connect(simulation.trainSelected)
+        self._properties = ["tiId", "name", "reverse", "originStr"]
 
-    signalSelected = pyqtSignal(int, bool)
-    signalUnselected = pyqtSignal(int)
-    trainSelected = pyqtSignal(str)
+    properties = TrackItem.properties + [TIProperty("reverse", tr("Reverse"))]
+
+    signalSelected = QtCore.pyqtSignal(int, bool)
+    signalUnselected = QtCore.pyqtSignal(int)
+    trainSelected = QtCore.pyqtSignal(str)
+
+    @property
+    def origin(self):
+        """Returns the origin QPointF of the TrackItem. The origin is 
+        the right end of the track represented on the SignalItem if the 
+        signal is reversed, the left end otherwise"""
+        return self._origin
+
+    @origin.setter
+    def origin(self, value):
+        """Setter function for the origin property"""
+        if self._simulation.context == utils.Context.EDITOR:
+            if self.reverse:
+                self.realOrigin = value + QtCore.QPointF(-60,-2)
+            else:
+                self.realOrigin = value + QtCore.QPointF(0,-18)
+
+    @property
+    def end(self):
+        """Returns the end QPointF of the TrackItem. The end is 
+        generally the right end of the track represented on the TrackItem"""
+        if self.reverse:
+            return self._origin + QtCore.QPointF(-60, 0)
+        else:
+            return self._origin + QtCore.QPointF(60, 0)
 
     @property
     def reverse(self):
-        return self._reverse
+        """Returns True if the SignalItem is from right to left, false 
+        otherwise"""
+        return bool(self._reverse)
+    
+    @reverse.setter
+    def reverse(self, value):
+        """Setter function for the reverse property"""
+        if self._simulation.context == utils.Context.EDITOR:
+            self._reverse = bool(value)
+            if self._reverse:
+                self.realOrigin += QtCore.QPointF(60, 0)
+            else:
+                self.realOrigin += QtCore.QPointF(-60, 0)
+            self.updateGraphics()
+
+    @property
+    def toolTipText(self):
+        """Returns the string to show on the tool tip"""
+        return self.tr("Signal: %s") % self.name
 
     @property
     def highlighted(self):
@@ -111,18 +125,37 @@ class SignalItem(TrackItem):
 
     @property
     def signalHighlighted(self):
-        return self._nextActiveRoute is not None or self._previousActiveRoute is not None
+        return (self._nextActiveRoute is not None) or \
+               (self._previousActiveRoute is not None)
 
     @property
     def realOrigin(self):
-        if self._reverse:
-            return self.end + QPointF(0,-2)
+        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is 
+        the position of the top left corner of the bounding rectangle of the
+        TrackItem. Reimplemented in SignalItem"""
+        if self.reverse:
+            return self.origin + QtCore.QPointF(-60,-2)
         else:
-            return self.origin + QPointF(0,-18)
+            return self.origin + QtCore.QPointF(0,-18)
+        
+    @realOrigin.setter
+    def realOrigin(self, pos):
+        """Setter function for the realOrigin property"""
+        if self._simulation.context == utils.Context.EDITOR:
+            grid = self.simulation.grid
+            if self.reverse:
+                x = round((pos.x() + 60.0) / grid) * grid
+                y = round((pos.y() + 2.0) / grid) * grid
+            else:
+                x = round((pos.x()) / grid) * grid
+                y = round((pos.y() + 18.0) / grid) * grid
+            self._origin = QtCore.QPointF(x, y)
+            self._gi.setPos(self.realOrigin)
+            self.updateGraphics()
 
     @property
     def size(self):
-        return QSizeF(60, 20)
+        return QtCore.QSizeF(60, 20)
 
     @property
     def signalState(self):
@@ -156,10 +189,13 @@ class SignalItem(TrackItem):
         else:
             return False
 
-    def select(self, e):
-        """ This function is called by mousePressEvent of the owned SignalGraphicsItem.
-        It processes mouse clicks on the signal. If the It emits the signals signalSelected,
-        trainSelected, or signalUnselected depending on the case."""
+    def graphicsMousePressEvent(self, e):       
+        """Reimplemented from TrackItem.graphicsMousePressEvent to handle the
+        mousePressEvent of the owned TrackGraphicsItem.
+        It processes mouse clicks on the signal and emits the signals 
+        signalSelected, trainSelected, or signalUnselected depending on the 
+        case."""
+        super().graphicsMousePressEvent(e)
         if e.button() == Qt.LeftButton:
             if (self._reverse and e.pos().x() <= 20) or \
                (not self._reverse and e.pos().x() > 40):
@@ -180,13 +216,18 @@ class SignalItem(TrackItem):
                 # The train code is right-clicked 
                 train = self._simulation.train(self._trainServiceCode)
                 if train is not None:
-                    train.showTrainActionsMenu(self._simulation.simulationWindow.view, e.screenPos())
+                    train.showTrainActionsMenu(\
+                        self._simulation.simulationWindow.view, e.screenPos())
         self.updateGraphics()
 
-    def drawSignal(self, p):
-        """ Draws the signal on the painter given as parameter.
-        This function is called by SignalGraphicsItem::paint.
-        @param p The painter on which to draw the signal."""
+    def graphicsBoundingRect(self):
+        """Reimplemented from TrackItem.graphicsBoundingRect to return the
+        bounding rectangle of the owned TrackGraphicsItem."""
+        return QtCore.QRectF(0, 0, 60, 25)
+
+    def graphicsPaint(self, p, options, widget = 0):
+        """ Reimplemented from TrackItem.graphicsPaint to
+        draw the signal on the owned TrackGraphicsItem"""
         # Draws the berth
         linePen = self.getPen()
         textPen = self.getPen()
@@ -196,10 +237,11 @@ class SignalItem(TrackItem):
         if self._trainServiceCode != "":
             # Draw Train code
             p.setPen(textPen)
-            font = QFont("Courier new")
+            font = QtGui.QFont("Courier new")
             font.setPixelSize(11)
             p.setFont(font)
-            textOrigin = QPointF(23,6) if self.reverse else QPointF(3,22)
+            textOrigin = QtCore.QPointF(23,6) if self.reverse else\
+                         QtCore.QPointF(3,22)
             p.drawText(textOrigin, self._trainServiceCode.rjust(5))
         else:
             # No Train code => Draw Line
@@ -225,7 +267,7 @@ class SignalItem(TrackItem):
         else:
             textPen.setColor(Qt.darkGray)
         p.setPen(textPen)
-        brush = QBrush(Qt.SolidPattern)
+        brush = QtGui.QBrush(Qt.SolidPattern)
         if self._signalState == SignalState.CLEAR:
             brush.setColor(Qt.green)
         elif self._signalState == SignalState.WARNING:
@@ -236,21 +278,23 @@ class SignalItem(TrackItem):
             brush.setColor(Qt.black)
         p.setBrush(brush)
         if self.reverse:
-            r = QRect(7, 7, 8, 8)
+            r = QtCore.QRect(7, 7, 8, 8)
             p.drawLine(18, 2, 18, 11);
             p.drawLine(18, 11, 15, 11);
             p.drawEllipse(r);
-            if self._nextActiveRoute is not None and self._nextActiveRoute.persistent:
+            if self._nextActiveRoute is not None and \
+               self._nextActiveRoute.persistent:
                 # Draw persistent route rectangle marker
                 brush.setColor(Qt.white)
                 p.setBrush(brush)
                 p.drawRect(1,5,4,3)
         else:
-            r = QRect(45, 5, 8, 8)
+            r = QtCore.QRect(45, 5, 8, 8)
             p.drawLine(42, 18, 42, 9)
             p.drawLine(42, 9, 45, 9)
             p.drawEllipse(r)
-            if self._nextActiveRoute is not None and self._nextActiveRoute.persistent:
+            if self._nextActiveRoute is not None and \
+               self._nextActiveRoute.persistent:
                 # Draw persistent route rectangle marker
                 brush.setColor(Qt.white)
                 p.setBrush(brush)
@@ -274,12 +318,14 @@ class SignalItem(TrackItem):
 
     @property
     def trainServiceCode(self):
-        """Returns the trainServiceCode of this signal. This is for display only."""
+        """Returns the trainServiceCode of this signal. This is for display 
+        only."""
         return self._trainServiceCode
 
     @trainServiceCode.setter
     def trainServiceCode(self, code):
-        """Sets the trainServiceCode of this signal to the given code. This is for display only."""
+        """Sets the trainServiceCode of this signal to the given code. This is
+        for display only."""
         self._trainServiceCode = code
         self.updateGraphics()
 
@@ -289,13 +335,14 @@ class SignalItem(TrackItem):
         self.updateGraphics()
 
     def trainsAhead(self):
-        """ Returns true if there is a train ahead of this signalItem and before
-        the next signalItem"""
+        """ Returns true if there is a train ahead of this signalItem and 
+        before the next signalItem"""
         pos = Position(self._nextItem, self, 0)
         while not pos.trackItem.tiType.startswith("E"):
             if pos.trackItem.tiType.startswith("S") and \
             pos.trackItem.isOnPosition(pos):
-                # We have met the next signal in the same direction without finding any train
+                # We have met the next signal in the same direction without 
+                # finding any train
                 break
             if pos.trackItem.trainPresent():
                 return True
@@ -305,8 +352,10 @@ class SignalItem(TrackItem):
     def trainHeadActions(self, serviceCode):
         """Actions to be performed when the train head reaches this signal.
         Pushes the train code to the next signal."""
-        if self.nextActiveRoute is not None:
-            self.nextActiveRoute.endSignal.trainServiceCode = self.trainServiceCode
+        if (self.nextActiveRoute is not None) and \
+           (self.trainServiceCode != ""):
+            self.nextActiveRoute.endSignal.trainServiceCode = \
+                    self.trainServiceCode
             self.resetTrainServiceCode()            
         super().trainHeadActions(serviceCode)
 
@@ -315,38 +364,48 @@ class SignalItem(TrackItem):
         It deals with desactivating this signal."""
         if self.activeRoute is not None and \
            self.activeRoutePreviousItem != self.previousItem:
-            # The line is highlighted by an opposite direction route => usual TI
+            # The line is highlighted by an opposite direction route 
+            # => base TrackItem actions
             super().trainTailActions(serviceCode)
         else:
-            self.resetActiveRoute() # For cleaning purposes, activeRoute is not used in this direction
-            if self.previousActiveRoute is not None and not self.previousActiveRoute.persistent:
-                beginSignalNextRoute = self.previousActiveRoute.beginSignal.nextActiveRoute
+            
+            self.resetActiveRoute() # For cleaning purposes:
+                                    # activeRoute not used in this direction
+            if (self.previousActiveRoute is not None) and \
+               (not self.previousActiveRoute.persistent):
+                beginSignalNextRoute = \
+                        self.previousActiveRoute.beginSignal.nextActiveRoute
                 if beginSignalNextRoute is None or \
                    beginSignalNextRoute != self.previousActiveRoute:
-                    # Only reset previous route if the user did not reactivate it in the meantime
+                    # Only reset previous route if the user did not 
+                    # reactivate it in the meantime
                     self.previousItem.resetActiveRoute()
                     self.resetPreviousActiveRoute()
-            if self.nextActiveRoute is not None and not self.nextActiveRoute.persistent:
+            if (self.nextActiveRoute is not None) and \
+               (not self.nextActiveRoute.persistent):
                 self.resetNextActiveRoute()
             self.updateSignalState()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def unselect(self):
         """Unselect the signal."""
         self._selected = False
         self.updateGraphics()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def updateSignalState(self):
         """Update the signal state."""
         if self._nextActiveRoute is None or self.trainsAhead():
             self._signalState = SignalState.STOP
         else:
-            if self._nextActiveRoute.endSignal.signalState == SignalState.CLEAR:
+            if self._nextActiveRoute.endSignal.signalState == \
+                                                        SignalState.CLEAR:
                 self._signalState = SignalState.CLEAR
-            elif self._nextActiveRoute.endSignal.signalState == SignalState.WARNING:
+            elif self._nextActiveRoute.endSignal.signalState == \
+                                                        SignalState.WARNING:
                 self._signalState = SignalState.CLEAR
-            elif self._nextActiveRoute.endSignal.signalState == SignalState.STOP:
+            elif self._nextActiveRoute.endSignal.signalState == \
+                                                        SignalState.STOP:
                 self._signalState = SignalState.WARNING
             else:
                 self._signalState = SignalState.STOP

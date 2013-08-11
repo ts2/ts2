@@ -18,14 +18,14 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt4 import QtCore
 from math import sqrt
+from ts2.scenery import SignalState
 from ts2.position import *
-from ts2.signalitem import *
 from ts2.service import *
 from ts2.simulation import *
 from ts2.serviceassigndialog import *
+from ts2.place import Place
 #from ts2.mainwindow import *
 # FIXME remove dependency to MainWindow
 
@@ -56,7 +56,7 @@ class TrainStatus:
             return ""
 
 
-class TrainListModel(QAbstractTableModel):
+class TrainListModel(QtCore.QAbstractTableModel):
     """ TODO Document TrainListModel class"""
     
     def __init__(self, simulation):
@@ -120,7 +120,7 @@ class TrainListModel(QAbstractTableModel):
 
 
 
-class TrainInfoModel(QAbstractTableModel):
+class TrainInfoModel(QtCore.QAbstractTableModel):
     """ TODO Document TrainInfoModel Class"""
    
     def __init__(self, simulation):
@@ -220,7 +220,7 @@ class TrainInfoModel(QAbstractTableModel):
         self.reset()
         
         
-class Train(QObject):
+class Train(QtCore.QObject):
     """ TODO Document Train class """
 
     trainStoppedAtStation = pyqtSignal(Place)
@@ -255,7 +255,9 @@ class Train(QObject):
                self._trainHead.positionOnTI() > self._trainType.length()
 
     def isActive(self):
-        return self._status != TrainStatus.INACTIVE and self._status != TrainStatus.OUT
+        return self._status != TrainStatus.INACTIVE and \
+               self._status != TrainStatus.OUT and \
+               self._status != TrainStatus.END_OF_SERVICE
 
     @property
     def serviceCode(self):
@@ -336,26 +338,19 @@ class Train(QObject):
             if newServiceCode != "" and \
                self._simulation.train(newServiceCode) is None:
                 self.serviceCode = newServiceCode
+                self._status = TrainStatus.INACTIVE
 
     @pyqtSlot()
     def resetService(self):
         """Resets the service, i.e. sets the pointer to the first station."""
-        if QMessageBox.question(MainWindow.instance(), \
-                        self.tr("Reset a service"), \
-                        self.tr("Are you sure you really want to reset service %s?" % self.serviceCode), \
-                        QMessageBox.Ok|QMessageBox.Cancel) == QMessageBox.Ok:
-            self.currentService().start()
+        if QMessageBox.question(self._simulation.simulationWindow, \
+                self.tr("Reset a service"), \
+                self.tr("Are you sure you really want to reset service %s?" \
+                                                % self.serviceCode), \
+                QMessageBox.Ok|QMessageBox.Cancel) == QMessageBox.Ok:
+            self._status = TrainStatus.INACTIVE
+            self.currentService.start()
 
-    #def updateSignals(self):
-        #"""TODO Document updateSignals
-        #TODO Needs cleaning up. Try to reimplement using TI.trainTailActions"""
-        #ns = self.findNextSignal()
-        #if ns is not None:
-            #ns.trainServiceCode = self._serviceCode
-        #if self._nextSignal != ns:
-            #self._nextSignal.resetTrainServiceCode()
-            #self._nextSignal = ns
-        
     def executeActions(self, advanceLength):
         """ Execute actions that have to be done when the train head enters
         a trackItem or when the train tail leaves another.

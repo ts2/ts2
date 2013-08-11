@@ -19,7 +19,6 @@
 #
 
 from PyQt4.QtGui import *
-from ts2.lineitem import *
 from ts2.service import *
 
 

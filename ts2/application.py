@@ -21,6 +21,7 @@
 from PyQt4.QtGui import QApplication, QIcon, QPixmap
 import sys
 from ts2 import mainwindow
+from ts2 import ressources_rc
 
 def Main():
     app = QApplication(sys.argv)

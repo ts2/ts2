@@ -21,13 +21,16 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4.QtSql import *
-from ts2.simulation import *
+from ts2.simulation import Simulation
+from ts2.place import Place
 from ts2.servicelistview import ServiceListView
-from ts2.trainlistview import *
-from ts2.panel import *
-from ts2.ressources_rc import *
+from ts2.trainlistview import TrainListView
+from ts2.panel import Panel
+from ts2.editor import EditorWindow
 
 class MainWindow(QMainWindow):
+    """ TODO Document MainWindow Class"""
+    
     def __init__(self):
         super().__init__()
         MainWindow._self = self
@@ -48,6 +51,11 @@ class MainWindow(QMainWindow):
         self.quitAction.setShortcut(QKeySequence(self.tr("Ctrl+Q")))
         self.quitAction.setToolTip(self.tr("Quit TS2"))
         self.quitAction.triggered.connect(self.close)
+        
+        self.editorAction = QAction(self.tr("&Editor"), self)
+        self.editorAction.setShortcut(QKeySequence(self.tr("Ctrl+Q")))
+        self.editorAction.setToolTip(self.tr("Open the simulation editor"))
+        self.editorAction.triggered.connect(self.openEditor)
 
         self.aboutAction = QAction(self.tr("&About TS2..."), self)
         self.aboutAction.setToolTip(self.tr("About TS2"))
@@ -62,6 +70,7 @@ class MainWindow(QMainWindow):
         self.fileMenu.addAction(self.openAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitAction)
+        self.editorMenu = self.menuBar().addAction(self.editorAction)
         self.helpMenu = self.menuBar().addMenu(self.tr("&Help"))
         self.helpMenu.addAction(self.aboutAction)
         self.helpMenu.addAction(self.aboutQtAction)
@@ -100,6 +109,7 @@ class MainWindow(QMainWindow):
         self.trainListPanel = QDockWidget(self.tr("Trains"), self)
         self.trainListPanel.setFeatures(QDockWidget.DockWidgetMovable|QDockWidget.DockWidgetFloatable)
         self._trainListView = TrainListView(self, self.simulation)
+        self.simulation.trainSelected.connect(self._trainListView.updateTrainSelection)
         self.trainListPanel.setWidget(self._trainListView)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.trainListPanel)
 
@@ -134,8 +144,12 @@ class MainWindow(QMainWindow):
         self.board.setLayout(self.grid)
         self.setCentralWidget(self.board)
         
+        # Editor
+        self.editorOpened = False
+        
         # DEBUG 
         #self.loadSimulation()
+        #self.openEditor()
  
     @property
     def trainInfoView(self):
@@ -199,3 +213,18 @@ http://ts2.sourceforge.net""")
             if train is not None:
                 train.showTrainActionsMenu(self._trainInfoView, self._trainInfoView.mapToGlobal(pos))
 
+    @pyqtSlot()
+    def openEditor(self):
+        """This slot opens the editor window if it is not already opened"""
+        if not self.editorOpened:
+            self.editorWindow = EditorWindow(self)
+            self.editorWindow.closed.connect(self.editorIsClosed)
+            self.editorOpened = True
+            self.editorWindow.show()
+        else:
+            self.editorWindow.activateWindow()
+
+
+    @pyqtSlot()
+    def editorIsClosed(self):
+        self.editorOpened = False

@@ -60,7 +60,7 @@ class TrainListView(QTreeView):
     def contextMenuEvent(self, event):
         index = self.selectionModel().selection().indexes()[0]
         if index.isValid():
-            train = self._simulation.train(index.data().toString())
+            train = self._simulation.train(index.data())
             train.showTrainActionsMenu(self, event.globalPos())
 
     @pyqtSlot(QItemSelection, QItemSelection)

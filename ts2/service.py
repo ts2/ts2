@@ -20,7 +20,6 @@
 
 from PyQt4.QtCore import *
 from ts2.place import *
-from ts2.lineitem import *
 from ts2.simulation import *
 
 

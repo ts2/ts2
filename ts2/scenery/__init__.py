@@ -18,26 +18,16 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from ts2.trackitem import *
-from ts2.simulation import *
-from PyQt4.QtSql import *
+from ts2.scenery.trackitem import TrackItem, TrackGraphicsItem,\
+                                  TrackPropertiesModel, TIProperty
 
-BIG = 1000000000
+from ts2.scenery.signalitem import SignalItem, SignalState
+from ts2.scenery.signaltimeritem import SignalTimerItem
+from ts2.scenery.bumperitem import BumperItem
 
-class EndItem(TrackItem):
-    """ TODO Document EndItem class"""
-    
-    def __init__(self, simulation, record):
-        super().__init__(simulation, record)
-        self._tiType = "E"
-        self._realLength = BIG
-        self._end = QPointF(-1,-1)
-        self._gi = QGraphicsLineItem(0,0,0,0,None)
-        simulation.registerGraphicsItem(self._gi)
+from ts2.scenery.enditem import EndItem
 
-    def getFollowingItem(self, precedingItem, direction = -1):
-        if precedingItem == self._previousItem:
-            return None
-        else:
-            return self._previousItem
+from ts2.scenery.lineitem import LineItem
+from ts2.scenery.platformitem import PlatformItem
 
+from ts2.scenery.pointsitem import PointsItem
