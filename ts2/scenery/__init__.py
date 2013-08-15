@@ -21,6 +21,8 @@
 from ts2.scenery.trackitem import TrackItem, TrackGraphicsItem,\
                                   TrackPropertiesModel, TIProperty
 
+from ts2.scenery.place import Place
+
 from ts2.scenery.signalitem import SignalItem, SignalState
 from ts2.scenery.signaltimeritem import SignalTimerItem
 from ts2.scenery.bumperitem import BumperItem

@@ -25,9 +25,6 @@ from ts2.position import *
 from ts2.service import *
 from ts2.simulation import *
 from ts2.serviceassigndialog import *
-from ts2.place import Place
-#from ts2.mainwindow import *
-# FIXME remove dependency to MainWindow
 
 class TrainStatus:
 

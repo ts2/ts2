@@ -66,22 +66,43 @@ class PointsItem(TrackItem):
                             TIProperty("reverseEndStr", "Reverse End")]
 
     @property
+    def saveParameters(self):
+        """Returns the parameters dictionary to save this TrackItem to the 
+        database"""
+        parameters = super().saveParameters
+        parameters.update({ \
+                                "x":self._center.x(), \
+                                "y":self._center.y(), \
+                                "xf":(self._commonEnd - self.middle).x(), \
+                                "yf":(self._commonEnd - self.middle).y(), \
+                                "xn":(self._normalEnd - self.middle).x(), \
+                                "yn":(self._normalEnd - self.middle).y(), \
+                                "xr":(self._reverseEnd - self.middle).x(), \
+                                "yr":(self._reverseEnd - self.middle).y()})
+        return parameters
+
+    @property
     def origin(self):
         """Returns the origin QPointF of the PointsItem, which is actually the
         common end in the scene coordinates"""
         return self._center + self._commonEnd - self.middle
 
-    @origin.setter
-    def origin(self, value):
-        """Setter function for the origin property"""
-        if self._simulation.context == utils.Context.EDITOR:
-            self.realOrigin = value - self._commonEnd
+    #@origin.setter
+    #def origin(self, value):
+        #"""Setter function for the origin property"""
+        #if self._simulation.context == utils.Context.EDITOR:
+            #self.realOrigin = value - self._commonEnd
     
     @property
     def end(self):
         """Returns the origin QPointF of the PointsItem, which is actually the
         normal end in the scene coordinates"""
         return self._center + self._normalEnd - self.middle
+
+    @property
+    def reverse(self):
+        """Returns the reverse QPointF in the scene coordinates"""
+        return self._center + self._reverseEnd - self.middle
 
     @property
     def realOrigin(self):

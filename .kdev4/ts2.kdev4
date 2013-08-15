@@ -7,7 +7,7 @@ Launch Configurations=Launch Configuration 0
 [Launch][Launch Configuration 0]
 Configured Launch Modes=execute
 Configured Launchers=scriptAppLauncher
-Name=Python3
+Name=Launch TS2
 Type=Script Application
 
 [Launch][Launch Configuration 0][Data]

@@ -22,7 +22,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4.QtSql import *
 from ts2.simulation import Simulation
-from ts2.place import Place
+from ts2.scenery import Place
 from ts2.servicelistview import ServiceListView
 from ts2.trainlistview import TrainListView
 from ts2.panel import Panel
@@ -53,7 +53,7 @@ class MainWindow(QMainWindow):
         self.quitAction.triggered.connect(self.close)
         
         self.editorAction = QAction(self.tr("&Editor"), self)
-        self.editorAction.setShortcut(QKeySequence(self.tr("Ctrl+Q")))
+        self.editorAction.setShortcut(QKeySequence(self.tr("Ctrl+E")))
         self.editorAction.setToolTip(self.tr("Open the simulation editor"))
         self.editorAction.triggered.connect(self.openEditor)
 
@@ -177,7 +177,6 @@ class MainWindow(QMainWindow):
     
     @pyqtSlot()
     def loadSimulation(self):
-        QSqlDatabase.database().close()
         ### DEBUG 
         #fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain.ts2";
 
@@ -188,11 +187,9 @@ class MainWindow(QMainWindow):
                            self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
             qDebug("Simulation loading")
-            self.db = QSqlDatabase.addDatabase("QSQLITE")
-            self.db.setHostName("localhost")
-            self.db.setDatabaseName(fileName)
-            self.db.open()
-            self.simulation.reload()
+            self.simulation.reload(fileName)
+            self.setWindowTitle( \
+                self.tr("ts2 - Train Signalling Simulation - %s") % fileName)
             qDebug("Simulation loaded")
     
     @pyqtSlot(int)
@@ -201,10 +198,14 @@ class MainWindow(QMainWindow):
     
     @pyqtSlot()
     def showAboutBox(self):
-        QMessageBox.about(self, "About TS2", """TS2 is a train signalling simulation.\n
+        """Shows the about box"""
+        QMessageBox.about(self, self.tr("About TS2"), self.tr( \
+"""TS2 is a train signalling simulation.\n
 Version 0.3 (beta 2)\n
 Copyright 2008-2013, NPi (npi@users.sourceforge.net)
-http://ts2.sourceforge.net""")
+http://ts2.sourceforge.net"""))
+        if self.editorOpened:
+            self.editorWindow.activateWindow()
 
     @pyqtSlot(QPoint)
     def showContextMenu(self, pos):

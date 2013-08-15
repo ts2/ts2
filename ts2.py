@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 #
 #   Copyright (C) 2008-2013 by Nicolas Piganeau                                
 #   npi@m4x.org                                                           

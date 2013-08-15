@@ -19,7 +19,7 @@
 #
 
 from PyQt4.QtCore import *
-from ts2.place import *
+from ts2.scenery import Place
 from ts2.simulation import *
 
 

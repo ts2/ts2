@@ -43,6 +43,16 @@ class SignalTimerItem(SignalItem):
                 TIProperty("timerSW", "Time from STOP to WARNING"), \
                 TIProperty("timerWC", "Time from WARNING to CLEAR")]
 
+    @property
+    def saveParameters(self):
+        """Returns the parameters dictionary to save this TrackItem to the 
+        database"""
+        parameters = super().saveParameters
+        parameters.update( {\
+                            "timerSW":self._timerSW, \
+                            "timerWC":self._timerWC})
+        return parameters
+                    
     def trainTailActions(self, serviceCode):
         """Actions performed when a train passes :
         Close signal and launch timer."""

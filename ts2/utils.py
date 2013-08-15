@@ -31,6 +31,6 @@ def recordToDict(record):
     return retDict
 
 class Context():
-    """This class holds the different context for ts2."""
+    """This class holds the different contexts for ts2."""
     GAME = 10
     EDITOR = 20

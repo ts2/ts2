@@ -192,10 +192,37 @@ class TrackItem(QtCore.QObject):
         self._gi = TrackGraphicsItem(self)
         self.trackItemClicked.connect(self._simulation.itemSelected)
     
+    def __del__(self):
+        """Destructor for the TrackItem class"""
+        self._simulation.scene.removeItem(self._gi)
+        super().__del__()
+    
     properties = [TIProperty("tiTypeStr", tr("Type"), True), \
                   TIProperty("tiId", tr("id"), True), \
                   TIProperty("name", tr("Name")), \
                   TIProperty("originStr", tr("Position"))]
+
+    fieldTypes = { \
+                    "tiid":"INTEGER PRIMARY KEY", \
+                    "titype":"VARCHAR(5)", \
+                    "name":"VARCHAR(25) UNIQUE", \
+                    "conflicttiid":"INTEGER", \
+                    "x":"DOUBLE", \
+                    "y":"DOUBLE", \
+                    "xf":"DOUBLE", \
+                    "yf":"DOUBLE", \
+                    "xr":"DOUBLE", \
+                    "yr":"DOUBLE", \
+                    "xn":"DOUBLE", \
+                    "yn":"DOUBLE", \
+                    "reverse":"BOOLEAN", \
+                    "reallength":"DOUBLE", \
+                    "maxspeed":"DOUBLE", \
+                    "placecode":"VARCHAR(10)", \
+                    "trackcode":"VARCHAR(10)", \
+                    "timersw":"DOUBLE", \
+                    "timerwc":"DOUBLE", \
+                 }
 
     trackItemClicked = QtCore.pyqtSignal(int)
 
@@ -338,6 +365,21 @@ class TrackItem(QtCore.QObject):
     def activeRoutePreviousItem(self):
         return self._activeRoutePreviousItem
     
+    @property
+    def saveParameters(self):
+        """Returns the parameters dictionary to save this TrackItem to the 
+        database"""
+        conflictId = self.conflictTI.tiId if self.conflictTI is not None \
+                     else None
+        return  { \
+                    "tiid":self.tiId, \
+                    "tiType":self.tiType, \
+                    "name":self.name,
+                    "conflicttiid":conflictId, \
+                    "x":self.origin.x(), \
+                    "y":self.origin.y()
+                }
+    
     def setActiveRoute(self, r, previous):
         """Sets the activeRoute and activeRoutePreviousItem informations. It 
         is called upon Route activation. These information are used when other 
@@ -385,6 +427,7 @@ class TrackItem(QtCore.QObject):
         self.updateGraphics()
     
     def trainPresent(self):
+        """Returns True if a train is present on this TrackItem"""
         if self._trainHead != -1 or self._trainTail != -1:
             return True
         else:
@@ -397,9 +440,13 @@ class TrackItem(QtCore.QObject):
             return False
     
     def trainHeadActions(self, serviceCode):
+        """Performs the actions to be done when a train head reaches this 
+        TrackItem"""
         pass
     
     def trainTailActions(self, serviceCode):
+        """Performs the actions to be done when a train tail reaches this 
+        TrackItem"""
         if self.activeRoute is not None:
             if not self.activeRoute.persistent:
                 beginSignalNextRoute = \
@@ -503,3 +550,4 @@ class TrackItem(QtCore.QObject):
         its dropEvent. The implementation in the base class TrackItem
         does nothing."""
         pass
+

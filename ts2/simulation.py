@@ -21,14 +21,12 @@
 from PyQt4 import QtCore, QtSql, QtGui
 from PyQt4.Qt import Qt
 from math import sqrt
+import sqlite3
 from ts2.route import Route
-from ts2.scenery import TrackItem, BumperItem, EndItem, LineItem, \
-                        PlatformItem, PointsItem, SignalItem, \
-                        SignalTimerItem
+from ts2 import scenery
 from ts2.service import ServiceInfoModel, ServiceListModel, Service
 from ts2.train import TrainInfoModel, TrainListModel, Train
 from ts2.traintype import TrainType
-from ts2.place import Place
 from ts2.position import Position
 from ts2 import utils
 
@@ -40,17 +38,8 @@ class Simulation(QtCore.QObject):
         super().__init__()
         self._simulationWindow = simulationWindow
         self._scene = QtGui.QGraphicsScene()
-        self._selectedSignal = None
         self._timer = QtCore.QTimer(self)
-        self._options = {}
-        self._routes = {}
-        self._trackItems = {}
-        self._activeRouteNumbers = []
-        self._trainTypes = {}
-        self._services = {}
-        self._places = {}
-        self._trains = []
-        self._time = QtCore.QTime()
+        self.initialize()
         self._serviceListModel = ServiceListModel(self)
         self._selectedServiceModel = ServiceInfoModel(self)
         self._trainListModel = TrainListModel(self)
@@ -98,17 +87,20 @@ class Simulation(QtCore.QObject):
     def selectedTrainModel(self):
         return self._selectedTrainModel
 
-    def reload(self):
+    def reload(self, fileName):
         """Load or reload all the data of the simulation from the database."""
-        self.loadOptions()
-        self.loadPlaces()
-        self.loadTrackItems()
-        self.loadRoutes()
-        self.loadTrainTypes()
-        self.loadServices()
-        self.loadTrains()
+        self.initialize()
+        conn = sqlite3.connect(fileName)
+        conn.row_factory = sqlite3.Row
+        self.loadOptions(conn)
+        #self.loadPlaces(conn)
+        self.loadTrackItems(conn)
+        self.loadRoutes(conn)
+        self.loadTrainTypes(conn)
+        self.loadServices(conn)
+        self.loadTrains(conn)
+        conn.close()        
         self.setupConnections()
-        QtSql.QSqlDatabase.database().close()
         self.simulationLoaded.emit()
         self._scene.update()
         self._time = QtCore.QTime.fromString(\
@@ -117,6 +109,25 @@ class Simulation(QtCore.QObject):
         interval = min(max(100, 5000 / float(self.option("timeFactor"))), 500)
         self._timer.setInterval(interval)
         self._timer.start()
+    
+    def initialize(self):
+        """Clears and initialize the current simulation"""
+        self._selectedSignal = None
+        self._timer.stop()
+        try:
+            self._timer.timeout.disconnect()
+        except:
+            pass
+        self._options = {}
+        self._routes = {}
+        self._trackItems = {}
+        self._activeRouteNumbers = []
+        self._trainTypes = {}
+        self._services = {}
+        self._places = {}
+        self._trains = []
+        self._scene.clear()
+        self._time = QtCore.QTime()
     
     def train(self, serviceCode):
         """Returns the Train object corresponding to the train whose 
@@ -134,9 +145,10 @@ class Simulation(QtCore.QObject):
     
     def place(self, placeCode):
         if placeCode is not None and placeCode != "":
-            return self._places[placeCode]
-        else:
-            return None
+            for ti in self._trackItems.values():
+                if ti.tiType.startswith("A") and ti.placeCode == placeCode:
+                    return ti
+        return None
     
     def service(self, serviceCode):
         return self._services[serviceCode]
@@ -152,7 +164,8 @@ class Simulation(QtCore.QObject):
 
     simulationLoaded = QtCore.pyqtSignal()
     conflictingRoute = QtCore.pyqtSignal(Route)
-    noRouteBetweenSignals = QtCore.pyqtSignal(SignalItem, SignalItem)
+    noRouteBetweenSignals = QtCore.pyqtSignal(scenery.SignalItem, \
+                                              scenery.SignalItem)
     routeSelected = QtCore.pyqtSignal(Route)
     routeDeleted = QtCore.pyqtSignal(Route)
     timeChanged = QtCore.pyqtSignal(QtCore.QTime)
@@ -251,24 +264,21 @@ class Simulation(QtCore.QObject):
         secs = self._timer.interval() * timeFactor / 1000
         self.timeElapsed.emit(secs)
             
-    def loadRoutes(self):
+    def loadRoutes(self, conn):
         """Creates the instances of routes from the data of the database."""
-        routeModel = QtSql.QSqlQueryModel()
-        routeModel.setQuery("SELECT * FROM routes")
-        for i in range(routeModel.rowCount()):
-            routeNum = self.dbReadInt(routeModel, i, "routenum")
-            beginSignalId = self.dbReadInt(routeModel, i, "beginsignal")
-            endSignalId = self.dbReadInt(routeModel, i, "endsignal")
+        for route in conn.execute("SELECT * FROM routes"):
+            routeNum = route["routenum"]
+            beginSignalId = route["beginsignal"]
+            endSignalId = route["endsignal"]
             bs = self._trackItems[beginSignalId]
             es = self._trackItems[endSignalId]
             route = Route(self, routeNum, bs, es)
             self._routes[routeNum] = route
 
-        routeModel.setQuery("SELECT * FROM directions")
-        for i in range(routeModel.rowCount()):
-            routeNum = self.dbReadInt(routeModel, i, "routenum")
-            tiId = self.dbReadInt(routeModel, i, "tiid")
-            direction = self.dbReadInt(routeModel, i, "direction")
+        for direction in conn.execute("SELECT * FROM directions"):
+            routeNum = direction["routenum"]
+            tiId = direction["tiid"]
+            direction = direction["direction"]
             self._routes[routeNum].appendDirection(tiId, direction)
 
         check = True
@@ -276,39 +286,34 @@ class Simulation(QtCore.QObject):
             check = (route.createPositionsList() and check)
 
         if not check:
-            QtCore.qFatal(self.tr("Invalid simulation: Some routes are not \
-                                   valid.\nSee stderr for more information"))
+            QtCore.qFatal(self.tr("""Invalid simulation: Some routes are not
+valid.\nSee stderr for more information"""))
     
-    def loadTrainTypes(self):
+    def loadTrainTypes(self, conn):
         """Creates the instances of TrainType from the data of the database.
         """
-        ttModel = QtSql.QSqlQueryModel()
-        ttModel.setQuery("SELECT * FROM traintypes")
-        for i in range(ttModel.rowCount()):
-            code = ttModel.record(i).value("code")
-            description = ttModel.record(i).value("description")
-            maxSpeed = ttModel.record(i).value("maxspeed")
-            stdAccel = ttModel.record(i).value("stdaccel")
-            stdBraking = ttModel.record(i).value("stdbraking")
-            emergBraking = ttModel.record(i).value("emergbraking")
-            length = ttModel.record(i).value("tlength")
+        for trainType in conn.execute("SELECT * FROM traintypes"):
+            code = trainType["code"]
+            description = trainType["description"]
+            maxSpeed = trainType["maxspeed"]
+            stdAccel = trainType["stdaccel"]
+            stdBraking = trainType["stdbraking"]
+            emergBraking = trainType["emergbraking"]
+            length = trainType["tlength"]
             self._trainTypes[code] = TrainType(code, description, maxSpeed, \
                                 stdAccel, stdBraking, emergBraking, length)
     
-    def loadTrains(self):
+    def loadTrains(self, conn):
         """Creates the instances of Train from the data of the database."""
-        trainModel = QtSql.QSqlQueryModel()
-        trainModel.setQuery("SELECT * FROM trains")
-        for i in range(trainModel.rowCount()):
-            serviceCode = self.dbReadStr(trainModel, i, "servicecode")
-            trainType = self.dbReadStr(trainModel, i, "traintype")
-            speed = self.dbReadFloat(trainModel, i, "speed")
-            accel = self.dbReadFloat(trainModel, i, "accel")
-            tiId = self.dbReadInt(trainModel, i, "tiid")
-            previousTiId = self.dbReadInt(trainModel, i, "previoustiid")
-            posOnTI = self.dbReadFloat(trainModel, i, "posonti")
-            appearTime = QtCore.QTime.fromString(\
-                                self.dbReadStr(trainModel, i, "appeartime"))
+        for train in conn.execute("SELECT * FROM trains"):
+            serviceCode = train["servicecode"]
+            trainType = train["traintype"]
+            speed = train["speed"]
+            accel = train["accel"]
+            tiId = train["tiid"]
+            previousTiId = train["previoustiid"]
+            posOnTI = train["posonti"]
+            appearTime = QtCore.QTime.fromString(train["appeartime"])
             train = Train(self, serviceCode, \
                           self._trainTypes[trainType], \
                           speed, \
@@ -319,102 +324,79 @@ class Simulation(QtCore.QObject):
                           appearTime)
             self._trains.append(train)
     
-    def loadOptions(self):
+    def loadOptions(self, conn):
         """Populates the options dict with data from the database"""
-        optionModel = QtSql.QSqlQueryModel()
-        optionModel.setQuery("SELECT * FROM options")
-        for i in range(optionModel.rowCount()):
-            key = self.dbReadStr(optionModel, i, "optionKey")
-            value = self.dbReadStr(optionModel, i, "optionValue")
+        for option in conn.execute("SELECT * FROM options"):
+            key = option["optionKey"]
+            value = option["optionValue"]
             if key != "":
                 self._options[key] = value
     
-    def loadTrackItems(self):
-        """Creates the instances of trackItems and its subclasses from the
-        data of the database."""
-        tiModel = QtSql.QSqlQueryModel()
-        tiModel.setQuery("SELECT * FROM trackitems")
-
-        for i in range(tiModel.rowCount()):
-            parameters = utils.recordToDict(tiModel.record(i))
-            tiId = parameters["tiid"]
-            tiType = parameters["titype"]
-            if tiType == "L":
-                ti = LineItem(self, parameters)
-            elif tiType == "LP":
-                ti = PlatformItem(self, parameters)
-            elif tiType == "S":
-                ti = SignalItem(self, parameters)
-            elif tiType == "SB":
-                ti = BumperItem(self, parameters)
-            elif tiType == "ST":
-                ti = SignalTimerItem(self, parameters)
-            elif tiType == "P":
-                ti = PointsItem(self, parameters)
-            elif tiType == "E":
-                ti = EndItem(self, parameters)
-            else:
-                ti = TrackItem(self, parameters)
-            self._trackItems[tiId] = ti
-
-        # Set the explicit links (i.e. those that are recorded in db)
-        for i in range(tiModel.rowCount()):
-            parameters = utils.recordToDict(tiModel.record(i))
-            tiId = parameters["tiid"]
-            nextTiId = parameters["ntiid"]
-            previousTiId = parameters["ptiid"]
-            reverseTiId = parameters["rtiid"]
-            if nextTiId is not None:
-                self._trackItems[tiId].nextItem = self._trackItems[nextTiId]
-            if previousTiId is not None:
-                self._trackItems[tiId].previousItem = \
-                                self._trackItems[previousTiId]
-            if reverseTiId is not None:
-                self._trackItems[tiId].reverseItem = \
-                                self._trackItems[reverseTiId]
-        
-        # Set the implicit links
+    def loadTrackItems(self, conn):
+        """Loads the instances of trackItems and its subclasses from the
+        data of the database, and make all the necessary links"""
+        self.createAllTrackItems(conn)
         self.createTrackItemsLinks()
-
-        # Create trackItem conflicts
-        for i in range(tiModel.rowCount()):
-            conflictTiId = self.dbReadInt(tiModel, i, "conflicttiid")
-            if conflictTiId != 0:
-                tiId = self.dbReadInt(tiModel, i, "tiid")
-                self._trackItems[tiId].conflictTI = \
-                                self._trackItems[conflictTiId]
-                self._trackItems[conflictTiId].conflictTI = \
-                                self._trackItems[tiId]
-
+        self.createTrackItemConflicts(conn)
         # Check that all the items are linked
         if not self.checkTrackItemsLinks():
             QtCore.qFatal("Invalid simulation: Not all items are linked.\n \
                            See stderr for more information")
             
+    def createAllTrackItems(self, conn):
+        """Creates the instances of TrackItem and its subclasses (including 
+        Places) from the database."""
+        for place in \
+                    conn.execute("SELECT * FROM trackitems WHERE titype='A'"):
+            parameters = dict(place)
+            tiId = parameters["tiid"]
+            placeCode = parameters["placecode"]
+            place = scenery.Place(self, parameters)
+            self._trackItems[tiId] = place
+        
+        for trackItem in \
+                   conn.execute("SELECT * FROM trackitems WHERE titype<>'A'"):
+            parameters = dict(trackItem)
+            tiId = parameters["tiid"]
+            tiType = parameters["titype"]
+            if tiType == "L":
+                ti = scenery.LineItem(self, parameters)
+            elif tiType == "LP":
+                ti = scenery.PlatformItem(self, parameters)
+            elif tiType == "S":
+                ti = scenery.SignalItem(self, parameters)
+            elif tiType == "SB":
+                ti = scenery.BumperItem(self, parameters)
+            elif tiType == "ST":
+                ti = scenery.SignalTimerItem(self, parameters)
+            elif tiType == "P":
+                ti = scenery.PointsItem(self, parameters)
+            elif tiType == "E":
+                ti = scenery.EndItem(self, parameters)
+            else:
+                ti = scenery.TrackItem(self, parameters)
+            self._trackItems[tiId] = ti
   
-    def loadServices(self):
+    def loadServices(self, conn):
         """Creates the instances of Service from the data of the database."""
-        serviceModel = QtSql.QSqlQueryModel ()
-        serviceModel.setQuery("SELECT * FROM services")
-        for i in range(serviceModel.rowCount()):
-            serviceCode = self.dbReadStr(serviceModel, i, "servicecode")
-            description = self.dbReadStr(serviceModel, i, "description")
-            nextService = self.dbReadStr(serviceModel, i, "nextservice")
+        for service in conn.execute("SELECT * FROM services"):
+            serviceCode = service["servicecode"]
+            description = service["description"]
+            nextService = service["nextservice"]
             self._services[serviceCode] = Service(self, \
                                                   serviceCode, \
                                                   description, \
                                                   nextService)
 
-        serviceModel.setQuery("SELECT * FROM serviceLines")
-        for i in range(serviceModel.rowCount()):
-            serviceCode = self.dbReadStr(serviceModel, i, "servicecode")
-            placeCode = self.dbReadStr(serviceModel, i, "placecode")
+        for serviceLine in conn.execute("SELECT * FROM serviceLines"):
+            serviceCode = serviceLine["servicecode"]
+            placeCode = serviceLine["placecode"]
             scheduledArrivalTime = QtCore.QTime.fromString( \
-                    self.dbReadStr(serviceModel, i, "scheduledarrivaltime"))
+                    serviceLine["scheduledarrivaltime"])
             scheduledDepartureTime = QtCore.QTime.fromString( \
-                    self.dbReadStr(serviceModel, i, "scheduleddeparturetime"))
-            trackCode = self.dbReadStr(serviceModel, i, "trackcode")
-            stop = self.dbReadInt(serviceModel, i, "stop")
+                    serviceLine["scheduleddeparturetime"])
+            trackCode = serviceLine["trackcode"]
+            stop = serviceLine["stop"]
             self._services[serviceCode].addLine(placeCode, \
                                                 scheduledArrivalTime, \
                                                 scheduledDepartureTime, \
@@ -423,18 +405,6 @@ class Simulation(QtCore.QObject):
 
         for s in self._services.values():
             s.start()
-    
-    def loadPlaces(self):
-        """Creates the instances of Place from the data of the database."""
-        placeModel = QtSql.QSqlQueryModel()
-        placeModel.setQuery("SELECT * FROM places")
-        for i in range(placeModel.rowCount()):
-            placeCode = self.dbReadStr(placeModel, i, "placecode")
-            placeName = self.dbReadStr(placeModel, i, "placename")
-            x = self.dbReadFloat(placeModel, i, "x")
-            y = self.dbReadFloat(placeModel, i, "y")
-            place = Place(self, placeCode, placeName, x, y)
-            self._places[placeCode] = place
     
     def setupConnections(self):
         """Sets up the connections which need a simulation loaded"""
@@ -451,6 +421,17 @@ class Simulation(QtCore.QObject):
             if r.links(si1, si2):
                 return r;
         return None;
+
+    def createTrackItemConflicts(self, conn):
+        """Create the trackitems' conflicts from the data in database."""
+        for trackItem in conn.execute("SELECT * FROM trackitems"):
+            conflictTiId = trackItem["conflicttiid"]
+            if conflictTiId is not None and conflictTiId != 0:
+                tiId = trackItem["tiid"]
+                self._trackItems[tiId].conflictTI = \
+                                self._trackItems[conflictTiId]
+                self._trackItems[conflictTiId].conflictTI = \
+                                self._trackItems[tiId]
     
     def createTrackItemsLinks(self):
         """Find the items that are linked together through their coordinates 
@@ -471,22 +452,38 @@ class Simulation(QtCore.QObject):
                     elif self.distanceBetween(vi.end, vj.end) <= 1.0:
                         vi.nextItem = vj
                         vj.nextItem = vi
+                    elif vi.tiType.startswith("P"):
+                        if self.distanceBetween(vi.reverse, vj.origin) <= 1.0:
+                            vi.reverseItem = vj
+                            vj.previousItem = vi
+                        elif self.distanceBetween(vi.reverse, vj.end) <= 1.0:
+                            vi.reverseItem = vj
+                            vj.nextItem = vi
+                    elif vj.tiType.startswith("P"):
+                        if self.distanceBetween(vi.origin, vj.reverse) <= 1.0:
+                            vi.previousItem = vj
+                            vj.reverseItem = vi
+                        elif self.distanceBetween(vi.end, vj.reverse) <= 1.0:
+                            vi.nextItem = vj
+                            vj.reverseItem = vi
+                       
     
     def checkTrackItemsLinks(self):
         """Checks that all TrackItems are linked together"""
         result = True;
         QtCore.qDebug(self.tr("Checking TrackItem links"))
         for ti in self._trackItems.values():
-            if ti.nextItem is None:
-                QtCore.qCritical(
-                        self.tr("TrackItem %i is unlinked at (%f, %f)" % \
-                                (ti.tiId, ti.end.x(), ti.end.y())))
-                result = False
-            if ti.previousItem is None:
-                QtCore.qCritical(
-                        self.tr("TrackItem %i is unlinked at (%f, %f)" % \
-                                (ti.tiId, ti.origin.x(), ti.origin.y()))) 
-                result = False
+            if not ti.tiType.startswith("A"):
+                if ti.nextItem is None:
+                    QtCore.qCritical(
+                            self.tr("TrackItem %i is unlinked at (%f, %f)" % \
+                                    (ti.tiId, ti.end.x(), ti.end.y())))
+                    result = False
+                if ti.previousItem is None:
+                    QtCore.qCritical(
+                            self.tr("TrackItem %i is unlinked at (%f, %f)" % \
+                                    (ti.tiId, ti.origin.x(), ti.origin.y()))) 
+                    result = False
         return result
 
     def distanceBetween(self, p1, p2):

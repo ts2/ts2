@@ -64,14 +64,13 @@ class SignalItem(TrackItem):
         self.signalSelected.connect(simulation.createRoute)
         self.signalUnselected.connect(simulation.deleteRoute)
         self.trainSelected.connect(simulation.trainSelected)
-        self._properties = ["tiId", "name", "reverse", "originStr"]
 
     properties = TrackItem.properties + [TIProperty("reverse", tr("Reverse"))]
 
     signalSelected = QtCore.pyqtSignal(int, bool)
     signalUnselected = QtCore.pyqtSignal(int)
     trainSelected = QtCore.pyqtSignal(str)
-
+                    
     @property
     def origin(self):
         """Returns the origin QPointF of the TrackItem. The origin is 
@@ -188,7 +187,15 @@ class SignalItem(TrackItem):
             return True
         else:
             return False
-
+        
+    @property
+    def saveParameters(self):
+        """Returns the parameters dictionary to save this TrackItem to the 
+        database"""
+        parameters = super().saveParameters
+        parameters.update({"reverse":int(self.reverse)})
+        return parameters
+                    
     def graphicsMousePressEvent(self, e):       
         """Reimplemented from TrackItem.graphicsMousePressEvent to handle the
         mousePressEvent of the owned TrackGraphicsItem.

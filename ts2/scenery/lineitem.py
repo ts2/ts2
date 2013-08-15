@@ -39,9 +39,9 @@ class LineItem(TrackItem):
         xf = float(parameters["xf"])
         yf = float(parameters["yf"])
         self._end = QtCore.QPointF (xf, yf)
-        placeCode = parameters["placecode"]
+        self._placeCode = parameters["placecode"]
         trackCode = parameters["trackcode"]
-        self._place = simulation.place(placeCode)
+        self._place = simulation.place(self._placeCode)
         if self._place is not None:
             self._trackCode = trackCode
             self._place.addTrack(self)
@@ -52,6 +52,7 @@ class LineItem(TrackItem):
             realLength = sqrt(pow(xf - self.origin.x(), 2) + \
                               pow(yf - self.origin.y(), 2))
         self._realLength = realLength
+        self._maxSpeed = parameters["maxspeed"]
         gli = TrackGraphicsItem(self)
         if simulation.context == Context.EDITOR:
             gli.setCursor(Qt.PointingHandCursor)
@@ -75,13 +76,35 @@ class LineItem(TrackItem):
         simulation.registerGraphicsItem(self._tli)
         self.drawTrain()
 
+    def __del__(self):
+        """Destructor for the LineItem class"""
+        self._simulation.scene.removeItem(self._tli)
+        super().__del__()
+
+
     properties = [TIProperty("tiTypeStr", tr("Type"), True),\
                   TIProperty("tiId", tr("id"), True), \
                   TIProperty("name", tr("Name")), \
                   TIProperty("originStr", tr("Point 1")), \
                   TIProperty("endStr", tr("Point 2")), \
-                  TIProperty("placeCode", tr("Place code")),\
-                  TIProperty("trackCode", tr("Track code"))]
+                  TIProperty("placeCode", tr("Place code")), \
+                  TIProperty("trackCode", tr("Track code")), \
+                  TIProperty("realLength", tr("Real length (m)")), \
+                  TIProperty("maxSpeed", tr("Maximum speed (m/s)"))]
+
+    @property
+    def saveParameters(self):
+        """Returns the parameters dictionary to save this TrackItem to the 
+        database"""
+        parameters = super().saveParameters
+        parameters.update({ \
+                            "xf":self._end.x(), \
+                            "yf":self._end.y(), \
+                            "placecode":self.placeCode, \
+                            "trackCode":self.trackCode, \
+                            "reallength":self.realLength, \
+                            "maxspeed":self._maxSpeed})
+        return parameters
 
     @property
     def origin(self):
@@ -117,6 +140,30 @@ class LineItem(TrackItem):
             self._gi.prepareGeometryChange()
             self._end = QtCore.QPointF(x, y)
             self.updateGraphics()
+    
+    @property
+    def realLength(self):
+        """Returns the length in metres that the line would have in real life
+        """
+        return self._realLength
+    
+    @realLength.setter
+    def realLength(self, value):
+        """Setter function for the realLength property"""
+        if self._simulation.context == Context.EDITOR:
+            self._realLength = value
+    
+    @property
+    def maxSpeed(self):
+        """Returns the maximum speed allowed on this LineItem, in metres per
+        second"""
+        return self._maxSpeed
+    
+    @maxSpeed.setter
+    def maxSpeed(self, value):
+        """Setter function for the maxSpeed property"""
+        if self._simulation.context == Context.EDITOR:
+            self._maxSpeed = value
     
     @property
     def endStr(self):
@@ -157,7 +204,7 @@ class LineItem(TrackItem):
     @property
     def placeCode(self):
         """Returns the place code corresponding to this LineItem."""
-        return self._trackCode
+        return self._placeCode
 
     @placeCode.setter
     def placeCode(self, value):

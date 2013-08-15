@@ -20,9 +20,8 @@
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import Qt
-from ts2.scenery import LineItem, TIProperty
+from ts2.scenery import LineItem, TIProperty, Place
 from ts2.utils import Context
-from ts2.place import Place
 
 tr = QtCore.QObject().tr
 
@@ -71,11 +70,30 @@ class PlatformItem(LineItem):
         self._pfgi.update()
         self.platformSelected.connect(Place.selectedPlaceModel.setPlace)
 
+    def __del__(self):
+        """Destructor for the PlatformItem class"""
+        self._simulation.scene.removeItem(self._pfgi)
+        super().__del__()
+        
+
     properties = LineItem.properties + [ \
             TIProperty("topLeftPFStr", tr("Platform top left point")), \
             TIProperty("bottomRightPFStr", tr("Platform bottom right point"))]
 
     platformSelected = QtCore.pyqtSignal(Place)
+
+    @property
+    def saveParameters(self):
+        """Returns the parameters dictionary to save this TrackItem to the 
+        database"""
+        parameters = super().saveParameters
+        parameters.update({ \
+                            "xn":self._rect.topLeft().x(), \
+                            "yn":self._rect.topLeft().y(), \
+                            "xr":self._rect.bottomRight().x(), \
+                            "yr":self._rect.bottomRight().y(), \
+                          })
+        return parameters
     
     @property
     def topLeftPFStr(self):
