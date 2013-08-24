@@ -24,6 +24,8 @@ from PyQt4.Qt import Qt
 from ts2.simulation import Simulation
 from ts2 import scenery, utils
 from ts2.editor import EditorSceneBackground
+from ts2.route import Route, RoutesModel
+from ts2.position import Position
 
 class TrashBinItem(QtGui.QGraphicsPixmapItem):
     """The TrashBinItem is the graphics item on which to drag TrackItems to be
@@ -66,14 +68,23 @@ class Editor(Simulation):
     def __init__(self, editorWindow):
         """Constructor for the Editor class"""
         super().__init__(editorWindow)
+        self._context = utils.Context.EDITOR_GENERAL
         self._libraryScene = QtGui.QGraphicsScene(0, 0, 200, 250, self)
         self._sceneBackground = EditorSceneBackground(self, 0, 0, 1024, 768)
         self._sceneBackground.setZValue(-100)
         self._scene.addItem(self._sceneBackground)
+        self.drawToolBox()
+        self._sceneryValidated = False
+        self._routesModel = RoutesModel(self)
         self._database = None
         self._nextId = 1
+        self._nextRouteId = 1
         self._grid = 5.0
-        self.drawToolBox()
+        self._preparedRoute = None
+        self._selectedRoute = None
+        
+    sceneryIsValidated = QtCore.pyqtSignal(bool)
+    routesChanged = QtCore.pyqtSignal()
     
     def drawToolBox(self):
         """Construct the library tool box"""
@@ -121,6 +132,11 @@ class Editor(Simulation):
         return self._libraryScene
     
     @property
+    def routesModel(self):
+        """Returns the routesModel of this editor instance"""
+        return self._routesModel
+    
+    @property
     def database(self):
         """Returns the database filename, with full path"""
         return self._database
@@ -130,12 +146,30 @@ class Editor(Simulation):
         """Setter function for the database property"""
         self._database = value
 
+    @property
+    def selectedRoute(self):
+        """Returns the selected route in the route editor."""
+        return self._selectedRoute
+    
+    @selectedRoute.setter
+    def selectedRoute(self, value):
+        """Setter function for the selectedRoute property"""
+        if self._selectedRoute is not None:
+            self._selectedRoute.desactivate()
+        self._selectedRoute = value
+        if self._selectedRoute is not None:
+            self._selectedRoute.activate()
+
     def reload(self, fileName):
         """Load or reload all the data of the simulation from the database."""
         conn = sqlite3.connect(fileName)
         conn.row_factory = sqlite3.Row
         self.createAllTrackItems(conn)
-        #self.loadRoutes()
+        self._nextId = max(self._trackItems.keys()) + 1
+        if self.validateScenery():
+            self.loadRoutes(conn)
+            self._nextRouteId = max(self._routes.keys()) + 1
+            self.routesChanged.emit()
         #self.loadTrainTypes()
         #self.loadServices()
         #self.loadTrains()
@@ -144,7 +178,12 @@ class Editor(Simulation):
         """Saves the data of the simulation to the database"""
         # Set up database
         conn = sqlite3.connect(self._database)
-        # Save TrackItems
+        self.saveTrackItems(conn)
+        self.saveRoutes(conn)
+        conn.close()
+        
+    def saveTrackItems(self, conn):
+        """Saves the TrackItem instances of this editor in the database"""
         conn.execute("DROP TABLE IF EXISTS trackitems")
         fieldString = "("
         for name, type in scenery.TrackItem.fieldTypes.items():
@@ -160,7 +199,51 @@ class Editor(Simulation):
             query = query[:-1] + ")"
             conn.execute(query, ti.saveParameters)
         conn.commit()
-        conn.close()
+        
+    def saveRoutes(self, conn):
+        """Saves the Route instances of this editor in the database"""
+        # Save routes themselves
+        conn.execute("DROP TABLE IF EXISTS routes")
+        conn.execute("CREATE TABLE routes (" \
+                            "routenum INTEGER PRIMARY KEY," \
+                            "beginsignal INTEGER," \
+                            "endsignal INTEGER," \
+                            "initialstate INTEGER)" \
+                    )
+        for route in self._routes.values():
+            query = "INSERT INTO routes "\
+                    "(routenum, beginsignal, endsignal, initialstate) "\
+                    "VALUES " \
+                    "(:routenum, :beginsignal, :endsignal, :initialstate)"
+            parameters = { \
+                    "routenum":route.routeNum, \
+                    "beginsignal":route.beginSignal.tiId, \
+                    "endsignal":route.endSignal.tiId, \
+                    "initialstate":route.initialState \
+                         }
+            conn.execute(query, parameters)
+        
+        # Save the directions
+        conn.execute("DROP TABLE IF EXISTS directions")
+        conn.execute("CREATE TABLE directions (" \
+                        "routenum INTEGER," \
+                        "tiid INTEGER," \
+                        "direction INTEGER)" \
+                    )
+        for route in self._routes.values():
+            for tiId, direction in route.directions.items():
+                query = "INSERT INTO directions " \
+                        "(routenum, tiid, direction) " \
+                        "VALUES " \
+                        "(:routenum, :tiid, :direction)"
+                parameters = { \
+                        "routenum":route.routeNum, \
+                        "tiid":tiId, \
+                        "direction":direction \
+                             }
+                conn.execute(query, parameters)
+        conn.commit()
+        
     
     def registerGraphicsItem(self, graphicItem):
         """Reimplemented from Simulation. Adds the graphicItem to the scene
@@ -170,19 +253,11 @@ class Editor(Simulation):
             self._libraryScene.addItem(graphicItem)
         else:
             self._scene.addItem(graphicItem)
-
-    def createRoute(self, siId, persistent):
-        """Reimplemented from Simulation so as not to do anything"""
-        pass
-    
-    def deleteRoute(self, siId):
-        """Reimplemented from Simulation so as not to do anything"""
-        pass
     
     @property
     def context(self):
         """Reimplemented from Simulation to return the EDITOR Context"""
-        return utils.Context.EDITOR
+        return self._context
     
     @property
     def grid(self):
@@ -244,15 +319,31 @@ class Editor(Simulation):
             ti = scenery.Place(self, parameters)
         else:
             ti = scenery.TrackItem(self, parameters)
+        self.makeTrackItemSignalSlotConnections(ti)
         self._trackItems[self._nextId] = ti
         ti.trackItemClicked.emit(int(self._nextId))
         self._nextId += 1
+    
+    def makeTrackItemSignalSlotConnections(self, ti):
+        """Makes all signal-slot connections for TrackItem ti"""
+        if ti.tiType.startswith("S"):
+            ti.signalSelected.connect(self.prepareRoute)
+            ti.signalUnselected.connect(self.deselectRoute)
+        
     
     def deleteTrackItem(self, tiId):
         """Delete the TrackItem given by tiId"""
         tiId = int(tiId)
         self._scene.removeItem(self._trackItems[tiId]._gi)
         del self._trackItems[tiId]
+        
+    def deleteTrackItemLinks(self):
+        """Delete all links between TrackItems"""
+        for ti in self._trackItems.values():
+            ti.previousItem = None
+            ti.nextItem = None
+            if hasattr(ti, "reverseItem"):
+                ti.reverseItem = None
     
     def moveTrackItem(self, tiId, pos, clickPos, point):
         """Moves the TrackItem with id tiId to position pos. 
@@ -266,4 +357,107 @@ class Editor(Simulation):
             pos -= clickPos
         setattr(ti, point, pos)
         ti.trackItemClicked.emit(int(tiId))
+        
+    @QtCore.pyqtSlot()
+    def validateScenery(self):
+        """Validates the scenery, i.e. tries to create all links between 
+        TrackItems, checks and set sceneryValidated to True if succeeded"""
+        self.createTrackItemsLinks()
+        if self.checkTrackItemsLinks():
+            self.sceneryIsValidated.emit(True)
+            self._sceneryValidated = True
+            return True
+        else:
+            self.sceneryIsValidated.emit(False)
+            self._sceneryValidated = False
+            return False
+    
+    @QtCore.pyqtSlot()
+    def invalidateScenery(self):
+        """Invalidates the scenery, i.e. removes all links between TrackItems,
+        and set sceneryValidated to False"""
+        self.deleteTrackItemLinks()
+        self._sceneryValidated = False
+        self.sceneryIsValidated.emit(False)
+    
+    def addRoute(self):
+        """Adds the route that is selected on the scene to the routes."""
+        if (self._preparedRoute is not None) and \
+           (self._preparedRoute not in self._routes.values()):
+            routeNum = self._preparedRoute.routeNum
+            self._routes[routeNum] = self._preparedRoute
+            self.routesChanged.emit()
+            self.deselectRoute()
+            return True
+        else:
+            self.deselectRoute()
+            return False
+    
+    def deleteRoute(self, routeNum):
+        """Deletes the route defined by routeNum"""
+        self.deselectRoute()
+        del self._routes[routeNum]
+        self.routesChanged.emit()
+        
+    @QtCore.pyqtSlot(int)
+    def prepareRoute(self, signalId):
+        """Prepares the route starting with the SignalItem given by signalId:
+        - Checks that the route leads to another SignalItem, using the current
+        directions of each PointsItem. 
+        - Set _preparedRoute to this route
+        - Highlights the route if valid"""
+        if self.context == utils.Context.EDITOR_ROUTES:
+            si = self.trackItem(signalId)
+            pos = Position(si, si.previousItem, 0)
+            directions = {}
+            cur = pos.next()
+            while not cur.trackItem.tiType.startswith("E"):
+                ti = cur.trackItem
+                if ti.tiType.startswith("P"):
+                    directions[ti.tiId] = int(ti.pointsReversed)
+                if ti.tiType.startswith("S"):
+                    if ti.isOnPosition(cur):
+                        self._preparedRoute = \
+                                        Route(self, self._nextRouteId, si, ti)
+                        self._nextRouteId += 1
+                        for tiId, direction in directions.items():
+                            self._preparedRoute.appendDirection(tiId, \
+                                                                direction)
+                        self._preparedRoute.createPositionsList()
+                        self.selectedRoute = self._preparedRoute
+                        return
+                cur = cur.next()
+ 
+    @QtCore.pyqtSlot(int)
+    def selectRoute(self, routeNum):
+        """Selects the route given by routeNum in the routes editor."""
+        if self.context == utils.Context.EDITOR_ROUTES:
+            route = self.routes[routeNum]
+            self.selectedRoute = route
+            self._preparedRoute = None
+ 
+    @QtCore.pyqtSlot()
+    def deselectRoute(self):
+        """Desactivate the selected route in the routes editor"""
+        if self.context == utils.Context.EDITOR_ROUTES:
+            self.selectedRoute = None
+            self._preparedRoute = None
+ 
+    @QtCore.pyqtSlot(int)
+    def updateContext(self, tabNum):
+        """Updates the context of the editor, depending on the tab selected 
+        and given by tabNum."""
+        if tabNum == 0:
+            self._context = utils.Context.EDITOR_GENERAL
+        elif tabNum == 1:
+            self._context = utils.Context.EDITOR_SCENERY
+        elif tabNum == 2:
+            self._context = utils.Context.EDITOR_ROUTES
+        elif tabNum == 3:
+            self._context = utils.Context.EDITOR_TRAINTYPES
+        elif tabNum == 4:
+            self._context = utils.Context.EDITOR_SERVICES
+        elif tabNum == 5:
+            self._context = utils.Context.EDITOR_TRAINS
+        
     

@@ -34,7 +34,8 @@ DROP TABLE IF EXISTS routes;
 CREATE TABLE routes (
         routenum INTEGER PRIMARY KEY,
         beginsignal INTEGER,
-        endsignal INTEGER);
+        endsignal INTEGER,
+        initialstate INTEGER);
 
 DROP TABLE IF EXISTS directions;
 CREATE TABLE directions (

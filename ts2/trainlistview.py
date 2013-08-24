@@ -65,6 +65,7 @@ class TrainListView(QTreeView):
 
     @pyqtSlot(QItemSelection, QItemSelection)
     def selectionChanged(self, selected, deselected):
+        super().selectionChanged(selected, deselected)
         index = selected.indexes()[0]
         if index.isValid():
             self.trainSelected.emit(index.data())

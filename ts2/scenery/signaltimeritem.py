@@ -47,10 +47,11 @@ class SignalTimerItem(SignalItem):
     def saveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the 
         database"""
+        timeFactor = float(self._simulation.option("timeFactor"))
         parameters = super().saveParameters
         parameters.update( {\
-                            "timerSW":self._timerSW, \
-                            "timerWC":self._timerWC})
+                            "timerSW":self._timerSW * timeFactor / 60000, \
+                            "timerWC":self._timerWC * timeFactor / 60000})
         return parameters
                     
     def trainTailActions(self, serviceCode):
@@ -86,7 +87,7 @@ class SignalTimerItem(SignalItem):
     @timerSW.setter
     def timerSW(self, value):
         """Setter function for the timerSW property"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             timeFactor = float(self._simulation.option("timeFactor"))
             self._timerSW = value * 60000 / timeFactor
             self.updateGraphics()
@@ -101,7 +102,7 @@ class SignalTimerItem(SignalItem):
     @timerWC.setter
     def timerWC(self, value):
         """Setter function for the timerWC property"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             timeFactor = float(self._simulation.option("timeFactor"))
             self._timerWC = value * 60000 / timeFactor
             self.updateGraphics()

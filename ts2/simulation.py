@@ -40,6 +40,7 @@ class Simulation(QtCore.QObject):
         self._scene = QtGui.QGraphicsScene()
         self._timer = QtCore.QTimer(self)
         self.initialize()
+        self._routes = {}
         self._serviceListModel = ServiceListModel(self)
         self._selectedServiceModel = ServiceInfoModel(self)
         self._trainListModel = TrainListModel(self)
@@ -86,6 +87,11 @@ class Simulation(QtCore.QObject):
     @property
     def selectedTrainModel(self):
         return self._selectedTrainModel
+    
+    @property
+    def routes(self):
+        """Returns the routes of the simulation"""
+        return self._routes
 
     def reload(self, fileName):
         """Load or reload all the data of the simulation from the database."""
@@ -163,6 +169,7 @@ class Simulation(QtCore.QObject):
         self._scene.addItem(graphicItem)
 
     simulationLoaded = QtCore.pyqtSignal()
+
     conflictingRoute = QtCore.pyqtSignal(Route)
     noRouteBetweenSignals = QtCore.pyqtSignal(scenery.SignalItem, \
                                               scenery.SignalItem)
@@ -174,7 +181,7 @@ class Simulation(QtCore.QObject):
     itemSelected = QtCore.pyqtSignal(int)
 
     @QtCore.pyqtSlot(int, bool)
-    def createRoute(self, siId, persistent = False):
+    def activateRoute(self, siId, persistent = False):
         """This slot is normally connected to the signal 
         SignalItem.signalSelected(SignalItem), which itself is emitted when a 
         signal is left-clicked. 
@@ -218,7 +225,7 @@ class Simulation(QtCore.QObject):
                 QtCore.qWarning(self.tr("No route between signals"))
   
     @QtCore.pyqtSlot(int)
-    def deleteRoute(self, siId):
+    def desactivateRoute(self, siId):
         """ This slot is normally connected to the signal 
         SignalItem.signalUnselected(SignalItem), which itself is emitted when
         a signal is right-clicked. It is in charge of deactivating the routes 
@@ -266,13 +273,15 @@ class Simulation(QtCore.QObject):
             
     def loadRoutes(self, conn):
         """Creates the instances of routes from the data of the database."""
+        QtCore.qDebug("Loading routes")
         for route in conn.execute("SELECT * FROM routes"):
             routeNum = route["routenum"]
             beginSignalId = route["beginsignal"]
             endSignalId = route["endsignal"]
+            initialState = route["initialstate"]
             bs = self._trackItems[beginSignalId]
             es = self._trackItems[endSignalId]
-            route = Route(self, routeNum, bs, es)
+            route = Route(self, routeNum, bs, es, initialState)
             self._routes[routeNum] = route
 
         for direction in conn.execute("SELECT * FROM directions"):
@@ -288,6 +297,15 @@ class Simulation(QtCore.QObject):
         if not check:
             QtCore.qFatal(self.tr("""Invalid simulation: Some routes are not
 valid.\nSee stderr for more information"""))
+            
+        # Activates routes who are to be activated at the beginning of the 
+        # simulation
+        if self.context == utils.Context.GAME:
+            for route in self._routes.values():
+                if route.initialState == 2:
+                    route.activate(True)
+                elif route.initialState == 1:
+                    route.activate(False)
     
     def loadTrainTypes(self, conn):
         """Creates the instances of TrainType from the data of the database.
@@ -375,7 +393,17 @@ valid.\nSee stderr for more information"""))
                 ti = scenery.EndItem(self, parameters)
             else:
                 ti = scenery.TrackItem(self, parameters)
+            self.makeTrackItemSignalSlotConnections(ti)
             self._trackItems[tiId] = ti
+            
+            
+    def makeTrackItemSignalSlotConnections(self, ti):
+        """Makes all signal-slot connections for TrackItem ti"""
+        if ti.tiType.startswith("S"):
+            ti.signalSelected.connect(self.activateRoute)
+            ti.signalUnselected.connect(self.desactivateRoute)
+            ti.trainSelected.connect(self.trainSelected)
+                
   
     def loadServices(self, conn):
         """Creates the instances of Service from the data of the database."""
@@ -493,25 +521,25 @@ valid.\nSee stderr for more information"""))
         @return"""
         return sqrt((p1.x() - p2.x()) ** 2 + (p1.y() - p2.y()) ** 2)
 
-    def dbReadInt(self, model, row, column):
-        dbOutput = model.record(row).value(column)
-        if not isinstance(dbOutput, QtCore.QPyNullVariant):
-            return int(dbOutput)
-        else:
-            return 0
+    #def dbReadInt(self, model, row, column):
+        #dbOutput = model.record(row).value(column)
+        #if not isinstance(dbOutput, QtCore.QPyNullVariant):
+            #return int(dbOutput)
+        #else:
+            #return 0
     
-    def dbReadFloat(self, model, row, column):
-        dbOutput = model.record(row).value(column)
-        if not isinstance(dbOutput, QtCore.QPyNullVariant):
-            return int(dbOutput)
-        else:
-            return 0
+    #def dbReadFloat(self, model, row, column):
+        #dbOutput = model.record(row).value(column)
+        #if not isinstance(dbOutput, QtCore.QPyNullVariant):
+            #return int(dbOutput)
+        #else:
+            #return 0
         
-    def dbReadStr(self, model, row, column):
-        dbOutput = model.record(row).value(column)
-        if not isinstance(dbOutput, QtCore.QPyNullVariant):
-            return str(dbOutput)
-        else:
-            return ""
+    #def dbReadStr(self, model, row, column):
+        #dbOutput = model.record(row).value(column)
+        #if not isinstance(dbOutput, QtCore.QPyNullVariant):
+            #return str(dbOutput)
+        #else:
+            #return ""
         
         

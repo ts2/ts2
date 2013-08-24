@@ -20,7 +20,7 @@
 
 from PyQt4 import QtGui, QtCore, QtSql
 from PyQt4.Qt import Qt
-from ts2.editor import Editor
+from ts2.editor import Editor, RoutesEditorView
 from ts2.scenery import TrackItem, TrackPropertiesModel
 
 class EditorWindow(QtGui.QMainWindow):
@@ -141,25 +141,112 @@ class EditorWindow(QtGui.QMainWindow):
         self.propertiesPanel.setWidget(self._propertiesView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.propertiesPanel)
 
-        # board
-        board = QtGui.QWidget(self)
+        # Central tab widget
+        self._tabWidget = QtGui.QTabWidget(self)
+        self._tabWidget.currentChanged.connect(self.showHideDockWidgets)
+        self._tabWidget.currentChanged.connect(self.editor.updateContext)
 
-        # Canvas
-        self._view = QtGui.QGraphicsView(self.editor.scene, board)
-        self._view.setInteractive(True)
-        self._view.setRenderHint(QtGui.QPainter.Antialiasing, False)
-        self._view.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
-        self._view.setAcceptDrops(True)
-        self._view.setBackgroundBrush(QtGui.QBrush(Qt.black))
+        # General tab
+        widget = QtGui.QWidget()
+        self._tabWidget.addTab(widget, self.tr("General"))
 
-        # Display
+        # Scenery tab
+        sceneryTab = QtGui.QWidget()
+        self._sceneryView = QtGui.QGraphicsView(self.editor.scene, sceneryTab)
+        self._sceneryView.setInteractive(True)
+        self._sceneryView.setRenderHint(QtGui.QPainter.Antialiasing, False)
+        self._sceneryView.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+        self._sceneryView.setAcceptDrops(True)
+        self._sceneryView.setBackgroundBrush(QtGui.QBrush(Qt.black))
+        self.editor.sceneryIsValidated.connect(\
+                                    self._sceneryView.setDisabled)
+        self._unlockSceneryBtn = QtGui.QPushButton(\
+                                    self.tr("Unlock Scenery"), sceneryTab)
+        self._unlockSceneryBtn.setEnabled(False)
+        self._unlockSceneryBtn.clicked.connect(\
+                                    self.editor.invalidateScenery)
+        self.editor.sceneryIsValidated.connect(\
+                                    self._unlockSceneryBtn.setEnabled)
+        self._validateSceneryBtn = QtGui.QPushButton(\
+                                    self.tr("Validate Scenery"), sceneryTab)
+        self._validateSceneryBtn.clicked.connect(\
+                                    self.editor.validateScenery)
+        self.editor.sceneryIsValidated.connect(\
+                                    self._validateSceneryBtn.setDisabled)
+        hgrid = QtGui.QHBoxLayout()
+        hgrid.addWidget(self._unlockSceneryBtn)
+        hgrid.addWidget(self._validateSceneryBtn)
+        hgrid.addStretch()
+        vgrid = QtGui.QVBoxLayout()
+        vgrid.addLayout(hgrid)
+        vgrid.addWidget(self._sceneryView)
+        sceneryTab.setLayout(vgrid)
+        self._tabWidget.addTab(sceneryTab, self.tr("Scenery"))
+        
+        # Routes tab
+        routesTab = QtGui.QWidget()
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
+                                       QtGui.QSizePolicy.Expanding)
+        sizePolicy.setVerticalStretch(1)
+        self.routesGraphicView = QtGui.QGraphicsView(self.editor.scene, \
+                                                      routesTab)
+        self.routesGraphicView.setInteractive(True)
+        self.routesGraphicView.setRenderHint(QtGui.QPainter.Antialiasing, \
+                                              False)
+        self.routesGraphicView.setDragMode( \
+                                        QtGui.QGraphicsView.ScrollHandDrag)
+        self.routesGraphicView.setAcceptDrops(True)
+        self.routesGraphicView.setBackgroundBrush(QtGui.QBrush(Qt.black))
+        self.routesGraphicView.setSizePolicy(sizePolicy)
+        self.addRouteBtn = QtGui.QPushButton(self.tr("Add Route"), routesTab)
+        self.addRouteBtn.clicked.connect(self.addRouteBtnClicked)
+        self.delRouteBtn = QtGui.QPushButton(self.tr("Delete Route"), \
+                                              routesTab)
+        self.delRouteBtn.clicked.connect(self.delRouteBtnClicked)
+        hgrid = QtGui.QHBoxLayout()
+        hgrid.addWidget(self.addRouteBtn)
+        hgrid.addWidget(self.delRouteBtn)
+        hgrid.addStretch()
+        self.routesView = RoutesEditorView(routesTab)
+        self.routesView.setModel(self.editor.routesModel)
+        self.routesView.routeSelected.connect(self.editor.selectRoute)
+        self.editor.routesChanged.connect(self.routesView.model().reset)
         grid = QtGui.QVBoxLayout()
-        grid.addWidget(self._view)
-        #self.grid.addWidget(self.panel)
-        grid.setMargin(0)
-        grid.setSpacing(0)
-        board.setLayout(grid)
-        self.setCentralWidget(board)
+        grid.addWidget(self.routesGraphicView)
+        grid.addLayout(hgrid)
+        grid.addWidget(self.routesView)
+        routesTab.setLayout(grid)
+        routesTab.setEnabled(False)
+        self.editor.sceneryIsValidated.connect(routesTab.setEnabled)
+        self._tabWidget.addTab(routesTab, self.tr("Routes"))
+        
+        # Train types tab
+        trainTypesTab = QtGui.QWidget()
+        self._trainTypesView = QtGui.QTableView(trainTypesTab)
+        grid = QtGui.QVBoxLayout()
+        grid.addWidget(self._trainTypesView)
+        trainTypesTab.setLayout(grid)
+        self._tabWidget.addTab(trainTypesTab, self.tr("Rolling stock"))
+        
+        # Services tab
+        servicesTab = QtGui.QWidget()
+        self._servicesView = QtGui.QTableView(servicesTab)
+        self._serviceLinesView = QtGui.QTableView()
+        grid = QtGui.QVBoxLayout()
+        grid.addWidget(self._servicesView)
+        grid.addWidget(self._serviceLinesView)
+        servicesTab.setLayout(grid)
+        self._tabWidget.addTab(servicesTab, self.tr("Services"))
+        
+        # Train tab
+        trainsTab = QtGui.QWidget()
+        self._trainsView = QtGui.QTableView(trainsTab)
+        grid = QtGui.QVBoxLayout()
+        grid.addWidget(self._trainsView)
+        trainsTab.setLayout(grid)
+        self._tabWidget.addTab(trainsTab, self.tr("Trains"))
+        
+        self.setCentralWidget(self._tabWidget)
         
         #### DEBUG
         #self.loadSimulation()
@@ -232,5 +319,46 @@ Do you want to continue?""", \
                             == QtGui.QMessageBox.Yes:
                 self.editor.initialize()
 
-
-    
+    @QtCore.pyqtSlot(int)
+    def showHideDockWidgets(self, index):
+        """Hides or Show the dock widgets depending on the selected tab"""
+        if index == 1:
+            # Scenery panel
+            self.toolsPanel.show()
+            self.propertiesPanel.show()
+        else:
+            self.toolsPanel.hide()
+            self.propertiesPanel.hide()
+        
+    @QtCore.pyqtSlot()
+    def delRouteBtnClicked(self):
+        """Deletes the selected route in routesView when the delete route
+        button is clicked."""
+        rows = self.routesView.selectionModel().selectedRows()
+        if len(rows) != 0:
+            row = rows[0]
+            routeNum = self.routesView.model().data(row, 0)
+            if QtGui.QMessageBox.question( \
+                        self, \
+                        self.tr("Delete route"), \
+                        self.tr("Are you sure you want " \
+                                "to delete route %i?") % routeNum, \
+                        QtGui.QMessageBox.Yes|QtGui.QMessageBox.No) \
+                                == QtGui.QMessageBox.Yes:
+                self.editor.deleteRoute(routeNum)
+        
+    @QtCore.pyqtSlot()
+    def addRouteBtnClicked(self):
+        """Adds a route in routesView when the add route button is clicked."""
+        if self.editor.addRoute():
+            QtGui.QMessageBox.information( \
+                        self, \
+                        self.tr("Add route"), \
+                        self.tr("Route added successfully."))
+        else:
+            QtGui.QMessageBox.warning( \
+                        self, \
+                        self.tr("Add route"), \
+                        self.tr("No route added:\n"
+                                "No route selected or a route between "
+                                "these two signals already exists."))

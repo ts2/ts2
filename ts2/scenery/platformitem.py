@@ -104,7 +104,7 @@ class PlatformItem(LineItem):
     @topLeftPFStr.setter
     def topLeftPFStr(self, value):
         """Setter function for the topLeftPFStr property"""
-        if self._simulation.context == Context.EDITOR:
+        if self._simulation.context == Context.EDITOR_SCENERY:
             x, y = eval(value.strip('()'))
             self._rect.setTopLeft(QtCore.QPointF(x, y))
             self._pfgi.setRect(self._rect)
@@ -120,7 +120,7 @@ class PlatformItem(LineItem):
     @bottomRightPFStr.setter
     def bottomRightPFStr(self, value):
         """Setter function for the bottomRightPFStr property"""
-        if self._simulation.context == Context.EDITOR:
+        if self._simulation.context == Context.EDITOR_SCENERY:
             x, y = eval(value.strip('()'))
             self._rect.setBottomRight(QtCore.QPointF(x, y))
             self._pfgi.setRect(self._rect)

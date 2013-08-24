@@ -18,25 +18,29 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from PyQt4 import QtCore
+from PyQt4 import QtCore, QtGui
 
-def recordToDict(record):
-    """This helper function returns a dictionary from a QSqlRecord"""
-    retDict = {}
-    for i in range(record.count()):
-        if not isinstance(record.value(i), QtCore.QPyNullVariant):
-            retDict[record.fieldName(i)] = record.value(i)
-        else:
-            retDict[record.fieldName(i)] = None
-    return retDict
+class RoutesEditorView(QtGui.QTableView):
+    """Table view with specific options for editing routes in the editor
+    """
+    def __init__(self, parent):
+        """Constructor for the RoutesEditorView class"""
+        super().__init__(parent)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
+                                       QtGui.QSizePolicy.Expanding)
+        sizePolicy.setVerticalStretch(1)
+        self.setSizePolicy(sizePolicy)
+        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+    
+    routeSelected = QtCore.pyqtSignal(int)
+    
+    def selectionChanged(self, selected, deselected):
+        """Called when the user changes the selection. Emits the routeSelected
+        signal"""
+        super().selectionChanged(selected, deselected)
+        index = selected.indexes()[0]
+        if index.isValid():
+            self.routeSelected.emit(index.data())
 
-class Context():
-    """This class holds the different contexts for ts2."""
-    GAME = 10
-    EDITORS = [20, 21, 22, 23, 24, 25]
-    EDITOR_GENERAL = 20
-    EDITOR_SCENERY = 21
-    EDITOR_ROUTES = 22
-    EDITOR_TRAINTYPES = 23
-    EDITOR_SERVICES = 24
-    EDITOR_TRAINS = 25
+    

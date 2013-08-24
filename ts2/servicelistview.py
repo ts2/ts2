@@ -59,15 +59,16 @@ class ServiceListView(QtGui.QTreeView):
             self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
             self.serviceSelected.connect( \
                     self._simulation.selectedServiceModel.setServiceCode)
-            self._simulation.simulationWindow.trainListView.\
-                    trainSelected.connect( \
-                    self.updateServiceSelection)
+            #self._simulation.simulationWindow.trainListView.\
+                    #trainSelected.connect( \
+                    #self.updateServiceSelection)
 
     @QtCore.pyqtSlot(QtGui.QItemSelection, QtGui.QItemSelection)
     def selectionChanged(self, selected, deselected):
         """This function is called when a line is selected in the
         serviceListView.
         It emits the serviceSelected signal for others to connect to."""
+        super().selectionChanged(selected, deselected)
         index = selected.indexes()[0]
         if index.isValid():
             self.serviceSelected.emit(index.data())

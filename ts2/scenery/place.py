@@ -135,7 +135,7 @@ class Place(TrackItem):
         """Returns the parameters dictionary to save this TrackItem to the 
         database"""
         parameters = super().saveParameters
-        parameters.update({"placecode":self.name})
+        parameters.update({"placecode":self.placeCode})
         return parameters
     
     @property
@@ -148,7 +148,7 @@ class Place(TrackItem):
     @origin.setter
     def origin(self, value):
         """Setter function for the origin property"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             self.realOrigin = value - self._rect.bottomLeft()
 
     @property
@@ -161,7 +161,7 @@ class Place(TrackItem):
     @realOrigin.setter
     def realOrigin(self, pos):
         """Setter function for the realOrigin property"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             grid = self.simulation.grid
             x = round((pos.x() + self._rect.bottomLeft().x()) / grid) * grid
             y = round((pos.y() + self._rect.bottomLeft().y()) / grid) * grid
@@ -192,7 +192,7 @@ class Place(TrackItem):
     @placeCode.setter
     def placeCode(self, value):
         """Setter function for the placeCode property"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             self._placeCode = value
     
     @property
@@ -203,7 +203,7 @@ class Place(TrackItem):
     @name.setter
     def name(self, value):
         """Setter function for the name property"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             self._gi.prepareGeometryChange()
             self._name = value
             self._gi.setToolTip(self.toolTipText)

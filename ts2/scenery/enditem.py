@@ -38,28 +38,24 @@ class EndItem(TrackItem):
         self._realLength = BIG
         egi = TrackGraphicsItem(self)
         egi.setPos(self.realOrigin)
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context in utils.Context.EDITORS:
             egi.setCursor(Qt.PointingHandCursor)
         self._gi = egi
         simulation.registerGraphicsItem(self._gi)
 
     @property
     def end(self):
-        """Returns the end QPointF of the EndItem, which is a QPointF outside
-        the scene so as not to match with any other.""" 
-        return QtCore.QPointF(-1, -1)
-
+        """Returns a point far away of the scene""" 
+        return QtCore.QPointF(-BIG, -BIG)
+        
     @property
     def realOrigin(self):
-        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is 
-        the position of the top left corner of the bounding rectangle of the
-        TrackItem. Reimplemented in SignalItem"""
-        return self._origin + QtCore.QPointF(-5,-5)
+        return self._origin
         
     @realOrigin.setter
     def realOrigin(self, pos):
         """Setter function for the realOrigin property"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             grid = self._simulation.grid
             x = round((pos.x() + 3.0) / grid) * grid
             y = round((pos.y() + 3.0) / grid) * grid
@@ -78,17 +74,17 @@ class EndItem(TrackItem):
     def graphicsBoundingRect(self):
         """Reimplemented from TrackItem.graphicsBoundingRect to return the
         bounding rectangle of the owned TrackGraphicsItem."""
-        if self._simulation.context == utils.Context.EDITOR:
-            return QtCore.QRectF(0,0,9,9)
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+            return self.connectionRect(QtCore.QPointF(0, 0))
         else:
             return super().graphicsBoundingRect()
     
     def graphicsPaint(self, p, options, widget):
         """ Reimplemented from TrackItem.graphicsPaint"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             pen = self.getPen()
             pen.setColor(Qt.yellow)
             p.setPen(self.getPen())
-            p.drawEllipse(3,3,3,3)
+            p.drawEllipse(-1.5, -1.5, 3, 3)
             p.setPen(Qt.white)
-            p.drawRect(self.graphicsBoundingRect())
+            p.drawRect(self.connectionRect(QtCore.QPointF(0, 0)))

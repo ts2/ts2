@@ -235,7 +235,7 @@ class TrackItem(QtCore.QObject):
     @origin.setter
     def origin(self, value):
         """Setter function for the origin property"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             self.realOrigin = value
     
     @property
@@ -249,7 +249,7 @@ class TrackItem(QtCore.QObject):
     @realOrigin.setter
     def realOrigin(self, pos):
         """Setter function for the realOrigin property"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             self._origin = pos
             self._gi.setPos(pos)
             self.updateGraphics()
@@ -262,7 +262,7 @@ class TrackItem(QtCore.QObject):
     @originStr.setter
     def originStr(self, value):
         """Setter for the originStr property"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             x, y = eval(value.strip('()'))
             self.origin = QtCore.QPointF(x, y)
     
@@ -280,7 +280,7 @@ class TrackItem(QtCore.QObject):
     @name.setter
     def name(self, value):
         """Setter function for the name property"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             self._name = value
             self._gi.setToolTip(self.toolTipText)
     
@@ -332,8 +332,7 @@ class TrackItem(QtCore.QObject):
 
     @nextItem.setter
     def nextItem(self, ni): 
-        if self._nextItem is None:
-            self._nextItem = ni
+        self._nextItem = ni
 
     @property
     def previousItem(self):
@@ -341,8 +340,7 @@ class TrackItem(QtCore.QObject):
 
     @previousItem.setter
     def previousItem(self, pi):
-        if self._previousItem is None:
-            self._previousItem = pi
+        self._previousItem = pi
 
     def getFollowingItem(self, precedingItem, direction = -1):
         """Returns the following TrackItem linked to this one, knowing we come 
@@ -373,7 +371,7 @@ class TrackItem(QtCore.QObject):
                      else None
         return  { \
                     "tiid":self.tiId, \
-                    "tiType":self.tiType, \
+                    "titype":self.tiType, \
                     "name":self.name,
                     "conflicttiid":conflictId, \
                     "x":self.origin.x(), \
@@ -484,6 +482,7 @@ class TrackItem(QtCore.QObject):
         self.__updateGraphics()
 
     def getPen(self):
+        """Returns the standard pen for drawing trackItems"""
         pen = QtGui.QPen()
         pen.setWidth(3)
         pen.setJoinStyle(Qt.RoundJoin)
@@ -493,6 +492,12 @@ class TrackItem(QtCore.QObject):
         else:
             pen.setColor(Qt.darkGray)
         return pen
+    
+    def connectionRect(self, point):
+        """Returns a small rectangle centered around point to be used in the
+        editor."""
+        topLeft = point + QtCore.QPointF(-5, -5)
+        return QtCore.QRectF(topLeft, QtCore.QSizeF(10, 10))
     
     def graphicsBoundingRect(self):
         """This function is called by the owned TrackGraphicsItem to return 
@@ -517,7 +522,7 @@ class TrackItem(QtCore.QObject):
         its mouseMoveEvent. The implementation in the base class TrackItem
         begins a drag operation."""
         if event.buttons() == Qt.LeftButton and \
-           self._simulation.context == utils.Context.EDITOR:
+           self._simulation.context == utils.Context.EDITOR_SCENERY:
             if QtCore.QLineF(event.scenePos(), \
                          event.buttonDownScenePos(Qt.LeftButton)).length() \
                         < 3.0:

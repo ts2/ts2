@@ -21,7 +21,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import Qt
 from ts2.scenery import TrackItem, TrackGraphicsItem, TIProperty
-from ts2.utils import Context
+from ts2 import utils
 from math import sqrt
 
 tr = QtCore.QObject().tr
@@ -54,7 +54,7 @@ class LineItem(TrackItem):
         self._realLength = realLength
         self._maxSpeed = parameters["maxspeed"]
         gli = TrackGraphicsItem(self)
-        if simulation.context == Context.EDITOR:
+        if simulation.context in utils.Context.EDITORS:
             gli.setCursor(Qt.PointingHandCursor)
         else:
             gli.setCursor(Qt.ArrowCursor)
@@ -115,7 +115,7 @@ class LineItem(TrackItem):
     @origin.setter
     def origin(self, pos):
         """Setter function for the origin property"""
-        if self._simulation.context == Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             grid = self._simulation.grid
             x = round((pos.x()) / grid) * grid
             y = round((pos.y()) / grid) * grid
@@ -133,7 +133,7 @@ class LineItem(TrackItem):
     @end.setter
     def end(self, pos):
         """Setter function for the origin property"""
-        if self._simulation.context == Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             grid = self._simulation.grid
             x = round((pos.x()) / grid) * grid
             y = round((pos.y()) / grid) * grid
@@ -150,7 +150,7 @@ class LineItem(TrackItem):
     @realLength.setter
     def realLength(self, value):
         """Setter function for the realLength property"""
-        if self._simulation.context == Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             self._realLength = value
     
     @property
@@ -162,7 +162,7 @@ class LineItem(TrackItem):
     @maxSpeed.setter
     def maxSpeed(self, value):
         """Setter function for the maxSpeed property"""
-        if self._simulation.context == Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             self._maxSpeed = value
     
     @property
@@ -173,7 +173,7 @@ class LineItem(TrackItem):
     @endStr.setter
     def endStr(self, value):
         """Setter for the endStr property"""
-        if self._simulation.context == Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             x, y = eval(value.strip('()'))
             self.end = QtCore.QPointF(x, y)
 
@@ -182,15 +182,12 @@ class LineItem(TrackItem):
         """Returns the realOrigin QPointF of the TrackItem. The realOrigin is 
         the position of the top left corner of the bounding rectangle of the
         TrackItem. Reimplemented in SignalItem"""
-        if self._simulation.context == Context.EDITOR:
-            return self.origin + QtCore.QPointF(-5, -5)
-        else:
-            return self.origin + QtCore.QPointF(-2, -2)
+        return self.origin
         
     @realOrigin.setter
     def realOrigin(self, pos):
         """Setter function for the realOrigin property."""
-        if self._simulation.context == Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             grid = self._simulation.grid
             x = round((pos.x() + 5.0) / grid) * grid
             y = round((pos.y() + 5.0) / grid) * grid
@@ -209,7 +206,7 @@ class LineItem(TrackItem):
     @placeCode.setter
     def placeCode(self, value):
         """Setter function for the placeCode property"""
-        if self.simulation.context == Context.EDITOR:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self._placeCode = value
 
     @property
@@ -222,15 +219,13 @@ class LineItem(TrackItem):
     @trackCode.setter
     def trackCode(self, value):
         """Setter function for the trackCode property"""
-        if self.simulation.context == Context.EDITOR:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self._trackCode = value
 
     @property
     def line(self):
         """Returns the line as a QLineF in the item's coordinates."""
-        orig = QtCore.QPointF(2, 2)
-        if self._simulation.context == Context.EDITOR:
-            orig += QtCore.QPointF(3, 3)
+        orig = QtCore.QPointF(0, 0)
         end = orig + self._end - self._origin
         return QtCore.QLineF(orig, end)
     
@@ -249,7 +244,7 @@ class LineItem(TrackItem):
         rx = max(x1, x2) + 2.0
         ty = min(y1, y2) - 2.0
         by = max(y1, y2) + 2.0
-        if self._simulation.context == Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             lx -= 3.0
             rx += 3.0
             ty -= 3.0
@@ -266,10 +261,10 @@ class LineItem(TrackItem):
         pen = self.getPen()
         p.setPen(pen)
         p.drawLine(self.line)
-        if self._simulation.context == Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             p.setPen(QtGui.QPen(Qt.white))
-            p.drawRect(0,0,9,9)
-            p.drawRect(self.line.p2().x() - 5, self.line.p2().y() - 5, 9, 9)
+            p.drawRect(self.connectionRect(self.line.p1()))
+            p.drawRect(self.connectionRect(self.line.p2()))
         else:
             self.drawTrain()
        
@@ -297,7 +292,7 @@ class LineItem(TrackItem):
         its mouseMoveEvent. Reimplemented in the LineItem class to begin a 
         drag operation on the origin or the end."""
         if event.buttons() == Qt.LeftButton and \
-           self._simulation.context == Context.EDITOR:
+           self._simulation.context == utils.Context.EDITOR_SCENERY:
             if QtCore.QLineF(event.scenePos(), \
                          event.buttonDownScenePos(Qt.LeftButton)).length() \
                         < 3.0:

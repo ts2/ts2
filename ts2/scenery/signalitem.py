@@ -61,9 +61,6 @@ class SignalItem(TrackItem):
         self._gi = sgi
         self._simulation.registerGraphicsItem(self._gi)
         self.updateGraphics()
-        self.signalSelected.connect(simulation.createRoute)
-        self.signalUnselected.connect(simulation.deleteRoute)
-        self.trainSelected.connect(simulation.trainSelected)
 
     properties = TrackItem.properties + [TIProperty("reverse", tr("Reverse"))]
 
@@ -81,7 +78,7 @@ class SignalItem(TrackItem):
     @origin.setter
     def origin(self, value):
         """Setter function for the origin property"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             if self.reverse:
                 self.realOrigin = value + QtCore.QPointF(-60,-2)
             else:
@@ -105,7 +102,7 @@ class SignalItem(TrackItem):
     @reverse.setter
     def reverse(self, value):
         """Setter function for the reverse property"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             self._reverse = bool(value)
             if self._reverse:
                 self.realOrigin += QtCore.QPointF(60, 0)
@@ -140,7 +137,7 @@ class SignalItem(TrackItem):
     @realOrigin.setter
     def realOrigin(self, pos):
         """Setter function for the realOrigin property"""
-        if self._simulation.context == utils.Context.EDITOR:
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
             grid = self.simulation.grid
             if self.reverse:
                 x = round((pos.x() + 60.0) / grid) * grid
@@ -207,7 +204,8 @@ class SignalItem(TrackItem):
             if (self._reverse and e.pos().x() <= 20) or \
                (not self._reverse and e.pos().x() > 40):
                 # The signal itself is selected
-                self._selected = True;
+                if self.simulation.context == utils.Context.GAME:
+                    self._selected = True;
                 persistent = (e.modifiers() == Qt.ShiftModifier)
                 self.signalSelected.emit(self.tiId, persistent);
             else:
@@ -217,7 +215,8 @@ class SignalItem(TrackItem):
             if (self._reverse and e.pos().x() <= 20) or \
                (not self._reverse and e.pos().x() > 40):
                 # The signal itself is right-clicked
-                self._selected = False
+                if self.simulation.context == utils.Context.GAME:
+                    self._selected = False
                 self.signalUnselected.emit(self.tiId)
             else:
                 # The train code is right-clicked 
@@ -306,6 +305,19 @@ class SignalItem(TrackItem):
                 brush.setColor(Qt.white)
                 p.setBrush(brush)
                 p.drawRect(55,12,4,3)
+                
+        # Draw the connection rects
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            p.setBrush(Qt.NoBrush)
+            textPen.setColor(Qt.white)
+            p.setPen(textPen)
+            if self.reverse:
+                p.drawRect(self.connectionRect(QtCore.QPointF(0, 2)))
+                p.drawRect(self.connectionRect(QtCore.QPointF(60, 2)))
+            else:
+                p.drawRect(self.connectionRect(QtCore.QPointF(0, 18)))
+                p.drawRect(self.connectionRect(QtCore.QPointF(60, 18)))
+                
      
     def resetNextActiveRoute(self):
         """Resets the nextActiveRoute information."""

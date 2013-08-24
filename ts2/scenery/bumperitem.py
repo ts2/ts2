@@ -21,6 +21,7 @@
 from PyQt4.Qt import Qt
 from PyQt4 import QtGui, QtCore
 from ts2.scenery import SignalItem
+from ts2 import utils
 
 class BumperItem(SignalItem):
     """The BumperItem is the item placed at the end of a dead end line.
@@ -87,4 +88,16 @@ class BumperItem(SignalItem):
                      << QtCore.QPointF(45, 16)
             p.drawPolygon(triangle)
 
+        # Draw the connection rects
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            p.setBrush(Qt.NoBrush)
+            textPen.setColor(Qt.white)
+            p.setPen(textPen)
+            if self.reverse:
+                p.drawRect(self.connectionRect(QtCore.QPointF(0, 2)))
+                p.drawRect(self.connectionRect(QtCore.QPointF(60, 2)))
+            else:
+                p.drawRect(self.connectionRect(QtCore.QPointF(0, 18)))
+                p.drawRect(self.connectionRect(QtCore.QPointF(60, 18)))
+                
 
