@@ -61,14 +61,14 @@ class TrainListModel(QtCore.QAbstractTableModel):
         self._simulation = simulation
         
     def rowCount(self, parent = QModelIndex()):
-        return len(self._simulation.trains())
+        return len(self._simulation.trains)
     
     def columnCount(self, parent = QModelIndex()):
         return 7
     
     def data(self, index, role = Qt.DisplayRole):
         if role == Qt.DisplayRole:
-            train = self._simulation.trains()[index.row()]
+            train = self._simulation.trains[index.row()]
             if index.column() ==  0:
                 return train.serviceCode
             elif index.column() == 1:

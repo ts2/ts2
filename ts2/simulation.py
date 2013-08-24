@@ -92,6 +92,11 @@ class Simulation(QtCore.QObject):
     def routes(self):
         """Returns the routes of the simulation"""
         return self._routes
+    
+    @property
+    def trainTypes(self):
+        """Returns the list of rolling stock types of the simulation"""
+        return self._trainTypes
 
     def reload(self, fileName):
         """Load or reload all the data of the simulation from the database."""
@@ -143,6 +148,7 @@ class Simulation(QtCore.QObject):
                 return t
         return None
     
+    @property
     def trains(self):
         return self._trains
 
@@ -311,15 +317,9 @@ valid.\nSee stderr for more information"""))
         """Creates the instances of TrainType from the data of the database.
         """
         for trainType in conn.execute("SELECT * FROM traintypes"):
-            code = trainType["code"]
-            description = trainType["description"]
-            maxSpeed = trainType["maxspeed"]
-            stdAccel = trainType["stdaccel"]
-            stdBraking = trainType["stdbraking"]
-            emergBraking = trainType["emergbraking"]
-            length = trainType["tlength"]
-            self._trainTypes[code] = TrainType(code, description, maxSpeed, \
-                                stdAccel, stdBraking, emergBraking, length)
+            code = str(trainType["code"])
+            parameters = dict(trainType)
+            self._trainTypes[code] = TrainType(self, parameters)
     
     def loadTrains(self, conn):
         """Creates the instances of Train from the data of the database."""

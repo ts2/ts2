@@ -20,7 +20,7 @@
 
 from PyQt4 import QtGui, QtCore, QtSql
 from PyQt4.Qt import Qt
-from ts2.editor import Editor, RoutesEditorView
+from ts2.editor import Editor, RoutesEditorView, TrainTypesEditorView
 from ts2.scenery import TrackItem, TrackPropertiesModel
 
 class EditorWindow(QtGui.QMainWindow):
@@ -222,11 +222,27 @@ class EditorWindow(QtGui.QMainWindow):
         
         # Train types tab
         trainTypesTab = QtGui.QWidget()
-        self._trainTypesView = QtGui.QTableView(trainTypesTab)
+        self.trainTypesView = TrainTypesEditorView(trainTypesTab)
+        self.trainTypesView.setModel(self.editor.trainTypesModel)
+        self.editor.trainTypesChanged.connect( \
+                                self.trainTypesView.model().reset)
+        self.editor.trainTypesChanged.connect( \
+                                self.trainTypesView.resizeColumnsToContents)
+        self.addTrainTypeBtn = QtGui.QPushButton( \
+                                self.tr("Add stock type"), trainTypesTab)
+        self.addTrainTypeBtn.clicked.connect(self.addTrainTypeBtnClicked)
+        self.delTrainTypeBtn = QtGui.QPushButton( \
+                                self.tr("Remove stock type"), trainTypesTab)
+        self.delTrainTypeBtn.clicked.connect(self.delTrainTypeBtnClicked)
+        hgrid = QtGui.QHBoxLayout()
+        hgrid.addWidget(self.addTrainTypeBtn)
+        hgrid.addWidget(self.delTrainTypeBtn)
+        hgrid.addStretch()
         grid = QtGui.QVBoxLayout()
-        grid.addWidget(self._trainTypesView)
+        grid.addLayout(hgrid)
+        grid.addWidget(self.trainTypesView)
         trainTypesTab.setLayout(grid)
-        self._tabWidget.addTab(trainTypesTab, self.tr("Rolling stock"))
+        self._tabWidget.addTab(trainTypesTab, self.tr("Rolling stock types"))
         
         # Services tab
         servicesTab = QtGui.QWidget()
@@ -290,7 +306,9 @@ class EditorWindow(QtGui.QMainWindow):
         """Saves the simulation to the database"""
         if self.editor.database is None:
             self.saveAsSimulation()
+        self.setCursor(Qt.WaitCursor)
         self.editor.save()
+        self.setCursor(Qt.ArrowCursor)
 
     @QtCore.pyqtSlot()
     def saveAsSimulation(self):
@@ -362,3 +380,25 @@ Do you want to continue?""", \
                         self.tr("No route added:\n"
                                 "No route selected or a route between "
                                 "these two signals already exists."))
+                        
+    @QtCore.pyqtSlot()
+    def addTrainTypeBtnClicked(self):
+        """Adds an empty stock type to the editor"""
+        self.editor.addTrainType()
+    
+    @QtCore.pyqtSlot()
+    def delTrainTypeBtnClicked(self):
+        """Removes the currently selected stock type from the simulation"""
+        rows = self.trainTypesView.selectionModel().selectedRows()
+        if len(rows) != 0:
+            row = rows[0]
+            code = self.trainTypesView.model().data(row, 0)
+            if QtGui.QMessageBox.question( \
+                        self, \
+                        self.tr("Delete route"), \
+                        self.tr("Are you sure you want " \
+                                "to delete stock type %s?") % code, \
+                        QtGui.QMessageBox.Yes|QtGui.QMessageBox.No) \
+                                == QtGui.QMessageBox.Yes:
+                self.editor.deleteTrainType(code)
+        

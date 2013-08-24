@@ -43,4 +43,21 @@ class RoutesEditorView(QtGui.QTableView):
         if index.isValid():
             self.routeSelected.emit(index.data())
 
+
+
+class TrainTypesEditorView(QtGui.QTableView):
+    """Table view with specific options for editing trainTypes in the editor
+    """
+    def __init__(self, parent):
+        """Constructor for the RoutesEditorView class"""
+        super().__init__(parent)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
+                                       QtGui.QSizePolicy.Expanding)
+        sizePolicy.setVerticalStretch(1)
+        self.setSizePolicy(sizePolicy)
+        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+    
+
+    
     

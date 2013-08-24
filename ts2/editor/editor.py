@@ -25,6 +25,7 @@ from ts2.simulation import Simulation
 from ts2 import scenery, utils
 from ts2.editor import EditorSceneBackground
 from ts2.route import Route, RoutesModel
+from ts2.traintype import TrainType, TrainTypesModel
 from ts2.position import Position
 
 class TrashBinItem(QtGui.QGraphicsPixmapItem):
@@ -76,15 +77,18 @@ class Editor(Simulation):
         self.drawToolBox()
         self._sceneryValidated = False
         self._routesModel = RoutesModel(self)
+        self._trainTypesModel = TrainTypesModel(self)
         self._database = None
         self._nextId = 1
         self._nextRouteId = 1
+        self._nextTrainTypeId = 1
         self._grid = 5.0
         self._preparedRoute = None
         self._selectedRoute = None
         
     sceneryIsValidated = QtCore.pyqtSignal(bool)
     routesChanged = QtCore.pyqtSignal()
+    trainTypesChanged = QtCore.pyqtSignal()
     
     def drawToolBox(self):
         """Construct the library tool box"""
@@ -137,6 +141,11 @@ class Editor(Simulation):
         return self._routesModel
     
     @property
+    def trainTypesModel(self):
+        """Returns the trainTypesModel of this editor"""
+        return self._trainTypesModel
+    
+    @property
     def database(self):
         """Returns the database filename, with full path"""
         return self._database
@@ -170,7 +179,12 @@ class Editor(Simulation):
             self.loadRoutes(conn)
             self._nextRouteId = max(self._routes.keys()) + 1
             self.routesChanged.emit()
-        #self.loadTrainTypes()
+        self.loadTrainTypes(conn)
+        try:
+            self._nextTrainTypeId = max(self._trainTypes.keys()) + 1
+        except:
+            pass
+        self.trainTypesChanged.emit()
         #self.loadServices()
         #self.loadTrains()
 
@@ -180,6 +194,7 @@ class Editor(Simulation):
         conn = sqlite3.connect(self._database)
         self.saveTrackItems(conn)
         self.saveRoutes(conn)
+        self.saveTrainTypes(conn)
         conn.close()
         
     def saveTrackItems(self, conn):
@@ -243,6 +258,37 @@ class Editor(Simulation):
                              }
                 conn.execute(query, parameters)
         conn.commit()
+        
+    def saveTrainTypes(self, conn):
+        """Saves the TrainType instances of this editor in the database"""
+        conn.execute("DROP TABLE IF EXISTS traintypes")
+        conn.execute("CREATE TABLE traintypes (" \
+                            "code VARCHAR(10)," \
+                            "description VARCHAR(200)," \
+                            "maxspeed DOUBLE," \
+                            "stdaccel DOUBLE," \
+                            "stdbraking DOUBLE," \
+                            "emergbraking DOUBLE," \
+                            "tlength DOUBLE)")
+
+        for trainType in self._trainTypes.values():
+            query = "INSERT INTO traintypes " \
+                    "(code, description, maxspeed, stdaccel, "\
+                    "stdbraking, emergbraking, tlength) " \
+                    "VALUES " \
+                    "(:code, :description, :maxspeed, :stdaccel, "\
+                    ":stdbraking, :emergbraking, :tlength)"
+            parameters = { \
+                    "code":trainType.code, \
+                    "description":trainType.description, \
+                    "maxspeed":trainType.maxSpeed, \
+                    "stdaccel":trainType.stdAccel, \
+                    "stdbraking":trainType.stdBraking, \
+                    "emergbraking":trainType.emergBraking, \
+                    "tlength":trainType.length}
+            conn.execute(query, parameters)
+        conn.commit()
+                        
         
     
     def registerGraphicsItem(self, graphicItem):
@@ -382,22 +428,23 @@ class Editor(Simulation):
     
     def addRoute(self):
         """Adds the route that is selected on the scene to the routes."""
-        if (self._preparedRoute is not None) and \
-           (self._preparedRoute not in self._routes.values()):
-            routeNum = self._preparedRoute.routeNum
-            self._routes[routeNum] = self._preparedRoute
-            self.routesChanged.emit()
-            self.deselectRoute()
-            return True
-        else:
-            self.deselectRoute()
-            return False
+        if self.context == utils.Context.EDITOR_ROUTES:
+            if (self._preparedRoute is not None) and \
+               (self._preparedRoute not in self._routes.values()):
+                routeNum = self._preparedRoute.routeNum
+                self._routes[routeNum] = self._preparedRoute
+                self.routesChanged.emit()
+                self.deselectRoute()
+                return True
+        self.deselectRoute()
+        return False
     
     def deleteRoute(self, routeNum):
         """Deletes the route defined by routeNum"""
-        self.deselectRoute()
-        del self._routes[routeNum]
-        self.routesChanged.emit()
+        if self.context == utils.Context.EDITOR_ROUTES:
+            self.deselectRoute()
+            del self._routes[routeNum]
+            self.routesChanged.emit()
         
     @QtCore.pyqtSlot(int)
     def prepareRoute(self, signalId):
@@ -442,6 +489,30 @@ class Editor(Simulation):
         if self.context == utils.Context.EDITOR_ROUTES:
             self.selectedRoute = None
             self._preparedRoute = None
+
+    def addTrainType(self):
+        """Adds an empty TrainType to the trainTypes list."""
+        if self.context == utils.Context.EDITOR_TRAINTYPES:
+            code = str(self._nextTrainTypeId)
+            parameters = { \
+                    "code":code, \
+                    "description":"<Stock type description>", \
+                    "maxspeed":"25.0", \
+                    "stdaccel":"0.5", \
+                    "stdbraking":"0.5", \
+                    "emergbraking":"1.5", \
+                    "tlength":"100"}
+            self._trainTypes[code] = TrainType(self, parameters)
+            self._nextTrainTypeId += 1
+            self.trainTypesChanged.emit()
+            return True
+        return False
+    
+    def deleteTrainType(self, code):
+        """Deletes the route defined by routeNum"""
+        if self.context == utils.Context.EDITOR_TRAINTYPES:
+            del self._trainTypes[code]
+        self.trainTypesChanged.emit()
  
     @QtCore.pyqtSlot(int)
     def updateContext(self, tabNum):
