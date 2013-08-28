@@ -165,11 +165,9 @@ class Simulation(QtCore.QObject):
     def service(self, serviceCode):
         return self._services[serviceCode]
     
+    @property
     def services(self):
         return self._services
-    
-    def servicesList(self):
-        return list(self._services.values())
 
     def registerGraphicsItem(self, graphicItem):
         self._scene.addItem(graphicItem)
@@ -409,27 +407,13 @@ valid.\nSee stderr for more information"""))
         """Creates the instances of Service from the data of the database."""
         for service in conn.execute("SELECT * FROM services"):
             serviceCode = service["servicecode"]
-            description = service["description"]
-            nextService = service["nextservice"]
-            self._services[serviceCode] = Service(self, \
-                                                  serviceCode, \
-                                                  description, \
-                                                  nextService)
+            parameters = dict(service)
+            self._services[serviceCode] = Service(self, parameters)
 
         for serviceLine in conn.execute("SELECT * FROM serviceLines"):
             serviceCode = serviceLine["servicecode"]
-            placeCode = serviceLine["placecode"]
-            scheduledArrivalTime = QtCore.QTime.fromString( \
-                    serviceLine["scheduledarrivaltime"])
-            scheduledDepartureTime = QtCore.QTime.fromString( \
-                    serviceLine["scheduleddeparturetime"])
-            trackCode = serviceLine["trackcode"]
-            stop = serviceLine["stop"]
-            self._services[serviceCode].addLine(placeCode, \
-                                                scheduledArrivalTime, \
-                                                scheduledDepartureTime, \
-                                                trackCode, \
-                                                stop)
+            parameters = dict(serviceLine)
+            self._services[serviceCode].addLine(parameters)
 
         for s in self._services.values():
             s.start()

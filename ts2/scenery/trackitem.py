@@ -378,6 +378,11 @@ class TrackItem(QtCore.QObject):
                     "y":self.origin.y()
                 }
     
+    @property
+    def graphicsItem(self):
+        """Returns the graphics item of this TrackItem"""
+        return self._gi
+   
     def setActiveRoute(self, r, previous):
         """Sets the activeRoute and activeRoutePreviousItem informations. It 
         is called upon Route activation. These information are used when other 

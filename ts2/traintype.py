@@ -27,7 +27,7 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
     """Model for TrainType class used in the editor
     """
     def __init__(self, editor):
-        """Constructor for the TrainTypeEditorModel class"""
+        """Constructor for the TrainTypesModel class"""
         super().__init__(editor)
         self._editor = editor
         
@@ -113,12 +113,11 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
 
 
 
-class TrainType():
+class TrainType:
     """The TrainType class holds information relating to rolling stock types.
     """
     def __init__(self, simulation, parameters):
         """Constructor for the TrainType class"""
-        super().__init__()
         self._simulation = simulation
         self._code = str(parameters["code"])
         self._description = parameters["description"]

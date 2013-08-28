@@ -26,6 +26,7 @@ from ts2 import scenery, utils
 from ts2.editor import EditorSceneBackground
 from ts2.route import Route, RoutesModel
 from ts2.traintype import TrainType, TrainTypesModel
+from ts2.service import Service, ServiceLine, ServicesModel, ServiceLinesModel
 from ts2.position import Position
 
 class TrashBinItem(QtGui.QGraphicsPixmapItem):
@@ -78,10 +79,11 @@ class Editor(Simulation):
         self._sceneryValidated = False
         self._routesModel = RoutesModel(self)
         self._trainTypesModel = TrainTypesModel(self)
+        self._servicesModel = ServicesModel(self)
+        self._serviceLinesModel = ServiceLinesModel(self)
         self._database = None
         self._nextId = 1
         self._nextRouteId = 1
-        self._nextTrainTypeId = 1
         self._grid = 5.0
         self._preparedRoute = None
         self._selectedRoute = None
@@ -89,6 +91,8 @@ class Editor(Simulation):
     sceneryIsValidated = QtCore.pyqtSignal(bool)
     routesChanged = QtCore.pyqtSignal()
     trainTypesChanged = QtCore.pyqtSignal()
+    servicesChanged = QtCore.pyqtSignal()
+    serviceLinesChanged = QtCore.pyqtSignal()
     
     def drawToolBox(self):
         """Construct the library tool box"""
@@ -137,13 +141,23 @@ class Editor(Simulation):
     
     @property
     def routesModel(self):
-        """Returns the routesModel of this editor instance"""
+        """Returns the RoutesModel of this editor instance"""
         return self._routesModel
     
     @property
     def trainTypesModel(self):
-        """Returns the trainTypesModel of this editor"""
+        """Returns the TrainTypesModel of this editor"""
         return self._trainTypesModel
+    
+    @property
+    def servicesModel(self):
+        """Returns the ServicesModel of this editor"""
+        return self._servicesModel
+    
+    @property
+    def serviceLinesModel(self):
+        """Returns the ServiceLinesModel of this editor"""
+        return self._serviceLinesModel
     
     @property
     def database(self):
@@ -174,6 +188,7 @@ class Editor(Simulation):
         conn = sqlite3.connect(fileName)
         conn.row_factory = sqlite3.Row
         self.createAllTrackItems(conn)
+        self.adjustSceneBackground()
         self._nextId = max(self._trackItems.keys()) + 1
         if self.validateScenery():
             self.loadRoutes(conn)
@@ -185,7 +200,8 @@ class Editor(Simulation):
         except:
             pass
         self.trainTypesChanged.emit()
-        #self.loadServices()
+        self.loadServices(conn)
+        self.servicesChanged.emit()
         #self.loadTrains()
 
     def save(self):
@@ -195,6 +211,7 @@ class Editor(Simulation):
         self.saveTrackItems(conn)
         self.saveRoutes(conn)
         self.saveTrainTypes(conn)
+        self.saveServices(conn)
         conn.close()
         
     def saveTrackItems(self, conn):
@@ -219,11 +236,11 @@ class Editor(Simulation):
         """Saves the Route instances of this editor in the database"""
         # Save routes themselves
         conn.execute("DROP TABLE IF EXISTS routes")
-        conn.execute("CREATE TABLE routes (" \
-                            "routenum INTEGER PRIMARY KEY," \
-                            "beginsignal INTEGER," \
-                            "endsignal INTEGER," \
-                            "initialstate INTEGER)" \
+        conn.execute("CREATE TABLE routes (\n" \
+                            "routenum INTEGER PRIMARY KEY,\n" \
+                            "beginsignal INTEGER,\n" \
+                            "endsignal INTEGER,\n" \
+                            "initialstate INTEGER)\n" \
                     )
         for route in self._routes.values():
             query = "INSERT INTO routes "\
@@ -240,10 +257,10 @@ class Editor(Simulation):
         
         # Save the directions
         conn.execute("DROP TABLE IF EXISTS directions")
-        conn.execute("CREATE TABLE directions (" \
-                        "routenum INTEGER," \
-                        "tiid INTEGER," \
-                        "direction INTEGER)" \
+        conn.execute("CREATE TABLE directions (\n" \
+                        "routenum INTEGER,\n" \
+                        "tiid INTEGER,\n" \
+                        "direction INTEGER)\n" \
                     )
         for route in self._routes.values():
             for tiId, direction in route.directions.items():
@@ -262,13 +279,13 @@ class Editor(Simulation):
     def saveTrainTypes(self, conn):
         """Saves the TrainType instances of this editor in the database"""
         conn.execute("DROP TABLE IF EXISTS traintypes")
-        conn.execute("CREATE TABLE traintypes (" \
-                            "code VARCHAR(10)," \
-                            "description VARCHAR(200)," \
-                            "maxspeed DOUBLE," \
-                            "stdaccel DOUBLE," \
-                            "stdbraking DOUBLE," \
-                            "emergbraking DOUBLE," \
+        conn.execute("CREATE TABLE traintypes (\n" \
+                            "code VARCHAR(10),\n" \
+                            "description VARCHAR(200),\n" \
+                            "maxspeed DOUBLE,\n" \
+                            "stdaccel DOUBLE,\n" \
+                            "stdbraking DOUBLE,\n" \
+                            "emergbraking DOUBLE,\n" \
                             "tlength DOUBLE)")
 
         for trainType in self._trainTypes.values():
@@ -288,7 +305,58 @@ class Editor(Simulation):
                     "tlength":trainType.length}
             conn.execute(query, parameters)
         conn.commit()
-                        
+       
+    def saveServices(self, conn):
+        """Saves the Service instances of this editor in the database"""
+        conn.execute("DROP TABLE IF EXISTS services")
+        conn.execute("CREATE TABLE services (\n" \
+                            "servicecode VARCHAR(10),\n" \
+                            "description VARCHAR(200),\n" \
+                            "nextservice VARCHAR(10),\n" \
+                            "autoreverse BOOLEAN)" \
+                    )
+        for service in self._services.values():
+            query = "INSERT INTO services "\
+                    "(servicecode, description, nextservice, autoreverse) "\
+                    "VALUES " \
+                    "(:servicecode, :description, :nextservice, :autoreverse)"
+            parameters = { \
+                    "servicecode":service.serviceCode, \
+                    "description":service.description, \
+                    "nextservice":service.nextServiceCode, \
+                    "autoreverse":service.autoReverse \
+                         }
+            conn.execute(query, parameters)
+        
+        # Save the directions
+        conn.execute("DROP TABLE IF EXISTS servicelines")
+        conn.execute("CREATE TABLE servicelines (\n" \
+                            "servicecode VARCHAR(10),\n"
+                            "placecode VARCHAR(10),\n"
+                            "scheduledarrivaltime TIME,\n"
+                            "scheduleddeparturetime TIME,\n"
+                            "trackcode VARCHAR(10),\n"
+                            "stop BOOLEAN)" \
+                    )
+        for service in self._services.values():
+            for sl in service.lines:
+                query = "INSERT INTO servicelines " \
+                        "(servicecode, placecode, scheduledarrivaltime, "\
+                        "scheduleddeparturetime, trackcode, stop) " \
+                        "VALUES " \
+                        "(:servicecode, :placecode, :scheduledarrivaltime, " \
+                        ":scheduleddeparturetime, :trackcode, :stop) " 
+                parameters = { \
+                    "servicecode":service.serviceCode, \
+                    "placecode":sl.placeCode, \
+                    "scheduledarrivaltime":sl.scheduledArrivalTimeStr, \
+                    "scheduleddeparturetime":sl.scheduledDepartureTimeStr, \
+                    "trackcode":sl.trackCode, \
+                    "stop":sl.mustStop \
+                             }
+                conn.execute(query, parameters)
+        conn.commit()
+        
         
     
     def registerGraphicsItem(self, graphicItem):
@@ -366,6 +434,7 @@ class Editor(Simulation):
         else:
             ti = scenery.TrackItem(self, parameters)
         self.makeTrackItemSignalSlotConnections(ti)
+        self.expandBackgroundTo(ti)
         self._trackItems[self._nextId] = ti
         ti.trackItemClicked.emit(int(self._nextId))
         self._nextId += 1
@@ -402,7 +471,32 @@ class Editor(Simulation):
         if point == "realOrigin":
             pos -= clickPos
         setattr(ti, point, pos)
+        self.expandBackgroundTo(ti)
         ti.trackItemClicked.emit(int(tiId))
+    
+    def expandBackgroundTo(self, trackItem):
+        """Expands the EditorSceneBackground to 300px around the given 
+        TrackItem, if it is not already the case."""
+        tl = trackItem.graphicsItem.boundingRect().topLeft() + \
+                            trackItem.graphicsItem.pos() + \
+                            QtCore.QPointF(-300, -300)
+        br = trackItem.graphicsItem.boundingRect().bottomRight() + \
+                            trackItem.graphicsItem.pos() + \
+                            QtCore.QPointF(300, 300)
+        rect = self._sceneBackground.rect()
+        if not self._sceneBackground.rect().contains(tl):
+            rect.setTopLeft(tl)
+        if not self._sceneBackground.rect().contains(br):
+            rect.setBottomRight(br)
+        self._sceneBackground.setRect(rect)
+        self._sceneBackground.update()
+        
+    def adjustSceneBackground(self):
+        """Adjusts the EditorSceneBackground to 300px around all trackitems of
+        the scene"""
+        self._sceneBackground.setRect(QtCore.QRectF(0, 0, 1, 1))
+        for ti in self._trackItems.values():
+            self.expandBackgroundTo(ti)
         
     @QtCore.pyqtSlot()
     def validateScenery(self):
@@ -490,10 +584,9 @@ class Editor(Simulation):
             self.selectedRoute = None
             self._preparedRoute = None
 
-    def addTrainType(self):
+    def addTrainType(self, code):
         """Adds an empty TrainType to the trainTypes list."""
         if self.context == utils.Context.EDITOR_TRAINTYPES:
-            code = str(self._nextTrainTypeId)
             parameters = { \
                     "code":code, \
                     "description":"<Stock type description>", \
@@ -503,16 +596,52 @@ class Editor(Simulation):
                     "emergbraking":"1.5", \
                     "tlength":"100"}
             self._trainTypes[code] = TrainType(self, parameters)
-            self._nextTrainTypeId += 1
             self.trainTypesChanged.emit()
             return True
         return False
     
     def deleteTrainType(self, code):
-        """Deletes the route defined by routeNum"""
+        """Deletes the trainType defined by code"""
         if self.context == utils.Context.EDITOR_TRAINTYPES:
             del self._trainTypes[code]
         self.trainTypesChanged.emit()
+ 
+    def addService(self, code):
+        """Adds an empty Service to the services list."""
+        if self.context == utils.Context.EDITOR_SERVICES:
+            parameters = { \
+                    "servicecode":code, \
+                    "description":"<Service description>", \
+                    "nextservice":"", \
+                    "autoreverse":0}
+            self._services[code] = Service(self, parameters)
+            self.servicesChanged.emit()
+            return True
+        return False
+    
+    def deleteService(self, code):
+        """Deletes the service defined by code"""
+        if self.context == utils.Context.EDITOR_SERVICES:
+            del self._services[code]
+        self.servicesChanged.emit()
+ 
+    def addServiceLine(self, service, index):
+        """Adds a service line to service at the current index"""
+        if self.context == utils.Context.EDITOR_SERVICES:
+            parameters = { \
+                    "placecode":"", \
+                    "trackcode":"", \
+                    "scheduledarrivaltime":"00:00:00", \
+                    "scheduleddeparturetime":"00:00:00" ,\
+                    "stop":False}
+            service.lines.insert(index, ServiceLine(service, parameters))
+            self.serviceLinesChanged.emit()
+ 
+    def deleteServiceLine(self, service, index):
+        """Deletes the service line of service defined by index"""
+        if self.context == utils.Context.EDITOR_SERVICES:
+            del service.lines[index]
+        self.serviceLinesChanged.emit()
  
     @QtCore.pyqtSlot(int)
     def updateContext(self, tabNum):

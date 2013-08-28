@@ -59,5 +59,28 @@ class TrainTypesEditorView(QtGui.QTableView):
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
     
 
+class ServicesEditorView(QtGui.QTableView):
+    """Table view with specific options for editing services in the editor
+    """
+    def __init__(self, parent):
+        """Constructor for the ServicesEditorView class"""
+        super().__init__(parent)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
+                                       QtGui.QSizePolicy.Expanding)
+        sizePolicy.setVerticalStretch(1)
+        self.setSizePolicy(sizePolicy)
+        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+    
+    serviceSelected = QtCore.pyqtSignal(str)
+    
+    def selectionChanged(self, selected, deselected):
+        """Called when the user changes the selection. Emits the 
+        serviceSelected signal"""
+        super().selectionChanged(selected, deselected)
+        index = selected.indexes()[0]
+        if index.isValid():
+            self.serviceSelected.emit(index.data())
+
     
     
