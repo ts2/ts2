@@ -248,46 +248,60 @@ class EditorWindow(QtGui.QMainWindow):
         
         # Services tab
         servicesTab = QtGui.QWidget()
+        self.exportServicesBtn = QtGui.QPushButton(
+                                self.tr("Export services as CSV file..."), 
+                                servicesTab)
+        self.exportServicesBtn.clicked.connect(
+                                self.exportServicesBtnClicked)
+        self.importServicesBtn = QtGui.QPushButton(
+                                self.tr("Import services from CSV file..."), 
+                                servicesTab)
+        self.importServicesBtn.clicked.connect(
+                                self.importServicesBtnClicked)
+        hgride = QtGui.QHBoxLayout()
+        hgride.addWidget(self.exportServicesBtn)
+        hgride.addWidget(self.importServicesBtn)
+        hgride.addStretch()
         self.servicesView = ServicesEditorView(servicesTab)
         self.servicesView.setModel(self.editor.servicesModel)
         self.editor.servicesChanged.connect(self.servicesView.model().reset)
-        self.editor.servicesChanged.connect( \
+        self.editor.servicesChanged.connect( 
                                 self.servicesView.resizeColumnsToContents)
-        self.addServiceBtn = QtGui.QPushButton( \
+        self.addServiceBtn = QtGui.QPushButton( 
                                 self.tr("Add new service"), servicesTab)
-        self.addServiceBtn.clicked.connect( \
+        self.addServiceBtn.clicked.connect( 
                                 self.addServiceBtnClicked)
-        self.delServiceBtn = QtGui.QPushButton( \
+        self.delServiceBtn = QtGui.QPushButton( 
                                 self.tr("Remove service"), servicesTab)
-        self.delServiceBtn.clicked.connect( \
+        self.delServiceBtn.clicked.connect( 
                                 self.delServiceBtnClicked)
         hgrids = QtGui.QHBoxLayout()
         hgrids.addWidget(self.addServiceBtn)
         hgrids.addWidget(self.delServiceBtn)
         hgrids.addStretch()
         self.serviceLinesView = QtGui.QTableView()
-        self.serviceLinesView.setSelectionBehavior( \
+        self.serviceLinesView.setSelectionBehavior( 
                                 QtGui.QAbstractItemView.SelectRows)
-        self.serviceLinesView.setSelectionMode( \
+        self.serviceLinesView.setSelectionMode( 
                                 QtGui.QAbstractItemView.SingleSelection)
         self.serviceLinesView.setModel(self.editor.serviceLinesModel)
-        self.servicesView.serviceSelected.connect(\
+        self.servicesView.serviceSelected.connect(
                                 self.editor.serviceLinesModel.setServiceCode)
-        self.editor.serviceLinesChanged.connect( \
+        self.editor.serviceLinesChanged.connect( 
                                 self.serviceLinesView.model().reset)
-        self.editor.serviceLinesChanged.connect( \
+        self.editor.serviceLinesChanged.connect( 
                                 self.serviceLinesView.resizeColumnsToContents)
-        self.appendServiceLineBtn = QtGui.QPushButton( \
+        self.appendServiceLineBtn = QtGui.QPushButton( 
                                 self.tr("Append new line"), servicesTab)
-        self.appendServiceLineBtn.clicked.connect(\
+        self.appendServiceLineBtn.clicked.connect(
                                 self.appendServiceLineBtnClicked)
-        self.insertServiceLineBtn = QtGui.QPushButton( \
+        self.insertServiceLineBtn = QtGui.QPushButton( 
                                 self.tr("Insert new line"), servicesTab)
-        self.insertServiceLineBtn.clicked.connect(\
+        self.insertServiceLineBtn.clicked.connect(
                                 self.insertServiceLineBtnClicked)
-        self.delServiceLineBtn = QtGui.QPushButton( \
+        self.delServiceLineBtn = QtGui.QPushButton( 
                                 self.tr("Remove line"), servicesTab)
-        self.delServiceLineBtn.clicked.connect(\
+        self.delServiceLineBtn.clicked.connect(
                                 self.delServiceLineBtnClicked)
         hgridl = QtGui.QHBoxLayout()
         hgridl.addWidget(self.appendServiceLineBtn)
@@ -295,6 +309,7 @@ class EditorWindow(QtGui.QMainWindow):
         hgridl.addWidget(self.delServiceLineBtn)
         hgridl.addStretch()
         grid = QtGui.QVBoxLayout()
+        grid.addLayout(hgride)
         grid.addWidget(self.servicesView)
         grid.addLayout(hgrids)
         grid.addWidget(self.serviceLinesView)
@@ -337,17 +352,17 @@ class EditorWindow(QtGui.QMainWindow):
         #### DEBUG 
         fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain.ts2"
 
-        #fileName = QtGui.QFileDialog.getOpenFileName(\
-                           #self,\
-                           #self.tr("Open a simulation"),\
-                           #QtCore.QDir.currentPath(),\
+        #fileName = QtGui.QFileDialog.getOpenFileName(
+                           #self,
+                           #self.tr("Open a simulation"),
+                           #QtCore.QDir.currentPath(),
                            #self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
             self.editor.database = fileName
             self.editor.reload(fileName)
-            self.setWindowTitle( \
-                self.tr("ts2 - Train Signalling Simulation - Editor - %s") % \
-                                                                    fileName)
+            self.setWindowTitle(
+                    self.tr("ts2 - Train Signalling Simulation - Editor - %s") 
+                    % fileName)
     
     @QtCore.pyqtSlot()
     def saveSimulation(self):
@@ -363,10 +378,10 @@ class EditorWindow(QtGui.QMainWindow):
         """Saves the simulation to a different database"""
         #### DEBUG
         #fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain-save.ts2"
-        fileName = QtGui.QFileDialog.getSaveFileName(\
-                           self,\
-                           self.tr("Save the simulation as"),\
-                           QtCore.QDir.currentPath(),\
+        fileName = QtGui.QFileDialog.getSaveFileName(
+                           self,
+                           self.tr("Save the simulation as"),
+                           QtCore.QDir.currentPath(),
                            self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
             self.editor.database = fileName
@@ -377,10 +392,11 @@ class EditorWindow(QtGui.QMainWindow):
         """Closes the current simulation, and prepares for editing a new one
         """
         if self.editor.database is not None:
-            if QtGui.QMessageBox.warning(self, \
-                    "Simulation loaded", \
-                    """The current simulation will be closed.\n
-Do you want to continue?""", \
+            if QtGui.QMessageBox.warning(
+                    self, 
+                    self.tr("Simulation loaded"), 
+                    self.tr("The current simulation will be closed.\n"
+                            "Do you want to continue?"), 
                     QtGui.QMessageBox.Yes|QtGui.QMessageBox.No) \
                             == QtGui.QMessageBox.Yes:
                 self.editor.initialize()
@@ -404,11 +420,11 @@ Do you want to continue?""", \
         if len(rows) != 0:
             row = rows[0]
             routeNum = self.routesView.model().data(row, 0)
-            if QtGui.QMessageBox.question( \
-                        self, \
-                        self.tr("Delete route"), \
-                        self.tr("Are you sure you want " \
-                                "to delete route %i?") % routeNum, \
+            if QtGui.QMessageBox.question( 
+                        self, 
+                        self.tr("Delete route"), 
+                        self.tr("Are you sure you want " 
+                                "to delete route %i?") % routeNum, 
                         QtGui.QMessageBox.Yes|QtGui.QMessageBox.No) \
                                 == QtGui.QMessageBox.Yes:
                 self.editor.deleteRoute(routeNum)
@@ -417,9 +433,9 @@ Do you want to continue?""", \
     def addRouteBtnClicked(self):
         """Adds a route in routesView when the add route button is clicked."""
         if not self.editor.addRoute():
-            QtGui.QMessageBox.warning( \
-                        self, \
-                        self.tr("Add route"), \
+            QtGui.QMessageBox.warning( 
+                        self, 
+                        self.tr("Add route"), 
                         self.tr("No route added:\n"
                                 "No route selected or a route between "
                                 "these two signals already exists."))
@@ -427,17 +443,17 @@ Do you want to continue?""", \
     @QtCore.pyqtSlot()
     def addTrainTypeBtnClicked(self):
         """Adds an empty stock type to the editor"""
-        code, ok = QtGui.QInputDialog.getText( \
-                        self, \
-                        self.tr("Add train type"), \
+        code, ok = QtGui.QInputDialog.getText( 
+                        self, 
+                        self.tr("Add train type"), 
                         self.tr("Enter new train type code:"))
         if ok:
             if code not in self.editor.trainTypes:
                 self.editor.addTrainType(code)
             else:
-                QtGui.QMessageBox.warning( \
-                            self, \
-                            self.tr("Add train type"), \
+                QtGui.QMessageBox.warning( 
+                            self, 
+                            self.tr("Add train type"), 
                             self.tr("Unable to add train type: \n"
                                     "This train type code already exists."))
     
@@ -448,11 +464,11 @@ Do you want to continue?""", \
         if len(rows) != 0:
             row = rows[0]
             code = self.trainTypesView.model().data(row, 0)
-            if QtGui.QMessageBox.question( \
-                        self, \
-                        self.tr("Delete train type"), \
-                        self.tr("Are you sure you want " \
-                                "to delete train type %s?") % code, \
+            if QtGui.QMessageBox.question( 
+                        self, 
+                        self.tr("Delete train type"), 
+                        self.tr("Are you sure you want " 
+                                "to delete train type %s?") % code, 
                         QtGui.QMessageBox.Yes|QtGui.QMessageBox.No) \
                                 == QtGui.QMessageBox.Yes:
                 self.editor.deleteTrainType(code)
@@ -460,17 +476,17 @@ Do you want to continue?""", \
     @QtCore.pyqtSlot()
     def addServiceBtnClicked(self):
         """Adds an empty service to the editor"""
-        code, ok = QtGui.QInputDialog.getText( \
-                        self, \
-                        self.tr("Add service"), \
+        code, ok = QtGui.QInputDialog.getText( 
+                        self, 
+                        self.tr("Add service"), 
                         self.tr("Enter new service code:"))
         if ok:
             if code not in self.editor.services:
                 self.editor.addService(code)
             else:
-                QtGui.QMessageBox.warning( \
-                            self, \
-                            self.tr("Add service"), \
+                QtGui.QMessageBox.warning( 
+                            self, 
+                            self.tr("Add service"), 
                             self.tr("Unable to add service: \n"
                                     "This service code already exists."))
     
@@ -481,11 +497,11 @@ Do you want to continue?""", \
         if len(rows) != 0:
             row = rows[0]
             code = self.servicesView.model().data(row, 0)
-            if QtGui.QMessageBox.question( \
-                        self, \
-                        self.tr("Delete service"), \
-                        self.tr("Are you sure you want " \
-                                "to delete service %s?") % code, \
+            if QtGui.QMessageBox.question( 
+                        self, 
+                        self.tr("Delete service"), 
+                        self.tr("Are you sure you want " 
+                                "to delete service %s?") % code, 
                         QtGui.QMessageBox.Yes|QtGui.QMessageBox.No) \
                                 == QtGui.QMessageBox.Yes:
                 self.editor.deleteService(code)
@@ -516,13 +532,49 @@ Do you want to continue?""", \
         if len(rows) != 0:
             row = rows[0]
             code = self.serviceLinesView.model().data(row, 0)
-            if QtGui.QMessageBox.question( \
-                        self, \
-                        self.tr("Delete service"), \
-                        self.tr("Are you sure you want " \
-                                "to delete the line at %s?") % code, \
-                        QtGui.QMessageBox.Yes|QtGui.QMessageBox.No) \
-                                == QtGui.QMessageBox.Yes:
+            if QtGui.QMessageBox.question( 
+                                self, 
+                                self.tr("Delete service"), 
+                                self.tr("Are you sure you want " 
+                                        "to delete the line at %s?") % code, 
+                                QtGui.QMessageBox.Yes|QtGui.QMessageBox.No
+                                         ) == QtGui.QMessageBox.Yes:
                 self.editor.deleteServiceLine(service, row.row())
     
+    @QtCore.pyqtSlot()
+    def importServicesBtnClicked(self):
+        """Calls an open file dialog for the user to select the file to import
+        services from and asks the editor to actually do the import"""
+        
+        # ### DEBUG
+        #fileName = "/home/nicolas/drain.csv"
+        
+        fileName = QtGui.QFileDialog.getOpenFileName(
+                                self,
+                                self.tr("Import services"),
+                                QtCore.QDir.currentPath(),
+                                self.tr("CSV files (*.csv)"))
+        if fileName != "":
+            if QtGui.QMessageBox.warning(
+                            self,
+                            self.tr("Import services"),
+                            self.tr("This will erase any existing service\n"
+                                    "Are you sure you want to continue?"),
+                            QtGui.QMessageBox.Yes|QtGui.QMessageBox.No
+                                         ) == QtGui.QMessageBox.Yes:
+                self.editor.importServicesFromFile(fileName)
+    
+    @QtCore.pyqtSlot()
+    def exportServicesBtnClicked(self):
+        """Calls a save file dialog for the user to give the filanme to which
+        to export the services and asks the editor to actually do the export.
+        """
+        fileName = QtGui.QFileDialog.getSaveFileName(
+                                self,
+                                self.tr("Export services"),
+                                QtCore.QDir.currentPath(),
+                                self.tr("CSV files (*.csv)"))
+        if fileName != "":
+            self.editor.exportServicesToFile(fileName)
+
 

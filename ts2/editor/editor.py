@@ -357,6 +357,74 @@ class Editor(Simulation):
                 conn.execute(query, parameters)
         conn.commit()
         
+    
+    def exportServicesToFile(self, fileName):
+        """Exports the services to the file with the given fileName in ts2
+        services CSV format"""
+        file = open(fileName, "w", encoding="utf-8")
+        file.write("servicecode;description;nextservice;autoreverse;")
+        file.write("places=>;placecode;scheduledarrivaltime;")
+        file.write("scheduleddeparturetime;trackcode;stop\n")
+        for service in self.services.values():
+            file.write("\"%s\";" % service.serviceCode)
+            file.write("\"%s\";" % service.description)
+            file.write("\"%s\";" % service.nextServiceCode)
+            file.write("%s;" % service.autoReverse)
+            
+            file.write(";")
+            for line in service.lines:
+                file.write("\"%s\";" % line.placeCode)
+                file.write("%s;" % line.scheduledArrivalTimeStr)
+                file.write("%s;" % line.scheduledDepartureTimeStr)
+                file.write("\"%s\";" % line.trackCode)
+                file.write("%s;" % line.mustStop)
+            file.write("\n")
+        file.close()
+        
+    def importServicesFromFile(self, fileName):
+        """Imports the services from the ts2 formatted CSV file given by 
+        fileName, deleting any previous service in the editor if any."""
+        self._services = {}
+        allowedHeaders = ["servicecode","description","nextservice",
+                          "autoreverse","places=>","placecode",
+                          "scheduledarrivaltime", "scheduleddeparturetime",
+                          "trackcode","stop"]
+        file = open(fileName, "r", encoding="utf-8")
+        headers = file.readline().split(";")
+        headers = [h.strip('" \n') for h in headers]
+        lineHeaders = []
+        placesIndex = 0
+        inPlaces = False
+        for header in headers:
+            if header != "":
+                if header not in allowedHeaders:
+                    raise Exception(self.tr(
+                            "Format Error: invalid header %s detected") % header)
+                if header == "places=>":
+                    inPlaces = True
+                    placesIndex = headers.index(header)
+                    continue
+                if inPlaces:
+                    lineHeaders.append(header)
+                
+        for line in file.readlines():
+            params = line.split(";")
+            if len(params) > 1:
+                params = [p.strip('" \n') for p in params]
+                serviceParameters = dict(zip(headers[:placesIndex], 
+                                            params[:placesIndex]))
+                serviceCode = serviceParameters["servicecode"]
+                self.services[serviceCode] = Service(self, serviceParameters)
+                lineLength = len(lineHeaders)
+                for i in range((len(params)-placesIndex-1) // lineLength):
+                    startIndex = placesIndex + 1 + i * lineLength
+                    endIndex = startIndex + lineLength + 1
+                    lineParameters = dict(zip(lineHeaders, 
+                                            params[startIndex:endIndex]))
+                    if lineParameters["placecode"] != "":
+                        self.services[serviceCode].addLine(lineParameters)
+        file.close()
+        self.servicesChanged.emit()
         
     
     def registerGraphicsItem(self, graphicItem):
