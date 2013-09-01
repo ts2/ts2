@@ -53,6 +53,7 @@ class LineItem(TrackItem):
                               pow(yf - self.origin.y(), 2))
         self._realLength = realLength
         self._maxSpeed = parameters["maxspeed"]
+        self.updateGeometry()
         gli = TrackGraphicsItem(self)
         if simulation.context in utils.Context.EDITORS:
             gli.setCursor(Qt.PointingHandCursor)
@@ -122,6 +123,7 @@ class LineItem(TrackItem):
             self._gi.prepareGeometryChange()
             self._origin = QtCore.QPointF(x, y)
             self._gi.setPos(self.realOrigin)
+            self.updateGeometry()
             self.updateGraphics()
     
     @property
@@ -139,6 +141,7 @@ class LineItem(TrackItem):
             y = round((pos.y()) / grid) * grid
             self._gi.prepareGeometryChange()
             self._end = QtCore.QPointF(x, y)
+            self.updateGeometry()
             self.updateGraphics()
     
     @property
@@ -196,6 +199,7 @@ class LineItem(TrackItem):
             self._origin += vector
             self._end += vector
             self._gi.setPos(self.realOrigin)
+            self.updateGeometry()
             self.updateGraphics()
 
     @property
@@ -225,21 +229,18 @@ class LineItem(TrackItem):
     @property
     def line(self):
         """Returns the line as a QLineF in the item's coordinates."""
+        return self._line
+    
+    def updateGeometry(self):
+        """Updates the internal representation of the line and boundingRect 
+        when it has been modified"""
         orig = QtCore.QPointF(0, 0)
         end = orig + self._end - self._origin
-        return QtCore.QLineF(orig, end)
-    
-    @property
-    def sceneLine(self):
-        """Returns the line as a QLineF in the scene's coordinates."""
-        return QtCore.QLineF(self._origin, self._end)
-
-    def graphicsBoundingRect(self):
-        """Returns the bounding rectangle of the line item"""
-        x1 = self.line.p1().x()
-        x2 = self.line.p2().x()
-        y1 = self.line.p1().y()
-        y2 = self.line.p2().y()
+        self._line = QtCore.QLineF(orig, end)
+        x1 = self._line.p1().x()
+        x2 = self._line.p2().x()
+        y1 = self._line.p1().y()
+        y2 = self._line.p2().y()
         lx = min(x1, x2) - 2.0
         rx = max(x1, x2) + 2.0
         ty = min(y1, y2) - 2.0
@@ -249,7 +250,16 @@ class LineItem(TrackItem):
             rx += 3.0
             ty -= 3.0
             by += 3.0
-        return QtCore.QRectF(lx, ty, rx - lx, by - ty)
+        self._boundingRect = QtCore.QRectF(lx, ty, rx - lx, by - ty)
+    
+    @property
+    def sceneLine(self):
+        """Returns the line as a QLineF in the scene's coordinates."""
+        return QtCore.QLineF(self._origin, self._end)
+
+    def graphicsBoundingRect(self):
+        """Returns the bounding rectangle of the line item"""
+        return self._boundingRect
 
     def graphicsPaint(self, p, options, widget):
         """This function is called by the owned TrackGraphicsItem to paint its 

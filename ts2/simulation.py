@@ -22,13 +22,10 @@ from PyQt4 import QtCore, QtSql, QtGui
 from PyQt4.Qt import Qt
 from math import sqrt
 import sqlite3
-from ts2.route import Route
-from ts2 import scenery
-from ts2.service import ServiceInfoModel, ServiceListModel, Service
-from ts2.train import TrainInfoModel, TrainListModel, Train
-from ts2.traintype import TrainType
-from ts2.position import Position
 from ts2 import utils
+from ts2 import routing
+from ts2 import scenery
+from ts2 import trains
 
 class Simulation(QtCore.QObject):
     """The Simulation class holds all the game logic."""
@@ -41,10 +38,10 @@ class Simulation(QtCore.QObject):
         self._timer = QtCore.QTimer(self)
         self.initialize()
         self._routes = {}
-        self._serviceListModel = ServiceListModel(self)
-        self._selectedServiceModel = ServiceInfoModel(self)
-        self._trainListModel = TrainListModel(self)
-        self._selectedTrainModel = TrainInfoModel(self)
+        self._serviceListModel = trains.ServiceListModel(self)
+        self._selectedServiceModel = trains.ServiceInfoModel(self)
+        self._trainListModel = trains.TrainListModel(self)
+        self._selectedTrainModel = trains.TrainInfoModel(self)
 
     @property
     def scene(self):
@@ -174,11 +171,11 @@ class Simulation(QtCore.QObject):
 
     simulationLoaded = QtCore.pyqtSignal()
 
-    conflictingRoute = QtCore.pyqtSignal(Route)
+    conflictingRoute = QtCore.pyqtSignal(routing.Route)
     noRouteBetweenSignals = QtCore.pyqtSignal(scenery.SignalItem, \
                                               scenery.SignalItem)
-    routeSelected = QtCore.pyqtSignal(Route)
-    routeDeleted = QtCore.pyqtSignal(Route)
+    routeSelected = QtCore.pyqtSignal(routing.Route)
+    routeDeleted = QtCore.pyqtSignal(routing.Route)
     timeChanged = QtCore.pyqtSignal(QtCore.QTime)
     timeElapsed = QtCore.pyqtSignal(float)
     trainSelected = QtCore.pyqtSignal(str)
@@ -285,7 +282,7 @@ class Simulation(QtCore.QObject):
             initialState = route["initialstate"]
             bs = self._trackItems[beginSignalId]
             es = self._trackItems[endSignalId]
-            route = Route(self, routeNum, bs, es, initialState)
+            route = routing.Route(self, routeNum, bs, es, initialState)
             self._routes[routeNum] = route
 
         for direction in conn.execute("SELECT * FROM directions"):
@@ -317,27 +314,13 @@ valid.\nSee stderr for more information"""))
         for trainType in conn.execute("SELECT * FROM traintypes"):
             code = str(trainType["code"])
             parameters = dict(trainType)
-            self._trainTypes[code] = TrainType(self, parameters)
+            self._trainTypes[code] = trains.TrainType(self, parameters)
     
     def loadTrains(self, conn):
         """Creates the instances of Train from the data of the database."""
         for train in conn.execute("SELECT * FROM trains"):
-            serviceCode = train["servicecode"]
-            trainType = train["traintype"]
-            speed = train["speed"]
-            accel = train["accel"]
-            tiId = train["tiid"]
-            previousTiId = train["previoustiid"]
-            posOnTI = train["posonti"]
-            appearTime = QtCore.QTime.fromString(train["appeartime"])
-            train = Train(self, serviceCode, \
-                          self._trainTypes[trainType], \
-                          speed, \
-                          accel, \
-                          Position(self._trackItems[tiId], \
-                                   self._trackItems[previousTiId], \
-                                   posOnTI), \
-                          appearTime)
+            parameters = dict(train)
+            train = trains.Train(self, parameters)
             self._trains.append(train)
     
     def loadOptions(self, conn):
@@ -408,7 +391,7 @@ valid.\nSee stderr for more information"""))
         for service in conn.execute("SELECT * FROM services"):
             serviceCode = service["servicecode"]
             parameters = dict(service)
-            self._services[serviceCode] = Service(self, parameters)
+            self._services[serviceCode] = trains.Service(self, parameters)
 
         for serviceLine in conn.execute("SELECT * FROM serviceLines"):
             serviceCode = serviceLine["servicecode"]
@@ -420,7 +403,7 @@ valid.\nSee stderr for more information"""))
     
     def setupConnections(self):
         """Sets up the connections which need a simulation loaded"""
-        self.timeChanged.connect(self.selectedTrainModel.update)
+        self.timeChanged.connect(self.selectedTrainModel.reset)
 
     def findRoute(self, si1, si2):
         """Checks whether a route exists between two signals, and return this 

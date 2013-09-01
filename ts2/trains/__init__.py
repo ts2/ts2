@@ -18,30 +18,8 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from PyQt4 import QtGui
-from ts2 import servicelistview
-
-class ServiceAssignDialog(QtGui.QDialog):
-    """TODO Document ServiceAssignDialog"""
-    
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.setWindowTitle(self.tr("Choose a service to assign to this train"))
-        self._serviceListView = servicelistview.ServiceListView(self, parent.simulation)
-        self._serviceListView.setupServiceList()
-        buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok|QtGui.QDialogButtonBox.Cancel)
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(self._serviceListView)
-        layout.addWidget(buttonBox)
-        self.setLayout(layout)
-        self.resize(600, 300)
-        buttonBox.accepted.connect(self.accept)
-        buttonBox.rejected.connect(self.reject)
-
-    def getServiceCode(self):
-        index = self._serviceListView.selectionModel().selection().indexes()[0]
-        if index.isValid():
-            return index.data()
-        else:
-            return ""
-
+from ts2.trains.traintype import TrainType, TrainTypesModel
+from ts2.trains.service import Service, ServiceInfoModel, ServiceLine, \
+    ServiceLinesModel, ServiceInfoModel, ServiceListModel, ServicesModel
+from ts2.trains.train import TrainStatus, TrainInfoModel, TrainListModel, \
+    Train

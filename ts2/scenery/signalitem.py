@@ -21,8 +21,7 @@
 from PyQt4 import QtGui, QtCore, QtSql
 from PyQt4.Qt import Qt
 from ts2.scenery import TrackItem, TrackGraphicsItem, TIProperty
-from ts2.route import Route
-from ts2.position import Position
+from ts2 import routing
 from ts2 import utils
 
 tr = QtCore.QObject().tr
@@ -356,7 +355,7 @@ class SignalItem(TrackItem):
     def trainsAhead(self):
         """ Returns true if there is a train ahead of this signalItem and 
         before the next signalItem"""
-        pos = Position(self._nextItem, self, 0)
+        pos = routing.Position(self._nextItem, self, 0)
         while not pos.trackItem.tiType.startswith("E"):
             if pos.trackItem.tiType.startswith("S") and \
             pos.trackItem.isOnPosition(pos):

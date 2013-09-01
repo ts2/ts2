@@ -22,12 +22,8 @@ import sqlite3
 from PyQt4 import QtGui, QtCore
 from PyQt4.Qt import Qt
 from ts2.simulation import Simulation
-from ts2 import scenery, utils
+from ts2 import scenery, utils, trains, routing
 from ts2.editor import EditorSceneBackground
-from ts2.route import Route, RoutesModel
-from ts2.traintype import TrainType, TrainTypesModel
-from ts2.service import Service, ServiceLine, ServicesModel, ServiceLinesModel
-from ts2.position import Position
 
 class TrashBinItem(QtGui.QGraphicsPixmapItem):
     """The TrashBinItem is the graphics item on which to drag TrackItems to be
@@ -77,10 +73,10 @@ class Editor(Simulation):
         self._scene.addItem(self._sceneBackground)
         self.drawToolBox()
         self._sceneryValidated = False
-        self._routesModel = RoutesModel(self)
-        self._trainTypesModel = TrainTypesModel(self)
-        self._servicesModel = ServicesModel(self)
-        self._serviceLinesModel = ServiceLinesModel(self)
+        self._routesModel = routing.RoutesModel(self)
+        self._trainTypesModel = trains.TrainTypesModel(self)
+        self._servicesModel = trains.ServicesModel(self)
+        self._serviceLinesModel = trains.ServiceLinesModel(self)
         self._database = None
         self._nextId = 1
         self._nextRouteId = 1

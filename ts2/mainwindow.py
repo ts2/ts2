@@ -178,13 +178,13 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def loadSimulation(self):
         ### DEBUG 
-        #fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain.ts2";
+        fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain.ts2";
 
-        fileName = QFileDialog.getOpenFileName(\
-                           self,\
-                           self.tr("Open a simulation"),\
-                           QDir.currentPath(),\
-                           self.tr("TS2 simulation files (*.ts2)"))
+        #fileName = QFileDialog.getOpenFileName(\
+                           #self,\
+                           #self.tr("Open a simulation"),\
+                           #QDir.currentPath(),\
+                           #self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
             qDebug("Simulation loading")
             self.simulation.reload(fileName)

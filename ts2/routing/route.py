@@ -20,7 +20,7 @@
 
 from PyQt4 import QtCore
 from PyQt4.Qt import Qt
-from ts2.position import Position
+import ts2.routing
 
 class RoutesModel(QtCore.QAbstractTableModel):
     """The RoutesModel is a table model for routes that is used in the editor
@@ -103,8 +103,8 @@ class Route(QtCore.QObject):
         super().__init__(simulation)
         self._simulation = simulation
         self._routeNum = routeNum
-        bsp = Position(beginSignal, beginSignal.previousItem, 0)
-        esp = Position(endSignal, endSignal.previousItem, 0)
+        bsp = ts2.routing.Position(beginSignal, beginSignal.previousItem, 0)
+        esp = ts2.routing.Position(endSignal, endSignal.previousItem, 0)
         self._positions = [bsp, esp]
         self._directions = {}
         self._initialState = initialState

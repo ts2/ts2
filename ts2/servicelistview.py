@@ -19,7 +19,7 @@
 #
 
 from PyQt4 import QtGui, QtCore
-from ts2.service import Service
+
 
 class ServiceListView(QtGui.QTreeView):
     """TODO Document ServiceListView"""    
