@@ -1,26 +1,26 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau                                
-#   npi@m4x.org                                                           
-#                                                                         
-#   This program is free software; you can redistribute it and/or modify  
-#   it under the terms of the GNU General Public License as published by  
-#   the Free Software Foundation; either version 2 of the License, or     
-#   (at your option) any later version.                                   
-#                                                                         
-#   This program is distributed in the hope that it will be useful,       
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of        
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
-#   GNU General Public License for more details.                          
-#                                                                         
-#   You should have received a copy of the GNU General Public License     
-#   along with this program; if not, write to the                         
-#   Free Software Foundation, Inc.,                                       
-#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
+#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   npi@m4x.org
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the
+#   Free Software Foundation, Inc.,
+#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
 import copy
 from PyQt4 import QtCore
-from PyQt4.Qt import Qt
+from PyQt4.QtCore import Qt
 from ts2 import utils
 
 
@@ -34,7 +34,7 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
         self._simulation = simulation
 
     def rowCount(self, parent = QtCore.QModelIndex()):
-        """Returns the number of rows of the model, corresponding to the 
+        """Returns the number of rows of the model, corresponding to the
         number of serviceLines of this service + lines for displaying general
         service information."""
         if self._service is not None:
@@ -108,7 +108,7 @@ class ServiceListModel(QtCore.QAbstractTableModel):
         self._simulation = simulation
 
     def rowCount(self, parent = QtCore.QModelIndex()):
-        """Returns the number of rows of the model, corresponding to the 
+        """Returns the number of rows of the model, corresponding to the
         number of services in the simulation."""
         return len(self._simulation.services)
 
@@ -128,9 +128,9 @@ class ServiceListModel(QtCore.QAbstractTableModel):
             elif index.column() == 1:
                 return service._lines[0].scheduledDepartureTime
             elif index.column() == 2:
-                return service.origin
+                return service.entryPlaceName
             elif index.column() == 3:
-                return service.destination
+                return service.exitPlaceName
             else:
                 return ""
         return None
@@ -162,16 +162,16 @@ class ServicesModel(QtCore.QAbstractTableModel):
         """Constructor for the ServicesModel class"""
         super().__init__(editor)
         self._editor = editor
-        
+
     def rowCount(self, parent = QtCore.QModelIndex()):
-        """Returns the number of rows of the model, corresponding to the 
+        """Returns the number of rows of the model, corresponding to the
         number of services of the editor"""
         return len(self._editor.services)
-    
+
     def columnCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of columns of the model"""
         return 4
-    
+
     def data(self, index, role = Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole or role == Qt.EditRole:
@@ -186,7 +186,7 @@ class ServicesModel(QtCore.QAbstractTableModel):
             elif index.column() == 3:
                 return bool(service.autoReverse)
         return None
-    
+
     def setData(self, index, value, role):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
@@ -196,7 +196,7 @@ class ServicesModel(QtCore.QAbstractTableModel):
                     self._editor.services[value] = \
                                   copy.copy(self._editor.services[code])
                     self._editor.services[value].serviceCode = value
-                    del self._editor.services[code]           
+                    del self._editor.services[code]
             elif index.column() == 1:
                 self._editor.services[code].description = value
             elif index.column() == 2:
@@ -208,7 +208,7 @@ class ServicesModel(QtCore.QAbstractTableModel):
             self.dataChanged.emit(index, index)
             return True
         return False
-    
+
     def headerData(self, section, orientation, role = Qt.DisplayRole):
         """Returns the header labels"""
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
@@ -221,7 +221,7 @@ class ServicesModel(QtCore.QAbstractTableModel):
             elif section == 3:
                 return self.tr("Auto reverse")
         return None
-    
+
     def flags(self, index):
         """Returns the flags of the model"""
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
@@ -258,7 +258,7 @@ class ServiceLine:
     def placeCode(self):
         """Returns the place code of this ServiceLine"""
         return self._placeCode
-    
+
     @placeCode.setter
     def placeCode(self, value):
         """Setter function for the placeCode property"""
@@ -278,10 +278,10 @@ class ServiceLine:
 
     @property
     def mustStop(self):
-        """Returns true if this service is supposed to stop at the place of 
+        """Returns true if this service is supposed to stop at the place of
         this ServiceLine"""
         return self._stop
-    
+
     @mustStop.setter
     def mustStop(self, value):
         """Setter function for the mustStop property"""
@@ -290,13 +290,13 @@ class ServiceLine:
 
     @property
     def scheduledDepartureTime(self):
-        """Returns the scheduled departure time of this service at the place 
+        """Returns the scheduled departure time of this service at the place
         of this ServiceLine, as a QTime"""
         return self._scheduledDepartureTime
 
     @property
     def scheduledDepartureTimeStr(self):
-        """Returns the scheduled departure time of this service at the place 
+        """Returns the scheduled departure time of this service at the place
         of this ServiceLine, as a string"""
         return self._scheduledDepartureTime.toString("HH:mm:ss")
 
@@ -308,13 +308,13 @@ class ServiceLine:
 
     @property
     def scheduledArrivalTime(self):
-        """Returns the scheduled arrival time of this service at the place 
+        """Returns the scheduled arrival time of this service at the place
         of this ServiceLine, as a QTime"""
         return self._scheduledArrivalTime
 
     @property
     def scheduledArrivalTimeStr(self):
-        """Returns the scheduled arrival time of this service at the place 
+        """Returns the scheduled arrival time of this service at the place
         of this ServiceLine as a string"""
         return self._scheduledArrivalTime.toString("HH:mm:ss")
 
@@ -330,14 +330,14 @@ class ServiceLine:
             return True
         else:
             return False
-    
+
     def __gt__(self, other):
         """Greater than operator"""
         if self.scheduledArrivalTime > other.scheduledArrivalTime:
             return True
         else:
             return False
-        
+
     def __eq__(self, other):
         """Equal operator"""
         if self.scheduledArrivalTime == other.scheduledArrivalTime:
@@ -354,19 +354,19 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
         super().__init__(editor)
         self._service = None
         self._editor = editor
-        
+
     def rowCount(self, parent = QtCore.QModelIndex()):
-        """Returns the number of rows of the model, corresponding to the 
+        """Returns the number of rows of the model, corresponding to the
         number of serviceLines of this service"""
         if self._service is not None:
             return len(self._service._lines)
         else:
             return 0
-    
+
     def columnCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of columns of the model"""
         return 5
-    
+
     def data(self, index, role = Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole or role == Qt.EditRole:
@@ -382,7 +382,7 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
             elif index.column() == 4:
                 return bool(line.mustStop)
         return None
-    
+
     def setData(self, index, value, role):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
@@ -402,7 +402,7 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
             self.dataChanged.emit(index, index)
             return True
         return False
-    
+
     def headerData(self, section, orientation, role = Qt.DisplayRole):
         """Returns the header labels"""
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
@@ -417,7 +417,7 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
             elif section == 4:
                 return self.tr("Stop")
         return None
-    
+
     def flags(self, index):
         """Returns the flags of the model"""
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
@@ -435,7 +435,7 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
 
 
 class Service:
-    """A Service is mainly a predefined schedule that trains are supposed to 
+    """A Service is mainly a predefined schedule that trains are supposed to
     follow with a few additional informations.
     The schedule is composed of several "lines" of type ServiceLine
     """
@@ -454,18 +454,18 @@ class Service:
         sl = ServiceLine(self, parameters)
         self._lines.append(sl)
         sl.place.addTimetable(sl)
-        
+
     @property
     def lines(self):
         """Returns the lines of this service"""
         return self._lines
 
     def start(self):
-        """Call this function once all the lines of the service are filled to 
+        """Call this function once all the lines of the service are filled to
         initialize the pointer to the next Place (station)."""
         self._lines.sort()
         self._current = self._lines[0]
-        
+
     def nextPlace(self):
         """Returns the next Place that this service is scheduled to."""
         if self._current is not None:
@@ -474,7 +474,7 @@ class Service:
             return None
 
     def nextStopLine(self):
-        """Returns the ServiceLine where this service is scheduled to stop 
+        """Returns the ServiceLine where this service is scheduled to stop
         next."""
         if self._current is not None:
             for it in self._lines[self._lines.index(self._current):]:
@@ -483,7 +483,7 @@ class Service:
         return None
 
     def nextStopName(self):
-        """Returns the name of the place where this service is scheduled to 
+        """Returns the name of the place where this service is scheduled to
         stop  next, or an empty string if there isn't any."""
         sl = self.nextStopLine()
         if sl is not None:
@@ -492,7 +492,7 @@ class Service:
             return ""
 
     def nextStopArrivalTime(self):
-        """Returns the arrival time in the next place where this service is 
+        """Returns the arrival time in the next place where this service is
         supposed to stop or an empty QTime if there isn't any."""
         sl = self.nextStopLine()
         if sl is not None:
@@ -501,24 +501,27 @@ class Service:
             return QtCore.QTime()
 
     def nextStopDepartureTime(self):
-        """Returns the departure time in the next place where this service is 
+        """Returns the departure time in the next place where this service is
         supposed to stop or an empty QTime if there isn't any."""
         sl = self.nextStopLine()
         if sl is not None:
             return sl.scheduledDepartureTime
         else:
             return QtCore.QTime()
-        
+
     def jumpToNextPlace(self):
-        """Set the _current pointer to the next serviceLine. If there is no 
-        serviceLine after the current one, change the service of the train to 
+        """Set the _current pointer to the next serviceLine. If there is no
+        serviceLine after the current one, change the service of the train to
         nextService if any."""
         if self._current == self._lines[-1]:
+            # The service is ended
             train = self._simulation.train(self._serviceCode)
             if self._nextServiceCode != "":
                 train.serviceCode = self._nextServiceCode
             else:
                 self._current = None
+            if self.autoReverse:
+                train.reverse()
         else:
             i = self._lines.index(self._current)
             self._current = self._lines[i+1]
@@ -529,60 +532,65 @@ class Service:
 
     @property
     def minimumStopTime(self):
-        """Returns the minimum stop time applicable for this Service in the 
+        """Returns the minimum stop time applicable for this Service in the
         next plasce."""
         return float(self._simulation.option("defaultMinimumStopTime"))
 
     @property
-    def origin(self):
-        """Returns the departure station of the train as a string"""
+    def entryPlaceName(self):
+        """Returns the place of entry of the train as a string"""
         return self._lines[0].place.placeName
-    
+
+    def getEntryPlaceData(self):
+        """Returns the placeCode and trackCode of the entry point of the train
+        """
+        return (self._lines[0].place.placeCode, self._lines[0].trackCode)
+
     @property
-    def destination(self):
-        """Returns the final destination as a string."""
+    def exitPlaceName(self):
+        """Returns the place where the train is due to exit as a string."""
         return self._lines[-1].place.placeName
 
     @property
     def serviceCode(self):
         """Returns the service code"""
         return self._serviceCode
-    
+
     @serviceCode.setter
     def serviceCode(self, value):
         """Setter function for the serviceCode property"""
         if self._simulation.context == utils.Context.EDITOR_SERVICES:
             self._serviceCode = value
-    
+
     @property
     def description(self):
         """Returns the service code"""
         return self._description
-    
+
     @description.setter
     def description(self, value):
         """Setter function for the description property"""
         if self._simulation.context == utils.Context.EDITOR_SERVICES:
             self._description = value
-    
+
     @property
     def nextServiceCode(self):
         """Returns the service code that should be assigned to the train that
         just ended this service"""
         return self._nextServiceCode
-    
+
     @nextServiceCode.setter
     def nextServiceCode(self, value):
         """Setter function for the nextServiceCode property"""
         if self._simulation.context == utils.Context.EDITOR_SERVICES:
             self._nextServiceCode = value
-    
+
     @property
     def autoReverse(self):
         """Returns true if the train is to be reversed when the service ends
         """
         return self._autoReverse
-    
+
     @autoReverse.setter
     def autoReverse(self, value):
         """Setter function for the autoReverse property"""
@@ -593,5 +601,3 @@ class Service:
     def simulation(self):
         """Returns the simulation this service belongs to"""
         return self._simulation
-
-

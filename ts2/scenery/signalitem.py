@@ -1,25 +1,25 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau                                
-#   npi@m4x.org                                                           
-#                                                                         
-#   This program is free software; you can redistribute it and/or modify  
-#   it under the terms of the GNU General Public License as published by  
-#   the Free Software Foundation; either version 2 of the License, or     
-#   (at your option) any later version.                                   
-#                                                                         
-#   This program is distributed in the hope that it will be useful,       
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of        
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
-#   GNU General Public License for more details.                          
-#                                                                         
-#   You should have received a copy of the GNU General Public License     
-#   along with this program; if not, write to the                         
-#   Free Software Foundation, Inc.,                                       
-#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
+#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   npi@m4x.org
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the
+#   Free Software Foundation, Inc.,
+#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
 from PyQt4 import QtGui, QtCore, QtSql
-from PyQt4.Qt import Qt
+from PyQt4.QtCore import Qt
 from ts2.scenery import TrackItem, TrackGraphicsItem, TIProperty
 from ts2 import routing
 from ts2 import utils
@@ -66,11 +66,11 @@ class SignalItem(TrackItem):
     signalSelected = QtCore.pyqtSignal(int, bool)
     signalUnselected = QtCore.pyqtSignal(int)
     trainSelected = QtCore.pyqtSignal(str)
-                    
+
     @property
     def origin(self):
-        """Returns the origin QPointF of the TrackItem. The origin is 
-        the right end of the track represented on the SignalItem if the 
+        """Returns the origin QPointF of the TrackItem. The origin is
+        the right end of the track represented on the SignalItem if the
         signal is reversed, the left end otherwise"""
         return self._origin
 
@@ -85,7 +85,7 @@ class SignalItem(TrackItem):
 
     @property
     def end(self):
-        """Returns the end QPointF of the TrackItem. The end is 
+        """Returns the end QPointF of the TrackItem. The end is
         generally the right end of the track represented on the TrackItem"""
         if self.reverse:
             return self._origin + QtCore.QPointF(-60, 0)
@@ -94,10 +94,10 @@ class SignalItem(TrackItem):
 
     @property
     def reverse(self):
-        """Returns True if the SignalItem is from right to left, false 
+        """Returns True if the SignalItem is from right to left, false
         otherwise"""
         return bool(self._reverse)
-    
+
     @reverse.setter
     def reverse(self, value):
         """Setter function for the reverse property"""
@@ -125,14 +125,14 @@ class SignalItem(TrackItem):
 
     @property
     def realOrigin(self):
-        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is 
+        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is
         the position of the top left corner of the bounding rectangle of the
         TrackItem. Reimplemented in SignalItem"""
         if self.reverse:
             return self.origin + QtCore.QPointF(-60,-2)
         else:
             return self.origin + QtCore.QPointF(0,-18)
-        
+
     @realOrigin.setter
     def realOrigin(self, pos):
         """Setter function for the realOrigin property"""
@@ -159,7 +159,7 @@ class SignalItem(TrackItem):
     @property
     def signalPos(self):
         return self._signalPos
-  
+
     @property
     def previousActiveRoute(self):
         return self._previousActiveRoute
@@ -168,7 +168,7 @@ class SignalItem(TrackItem):
     def nextActiveRoute(self):
         return self._nextActiveRoute
 
-    @nextActiveRoute.setter 
+    @nextActiveRoute.setter
     def nextActiveRoute(self, route):
         """ Sets the nextActiveRoute information."""
         self._nextActiveRoute = route
@@ -183,20 +183,20 @@ class SignalItem(TrackItem):
             return True
         else:
             return False
-        
+
     @property
     def saveParameters(self):
-        """Returns the parameters dictionary to save this TrackItem to the 
+        """Returns the parameters dictionary to save this TrackItem to the
         database"""
         parameters = super().saveParameters
         parameters.update({"reverse":int(self.reverse)})
         return parameters
-                    
-    def graphicsMousePressEvent(self, e):       
+
+    def graphicsMousePressEvent(self, e):
         """Reimplemented from TrackItem.graphicsMousePressEvent to handle the
         mousePressEvent of the owned TrackGraphicsItem.
-        It processes mouse clicks on the signal and emits the signals 
-        signalSelected, trainSelected, or signalUnselected depending on the 
+        It processes mouse clicks on the signal and emits the signals
+        signalSelected, trainSelected, or signalUnselected depending on the
         case."""
         super().graphicsMousePressEvent(e)
         if e.button() == Qt.LeftButton:
@@ -218,7 +218,7 @@ class SignalItem(TrackItem):
                     self._selected = False
                 self.signalUnselected.emit(self.tiId)
             else:
-                # The train code is right-clicked 
+                # The train code is right-clicked
                 train = self._simulation.train(self._trainServiceCode)
                 if train is not None:
                     train.showTrainActionsMenu(\
@@ -228,7 +228,7 @@ class SignalItem(TrackItem):
     def graphicsBoundingRect(self):
         """Reimplemented from TrackItem.graphicsBoundingRect to return the
         bounding rectangle of the owned TrackGraphicsItem."""
-        return QtCore.QRectF(0, 0, 60, 25)
+        return QtCore.QRectF(0, -2, 60, 25)
 
     def graphicsPaint(self, p, options, widget = 0):
         """ Reimplemented from TrackItem.graphicsPaint to
@@ -239,7 +239,8 @@ class SignalItem(TrackItem):
         textPen.setColor(Qt.white)
         if self.trainPresent():
             linePen.setColor(Qt.red)
-        if self._trainServiceCode != "":
+        if self._trainServiceCode != "" and \
+           self.simulation.context == utils.Context.GAME:
             # Draw Train code
             p.setPen(textPen)
             font = QtGui.QFont("Courier new")
@@ -304,7 +305,7 @@ class SignalItem(TrackItem):
                 brush.setColor(Qt.white)
                 p.setBrush(brush)
                 p.drawRect(55,12,4,3)
-                
+
         # Draw the connection rects
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             p.setBrush(Qt.NoBrush)
@@ -316,8 +317,8 @@ class SignalItem(TrackItem):
             else:
                 p.drawRect(self.connectionRect(QtCore.QPointF(0, 18)))
                 p.drawRect(self.connectionRect(QtCore.QPointF(60, 18)))
-                
-     
+
+
     def resetNextActiveRoute(self):
         """Resets the nextActiveRoute information."""
         self._nextActiveRoute = None
@@ -336,7 +337,7 @@ class SignalItem(TrackItem):
 
     @property
     def trainServiceCode(self):
-        """Returns the trainServiceCode of this signal. This is for display 
+        """Returns the trainServiceCode of this signal. This is for display
         only."""
         return self._trainServiceCode
 
@@ -353,13 +354,13 @@ class SignalItem(TrackItem):
         self.updateGraphics()
 
     def trainsAhead(self):
-        """ Returns true if there is a train ahead of this signalItem and 
+        """ Returns true if there is a train ahead of this signalItem and
         before the next signalItem"""
         pos = routing.Position(self._nextItem, self, 0)
         while not pos.trackItem.tiType.startswith("E"):
             if pos.trackItem.tiType.startswith("S") and \
             pos.trackItem.isOnPosition(pos):
-                # We have met the next signal in the same direction without 
+                # We have met the next signal in the same direction without
                 # finding any train
                 break
             if pos.trackItem.trainPresent():
@@ -374,7 +375,7 @@ class SignalItem(TrackItem):
            (self.trainServiceCode != ""):
             self.nextActiveRoute.endSignal.trainServiceCode = \
                     self.trainServiceCode
-            self.resetTrainServiceCode()            
+            self.resetTrainServiceCode()
         super().trainHeadActions(serviceCode)
 
     def trainTailActions(self, serviceCode):
@@ -382,11 +383,11 @@ class SignalItem(TrackItem):
         It deals with desactivating this signal."""
         if self.activeRoute is not None and \
            self.activeRoutePreviousItem != self.previousItem:
-            # The line is highlighted by an opposite direction route 
+            # The line is highlighted by an opposite direction route
             # => base TrackItem actions
             super().trainTailActions(serviceCode)
         else:
-            
+
             self.resetActiveRoute() # For cleaning purposes:
                                     # activeRoute not used in this direction
             if (self.previousActiveRoute is not None) and \
@@ -395,7 +396,7 @@ class SignalItem(TrackItem):
                         self.previousActiveRoute.beginSignal.nextActiveRoute
                 if beginSignalNextRoute is None or \
                    beginSignalNextRoute != self.previousActiveRoute:
-                    # Only reset previous route if the user did not 
+                    # Only reset previous route if the user did not
                     # reactivate it in the meantime
                     self.previousItem.resetActiveRoute()
                     self.resetPreviousActiveRoute()

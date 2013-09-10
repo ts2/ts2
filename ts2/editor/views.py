@@ -19,6 +19,9 @@
 #
 
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import Qt
+
+from ts2.editor import delegates
 
 class RoutesEditorView(QtGui.QTableView):
     """Table view with specific options for editing routes in the editor
@@ -49,7 +52,7 @@ class TrainTypesEditorView(QtGui.QTableView):
     """Table view with specific options for editing trainTypes in the editor
     """
     def __init__(self, parent):
-        """Constructor for the RoutesEditorView class"""
+        """Constructor for the TrainTypesEditorView class"""
         super().__init__(parent)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
                                        QtGui.QSizePolicy.Expanding)
@@ -82,5 +85,49 @@ class ServicesEditorView(QtGui.QTableView):
         if index.isValid():
             self.serviceSelected.emit(index.data())
 
+class TrainsEditorView(QtGui.QTableView):
+    """Table view with specific options for editing trains in the editor
+    """
+    def __init__(self, parent):
+        """Constructor for the TrainsEditorView class"""
+        super().__init__(parent)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
+                                       QtGui.QSizePolicy.Expanding)
+        sizePolicy.setVerticalStretch(1)
+        self.setSizePolicy(sizePolicy)
+        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        servicesDelegate = delegates.ServicesDelegate(self)
+        trainTypesDelegate = delegates.TrainTypesDelegate(self)
+        self.setItemDelegateForColumn(1, servicesDelegate)
+        self.setItemDelegateForColumn(2, trainTypesDelegate)
+
+    trainSelected = QtCore.pyqtSignal(int)
+    trainsUnselected = QtCore.pyqtSignal()
     
+    def selectionChanged(self, selected, deselected):
+        """Called when the user changes the selection. Emits the 
+        trainSelected signal"""
+        super().selectionChanged(selected, deselected)
+        index = selected.indexes()[0]
+        if index.isValid():
+            self.trainSelected.emit(index.row())
+
+    
+class TrainsGraphicsView(QtGui.QGraphicsView):
+    """Graphics view with specific options for editing train positions in the
+    editor
+    """
+    def __init__(self, scene, parent):
+        """Constructor for the TrainsGraphicsView class"""
+        super().__init__(scene, parent)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
+                                       QtGui.QSizePolicy.Expanding)
+        sizePolicy.setVerticalStretch(1)
+        self.setInteractive(True)
+        self.setRenderHint(QtGui.QPainter.Antialiasing, False)
+        self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+        self.setAcceptDrops(True)
+        self.setBackgroundBrush(QtGui.QBrush(Qt.black))
+        self.setSizePolicy(sizePolicy)
     

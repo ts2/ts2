@@ -46,6 +46,9 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
         """Painting function for the SignalGraphicsItem.
         This function calls the graphicsPaint function of the owning TrackItem 
         to paint its painter."""
+        #pen = QtGui.QPen(Qt.white)
+        #painter.setPen(pen)
+        #painter.drawRect(self.boundingRect())
         self.trackItem.graphicsPaint(painter, option, widget)
         
     def mousePressEvent(self, event):
@@ -415,7 +418,7 @@ class TrackItem(QtCore.QObject):
                 self._trainHead = pos
             else:
                 self._trainHead = self._realLength - pos
-        self.updateGraphics()
+        self.updateTrain()
 
 
     def setTrainTail(self, pos, prevTI = None):
@@ -427,7 +430,7 @@ class TrackItem(QtCore.QObject):
                 self._trainTail = pos
             else:
                 self._trainTail = self._realLength - pos
-        self.updateGraphics()
+        self.updateTrain()
     
     def trainPresent(self):
         """Returns True if a train is present on this TrackItem"""
@@ -485,6 +488,10 @@ class TrackItem(QtCore.QObject):
     @QtCore.pyqtSlot()
     def updateGraphics(self):
         self.__updateGraphics()
+        
+    def updateTrain(self):
+        """Updates the graphics item for train only"""
+        self.updateGraphics()
 
     def getPen(self):
         """Returns the standard pen for drawing trackItems"""

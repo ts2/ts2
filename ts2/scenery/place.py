@@ -58,7 +58,7 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
                 elif index.column() == 1:
                     return line.service.serviceCode
                 elif index.column() == 2:
-                    return line.service.destination
+                    return line.service.exitPlaceName
                 elif index.column() == 3:
                     return line.trackCode
                 elif index.column() == 4:
@@ -98,10 +98,6 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
     @QtCore.pyqtSlot(str)
     def setPlace(self, place):
         self.place = place
-
-    @QtCore.pyqtSlot()
-    def update(self):
-        self.reset()
 
 
 class Place(TrackItem):

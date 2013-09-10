@@ -20,8 +20,8 @@
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import Qt
-from ts2.scenery import LineItem, TIProperty, Place
 from ts2.utils import Context
+from ts2.scenery import LineItem, Place, TIProperty
 
 tr = QtCore.QObject().tr
 
@@ -76,9 +76,11 @@ class PlatformItem(LineItem):
         super().__del__()
         
 
-    properties = LineItem.properties + [ \
-            TIProperty("topLeftPFStr", tr("Platform top left point")), \
-            TIProperty("bottomRightPFStr", tr("Platform bottom right point"))]
+    properties = LineItem.properties + [ 
+                    TIProperty("topLeftPFStr", 
+                                           tr("Platform top left point")), 
+                    TIProperty("bottomRightPFStr", 
+                                           tr("Platform bottom right point"))]
 
     platformSelected = QtCore.pyqtSignal(Place)
 
@@ -135,9 +137,8 @@ class PlatformItem(LineItem):
         
     @QtCore.pyqtSlot()
     def updateGraphics(self):
-        self.__updateGraphics()
-        
-    def __updateGraphics(self):
-        super().updateGraphics()
+        self._gi.update()
         self._pfgi.update()
+        self.updateTrain()
+        
 

@@ -90,7 +90,6 @@ class SignalTimerItem(SignalItem):
         if self._simulation.context == utils.Context.EDITOR_SCENERY:
             timeFactor = float(self._simulation.option("timeFactor"))
             self._timerSW = value * 60000 / timeFactor
-            self.updateGraphics()
             
     @property
     def timerWC(self):
@@ -105,5 +104,4 @@ class SignalTimerItem(SignalItem):
         if self._simulation.context == utils.Context.EDITOR_SCENERY:
             timeFactor = float(self._simulation.option("timeFactor"))
             self._timerWC = value * 60000 / timeFactor
-            self.updateGraphics()
         

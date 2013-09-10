@@ -43,7 +43,8 @@ class BumperItem(SignalItem):
         if self.trainPresent():
             linePen.setColor(Qt.red)
 
-        if self._trainServiceCode != "":
+        if self._trainServiceCode != "" and \
+           self.simulation.context == utils.Context.GAME:
             # Train code to draw
             p.setPen(textPen)
             font = QtGui.QFont("Courier new")

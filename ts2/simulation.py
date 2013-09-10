@@ -1,21 +1,21 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau                                
-#   npi@m4x.org                                                           
-#                                                                         
-#   This program is free software; you can redistribute it and/or modify  
-#   it under the terms of the GNU General Public License as published by  
-#   the Free Software Foundation; either version 2 of the License, or     
-#   (at your option) any later version.                                   
-#                                                                         
-#   This program is distributed in the hope that it will be useful,       
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of        
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
-#   GNU General Public License for more details.                          
-#                                                                         
-#   You should have received a copy of the GNU General Public License     
-#   along with this program; if not, write to the                         
-#   Free Software Foundation, Inc.,                                       
-#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
+#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   npi@m4x.org
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the
+#   Free Software Foundation, Inc.,
+#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
 from PyQt4 import QtCore, QtSql, QtGui
@@ -29,7 +29,7 @@ from ts2 import trains
 
 class Simulation(QtCore.QObject):
     """The Simulation class holds all the game logic."""
-    
+
     def __init__(self, simulationWindow):
         """ Constructor for the Simulation class """
         super().__init__()
@@ -45,51 +45,51 @@ class Simulation(QtCore.QObject):
 
     @property
     def scene(self):
-        """Returns the QGraphicsScene on which the simulation scenery is 
+        """Returns the QGraphicsScene on which the simulation scenery is
         displayed"""
         return self._scene
-    
+
     @property
     def simulationWindow(self):
         return self._simulationWindow
-    
+
     @property
     def context(self):
         """Returns the context of this Simulation object"""
         return utils.Context.GAME
-    
+
     def option(self, key):
         """Returns the simulation option specified by key"""
-        return self._options[key]
-        
-    def setOption(self, key, value): 
+        return self._options.get(key)
+
+    def setOption(self, key, value):
         self._options[key] = value
 
     @property
     def currentTime(self):
         return self._time
-    
+
     @property
     def serviceListModel(self):
         return self._serviceListModel
-    
+
     @property
     def selectedServiceModel(self):
         return self._selectedServiceModel
-    
+
     @property
     def trainListModel(self):
         return self._trainListModel
-    
+
     @property
     def selectedTrainModel(self):
         return self._selectedTrainModel
-    
+
     @property
     def routes(self):
         """Returns the routes of the simulation"""
         return self._routes
-    
+
     @property
     def trainTypes(self):
         """Returns the list of rolling stock types of the simulation"""
@@ -107,7 +107,7 @@ class Simulation(QtCore.QObject):
         self.loadTrainTypes(conn)
         self.loadServices(conn)
         self.loadTrains(conn)
-        conn.close()        
+        conn.close()
         self.setupConnections()
         self.simulationLoaded.emit()
         self._scene.update()
@@ -117,7 +117,7 @@ class Simulation(QtCore.QObject):
         interval = min(max(100, 5000 / float(self.option("timeFactor"))), 500)
         self._timer.setInterval(interval)
         self._timer.start()
-    
+
     def initialize(self):
         """Clears and initialize the current simulation"""
         self._selectedSignal = None
@@ -136,32 +136,32 @@ class Simulation(QtCore.QObject):
         self._trains = []
         self._scene.clear()
         self._time = QtCore.QTime()
-    
+
     def train(self, serviceCode):
-        """Returns the Train object corresponding to the train whose 
+        """Returns the Train object corresponding to the train whose
         serviceCode is currently serviceCode"""
         for t in self._trains:
             if t.serviceCode == serviceCode:
                 return t
         return None
-    
+
     @property
     def trains(self):
         return self._trains
 
     def trackItem(self, id):
         return self._trackItems[id]
-    
+
     def place(self, placeCode):
         if placeCode is not None and placeCode != "":
             for ti in self._trackItems.values():
                 if ti.tiType.startswith("A") and ti.placeCode == placeCode:
                     return ti
         return None
-    
+
     def service(self, serviceCode):
         return self._services[serviceCode]
-    
+
     @property
     def services(self):
         return self._services
@@ -183,21 +183,21 @@ class Simulation(QtCore.QObject):
 
     @QtCore.pyqtSlot(int, bool)
     def activateRoute(self, siId, persistent = False):
-        """This slot is normally connected to the signal 
-        SignalItem.signalSelected(SignalItem), which itself is emitted when a 
-        signal is left-clicked. 
+        """This slot is normally connected to the signal
+        SignalItem.signalSelected(SignalItem), which itself is emitted when a
+        signal is left-clicked.
         It is in charge of:
         - Checking whether this is the first signal to be selected, if it the
         case, selectedSignal is set to this signal and the function returns;
         - Otherwise, it checks whether there exists a possible route between
-        _selectedSignal and this signal. If it is the case, and that no other 
+        _selectedSignal and this signal. If it is the case, and that no other
         active route conflicts with this route, it is activated.
-        
+
         The following signals are emited depending of the situation:
         - routeActivated
         - noRouteBetweenSignals
         - conflictingRoute
-        @param si Pointer to the signalItem owner of the signalGraphicsItem 
+        @param si Pointer to the signalItem owner of the signalGraphicsItem
         that has been left-clicked."""
         si = self._trackItems[siId]
         if self._selectedSignal is None or self._selectedSignal == si:
@@ -224,14 +224,14 @@ class Simulation(QtCore.QObject):
                 self.noRouteBetweenSignals.emit(self._selectedSignal, si)
                 si.unselect()
                 QtCore.qWarning(self.tr("No route between signals"))
-  
+
     @QtCore.pyqtSlot(int)
     def desactivateRoute(self, siId):
-        """ This slot is normally connected to the signal 
+        """ This slot is normally connected to the signal
         SignalItem.signalUnselected(SignalItem), which itself is emitted when
-        a signal is right-clicked. It is in charge of deactivating the routes 
+        a signal is right-clicked. It is in charge of deactivating the routes
         starting from this signal.
-        @param si Pointer to the signalItem owner of the signalGraphicsItem 
+        @param si Pointer to the signalItem owner of the signalGraphicsItem
         that has been right-clicked."""
         si = self._trackItems[siId]
         if self._selectedSignal is not None:
@@ -242,7 +242,7 @@ class Simulation(QtCore.QObject):
         if r is not None:
             r.desactivate()
             self.routeDeleted.emit(r)
-    
+
     @QtCore.pyqtSlot(bool)
     def pause(self, paused):
         """ Toggle pause.
@@ -252,7 +252,7 @@ class Simulation(QtCore.QObject):
             self._timer.stop()
         else:
             self._timer.start()
-    
+
     @QtCore.pyqtSlot(int)
     def setTimeFactor(self, timeFactor):
         """Sets the time factor to timeFactor."""
@@ -260,7 +260,7 @@ class Simulation(QtCore.QObject):
         self.setOption("timeFactor", min(timeFactor, 10))
         if timeFactor != 0:
             self._timer.start()
-    
+
     @QtCore.pyqtSlot()
     def timerOut(self):
         """ Changes the simulation time and emits the timeChanged and the
@@ -271,7 +271,7 @@ class Simulation(QtCore.QObject):
         self.timeChanged.emit(self._time)
         secs = self._timer.interval() * timeFactor / 1000
         self.timeElapsed.emit(secs)
-            
+
     def loadRoutes(self, conn):
         """Creates the instances of routes from the data of the database."""
         QtCore.qDebug("Loading routes")
@@ -298,8 +298,8 @@ class Simulation(QtCore.QObject):
         if not check:
             QtCore.qFatal(self.tr("""Invalid simulation: Some routes are not
 valid.\nSee stderr for more information"""))
-            
-        # Activates routes who are to be activated at the beginning of the 
+
+        # Activates routes who are to be activated at the beginning of the
         # simulation
         if self.context == utils.Context.GAME:
             for route in self._routes.values():
@@ -307,7 +307,7 @@ valid.\nSee stderr for more information"""))
                     route.activate(True)
                 elif route.initialState == 1:
                     route.activate(False)
-    
+
     def loadTrainTypes(self, conn):
         """Creates the instances of TrainType from the data of the database.
         """
@@ -315,14 +315,14 @@ valid.\nSee stderr for more information"""))
             code = str(trainType["code"])
             parameters = dict(trainType)
             self._trainTypes[code] = trains.TrainType(self, parameters)
-    
+
     def loadTrains(self, conn):
         """Creates the instances of Train from the data of the database."""
         for train in conn.execute("SELECT * FROM trains"):
             parameters = dict(train)
             train = trains.Train(self, parameters)
             self._trains.append(train)
-    
+
     def loadOptions(self, conn):
         """Populates the options dict with data from the database"""
         for option in conn.execute("SELECT * FROM options"):
@@ -330,7 +330,7 @@ valid.\nSee stderr for more information"""))
             value = option["optionValue"]
             if key != "":
                 self._options[key] = value
-    
+
     def loadTrackItems(self, conn):
         """Loads the instances of trackItems and its subclasses from the
         data of the database, and make all the necessary links"""
@@ -341,9 +341,9 @@ valid.\nSee stderr for more information"""))
         if not self.checkTrackItemsLinks():
             QtCore.qFatal("Invalid simulation: Not all items are linked.\n \
                            See stderr for more information")
-            
+
     def createAllTrackItems(self, conn):
-        """Creates the instances of TrackItem and its subclasses (including 
+        """Creates the instances of TrackItem and its subclasses (including
         Places) from the database."""
         for place in \
                     conn.execute("SELECT * FROM trackitems WHERE titype='A'"):
@@ -352,7 +352,7 @@ valid.\nSee stderr for more information"""))
             placeCode = parameters["placecode"]
             place = scenery.Place(self, parameters)
             self._trackItems[tiId] = place
-        
+
         for trackItem in \
                    conn.execute("SELECT * FROM trackitems WHERE titype<>'A'"):
             parameters = dict(trackItem)
@@ -376,16 +376,16 @@ valid.\nSee stderr for more information"""))
                 ti = scenery.TrackItem(self, parameters)
             self.makeTrackItemSignalSlotConnections(ti)
             self._trackItems[tiId] = ti
-            
-            
+
+
     def makeTrackItemSignalSlotConnections(self, ti):
         """Makes all signal-slot connections for TrackItem ti"""
         if ti.tiType.startswith("S"):
             ti.signalSelected.connect(self.activateRoute)
             ti.signalUnselected.connect(self.desactivateRoute)
             ti.trainSelected.connect(self.trainSelected)
-                
-  
+
+
     def loadServices(self, conn):
         """Creates the instances of Service from the data of the database."""
         for service in conn.execute("SELECT * FROM services"):
@@ -400,13 +400,13 @@ valid.\nSee stderr for more information"""))
 
         for s in self._services.values():
             s.start()
-    
+
     def setupConnections(self):
         """Sets up the connections which need a simulation loaded"""
         self.timeChanged.connect(self.selectedTrainModel.reset)
 
     def findRoute(self, si1, si2):
-        """Checks whether a route exists between two signals, and return this 
+        """Checks whether a route exists between two signals, and return this
         route or None.
         @param si1 The signalItem of the first signal
         @param si2 The signalItem of the second signal
@@ -427,9 +427,9 @@ valid.\nSee stderr for more information"""))
                                 self._trackItems[conflictTiId]
                 self._trackItems[conflictTiId].conflictTI = \
                                 self._trackItems[tiId]
-    
+
     def createTrackItemsLinks(self):
-        """Find the items that are linked together through their coordinates 
+        """Find the items that are linked together through their coordinates
         and populate the _nextItem and _previousItem variables of each items.
         """
         for ki, vi in self._trackItems.items():
@@ -461,8 +461,8 @@ valid.\nSee stderr for more information"""))
                         elif self.distanceBetween(vi.end, vj.reverse) <= 1.0:
                             vi.nextItem = vj
                             vj.reverseItem = vi
-                       
-    
+
+
     def checkTrackItemsLinks(self):
         """Checks that all TrackItems are linked together"""
         result = True;
@@ -477,7 +477,7 @@ valid.\nSee stderr for more information"""))
                 if ti.previousItem is None:
                     QtCore.qCritical(
                             self.tr("TrackItem %i is unlinked at (%f, %f)" % \
-                                    (ti.tiId, ti.origin.x(), ti.origin.y()))) 
+                                    (ti.tiId, ti.origin.x(), ti.origin.y())))
                     result = False
         return result
 
@@ -488,25 +488,13 @@ valid.\nSee stderr for more information"""))
         @return"""
         return sqrt((p1.x() - p2.x()) ** 2 + (p1.y() - p2.y()) ** 2)
 
-    #def dbReadInt(self, model, row, column):
-        #dbOutput = model.record(row).value(column)
-        #if not isinstance(dbOutput, QtCore.QPyNullVariant):
-            #return int(dbOutput)
-        #else:
-            #return 0
-    
-    #def dbReadFloat(self, model, row, column):
-        #dbOutput = model.record(row).value(column)
-        #if not isinstance(dbOutput, QtCore.QPyNullVariant):
-            #return int(dbOutput)
-        #else:
-            #return 0
-        
-    #def dbReadStr(self, model, row, column):
-        #dbOutput = model.record(row).value(column)
-        #if not isinstance(dbOutput, QtCore.QPyNullVariant):
-            #return str(dbOutput)
-        #else:
-            #return ""
-        
-        
+    def getLineItem(self, placeCode, trackCode):
+        """Returns the LineItem instance defined by placeCode and trackCode.
+        """
+        for ti in self._trackItems.values():
+            if ti.tiType.startswith("L"):
+                if ti.placeCode == placeCode and ti.trackCode == trackCode:
+                    return ti
+        return None
+
+

@@ -22,4 +22,4 @@ from ts2.trains.traintype import TrainType, TrainTypesModel
 from ts2.trains.service import Service, ServiceInfoModel, ServiceLine, \
     ServiceLinesModel, ServiceInfoModel, ServiceListModel, ServicesModel
 from ts2.trains.train import TrainStatus, TrainInfoModel, TrainListModel, \
-    Train
+    Train, TrainsModel

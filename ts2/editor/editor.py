@@ -1,29 +1,29 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau                                
-#   npi@m4x.org                                                           
-#                                                                         
-#   This program is free software; you can redistribute it and/or modify  
-#   it under the terms of the GNU General Public License as published by  
-#   the Free Software Foundation; either version 2 of the License, or     
-#   (at your option) any later version.                                   
-#                                                                         
-#   This program is distributed in the hope that it will be useful,       
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of        
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
-#   GNU General Public License for more details.                          
-#                                                                         
-#   You should have received a copy of the GNU General Public License     
-#   along with this program; if not, write to the                         
-#   Free Software Foundation, Inc.,                                       
-#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
+#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   npi@m4x.org
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the
+#   Free Software Foundation, Inc.,
+#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
 import sqlite3
 from PyQt4 import QtGui, QtCore
 from PyQt4.Qt import Qt
-from ts2.simulation import Simulation
+from ts2 import simulation
 from ts2 import scenery, utils, trains, routing
-from ts2.editor import EditorSceneBackground
+import ts2.editor
 
 class TrashBinItem(QtGui.QGraphicsPixmapItem):
     """The TrashBinItem is the graphics item on which to drag TrackItems to be
@@ -36,9 +36,9 @@ class TrashBinItem(QtGui.QGraphicsPixmapItem):
         self.setPixmap(QtGui.QPixmap(":/bin.png"))
         self.setAcceptDrops(True)
         self._editor = editor
-        
+
     def dropEvent(self, event):
-        """Handler for the drop event. Deletes the TrackItem that has been 
+        """Handler for the drop event. Deletes the TrackItem that has been
         dropped on the TrashBinItem"""
         if event.mimeData().hasText():
             tiType, tiId, ox, oy, point = event.mimeData().text().split("#")
@@ -49,7 +49,7 @@ class TrashBinItem(QtGui.QGraphicsPixmapItem):
                 self._editor.deleteTrackItem(tiId)
         else:
             event.ignore()
-                
+
 
 class WhiteLineItem(QtGui.QGraphicsLineItem):
     """Shortcut class to make white line items"""
@@ -60,15 +60,16 @@ class WhiteLineItem(QtGui.QGraphicsLineItem):
         self.update()
 
 
-class Editor(Simulation):
+class Editor(simulation.Simulation):
     """The Editor class holds all the logic behind the simulation editor.
-    """    
+    """
     def __init__(self, editorWindow):
         """Constructor for the Editor class"""
         super().__init__(editorWindow)
         self._context = utils.Context.EDITOR_GENERAL
         self._libraryScene = QtGui.QGraphicsScene(0, 0, 200, 250, self)
-        self._sceneBackground = EditorSceneBackground(self, 0, 0, 1024, 768)
+        self._sceneBackground = ts2.editor.EditorSceneBackground(
+                                                        self, 0, 0, 1024, 768)
         self._sceneBackground.setZValue(-100)
         self._scene.addItem(self._sceneBackground)
         self.drawToolBox()
@@ -77,19 +78,26 @@ class Editor(Simulation):
         self._trainTypesModel = trains.TrainTypesModel(self)
         self._servicesModel = trains.ServicesModel(self)
         self._serviceLinesModel = trains.ServiceLinesModel(self)
+        self._trainsModel = trains.TrainsModel(self)
         self._database = None
         self._nextId = 1
         self._nextRouteId = 1
         self._grid = 5.0
         self._preparedRoute = None
         self._selectedRoute = None
-        
+        self._selectedTrain = None
+        self._displayedPositionGI = routing.PositionGraphicsItem(self)
+        self.registerGraphicsItem(self._displayedPositionGI)
+        self.trainsChanged.connect(self.unselectTrains)
+
     sceneryIsValidated = QtCore.pyqtSignal(bool)
     routesChanged = QtCore.pyqtSignal()
     trainTypesChanged = QtCore.pyqtSignal()
     servicesChanged = QtCore.pyqtSignal()
     serviceLinesChanged = QtCore.pyqtSignal()
-    
+    trainsChanged = QtCore.pyqtSignal()
+    optionsChanged = QtCore.pyqtSignal()
+
     def drawToolBox(self):
         """Construct the library tool box"""
         # Lines
@@ -129,37 +137,42 @@ class Editor(Simulation):
                 {"tiid":-8, "name":"PLACE", "placecode":"", "x":132, "y":180})
         self.libraryBinItem = TrashBinItem(self, self._libraryScene, \
                                                       QtCore.QPointF(86, 260))
-    
+
     @property
     def libraryScene(self):
         """The pseudo-scene for the TrackItem "tool box" """
         return self._libraryScene
-    
+
     @property
     def routesModel(self):
         """Returns the RoutesModel of this editor instance"""
         return self._routesModel
-    
+
     @property
     def trainTypesModel(self):
         """Returns the TrainTypesModel of this editor"""
         return self._trainTypesModel
-    
+
     @property
     def servicesModel(self):
         """Returns the ServicesModel of this editor"""
         return self._servicesModel
-    
+
     @property
     def serviceLinesModel(self):
         """Returns the ServiceLinesModel of this editor"""
         return self._serviceLinesModel
-    
+
+    @property
+    def trainsModel(self):
+        """Returns the TrainsModel of this editor"""
+        return self._trainsModel
+
     @property
     def database(self):
         """Returns the database filename, with full path"""
         return self._database
-    
+
     @database.setter
     def database(self, value):
         """Setter function for the database property"""
@@ -169,7 +182,7 @@ class Editor(Simulation):
     def selectedRoute(self):
         """Returns the selected route in the route editor."""
         return self._selectedRoute
-    
+
     @selectedRoute.setter
     def selectedRoute(self, value):
         """Setter function for the selectedRoute property"""
@@ -179,10 +192,24 @@ class Editor(Simulation):
         if self._selectedRoute is not None:
             self._selectedRoute.activate()
 
+    @property
+    def displayedPosition(self):
+        """Returns the position that is currently selected in this editor"""
+        return self._displayedPositionGI.position
+
+    @displayedPosition.setter
+    def displayedPosition(self, position):
+        """Setter function for the displayedPosition property"""
+        if self.context == utils.Context.EDITOR_TRAINS:
+            self._displayedPositionGI.position = position
+
+
     def reload(self, fileName):
         """Load or reload all the data of the simulation from the database."""
         conn = sqlite3.connect(fileName)
         conn.row_factory = sqlite3.Row
+        self.loadOptions(conn)
+        self.optionsChanged.emit()
         self.createAllTrackItems(conn)
         self.adjustSceneBackground()
         self._nextId = max(self._trackItems.keys()) + 1
@@ -198,7 +225,8 @@ class Editor(Simulation):
         self.trainTypesChanged.emit()
         self.loadServices(conn)
         self.servicesChanged.emit()
-        #self.loadTrains()
+        self.loadTrains(conn)
+        self.trainsChanged.emit()
 
     def save(self):
         """Saves the data of the simulation to the database"""
@@ -208,8 +236,9 @@ class Editor(Simulation):
         self.saveRoutes(conn)
         self.saveTrainTypes(conn)
         self.saveServices(conn)
+        self.saveTrains(conn)
         conn.close()
-        
+
     def saveTrackItems(self, conn):
         """Saves the TrackItem instances of this editor in the database"""
         conn.execute("DROP TABLE IF EXISTS trackitems")
@@ -227,30 +256,30 @@ class Editor(Simulation):
             query = query[:-1] + ")"
             conn.execute(query, ti.saveParameters)
         conn.commit()
-        
+
     def saveRoutes(self, conn):
         """Saves the Route instances of this editor in the database"""
         # Save routes themselves
         conn.execute("DROP TABLE IF EXISTS routes")
-        conn.execute("CREATE TABLE routes (\n" \
-                            "routenum INTEGER PRIMARY KEY,\n" \
-                            "beginsignal INTEGER,\n" \
-                            "endsignal INTEGER,\n" \
-                            "initialstate INTEGER)\n" \
+        conn.execute("CREATE TABLE routes (\n"
+                            "routenum INTEGER PRIMARY KEY,\n"
+                            "beginsignal INTEGER,\n"
+                            "endsignal INTEGER,\n"
+                            "initialstate INTEGER)\n"
                     )
         for route in self._routes.values():
-            query = "INSERT INTO routes "\
-                    "(routenum, beginsignal, endsignal, initialstate) "\
+            query = "INSERT INTO routes " \
+                    "(routenum, beginsignal, endsignal, initialstate) " \
                     "VALUES " \
                     "(:routenum, :beginsignal, :endsignal, :initialstate)"
-            parameters = { \
-                    "routenum":route.routeNum, \
-                    "beginsignal":route.beginSignal.tiId, \
-                    "endsignal":route.endSignal.tiId, \
-                    "initialstate":route.initialState \
+            parameters = {
+                    "routenum":route.routeNum,
+                    "beginsignal":route.beginSignal.tiId,
+                    "endsignal":route.endSignal.tiId,
+                    "initialstate":route.initialState
                          }
             conn.execute(query, parameters)
-        
+
         # Save the directions
         conn.execute("DROP TABLE IF EXISTS directions")
         conn.execute("CREATE TABLE directions (\n" \
@@ -271,7 +300,7 @@ class Editor(Simulation):
                              }
                 conn.execute(query, parameters)
         conn.commit()
-        
+
     def saveTrainTypes(self, conn):
         """Saves the TrainType instances of this editor in the database"""
         conn.execute("DROP TABLE IF EXISTS traintypes")
@@ -301,7 +330,7 @@ class Editor(Simulation):
                     "tlength":trainType.length}
             conn.execute(query, parameters)
         conn.commit()
-       
+
     def saveServices(self, conn):
         """Saves the Service instances of this editor in the database"""
         conn.execute("DROP TABLE IF EXISTS services")
@@ -317,22 +346,22 @@ class Editor(Simulation):
                     "VALUES " \
                     "(:servicecode, :description, :nextservice, :autoreverse)"
             parameters = { \
-                    "servicecode":service.serviceCode, \
-                    "description":service.description, \
-                    "nextservice":service.nextServiceCode, \
-                    "autoreverse":service.autoReverse \
+                    "servicecode":service.serviceCode,
+                    "description":service.description,
+                    "nextservice":service.nextServiceCode,
+                    "autoreverse":service.autoReverse
                          }
             conn.execute(query, parameters)
-        
+
         # Save the directions
         conn.execute("DROP TABLE IF EXISTS servicelines")
-        conn.execute("CREATE TABLE servicelines (\n" \
+        conn.execute("CREATE TABLE servicelines (\n"
                             "servicecode VARCHAR(10),\n"
                             "placecode VARCHAR(10),\n"
                             "scheduledarrivaltime TIME,\n"
                             "scheduleddeparturetime TIME,\n"
                             "trackcode VARCHAR(10),\n"
-                            "stop BOOLEAN)" \
+                            "stop BOOLEAN)"
                     )
         for service in self._services.values():
             for sl in service.lines:
@@ -341,19 +370,50 @@ class Editor(Simulation):
                         "scheduleddeparturetime, trackcode, stop) " \
                         "VALUES " \
                         "(:servicecode, :placecode, :scheduledarrivaltime, " \
-                        ":scheduleddeparturetime, :trackcode, :stop) " 
-                parameters = { \
-                    "servicecode":service.serviceCode, \
-                    "placecode":sl.placeCode, \
-                    "scheduledarrivaltime":sl.scheduledArrivalTimeStr, \
-                    "scheduleddeparturetime":sl.scheduledDepartureTimeStr, \
-                    "trackcode":sl.trackCode, \
-                    "stop":sl.mustStop \
+                        ":scheduleddeparturetime, :trackcode, :stop) "
+                parameters = {
+                    "servicecode":service.serviceCode,
+                    "placecode":sl.placeCode,
+                    "scheduledarrivaltime":sl.scheduledArrivalTimeStr,
+                    "scheduleddeparturetime":sl.scheduledDepartureTimeStr,
+                    "trackcode":sl.trackCode,
+                    "stop":sl.mustStop
                              }
                 conn.execute(query, parameters)
         conn.commit()
-        
-    
+
+    def saveTrains(self, conn):
+        """Saves the Train instances of this editor in the database"""
+        conn.execute("DROP TABLE IF EXISTS trains")
+        conn.execute("CREATE TABLE trains (\n"
+                            "servicecode VARCHAR(10),\n"
+                            "traintype VARCHAR(10),\n"
+                            "speed DOUBLE,\n"
+                            "tiid INTEGER,\n"
+                            "previoustiid INTEGER,\n"
+                            "posonti DOUBLE,\n"
+                            "appeartime TIME)\n")
+
+        for train in self._trains:
+            query = "INSERT INTO trains " \
+                    "(servicecode, traintype, speed, tiid, previoustiid, "\
+                    "posonti, appeartime) " \
+                    "VALUES " \
+                    "(:servicecode, :traintype, :speed, :tiid, "\
+                    ":previoustiid, :posonti, :appeartime)"
+            parameters = {
+                    "servicecode":train.serviceCode,
+                    "traintype":train.trainTypeCode,
+                    "speed":train.initialSpeed,
+                    "tiid":train.trainHead.trackItem.tiId,
+                    "previoustiid":train.trainHead.previousTI.tiId,
+                    "posonti":train.trainHead.positionOnTI,
+                    "appeartime":train.appearTimeStr
+                    }
+            conn.execute(query, parameters)
+        conn.commit()
+
+
     def exportServicesToFile(self, fileName):
         """Exports the services to the file with the given fileName in ts2
         services CSV format"""
@@ -366,7 +426,7 @@ class Editor(Simulation):
             file.write("\"%s\";" % service.description)
             file.write("\"%s\";" % service.nextServiceCode)
             file.write("%s;" % service.autoReverse)
-            
+
             file.write(";")
             for line in service.lines:
                 file.write("\"%s\";" % line.placeCode)
@@ -376,9 +436,9 @@ class Editor(Simulation):
                 file.write("%s;" % line.mustStop)
             file.write("\n")
         file.close()
-        
+
     def importServicesFromFile(self, fileName):
-        """Imports the services from the ts2 formatted CSV file given by 
+        """Imports the services from the ts2 formatted CSV file given by
         fileName, deleting any previous service in the editor if any."""
         self._services = {}
         allowedHeaders = ["servicecode","description","nextservice",
@@ -402,27 +462,28 @@ class Editor(Simulation):
                     continue
                 if inPlaces:
                     lineHeaders.append(header)
-                
+
         for line in file.readlines():
             params = line.split(";")
             if len(params) > 1:
                 params = [p.strip('" \n') for p in params]
-                serviceParameters = dict(zip(headers[:placesIndex], 
+                serviceParameters = dict(zip(headers[:placesIndex],
                                             params[:placesIndex]))
                 serviceCode = serviceParameters["servicecode"]
-                self.services[serviceCode] = Service(self, serviceParameters)
+                self.services[serviceCode] = trains.Service(
+                                                    self, serviceParameters)
                 lineLength = len(lineHeaders)
                 for i in range((len(params)-placesIndex-1) // lineLength):
                     startIndex = placesIndex + 1 + i * lineLength
                     endIndex = startIndex + lineLength + 1
-                    lineParameters = dict(zip(lineHeaders, 
+                    lineParameters = dict(zip(lineHeaders,
                                             params[startIndex:endIndex]))
                     if lineParameters["placecode"] != "":
                         self.services[serviceCode].addLine(lineParameters)
         file.close()
         self.servicesChanged.emit()
-        
-    
+
+
     def registerGraphicsItem(self, graphicItem):
         """Reimplemented from Simulation. Adds the graphicItem to the scene
         or to the libraryScene (if tiId <0)."""
@@ -431,26 +492,33 @@ class Editor(Simulation):
             self._libraryScene.addItem(graphicItem)
         else:
             self._scene.addItem(graphicItem)
-    
+
     @property
     def context(self):
         """Reimplemented from Simulation to return the EDITOR Context"""
         return self._context
-    
+
     @property
     def grid(self):
         """Returns the size of the grid for placing trackItems"""
         return self._grid
-    
+
     def option(self, key):
-        """Reimplemented from Simulation so as to provide editor specific 
-        options."""
-        options = {"timeFactor": 1.0}
-        return options[key]
-    
+        """Reimplemented from Simulation so as to provide editor specific
+        defaults."""
+        defaults = {"timeFactor": 1.0}
+        value = super().option(key)
+        if value is None:
+            if key in defaults:
+                return defaults[key]
+            else:
+                return None
+        else:
+            return value
+
     def createTrackItem(self, tiType, pos, posEnd = None):
         """Creates a TrackItem of type type at the position pos"""
-        pos = QtCore.QPointF(round(pos.x() / self.grid) * self.grid, \
+        pos = QtCore.QPointF(round(pos.x() / self.grid) * self.grid,
                              round(pos.y() / self.grid) * self.grid)
         if posEnd is None:
             if tiType.startswith("P"):
@@ -459,26 +527,26 @@ class Editor(Simulation):
                 posEnd = pos + QtCore.QPointF(60, 0)
             else:
                 posEnd = QtCore.QPointF(0, 0)
-        parameters = { \
-                    "tiid": self._nextId, \
-                    "name": "%i" % self._nextId, \
-                    "titype":tiType, \
-                    "x": pos.x(), \
-                    "y": pos.y(), \
-                    "xf": posEnd.x(), \
-                    "yf": posEnd.y(), \
-                    "xn": 5, \
-                    "yn": 0, \
-                    "xr": 5, \
-                    "yr": -5, \
-                    "reverse": 0, \
-                    "timersw": 1.0, \
-                    "timerwc": 1.0, \
-                    "maxspeed": 25.0, \
-                    "reallength": 0.0, \
-                    "placecode":None, \
+        parameters = {
+                    "tiid": self._nextId,
+                    "name": "%i" % self._nextId,
+                    "titype":tiType,
+                    "x": pos.x(),
+                    "y": pos.y(),
+                    "xf": posEnd.x(),
+                    "yf": posEnd.y(),
+                    "xn": 5,
+                    "yn": 0,
+                    "xr": 5,
+                    "yr": -5,
+                    "reverse": 0,
+                    "timersw": 1.0,
+                    "timerwc": 1.0,
+                    "maxspeed": 25.0,
+                    "reallength": 0.0,
+                    "placecode":None,
                     "trackcode":None}
-                
+
         if tiType == "L":
             ti = scenery.LineItem(self, parameters)
         elif tiType == "LP":
@@ -502,20 +570,21 @@ class Editor(Simulation):
         self._trackItems[self._nextId] = ti
         ti.trackItemClicked.emit(int(self._nextId))
         self._nextId += 1
-    
+
     def makeTrackItemSignalSlotConnections(self, ti):
         """Makes all signal-slot connections for TrackItem ti"""
         if ti.tiType.startswith("S"):
             ti.signalSelected.connect(self.prepareRoute)
             ti.signalUnselected.connect(self.deselectRoute)
-        
-    
+        elif ti.tiType.startswith("L"):
+            ti.positionSelected.connect(self.setSelectedTrainHead)
+
     def deleteTrackItem(self, tiId):
         """Delete the TrackItem given by tiId"""
         tiId = int(tiId)
         self._scene.removeItem(self._trackItems[tiId]._gi)
         del self._trackItems[tiId]
-        
+
     def deleteTrackItemLinks(self):
         """Delete all links between TrackItems"""
         for ti in self._trackItems.values():
@@ -523,9 +592,9 @@ class Editor(Simulation):
             ti.nextItem = None
             if hasattr(ti, "reverseItem"):
                 ti.reverseItem = None
-    
+
     def moveTrackItem(self, tiId, pos, clickPos, point):
-        """Moves the TrackItem with id tiId to position pos. 
+        """Moves the TrackItem with id tiId to position pos.
         @param clickPos is the position in the item's coordinates on which the
         mouse was clicked. it is used only if point equals "realOrigin".
         point is the property of the TrackItem that will be modified."""
@@ -537,9 +606,9 @@ class Editor(Simulation):
         setattr(ti, point, pos)
         self.expandBackgroundTo(ti)
         ti.trackItemClicked.emit(int(tiId))
-    
+
     def expandBackgroundTo(self, trackItem):
-        """Expands the EditorSceneBackground to 300px around the given 
+        """Expands the EditorSceneBackground to 300px around the given
         TrackItem, if it is not already the case."""
         tl = trackItem.graphicsItem.boundingRect().topLeft() + \
                             trackItem.graphicsItem.pos() + \
@@ -554,17 +623,17 @@ class Editor(Simulation):
             rect.setBottomRight(br)
         self._sceneBackground.setRect(rect)
         self._sceneBackground.update()
-        
+
     def adjustSceneBackground(self):
         """Adjusts the EditorSceneBackground to 300px around all trackitems of
         the scene"""
         self._sceneBackground.setRect(QtCore.QRectF(0, 0, 1, 1))
         for ti in self._trackItems.values():
             self.expandBackgroundTo(ti)
-        
+
     @QtCore.pyqtSlot()
     def validateScenery(self):
-        """Validates the scenery, i.e. tries to create all links between 
+        """Validates the scenery, i.e. tries to create all links between
         TrackItems, checks and set sceneryValidated to True if succeeded"""
         self.createTrackItemsLinks()
         if self.checkTrackItemsLinks():
@@ -575,7 +644,7 @@ class Editor(Simulation):
             self.sceneryIsValidated.emit(False)
             self._sceneryValidated = False
             return False
-    
+
     @QtCore.pyqtSlot()
     def invalidateScenery(self):
         """Invalidates the scenery, i.e. removes all links between TrackItems,
@@ -583,7 +652,7 @@ class Editor(Simulation):
         self.deleteTrackItemLinks()
         self._sceneryValidated = False
         self.sceneryIsValidated.emit(False)
-    
+
     def addRoute(self):
         """Adds the route that is selected on the scene to the routes."""
         if self.context == utils.Context.EDITOR_ROUTES:
@@ -596,24 +665,24 @@ class Editor(Simulation):
                 return True
         self.deselectRoute()
         return False
-    
+
     def deleteRoute(self, routeNum):
         """Deletes the route defined by routeNum"""
         if self.context == utils.Context.EDITOR_ROUTES:
             self.deselectRoute()
             del self._routes[routeNum]
             self.routesChanged.emit()
-        
+
     @QtCore.pyqtSlot(int)
     def prepareRoute(self, signalId):
         """Prepares the route starting with the SignalItem given by signalId:
         - Checks that the route leads to another SignalItem, using the current
-        directions of each PointsItem. 
+        directions of each PointsItem.
         - Set _preparedRoute to this route
         - Highlights the route if valid"""
         if self.context == utils.Context.EDITOR_ROUTES:
             si = self.trackItem(signalId)
-            pos = Position(si, si.previousItem, 0)
+            pos = routing.Position(si, si.previousItem, 0)
             directions = {}
             cur = pos.next()
             while not cur.trackItem.tiType.startswith("E"):
@@ -623,7 +692,7 @@ class Editor(Simulation):
                 if ti.tiType.startswith("S"):
                     if ti.isOnPosition(cur):
                         self._preparedRoute = \
-                                        Route(self, self._nextRouteId, si, ti)
+                                routing.Route(self, self._nextRouteId, si, ti)
                         self._nextRouteId += 1
                         for tiId, direction in directions.items():
                             self._preparedRoute.appendDirection(tiId, \
@@ -632,7 +701,7 @@ class Editor(Simulation):
                         self.selectedRoute = self._preparedRoute
                         return
                 cur = cur.next()
- 
+
     @QtCore.pyqtSlot(int)
     def selectRoute(self, routeNum):
         """Selects the route given by routeNum in the routes editor."""
@@ -640,13 +709,46 @@ class Editor(Simulation):
             route = self.routes[routeNum]
             self.selectedRoute = route
             self._preparedRoute = None
- 
+
     @QtCore.pyqtSlot()
     def deselectRoute(self):
         """Desactivate the selected route in the routes editor"""
         if self.context == utils.Context.EDITOR_ROUTES:
             self.selectedRoute = None
             self._preparedRoute = None
+
+    def getValidPosition(self):
+        """Returns an arbitrary valid position on the scenery. Returns None,
+        if no valid position has been found."""
+        for ti in self._trackItems.values():
+            if ti.tiType.startswith("L"):
+                return routing.Position(ti, ti.previousItem, 0.0)
+        return None
+
+    @QtCore.pyqtSlot(int)
+    def selectTrain(self, index):
+        """Selects the train given by index in the train editor, and sets the
+        displayedPosition on the train's head."""
+        if self.context == utils.Context.EDITOR_TRAINS:
+            train = self.trains[index]
+            self._selectedTrain = train
+            self.displayedPosition = train.trainHead
+
+    @QtCore.pyqtSlot()
+    def unselectTrains(self):
+        """Unselect all selected trains, and the associated displayedPosition
+        """
+        self._selectedTrain = None
+        self.displayedPosition = None
+
+    @QtCore.pyqtSlot(routing.Position)
+    def setSelectedTrainHead(self, position):
+        """Sets the trainHead of the selectedTrain to position if valid"""
+        if self.context == utils.Context.EDITOR_TRAINS:
+            if self._selectedTrain is not None and \
+               position is not None:
+                self._selectedTrain.trainHead = position
+                self.selectTrain(self.trains.index(self._selectedTrain))
 
     def addTrainType(self, code):
         """Adds an empty TrainType to the trainTypes list."""
@@ -659,17 +761,17 @@ class Editor(Simulation):
                     "stdbraking":"0.5", \
                     "emergbraking":"1.5", \
                     "tlength":"100"}
-            self._trainTypes[code] = TrainType(self, parameters)
+            self._trainTypes[code] = trains.TrainType(self, parameters)
             self.trainTypesChanged.emit()
             return True
         return False
-    
+
     def deleteTrainType(self, code):
         """Deletes the trainType defined by code"""
         if self.context == utils.Context.EDITOR_TRAINTYPES:
             del self._trainTypes[code]
         self.trainTypesChanged.emit()
- 
+
     def addService(self, code):
         """Adds an empty Service to the services list."""
         if self.context == utils.Context.EDITOR_SERVICES:
@@ -678,39 +780,115 @@ class Editor(Simulation):
                     "description":"<Service description>", \
                     "nextservice":"", \
                     "autoreverse":0}
-            self._services[code] = Service(self, parameters)
+            self._services[code] = trains.Service(self, parameters)
             self.servicesChanged.emit()
             return True
         return False
-    
+
     def deleteService(self, code):
         """Deletes the service defined by code"""
         if self.context == utils.Context.EDITOR_SERVICES:
             del self._services[code]
         self.servicesChanged.emit()
- 
+
     def addServiceLine(self, service, index):
         """Adds a service line to service at the current index"""
         if self.context == utils.Context.EDITOR_SERVICES:
-            parameters = { \
-                    "placecode":"", \
-                    "trackcode":"", \
-                    "scheduledarrivaltime":"00:00:00", \
-                    "scheduleddeparturetime":"00:00:00" ,\
+            parameters = {
+                    "placecode":"",
+                    "trackcode":"",
+                    "scheduledarrivaltime":"00:00:00",
+                    "scheduleddeparturetime":"00:00:00" ,
                     "stop":False}
-            service.lines.insert(index, ServiceLine(service, parameters))
+            service.lines.insert(index, trains.ServiceLine(
+                                                        service, parameters))
             self.serviceLinesChanged.emit()
- 
+
     def deleteServiceLine(self, service, index):
         """Deletes the service line of service defined by index"""
         if self.context == utils.Context.EDITOR_SERVICES:
             del service.lines[index]
-        self.serviceLinesChanged.emit()
- 
+            self.serviceLinesChanged.emit()
+
+    def setupTrainsFromServices(self):
+        """Removes all trains instances and creates a train for each relevant
+        service, that is each service which is not following another one (i.e
+        a service which is not the nextService of another service)."""
+        self._trains = []
+        serviceList = list(self.services.keys())
+        for s in self.services.values():
+            if s.nextServiceCode is not None and \
+               s.nextServiceCode != "":
+                serviceList.remove(s.nextServiceCode)
+        for sc in serviceList:
+            train = self.addTrain()
+            train.serviceCode = sc
+            service = self.service(sc)
+            placeCode, trackCode = service.getEntryPlaceData()
+            entryLineItem = self.getLineItem(placeCode, trackCode)
+            if entryLineItem is not None:
+                if entryLineItem.nextItem.tiType.startswith("E") or \
+                   entryLineItem.nextItem.tiType.startswith("SB"):
+                    previousTI = entryLineItem.nextItem
+                else:
+                    previousTI = entryLineItem.previousItem
+                position = routing.Position(
+                                        entryLineItem,
+                                        previousTI,
+                                        max(0, entryLineItem.realLength - 1))
+                initialSpeed = entryLineItem.maxSpeed
+            else:
+                position = self.getValidPosition()
+                initialSpeed = 0
+            train.trainHead = position
+            train.initialSpeed = initialSpeed
+            if service.lines[0].scheduledArrivalTimeStr != "":
+                train.appearTimeStr = service.lines[0].scheduledArrivalTimeStr
+            else:
+                train.appearTimeStr = "00:00:00"
+
+    def reverseSelectedTrain(self):
+        """Reverses the selectedTrain direction."""
+        if self.context == utils.Context.EDITOR_TRAINS:
+            if self._selectedTrain is not None:
+                reversedHead = self._selectedTrain.trainHead.reversed()
+                self._selectedTrain.trainHead = reversedHead
+                self.selectTrain(self.trains.index(self._selectedTrain))
+
+
+    def addTrain(self):
+        """Adds an empty train to the editor and returns that train"""
+        if self.context == utils.Context.EDITOR_TRAINS:
+            position = self.getValidPosition()
+            if position is None:
+                raise Exception("No valid position found. Check scenery.")
+            parameters = {
+                "servicecode": list(self.services.values())[0].serviceCode,
+                "traintype": list(self.trainTypes.values())[0].code,
+                "speed": 0.0,
+                "accel": 0.0,
+                "tiid": position.trackItem.tiId,
+                "previoustiid": position.previousTI.tiId,
+                "posonti": position.positionOnTI,
+                "appeartime": "00:00:00"
+               }
+            train = trains.Train(self, parameters)
+            self._trains.append(train)
+            self.trainsChanged.emit()
+            return train
+
+    def deleteTrain(self, index):
+        """Deletes the train assigned to serviceCode"""
+        if self.context == utils.Context.EDITOR_TRAINS:
+            del self.trains[index]
+            self.trainsChanged.emit()
+
     @QtCore.pyqtSlot(int)
     def updateContext(self, tabNum):
-        """Updates the context of the editor, depending on the tab selected 
+        """Updates the context of the editor, depending on the tab selected
         and given by tabNum."""
+        self.unselectTrains()
+
         if tabNum == 0:
             self._context = utils.Context.EDITOR_GENERAL
         elif tabNum == 1:
@@ -723,5 +901,5 @@ class Editor(Simulation):
             self._context = utils.Context.EDITOR_SERVICES
         elif tabNum == 5:
             self._context = utils.Context.EDITOR_TRAINS
-        
-    
+
+

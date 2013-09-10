@@ -20,8 +20,6 @@
 
 from ts2.editor.editorscenebackground import EditorSceneBackground
 from ts2.editor.editor import Editor
-from ts2.editor.editorviews import RoutesEditorView, TrainTypesEditorView,\
-    ServicesEditorView
 from ts2.editor.editorwindow import EditorWindow
 
 
