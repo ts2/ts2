@@ -18,25 +18,8 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from PyQt4 import QtCore
-
-def recordToDict(record):
-    """This helper function returns a dictionary from a QSqlRecord"""
-    retDict = {}
-    for i in range(record.count()):
-        if not isinstance(record.value(i), QtCore.QPyNullVariant):
-            retDict[record.fieldName(i)] = record.value(i)
-        else:
-            retDict[record.fieldName(i)] = None
-    return retDict
-
-class Context():
-    """This class holds the different contexts for ts2."""
-    GAME = 10
-    EDITORS = [20, 21, 22, 23, 24, 25]
-    EDITOR_GENERAL = 20
-    EDITOR_SCENERY = 21
-    EDITOR_ROUTES = 22
-    EDITOR_TRAINTYPES = 23
-    EDITOR_SERVICES = 24
-    EDITOR_TRAINS = 25
+from ts2.trains.traintype import TrainType, TrainTypesModel
+from ts2.trains.service import Service, ServiceInfoModel, ServiceLine, \
+    ServiceLinesModel, ServiceInfoModel, ServiceListModel, ServicesModel
+from ts2.trains.train import TrainStatus, TrainInfoModel, TrainListModel, \
+    Train, TrainsModel

@@ -18,15 +18,16 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from PyQt4.QtCore import *
+from PyQt4.QtGui import QApplication, QIcon, QPixmap
 import sys
-from mainwindow import *
+from ts2 import mainwindow
+from ts2 import ressources_rc
 
 def Main():
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon(QPixmap(":/ts2.png")))
     #try:
-    mw = MainWindow()
+    mw = mainwindow.MainWindow()
     mw.show()
     return app.exec_();
     #except Exception as e:

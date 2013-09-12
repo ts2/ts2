@@ -1,6 +1,7 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
 <qresource>
-    <file alias="ts2.png" >images/ts2.png</file>
+    <file alias="ts2.png">images/ts2.png</file>
+    <file alias="bin.png">images/bin.png</file>
 </qresource>
 </RCC>

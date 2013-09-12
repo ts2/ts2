@@ -1,53 +1,61 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau                                
-#   npi@m4x.org                                                           
-#                                                                         
-#   This program is free software; you can redistribute it and/or modify  
-#   it under the terms of the GNU General Public License as published by  
-#   the Free Software Foundation; either version 2 of the License, or     
-#   (at your option) any later version.                                   
-#                                                                         
-#   This program is distributed in the hope that it will be useful,       
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of        
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
-#   GNU General Public License for more details.                          
-#                                                                         
-#   You should have received a copy of the GNU General Public License     
-#   along with this program; if not, write to the                         
-#   Free Software Foundation, Inc.,                                       
-#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
+#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   npi@m4x.org
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the
+#   Free Software Foundation, Inc.,
+#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4.QtSql import *
-from simulation import *
-from servicelistview import ServiceListView
-from trainlistview import *
-from panel import *
-from ressources_rc import *
+from ts2.simulation import Simulation
+from ts2.scenery import Place
+from ts2.servicelistview import ServiceListView
+from ts2.trainlistview import TrainListView
+from ts2.panel import Panel
+from ts2 import editor
 
 class MainWindow(QMainWindow):
+    """ TODO Document MainWindow Class"""
+
     def __init__(self):
         super().__init__()
         MainWindow._self = self
         self.setWindowState(Qt.WindowMaximized)
         self.setGeometry(100, 100, 800, 600)
         self.setWindowTitle(self.tr("ts2 - Train Signalling Simulation"))
-        
+
         # Simulation
         self.simulation = Simulation(self)
-        
+
         # Actions
         self.openAction = QAction(self.tr("&Open..."), self)
         self.openAction.setShortcut(QKeySequence.Open)
         self.openAction.setToolTip(self.tr("Open a simulation"))
         self.openAction.triggered.connect(self.loadSimulation)
-        
+
         self.quitAction = QAction(self.tr("&Quit"), self)
         self.quitAction.setShortcut(QKeySequence(self.tr("Ctrl+Q")))
         self.quitAction.setToolTip(self.tr("Quit TS2"))
         self.quitAction.triggered.connect(self.close)
+
+        self.editorAction = QAction(self.tr("&Editor"), self)
+        self.editorAction.setShortcut(QKeySequence(self.tr("Ctrl+E")))
+        self.editorAction.setToolTip(self.tr("Open the simulation editor"))
+        self.editorAction.triggered.connect(self.openEditor)
 
         self.aboutAction = QAction(self.tr("&About TS2..."), self)
         self.aboutAction.setToolTip(self.tr("About TS2"))
@@ -62,11 +70,12 @@ class MainWindow(QMainWindow):
         self.fileMenu.addAction(self.openAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitAction)
+        self.editorMenu = self.menuBar().addAction(self.editorAction)
         self.helpMenu = self.menuBar().addMenu(self.tr("&Help"))
         self.helpMenu.addAction(self.aboutAction)
         self.helpMenu.addAction(self.aboutQtAction)
         self.menuBar().setCursor(Qt.PointingHandCursor)
-        
+
         # Dock Widgets
         self.trainInfoPanel = QDockWidget(self.tr("Train Information"), self)
         self.trainInfoPanel.setFeatures(QDockWidget.DockWidgetMovable|QDockWidget.DockWidgetFloatable)
@@ -100,6 +109,7 @@ class MainWindow(QMainWindow):
         self.trainListPanel = QDockWidget(self.tr("Trains"), self)
         self.trainListPanel.setFeatures(QDockWidget.DockWidgetMovable|QDockWidget.DockWidgetFloatable)
         self._trainListView = TrainListView(self, self.simulation)
+        self.simulation.trainSelected.connect(self._trainListView.updateTrainSelection)
         self.trainListPanel.setWidget(self._trainListView)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.trainListPanel)
 
@@ -133,10 +143,14 @@ class MainWindow(QMainWindow):
         self.grid.setSpacing(0)
         self.board.setLayout(self.grid)
         self.setCentralWidget(self.board)
-        
-        # DEBUG 
+
+        # Editor
+        self.editorOpened = False
+
+        # DEBUG
         #self.loadSimulation()
- 
+        #self.openEditor()
+
     @property
     def trainInfoView(self):
         return self._trainInfoView
@@ -144,11 +158,11 @@ class MainWindow(QMainWindow):
     @property
     def serviceInfoView(self):
         return self._serviceInfoView
-    
+
     @property
     def placeInfoView(self):
         return self._placeInfoView
-    
+
     @property
     def trainListView(self):
         return self._trainListView
@@ -160,11 +174,10 @@ class MainWindow(QMainWindow):
     @staticmethod
     def instance():
         return MainWindow._self
-    
+
     @pyqtSlot()
     def loadSimulation(self):
-        QSqlDatabase.database().close()
-        ### DEBUG 
+        ### DEBUG
         #fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain.ts2";
 
         fileName = QFileDialog.getOpenFileName(\
@@ -174,23 +187,25 @@ class MainWindow(QMainWindow):
                            self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
             qDebug("Simulation loading")
-            self.db = QSqlDatabase.addDatabase("QSQLITE")
-            self.db.setHostName("localhost")
-            self.db.setDatabaseName(fileName)
-            self.db.open()
-            self.simulation.reload()
+            self.simulation.reload(fileName)
+            self.setWindowTitle( \
+                self.tr("ts2 - Train Signalling Simulation - %s") % fileName)
             qDebug("Simulation loaded")
-    
+
     @pyqtSlot(int)
     def zoom(self, percent):
         self._view.setMatrix(QMatrix(percent/100, 0, 0, percent/100, 0, 0))
-    
+
     @pyqtSlot()
     def showAboutBox(self):
-        QMessageBox.about(self, "About TS2", """TS2 is a train signalling simulation.\n
+        """Shows the about box"""
+        QMessageBox.about(self, self.tr("About TS2"), self.tr( \
+"""TS2 is a train signalling simulation.\n
 Version 0.3 (beta 2)\n
 Copyright 2008-2013, NPi (npi@users.sourceforge.net)
-http://ts2.sourceforge.net""")
+http://ts2.sourceforge.net"""))
+        if self.editorOpened:
+            self.editorWindow.activateWindow()
 
     @pyqtSlot(QPoint)
     def showContextMenu(self, pos):
@@ -199,3 +214,18 @@ http://ts2.sourceforge.net""")
             if train is not None:
                 train.showTrainActionsMenu(self._trainInfoView, self._trainInfoView.mapToGlobal(pos))
 
+    @pyqtSlot()
+    def openEditor(self):
+        """This slot opens the editor window if it is not already opened"""
+        if not self.editorOpened:
+            self.editorWindow = editor.EditorWindow(self)
+            self.editorWindow.closed.connect(self.editorIsClosed)
+            self.editorOpened = True
+            self.editorWindow.show()
+        else:
+            self.editorWindow.activateWindow()
+
+
+    @pyqtSlot()
+    def editorIsClosed(self):
+        self.editorOpened = False

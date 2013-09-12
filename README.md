@@ -15,10 +15,10 @@ A demo simulation called "drain" can be found in the _data_ directory.
 ## Installation
 * Released versions: Unzip the file to a suitable location and run ts2.exe
 * Development versions:
-    - Download and install Python v3 or above at [www.python.org](http://www.python.org)
-    - Download and install PyQt v4.8 or above at [http://www.riverbankcomputing.co.uk](http://www.riverbankcomputing.co.uk)
-    - Grab the sources from GitHub
-    - Run ts2/application.py
+    - Download and install Python v3 or above at [www.python.org](http://www.python.org).
+    - Download and install PyQt v4.8 or above at [http://www.riverbankcomputing.co.uk](http://www.riverbankcomputing.co.uk).
+    - Grab the sources from GitHub.
+    - Run ts2.py
 
 ## Playing (QuickStart)
 * Load the demo simulation "drain.ts2" in the "data" directory.

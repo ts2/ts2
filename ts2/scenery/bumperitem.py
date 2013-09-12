@@ -18,19 +18,24 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from signalitem import *
-from PyQt4.QtSql import *
+from PyQt4.Qt import Qt
+from PyQt4 import QtGui, QtCore
+from ts2.scenery import SignalItem
+from ts2 import utils
 
 class BumperItem(SignalItem):
-    def __init__(self, simulation, record):
-        super().__init__(simulation, record)
+    """The BumperItem is the item placed at the end of a dead end line.
+    It behaves like a signal that is always set to STOP"""
+    
+    def __init__(self, simulation, parameters):
+        """Constructor for the BumperItem class"""
+        super().__init__(simulation, parameters)
         self._tiType = "SB"
 
 
-    def drawSignal(self, p):
-        """Draws the bumper on the painter given as parameter.
-        This function is called by SignalGraphicsItem.paint.
-        @param p The painter on which to draw the signal."""
+    def graphicsPaint(self, p, options, widget):
+        """ Reimplemented from TrackItem.graphicsPaint to
+        draw the bumper on the owned TrackGraphicsItem"""
         # Draw the berth
         linePen = self.getPen()
         textPen = self.getPen()
@@ -38,13 +43,15 @@ class BumperItem(SignalItem):
         if self.trainPresent():
             linePen.setColor(Qt.red)
 
-        if self._trainServiceCode != "":
+        if self._trainServiceCode != "" and \
+           self.simulation.context == utils.Context.GAME:
             # Train code to draw
             p.setPen(textPen)
-            font = QFont("Courier new")
+            font = QtGui.QFont("Courier new")
             font.setPixelSize(11)
             p.setFont(font)
-            textOrigin = QPointF(23,6) if self.reverse else QPointF(3,22)
+            textOrigin = QtCore.QPointF(23,6) if self.reverse \
+                    else QtCore.QPointF(3,22)
             p.drawText(textOrigin, self._trainServiceCode.rjust(5))
         else:
             # No Train code => Draw Line
@@ -59,7 +66,7 @@ class BumperItem(SignalItem):
 
         # Draw the signal itself
         textPen.setWidth(1)
-        brush = QBrush(Qt.SolidPattern)
+        brush = QtGui.QBrush(Qt.SolidPattern)
         if self.signalHighlighted:
             textPen.setColor(Qt.white)
             brush.setColor(Qt.white)
@@ -70,12 +77,28 @@ class BumperItem(SignalItem):
         p.setBrush(brush)
 
         if self.reverse:
-            triangle = QPolygonF()
-            triangle << QPointF(10,2) << QPointF(15,4) << QPointF(15, 0)
+            triangle = QtGui.QPolygonF()
+            triangle << QtCore.QPointF(10, 2) \
+                     << QtCore.QPointF(15, 4) \
+                     << QtCore.QPointF(15, 0)
             p.drawPolygon(triangle)
         else:
-            triangle = QPolygonF()
-            triangle << QPointF(50, 18) << QPointF(45,20) << QPointF(45, 16)
+            triangle = QtGui.QPolygonF()
+            triangle << QtCore.QPointF(50, 18) \
+                     << QtCore.QPointF(45,20) \
+                     << QtCore.QPointF(45, 16)
             p.drawPolygon(triangle)
 
+        # Draw the connection rects
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            p.setBrush(Qt.NoBrush)
+            textPen.setColor(Qt.white)
+            p.setPen(textPen)
+            if self.reverse:
+                p.drawRect(self.connectionRect(QtCore.QPointF(0, 2)))
+                p.drawRect(self.connectionRect(QtCore.QPointF(60, 2)))
+            else:
+                p.drawRect(self.connectionRect(QtCore.QPointF(0, 18)))
+                p.drawRect(self.connectionRect(QtCore.QPointF(60, 18)))
+                
 

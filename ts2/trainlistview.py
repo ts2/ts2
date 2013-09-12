@@ -20,8 +20,8 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from simulation import Simulation
-from train import Train
+from ts2.simulation import Simulation
+from ts2 import trains
 
 class TrainListView(QTreeView):
     """ TODO Document TrainListView class"""
@@ -60,11 +60,12 @@ class TrainListView(QTreeView):
     def contextMenuEvent(self, event):
         index = self.selectionModel().selection().indexes()[0]
         if index.isValid():
-            train = self._simulation.train(index.data().toString())
+            train = self._simulation.train(index.data())
             train.showTrainActionsMenu(self, event.globalPos())
 
     @pyqtSlot(QItemSelection, QItemSelection)
     def selectionChanged(self, selected, deselected):
+        super().selectionChanged(selected, deselected)
         index = selected.indexes()[0]
         if index.isValid():
             self.trainSelected.emit(index.data())

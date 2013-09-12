@@ -20,8 +20,8 @@
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
-from clock import *
-from simulation import *
+from ts2.clock import *
+from ts2.simulation import *
 
 class Panel(QWidget):
 
