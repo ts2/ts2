@@ -20,7 +20,7 @@
 
 import sqlite3
 from PyQt4 import QtGui, QtCore
-from PyQt4.Qt import Qt
+from PyQt4.QtCore import Qt
 from ts2 import simulation
 from ts2 import scenery, utils, trains, routing
 import ts2.editor
@@ -60,8 +60,64 @@ class WhiteLineItem(QtGui.QGraphicsLineItem):
         self.update()
 
 
+class OptionsModel(QtCore.QAbstractTableModel):
+    """Model for editing options in the editor.
+    """
+    def __init__(self, editor):
+        """Constructor for the OptionsModel class"""
+        super().__init__()
+        self._editor = editor
+
+    def rowCount(self, parent = QtCore.QModelIndex()):
+        """Returns the number of rows of the model, corresponding to the
+        number of options -2 (i.e. minus title and description)."""
+        return len(self._editor._options) - 2
+
+    def columnCount(self, parent = QtCore.QModelIndex()):
+        """Returns the number of columns of the model"""
+        return 2
+
+    def data(self, index, role = Qt.DisplayRole):
+        """Returns the data at the given index"""
+        if role == Qt.DisplayRole or role == Qt.EditRole:
+            optionKeys = list(self._editor.realOptions.keys())
+            optionValues = list(self._editor.realOptions.values())
+            if index.column() == 0:
+                return optionKeys[index.row()]
+            elif index.column() == 1:
+                return optionValues[index.row()]
+        return None
+
+    def setData(self, index, value, role):
+        """Updates data when modified in the view"""
+        if role == Qt.EditRole:
+            if index.column() == 1:
+                optionKey = str(index.sibling(index.row(), 0).data())
+                self._editor.setOption(optionKey, value)
+                return True
+        return False
+
+    def headerData(self, section, orientation, role = Qt.DisplayRole):
+        """Returns the header labels"""
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            if section == 0:
+                return self.tr("Option")
+            elif section == 1:
+                return self.tr("Value")
+        return None
+
+    def flags(self, index):
+        """Returns the flags of the model"""
+        retFlag = Qt.ItemIsEnabled
+        if index.column() == 1:
+            retFlag |= Qt.ItemIsEditable | Qt.ItemIsSelectable
+        return retFlag
+
+
+
 class Editor(simulation.Simulation):
-    """The Editor class holds all the logic behind the simulation editor.
+    """The Editor class holds all the logic behind the simulation editor. It
+    is a subclass of the Simulation class.
     """
     def __init__(self, editorWindow):
         """Constructor for the Editor class"""
@@ -79,6 +135,7 @@ class Editor(simulation.Simulation):
         self._servicesModel = trains.ServicesModel(self)
         self._serviceLinesModel = trains.ServiceLinesModel(self)
         self._trainsModel = trains.TrainsModel(self)
+        self._optionsModel = OptionsModel(self)
         self._database = None
         self._nextId = 1
         self._nextRouteId = 1
@@ -169,6 +226,11 @@ class Editor(simulation.Simulation):
         return self._trainsModel
 
     @property
+    def optionsModel(self):
+        """Returns the OptionsModel of this editor."""
+        return self._optionsModel
+
+    @property
     def database(self):
         """Returns the database filename, with full path"""
         return self._database
@@ -203,6 +265,15 @@ class Editor(simulation.Simulation):
         if self.context == utils.Context.EDITOR_TRAINS:
             self._displayedPositionGI.position = position
 
+    @property
+    def realOptions(self):
+        """Returns a dictionary with the real options for the editor, i.e.
+        without the title and description fields."""
+        options = {}
+        options.update(self._options)
+        del options["title"]
+        del options["description"]
+        return options
 
     def reload(self, fileName):
         """Load or reload all the data of the simulation from the database."""
@@ -232,12 +303,32 @@ class Editor(simulation.Simulation):
         """Saves the data of the simulation to the database"""
         # Set up database
         conn = sqlite3.connect(self._database)
+        self.saveOptions(conn)
         self.saveTrackItems(conn)
         self.saveRoutes(conn)
         self.saveTrainTypes(conn)
         self.saveServices(conn)
         self.saveTrains(conn)
         conn.close()
+
+    def saveOptions(self, conn):
+        """Saves the options of this editor in the database"""
+        conn.execute("DROP TABLE IF EXISTS options")
+        conn.execute("CREATE TABLE options (\n"
+                     "optionkey VARCHAR(30),\n"
+                     "optionvalue VARCHAR(50))")
+        for key, value in self._options.items():
+            query = "INSERT INTO options " \
+                    "(optionkey, optionvalue) " \
+                    "VALUES " \
+                    "(:optionkey, :optionvalue)"
+            parameters = {
+                    "optionkey":key,
+                    "optionvalue":value
+                    }
+            conn.execute(query, parameters)
+        conn.commit()
+
 
     def saveTrackItems(self, conn):
         """Saves the TrackItem instances of this editor in the database"""

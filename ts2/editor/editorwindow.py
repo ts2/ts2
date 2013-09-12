@@ -19,7 +19,7 @@
 #
 
 from PyQt4 import QtGui, QtCore, QtSql
-from PyQt4.Qt import Qt
+from PyQt4.QtCore import Qt
 
 from ts2 import scenery
 import ts2.editor.views
@@ -152,12 +152,19 @@ class EditorWindow(QtGui.QMainWindow):
         generalTab = QtGui.QWidget()
         titleLabel = QtGui.QLabel(self.tr("Simulation title: "), generalTab)
         self.titleTxt = QtGui.QLineEdit(generalTab)
+        self.titleTxt.editingFinished.connect(self.updateTitle)
         descriptionLabel = QtGui.QLabel(self.tr("Description: "), generalTab)
         self.descriptionTxt = QtGui.QPlainTextEdit(generalTab)
+        self.descriptionTxt.textChanged.connect(self.updateDescription)
         self.editor.optionsChanged.connect(self.updateGeneralTab)
+        optionsLabel = QtGui.QLabel(self.tr("Options: "))
+        self.optionsView = QtGui.QTableView(generalTab)
+        self.optionsView.setModel(self.editor.optionsModel)
+        self.editor.optionsChanged.connect(self.optionsView.model().reset)
         fgrid = QtGui.QFormLayout()
         fgrid.addRow(titleLabel, self.titleTxt)
         fgrid.addRow(descriptionLabel, self.descriptionTxt)
+        fgrid.addRow(optionsLabel, self.optionsView)
         generalTab.setLayout(fgrid)
         self.tabWidget.addTab(generalTab, self.tr("General"))
 
@@ -671,4 +678,14 @@ class EditorWindow(QtGui.QMainWindow):
                                 == QtGui.QMessageBox.Yes:
                 self.editor.deleteTrain(row)
 
+    @QtCore.pyqtSlot()
+    def updateTitle(self):
+        """Updates the title in the options hash when input is modified."""
+        self.editor.setOption("title", self.titleTxt.text())
 
+    @QtCore.pyqtSlot()
+    def updateDescription(self):
+        """Updates the description in the options hash when input is modified.
+        """
+        self.editor.setOption("description",
+                              self.descriptionTxt.toPlainText())

@@ -19,7 +19,7 @@
 #
 
 from PyQt4 import QtCore, QtSql, QtGui
-from PyQt4.Qt import Qt
+from PyQt4.QtCore import Qt
 from math import sqrt
 import sqlite3
 from ts2 import utils
@@ -325,11 +325,22 @@ valid.\nSee stderr for more information"""))
 
     def loadOptions(self, conn):
         """Populates the options dict with data from the database"""
+        self._options = {
+                "title":"",
+                "description":"",
+                "timeFactor":5,
+                "currentTime":"06:00:00",
+                "warningSpeed":8.3,
+                "defaultMaxSpeed":18,
+                "defaultMinimumStopTime":30
+            }
+        options = {}
         for option in conn.execute("SELECT * FROM options"):
-            key = option["optionKey"]
-            value = option["optionValue"]
+            key = option["optionkey"]
+            value = option["optionvalue"]
             if key != "":
-                self._options[key] = value
+                options[key] = value
+        self._options.update(options)
 
     def loadTrackItems(self, conn):
         """Loads the instances of trackItems and its subclasses from the
