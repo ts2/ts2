@@ -166,6 +166,8 @@ class Position:
         return til
 
     def isOut(self):
+        """Returns True if this position is out of the scenery, i.e. on an
+        EndItem."""
         if self.trackItem.tiType.startswith("E"):
             return True
         else:

@@ -528,10 +528,12 @@ class Train(QtCore.QObject):
         """Reverses the train direction."""
         if self._speed == 0:
             self.findNextSignal().resetTrainServiceCode()
+            self.trainHead.trackItem.activeRoute.desactivate()
             trainTail = self._trainHead - self._trainType.length
             self._trainHead = trainTail.reversed()
             self._speed = 0
             self.findNextSignal().trainServiceCode = self.serviceCode
+
 
     @QtCore.pyqtSlot()
     def reassignService(self):
