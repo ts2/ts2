@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 #
 #   Copyright (C) 2008-2013 by Nicolas Piganeau                                
 #   npi@m4x.org                                                           
@@ -18,47 +19,6 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from PyQt4.QtCore import *
-
-class TrainType(QObject):
-    """ TODO Document TrainType class"""
-    
-    def __init__(self, code, description, maxSpeed, stdAccel, stdBraking, emergBraking, length):
-        super().__init__()
-        self._code = code
-        self._description = description
-        self._maxSpeed = float(maxSpeed)
-        self._stdAccel = float(stdAccel)
-        self._stdBraking = float(stdBraking)
-        self._emergBraking = float(emergBraking)
-        self._length = float(length)
-
-    @property
-    def code(self):
-        return self._code
-    
-    @property
-    def description(self):
-        return self._description
-    
-    @property
-    def maxSpeed(self): 
-        return self._maxSpeed
-    
-    @property
-    def stdAccel(self):
-        return self._stdAccel
-    
-    @property
-    def stdBraking(self):
-        return self._stdBraking
-    
-    @property
-    def emergBraking(self):
-        return self._emergBraking
-    
-    @property
-    def length(self): 
-        return self._length
-    
-
+if __name__ == '__main__':
+    from ts2.application import Main
+    Main()

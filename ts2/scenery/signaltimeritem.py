@@ -18,26 +18,42 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-from PyQt4.QtSql import *
-from signalitem import *
+from PyQt4 import QtCore
+from ts2.scenery import SignalItem, SignalState, TIProperty
+from ts2 import utils
 
 class SignalTimerItem(SignalItem):
     """ TODO Document SignalTimerItem class"""
 
-    def __init__(self, simulation, record, timeFactor):
-        super().__init__(simulation, record)
+    def __init__(self, simulation, parameters):
+        """Constructor for the SignalTimerItem class"""
+        super().__init__(simulation, parameters)
         self._tiType = "ST"
         self._signalState = SignalState.CLEAR
-        timerSW = record.value("timersw")
-        timerWC = record.value("timerwc")
+        timerSW = parameters["timersw"]
+        timerWC = parameters["timerwc"]
+        timeFactor = float(self._simulation.option("timeFactor"))
         self._timerSW = timerSW * 60000 / timeFactor
         self._timerWC = timerWC * 60000 / timeFactor
-        self._timer = QTimer(self)
+        self._timer = QtCore.QTimer(self)
         self._timer.setSingleShot(True)
         self._timer.timeout.connect(self.updateSignalState)
+    
+    properties = SignalItem.properties + [ \
+                TIProperty("timerSW", "Time from STOP to WARNING"), \
+                TIProperty("timerWC", "Time from WARNING to CLEAR")]
 
+    @property
+    def saveParameters(self):
+        """Returns the parameters dictionary to save this TrackItem to the 
+        database"""
+        timeFactor = float(self._simulation.option("timeFactor"))
+        parameters = super().saveParameters
+        parameters.update( {\
+                            "timerSW":self._timerSW * timeFactor / 60000, \
+                            "timerWC":self._timerWC * timeFactor / 60000})
+        return parameters
+                    
     def trainTailActions(self, serviceCode):
         """Actions performed when a train passes :
         Close signal and launch timer."""
@@ -47,7 +63,7 @@ class SignalTimerItem(SignalItem):
         self._timer.start(self._timerSW)
         self.updateGraphics()
 
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def updateSignalState(self):
         if not self._timer.isActive():
             if self._signalState == SignalState.CLEAR:
@@ -61,3 +77,31 @@ class SignalTimerItem(SignalItem):
             self._previousActiveRoute.beginSignal.updateSignalState()
         self.updateGraphics()
 
+    @property
+    def timerSW(self):
+        """Returns the time in minutes for the SignalTimerItem to pass from 
+        the STOP state to the WARNING state"""
+        timeFactor = float(self._simulation.option("timeFactor"))
+        return float(self._timerSW * timeFactor / 60000)
+    
+    @timerSW.setter
+    def timerSW(self, value):
+        """Setter function for the timerSW property"""
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+            timeFactor = float(self._simulation.option("timeFactor"))
+            self._timerSW = value * 60000 / timeFactor
+            
+    @property
+    def timerWC(self):
+        """Returns the time in minutes for the SignalTimerItem to pass from 
+        the WARNING state to the CLEAR state"""
+        timeFactor = float(self._simulation.option("timeFactor"))
+        return float(self._timerWC * timeFactor / 60000)
+    
+    @timerWC.setter
+    def timerWC(self, value):
+        """Setter function for the timerWC property"""
+        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+            timeFactor = float(self._simulation.option("timeFactor"))
+            self._timerWC = value * 60000 / timeFactor
+        

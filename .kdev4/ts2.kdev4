@@ -7,13 +7,13 @@ Launch Configurations=Launch Configuration 0
 [Launch][Launch Configuration 0]
 Configured Launch Modes=execute
 Configured Launchers=scriptAppLauncher
-Name=Python3
+Name=Launch TS2
 Type=Script Application
 
 [Launch][Launch Configuration 0][Data]
 Arguments=
 EnvironmentGroup=default
-Executable=file:///mnt/data/nicolas/Progs/GitHub/ts2/ts2/application.py
+Executable=file:///mnt/data/nicolas/Progs/GitHub/ts2/ts2.py
 Execute on Remote Host=false
 Interpreter=python3
 Output Filtering Mode=2
