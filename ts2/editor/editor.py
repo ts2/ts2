@@ -169,31 +169,35 @@ class Editor(simulation.Simulation):
         WhiteLineItem(0, 250, 200, 250, None, self._libraryScene)
         WhiteLineItem(0, 300, 200, 300, None, self._libraryScene)
         # Items
-        self.librarySignalItem = scenery.SignalItem(self, \
-                {"tiid":-1, "name":"Signal", "x":20, "y":30, "reverse":0})
-        self.librarySignalTimerItem = scenery.SignalTimerItem(self, \
-                {"tiid":-2, "name":"Timer Signal", "x":120, "y":30, \
-                 "reverse":0, "timersw":1.0, "timerwc":1.0})
-        self.libraryPointsItem = scenery.PointsItem(self, \
-                {"tiid":-3, "name":"Points", "x":50, "y":75, "xf":-5, \
-                 "yf":0, "xn":5, "yn":0, "xr":5, "yr":-5})
-        self.libraryBumperItem = scenery.BumperItem(self, \
-                {"tiid":-4, "name":"Bumper", "x":120, "y":75, "reverse":0})
-        self.libraryLineItem = scenery.LineItem(self, \
-                {"tiid":-5, "name":"Line", "x":20, "y":125, "xf":80, \
-                 "yf":125, "maxspeed":25.0, "reallength":0.0, \
+        self.librarySignalItem = scenery.SignalItem(self,
+                {"tiid":-1, "name":"Signal", "x":20, "y":30, "reverse":0,
+                 "maxspeed":0.0})
+        self.librarySignalTimerItem = scenery.SignalTimerItem(self,
+                {"tiid":-2, "name":"Timer Signal", "x":120, "y":30,
+                 "reverse":0, "maxspeed":0.0, "timersw":1.0, "timerwc":1.0})
+        self.libraryPointsItem = scenery.PointsItem(self,
+                {"tiid":-3, "name":"Points", "maxspeed":0.0, "x":50, "y":75,
+                 "xf":-5, "yf":0, "xn":5, "yn":0, "xr":5, "yr":-5})
+        self.libraryBumperItem = scenery.BumperItem(self,
+                {"tiid":-4, "name":"Bumper", "maxspeed":0.0, "x":120, "y":75,
+                 "reverse":0})
+        self.libraryLineItem = scenery.LineItem(self,
+                {"tiid":-5, "name":"Line", "x":20, "y":125, "xf":80,
+                 "yf":125, "maxspeed":0.0, "reallength":0.0,
                  "placecode":None, "trackcode":None})
-        self.libraryPlatformItem = scenery.PlatformItem(self, \
-                {"tiid":-6, "name":"Platform", "x":120, "y":135, "xf":180, \
-                 "yf":135,  "xn":125, "yn":120, "xr":175, "yr":130, \
-                 "maxspeed":25.0, "reallength":0.0, \
+        self.libraryPlatformItem = scenery.PlatformItem(self,
+                {"tiid":-6, "name":"Platform", "x":120, "y":135, "xf":180,
+                 "yf":135,  "xn":125, "yn":120, "xr":175, "yr":130,
+                 "maxspeed":0.0, "reallength":0.0,
                  "placecode":None, "trackcode":None})
-        self.libraryEndItem = scenery.EndItem(self, \
-                {"tiid":-7, "name":"End", "x":50, "y":175})
-        self.libraryPlaceItem = scenery.Place(self, \
-                {"tiid":-8, "name":"PLACE", "placecode":"", "x":132, "y":180})
-        self.libraryBinItem = TrashBinItem(self, self._libraryScene, \
-                                                      QtCore.QPointF(86, 260))
+        self.libraryEndItem = scenery.EndItem(self,
+                {"tiid":-7, "name":"End", "maxspeed":0.0, "x":50, "y":175})
+        self.libraryPlaceItem = scenery.Place(self,
+                {"tiid":-8, "name":"PLACE", "placecode":"", "maxspeed":0.0,
+                 "x":132, "y":180})
+        self.libraryBinItem = TrashBinItem(self,
+                                           self._libraryScene,
+                                           QtCore.QPointF(86, 260))
 
     @property
     def libraryScene(self):

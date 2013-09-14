@@ -116,12 +116,14 @@ class SignalItem(TrackItem):
 
     @property
     def highlighted(self):
-        return (self._activeRoute is not None or self.signalHighlighted)
+        return ((self._activeRoute is not None) or \
+               (self._previousActiveRoute is not None) or \
+               (self._nextActiveRoute is not None))
 
     @property
     def signalHighlighted(self):
-        return (self._nextActiveRoute is not None) or \
-               (self._previousActiveRoute is not None)
+        return (self._nextActiveRoute is not None)
+
 
     @property
     def realOrigin(self):

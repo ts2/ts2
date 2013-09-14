@@ -53,9 +53,6 @@ class LineItem(TrackItem):
             realLength = sqrt(pow(xf - self.origin.x(), 2) + \
                               pow(yf - self.origin.y(), 2))
         self._realLength = realLength
-        if parameters["maxspeed"] == "":
-            parameters["maxspeed"] = 0.0
-        self._maxSpeed = parameters["maxspeed"]
         self.updateGeometry()
         gli = TrackGraphicsItem(self)
         if simulation.context in utils.Context.EDITORS:
@@ -88,14 +85,14 @@ class LineItem(TrackItem):
         super().__del__()
 
 
-    properties = [TIProperty("tiTypeStr", tr("Type"), True),\
-                  TIProperty("tiId", tr("id"), True), \
-                  TIProperty("name", tr("Name")), \
-                  TIProperty("originStr", tr("Point 1")), \
-                  TIProperty("endStr", tr("Point 2")), \
-                  TIProperty("placeCode", tr("Place code")), \
-                  TIProperty("trackCode", tr("Track code")), \
-                  TIProperty("realLength", tr("Real length (m)")), \
+    properties = [TIProperty("tiTypeStr", tr("Type"), True),
+                  TIProperty("tiId", tr("id"), True),
+                  TIProperty("name", tr("Name")),
+                  TIProperty("originStr", tr("Point 1")),
+                  TIProperty("endStr", tr("Point 2")),
+                  TIProperty("placeCode", tr("Place code")),
+                  TIProperty("trackCode", tr("Track code")),
+                  TIProperty("realLength", tr("Real length (m)")),
                   TIProperty("maxSpeed", tr("Maximum speed (m/s)"))]
 
     @property
@@ -161,19 +158,6 @@ class LineItem(TrackItem):
         if self._simulation.context == utils.Context.EDITOR_SCENERY:
             if value == "": value = "0.0"
             self._realLength = float(value)
-
-    @property
-    def maxSpeed(self):
-        """Returns the maximum speed allowed on this LineItem, in metres per
-        second"""
-        return self._maxSpeed
-
-    @maxSpeed.setter
-    def maxSpeed(self, value):
-        """Setter function for the maxSpeed property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            if value == "": value = "0.0"
-            self._maxSpeed = float(value)
 
     @property
     def endStr(self):

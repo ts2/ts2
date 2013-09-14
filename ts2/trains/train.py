@@ -742,6 +742,7 @@ class Train(QtCore.QObject):
             if ti.tiType.startswith("S"):
                 if ti.isOnPosition(pos) and \
                    ti.signalState == scenery.SignalState.STOP:
+                    # We have a red signal here, no need to go further
                     return -1
             if ti.place == self.currentService.nextStopLine().place:
                 return distance
@@ -749,14 +750,29 @@ class Train(QtCore.QObject):
             distance += pos.trackItem.realLength
         return -1
 
+    def getNextSpeedLimitInfo(self, maxDistance):
+        """Returns the next speed limit and the distance at which it starts,
+        looking at each trackitem forward of the trainHead up to a maximum
+        distance of maxDistance."""
+        pos = self._trainHead
+        distance = pos.trackItem.realLength - self._trainHead.positionOnTI
+        while (not pos.trackItem.tiType.startswith("E")) and \
+              (distance < maxDistance):
+            pos = pos.next()
+            ti = pos.trackItem
+            if ti.maxSpeed < self.getMaximumSpeed()-self.trainType.stdBraking:
+                return ti.maxSpeed, distance
+            distance += ti.realLength
+        return self.getMaximumSpeed(), -1
+
+
     def setSpeed(self, secs):
         if not self.isActive() or self._status == TrainStatus.STOPPED:
             self._speed = 0
             return
 
         warningSpeed = float(self._simulation.option("warningSpeed"))
-        maxSpeed = min(self._trainType.maxSpeed, \
-                       float(self._simulation.option("defaultMaxSpeed")))
+        maxSpeed = self.getMaximumSpeed()
         # k is the gain factor to set acceleration from the difference
         # between current speed and target speed
         k = 1 / secs
@@ -769,6 +785,9 @@ class Train(QtCore.QObject):
         # Next station
         maxDistance = max(self._speed**2 / self._trainType.stdBraking, 50.0)
         distanceToNextStation = self.getDistanceToNextStop(maxDistance)
+        # Next speed limit
+        nextSpeedLimit, distanceToNextLimit = self.getNextSpeedLimitInfo(
+                                                                maxDistance)
 
         # Choose target and define speed
         if distanceToNextStation != -1:
@@ -780,6 +799,7 @@ class Train(QtCore.QObject):
                                                         0)
         else:
             targetSpeedForStation = maxSpeed
+
         if distanceToNextSignal != -1:
             nextSignal = self.findNextSignalPosition().trackItem
             if nextSignal.signalState == scenery.SignalState.CLEAR:
@@ -799,16 +819,27 @@ class Train(QtCore.QObject):
         else:
             targetSpeedForSignal = maxSpeed
 
-        ts = min(targetSpeedForSignal, targetSpeedForStation)
+        if distanceToNextLimit != -1:
+            if distanceToNextLimit < d:
+                targetSpeedForLimit = nextSpeedLimit
+            else:
+                targetSpeedForLimit = self.targetSpeed(secs,
+                                                       distanceToNextLimit,
+                                                       nextSpeedLimit)
+        else:
+            targetSpeedForLimit = maxSpeed
+
+        ts = min(targetSpeedForSignal,
+                 targetSpeedForStation,
+                 targetSpeedForLimit)
         self._accel = max(-self._trainType.emergBraking,
                           min(k * (ts - self._speed),
                               self._trainType.stdAccel))
-        self._speed = max(0.0,
-                          min(self._speed + self._accel * secs, maxSpeed))
+        self._speed = max(0.0, self._speed + self._accel * secs)
         #QtCore.qDebug("SC:%s, Secs:%f, Accel=%f; ts=%f, speed=%f,
-                # dtnstation:%f, dtnsignal:%f" % (self.serviceCode, secs,
-                # self._accel, ts , self._speed, distanceToNextStation,
-                # distanceToNextSignal))
+        #dtnstation:%f, dtnsignal:%f, dtnlimit:%f" % (self.serviceCode, secs,
+        #self._accel, ts , self._speed, distanceToNextStation,
+        #distanceToNextSignal, distanceToNextLimit))
 
     def targetSpeed(self,
                     secs,
@@ -822,14 +853,11 @@ class Train(QtCore.QObject):
         targetDistance
         Returns the current target speed for the train, including sampling
         margin."""
-        maxSpeed = min(self._trainType.maxSpeed, \
-                       float(self._simulation.option("defaultMaxSpeed")))
-        # TODO Enable max speed depending on trackItem
+        maxSpeed = self.getMaximumSpeed()
         if targetDistance == -1:
             return maxSpeed
         theoreticalSpeed = self.calculatedSpeed(targetDistance,
-                                                 targetSpeedAtPos,
-                                                 maxSpeed)
+                                                targetSpeedAtPos)
         # s1 is half the distance run at the train's current speed during secs
         # This value is used to get a centered sampling of the braking curve.
         s1 = self._speed * secs / 2
@@ -837,19 +865,24 @@ class Train(QtCore.QObject):
         s2 = theoreticalSpeed * secs / 2
         if theoreticalSpeed < self._speed:
             return self.calculatedSpeed(targetDistance - s1,
-                                         targetSpeedAtPos,
-                                         maxSpeed)
+                                         targetSpeedAtPos)
         else:
             return self.calculatedSpeed(targetDistance - s2,
-                                        targetSpeedAtPos,
-                                        maxSpeed)
+                                        targetSpeedAtPos)
 
 
-    def calculatedSpeed(self, targetDistance, targetSpeedAtPos, maxSpeed):
+    def calculatedSpeed(self, targetDistance, targetSpeedAtPos):
         """Returns the speed the train should be right now to be able to be
         at a speed of targetSpeedAtPos at a distance of targetDistance from
         the train head, not exceeding maxSpeed. This function does not take
         into account any sampling margin."""
-        return min(maxSpeed,
+        return min(self.getMaximumSpeed(),
                    sqrt(2 * targetDistance * self._trainType.stdBraking +
                         targetSpeedAtPos**2))
+
+    def getMaximumSpeed(self):
+        """Returns the maximum speed allowed for the train in its current
+        position"""
+        return min(self._trainType.maxSpeed,
+                   self.trainHead.trackItem.maxSpeed)
+

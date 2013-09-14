@@ -332,8 +332,8 @@ valid.\nSee stderr for more information"""))
                 "timeFactor":5,
                 "currentTime":"06:00:00",
                 "warningSpeed":8.3,
-                "defaultMaxSpeed":18,
-                "defaultMinimumStopTime":30
+                "defaultMaxSpeed":44.44,
+                "defaultMinimumStopTime":60
             }
         options = {}
         for option in conn.execute("SELECT * FROM options"):
