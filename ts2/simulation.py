@@ -114,7 +114,8 @@ class Simulation(QtCore.QObject):
         self._time = QtCore.QTime.fromString(\
                                     self.option("currentTime"), "hh:mm:ss")
         self._timer.timeout.connect(self.timerOut)
-        interval = min(max(100, 5000 / float(self.option("timeFactor"))), 500)
+        #interval = min(max(100, 5000 / float(self.option("timeFactor"))),500)
+        interval = 500
         self._timer.setInterval(interval)
         self._timer.start()
 

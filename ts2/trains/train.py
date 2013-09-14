@@ -528,7 +528,9 @@ class Train(QtCore.QObject):
         """Reverses the train direction."""
         if self._speed == 0:
             self.findNextSignal().resetTrainServiceCode()
-            self.trainHead.trackItem.activeRoute.desactivate()
+            activeRoute = self.trainHead.trackItem.activeRoute
+            if activeRoute is not None:
+                activeRoute.desactivate()
             trainTail = self._trainHead - self._trainType.length
             self._trainHead = trainTail.reversed()
             self._speed = 0
@@ -623,8 +625,12 @@ class Train(QtCore.QObject):
                         self._stoppedTime += secs
                     else:
                         # Train departs
+                        currentService = self.currentService
                         self.currentService.depart()
-                        if self.currentService.nextPlace() is not None:
+                        if self.currentService != currentService:
+                            # The service code has changed
+                            self._status = TrainStatus.STOPPED
+                        elif self.currentService.nextPlace() is not None:
                             self._status = TrainStatus.RUNNING
                         else:
                             self._status = TrainStatus.END_OF_SERVICE
@@ -754,12 +760,11 @@ class Train(QtCore.QObject):
         # k is the gain factor to set acceleration from the difference
         # between current speed and target speed
         k = 1 / secs
-        # d is the safety distance before the target to be sure that it is
-        # not overtaken
-        d = 1.5 * secs
+        # d is the maximum distance that can be travelled during the last
+        # sample. It is used to determine when to stop the train.
+        d = 0.5 * self.trainType.stdBraking * secs**2
 
         # Next Signal
-        nextSignalPosition = self.findNextSignalPosition()
         distanceToNextSignal = self.getDistanceToNextSignal()
         # Next station
         maxDistance = max(self._speed**2 / self._trainType.stdBraking, 50.0)
@@ -767,28 +772,30 @@ class Train(QtCore.QObject):
 
         # Choose target and define speed
         if distanceToNextStation != -1:
-            nextStationPosition = self._trainHead + distanceToNextStation
             if distanceToNextStation < d:
                 targetSpeedForStation = 0
             else:
-                targetSpeedForStation = self.targetSpeed(
-                                                nextStationPosition - d, 0)
+                targetSpeedForStation = self.targetSpeed(secs,
+                                                        distanceToNextStation,
+                                                        0)
         else:
             targetSpeedForStation = maxSpeed
         if distanceToNextSignal != -1:
-            nextSignal = nextSignalPosition.trackItem
+            nextSignal = self.findNextSignalPosition().trackItem
             if nextSignal.signalState == scenery.SignalState.CLEAR:
                 targetSpeedForSignal = maxSpeed
             elif nextSignal.signalState == scenery.SignalState.WARNING:
-                targetSpeedForSignal = self.targetSpeed(
-                                                    nextSignalPosition - d,
-                                                    warningSpeed)
+                targetSpeedForSignal = self.targetSpeed(secs,
+                                                        distanceToNextSignal,
+                                                        warningSpeed)
             elif nextSignal.signalState == scenery.SignalState.STOP:
                 if distanceToNextSignal < d:
                     targetSpeedForSignal = 0
                 else:
                     targetSpeedForSignal = min(warningSpeed,
-                                  self.targetSpeed(nextSignalPosition - d, 0))
+                                        self.targetSpeed(secs,
+                                                        distanceToNextSignal,
+                                                        0))
         else:
             targetSpeedForSignal = maxSpeed
 
@@ -798,26 +805,51 @@ class Train(QtCore.QObject):
                               self._trainType.stdAccel))
         self._speed = max(0.0,
                           min(self._speed + self._accel * secs, maxSpeed))
-        #qDebug("Accel=%f; ts=%f, speed=%f" % (self._accel, ts , self._speed))
+        #QtCore.qDebug("SC:%s, Secs:%f, Accel=%f; ts=%f, speed=%f,
+                # dtnstation:%f, dtnsignal:%f" % (self.serviceCode, secs,
+                # self._accel, ts , self._speed, distanceToNextStation,
+                # distanceToNextSignal))
 
     def targetSpeed(self,
-                    targetPosition=routing.Position(),
+                    secs,
+                    targetDistance=-1,
                     targetSpeedAtPos=0):
         """ Defines the current target speed of the train depending on the
-        parameters
-        @param targetPosition : the position at which the train should be at
+        parameters:
+        - targetDistance : the distance at which the train should be at
         targetSpeedAtPos
-        @param targetSpeedAtPos : the target speed when the train will be at
-        targetPosition
-        @return the current target speed for the train"""
+        - targetSpeedAtPos : the target speed when the train will be at
+        targetDistance
+        Returns the current target speed for the train, including sampling
+        margin."""
         maxSpeed = min(self._trainType.maxSpeed, \
                        float(self._simulation.option("defaultMaxSpeed")))
         # TODO Enable max speed depending on trackItem
-        if targetPosition == routing.Position():
+        if targetDistance == -1:
             return maxSpeed
-        dtt = self._trainHead.distanceToPosition(targetPosition)
-        return min(maxSpeed, \
-                   sqrt(2 * dtt * self._trainType.stdBraking + \
-                                                        targetSpeedAtPos**2))
+        theoreticalSpeed = self.calculatedSpeed(targetDistance,
+                                                 targetSpeedAtPos,
+                                                 maxSpeed)
+        # s1 is half the distance run at the train's current speed during secs
+        # This value is used to get a centered sampling of the braking curve.
+        s1 = self._speed * secs / 2
+        # s2 is equivalent to s1, but taking into account the theoreticalSpeed
+        s2 = theoreticalSpeed * secs / 2
+        if theoreticalSpeed < self._speed:
+            return self.calculatedSpeed(targetDistance - s1,
+                                         targetSpeedAtPos,
+                                         maxSpeed)
+        else:
+            return self.calculatedSpeed(targetDistance - s2,
+                                        targetSpeedAtPos,
+                                        maxSpeed)
 
 
+    def calculatedSpeed(self, targetDistance, targetSpeedAtPos, maxSpeed):
+        """Returns the speed the train should be right now to be able to be
+        at a speed of targetSpeedAtPos at a distance of targetDistance from
+        the train head, not exceeding maxSpeed. This function does not take
+        into account any sampling margin."""
+        return min(maxSpeed,
+                   sqrt(2 * targetDistance * self._trainType.stdBraking +
+                        targetSpeedAtPos**2))
