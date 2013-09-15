@@ -183,18 +183,25 @@ class Editor(simulation.Simulation):
                  "reverse":0})
         self.libraryLineItem = scenery.LineItem(self,
                 {"tiid":-5, "name":"Line", "x":20, "y":125, "xf":80,
-                 "yf":125, "maxspeed":0.0, "reallength":0.0,
+                 "yf":125, "maxspeed":0.0, "reallength":1.0,
                  "placecode":None, "trackcode":None})
         self.libraryPlatformItem = scenery.PlatformItem(self,
                 {"tiid":-6, "name":"Platform", "x":120, "y":135, "xf":180,
                  "yf":135,  "xn":125, "yn":120, "xr":175, "yr":130,
-                 "maxspeed":0.0, "reallength":0.0,
+                 "maxspeed":0.0, "reallength":1.0,
                  "placecode":None, "trackcode":None})
         self.libraryEndItem = scenery.EndItem(self,
                 {"tiid":-7, "name":"End", "maxspeed":0.0, "x":50, "y":175})
         self.libraryPlaceItem = scenery.Place(self,
                 {"tiid":-8, "name":"PLACE", "placecode":"", "maxspeed":0.0,
                  "x":132, "y":180})
+        self.libraryNonReturnItem = scenery.NonReturnItem(self,
+                {"tiid":-9, "name":"Non-return", "maxspeed":0.0, "x":20,
+                 "y":225, "reverse":0})
+        self.libraryInvisibleLinkItem = scenery.InvisibleLinkItem(self,
+                {"tiid":-10, "name":"Invisible link", "x":120, "y":225,
+                 "xf":180, "yf":225, "maxspeed":0.0, "reallength":1.0,
+                 "placecode":None, "trackcode":None})
         self.libraryBinItem = TrashBinItem(self,
                                            self._libraryScene,
                                            QtCore.QPointF(86, 260))
@@ -646,12 +653,16 @@ class Editor(simulation.Simulation):
             ti = scenery.LineItem(self, parameters)
         elif tiType == "LP":
             ti = scenery.PlatformItem(self, parameters)
+        elif tiType == "LI":
+            ti = scenery.InvisibleLinkItem(self, parameters)
         elif tiType == "S":
             ti = scenery.SignalItem(self, parameters)
         elif tiType == "SB":
             ti = scenery.BumperItem(self, parameters)
         elif tiType == "ST":
             ti = scenery.SignalTimerItem(self, parameters)
+        elif tiType == "SN":
+            ti = scenery.NonReturnItem(self, parameters)
         elif tiType == "P":
             ti = scenery.PointsItem(self, parameters)
         elif tiType == "E":

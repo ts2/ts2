@@ -374,12 +374,16 @@ valid.\nSee stderr for more information"""))
                 ti = scenery.LineItem(self, parameters)
             elif tiType == "LP":
                 ti = scenery.PlatformItem(self, parameters)
+            elif tiType == "LI":
+                ti = scenery.InvisibleLinkItem(self, parameters)
             elif tiType == "S":
                 ti = scenery.SignalItem(self, parameters)
             elif tiType == "SB":
                 ti = scenery.BumperItem(self, parameters)
             elif tiType == "ST":
                 ti = scenery.SignalTimerItem(self, parameters)
+            elif tiType == "SN":
+                ti = scenery.NonReturnItem(self, parameters)
             elif tiType == "P":
                 ti = scenery.PointsItem(self, parameters)
             elif tiType == "E":

@@ -254,7 +254,7 @@ class LineItem(TrackItem):
 
     def graphicsPaint(self, p, options, widget):
         """This function is called by the owned TrackGraphicsItem to paint its
-        painter. Draws the line and calls drawTrain to draw the train"""
+        painter. Draws the line."""
         if self.highlighted:
             self._gi.setZValue(6)
         else:

@@ -19,7 +19,7 @@
 #
 
 from PyQt4 import QtCore, QtGui
-from PyQt4.Qt import Qt
+from PyQt4.QtCore import Qt
 from ts2 import utils
 
 tr = QtCore.QObject().tr

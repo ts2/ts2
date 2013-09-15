@@ -223,8 +223,9 @@ class SignalItem(TrackItem):
                 # The train code is right-clicked
                 train = self._simulation.train(self._trainServiceCode)
                 if train is not None:
-                    train.showTrainActionsMenu(\
-                        self._simulation.simulationWindow.view, e.screenPos())
+                    train.showTrainActionsMenu(
+                                    self._simulation.simulationWindow.view,
+                                    e.screenPos())
         self.updateGraphics()
 
     def graphicsBoundingRect(self):
