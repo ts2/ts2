@@ -191,13 +191,22 @@ class EditorWindow(QtGui.QMainWindow):
                                     self.editor.validateScenery)
         self.editor.sceneryIsValidated.connect(\
                                     self.validateSceneryBtn.setDisabled)
+        self.zoomSlider = QtGui.QSlider(Qt.Horizontal, sceneryTab)
+        self.zoomSlider.setRange(10, 200)
+        self.zoomSlider.setValue(100)
+        self.zoomSlider.valueChanged.connect(self.zoom)
         hgrid = QtGui.QHBoxLayout()
         hgrid.addWidget(self.unlockSceneryBtn)
         hgrid.addWidget(self.validateSceneryBtn)
         hgrid.addStretch()
+        hgrid2 = QtGui.QHBoxLayout()
+        hgrid2.addWidget(QtGui.QLabel(self.tr("Zoom: "), sceneryTab))
+        hgrid2.addWidget(self.zoomSlider)
+        hgrid2.addStretch()
         vgrid = QtGui.QVBoxLayout()
         vgrid.addLayout(hgrid)
         vgrid.addWidget(self.sceneryView)
+        vgrid.addLayout(hgrid2)
         sceneryTab.setLayout(vgrid)
         self.tabWidget.addTab(sceneryTab, self.tr("Scenery"))
 
@@ -689,3 +698,10 @@ class EditorWindow(QtGui.QMainWindow):
         """
         self.editor.setOption("description",
                               self.descriptionTxt.toPlainText())
+
+    @QtCore.pyqtSlot(int)
+    def zoom(self, percent):
+        self.sceneryView.setMatrix(QtGui.QMatrix(percent/100, 0, 0,
+                                                 percent/100, 0, 0))
+
+

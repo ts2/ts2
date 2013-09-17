@@ -21,7 +21,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from ts2 import utils
-from ts2.scenery import LineItem, Place, TIProperty
+from ts2.scenery import LineItem
 
 
 class InvisibleLinkItem(LineItem):

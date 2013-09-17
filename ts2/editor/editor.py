@@ -125,7 +125,7 @@ class Editor(simulation.Simulation):
         self._context = utils.Context.EDITOR_GENERAL
         self._libraryScene = QtGui.QGraphicsScene(0, 0, 200, 250, self)
         self._sceneBackground = ts2.editor.EditorSceneBackground(
-                                                        self, 0, 0, 1024, 768)
+                                                        self, 0, 0, 800, 600)
         self._sceneBackground.setZValue(-100)
         self._scene.addItem(self._sceneBackground)
         self.drawToolBox()
@@ -294,16 +294,22 @@ class Editor(simulation.Simulation):
         self.optionsChanged.emit()
         self.createAllTrackItems(conn)
         self.adjustSceneBackground()
-        self._nextId = max(self._trackItems.keys()) + 1
+        try:
+            self._nextId = max(self._trackItems.keys()) + 1
+        except ValueError:
+            self._nextId = 1
         if self.validateScenery():
             self.loadRoutes(conn)
-            self._nextRouteId = max(self._routes.keys()) + 1
+            try:
+                self._nextRouteId = max(self._routes.keys()) + 1
+            except ValueError:
+                self._nextRouteId = 1
             self.routesChanged.emit()
         self.loadTrainTypes(conn)
         try:
             self._nextTrainTypeId = max(self._trainTypes.keys()) + 1
         except:
-            pass
+            self._nextTrainTypeId = 1
         self.trainTypesChanged.emit()
         self.loadServices(conn)
         self.servicesChanged.emit()
@@ -733,7 +739,7 @@ class Editor(simulation.Simulation):
     def adjustSceneBackground(self):
         """Adjusts the EditorSceneBackground to 300px around all trackitems of
         the scene"""
-        self._sceneBackground.setRect(QtCore.QRectF(0, 0, 1, 1))
+        self._sceneBackground.setRect(QtCore.QRectF(0, 0, 800, 600))
         for ti in self._trackItems.values():
             self.expandBackgroundTo(ti)
 

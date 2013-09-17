@@ -42,6 +42,12 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
         trackItem"""
         return self.trackItem.graphicsBoundingRect()
 
+    def shape(self):
+        """Returns the shape of this item as a QPainterPath in local
+        coordinates."""
+        shape = super().shape()
+        return self.trackItem.graphicsShape(shape)
+
     def paint(self, painter, option, widget = 0):
         """Painting function for the SignalGraphicsItem.
         This function calls the graphicsPaint function of the owning TrackItem
@@ -82,6 +88,7 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
         self.trackItem.graphicsDropEvent(event)
 
 
+
 class TrackPropertiesModel(QtCore.QAbstractTableModel):
     """This class is a model for accessing TrackItem properties in the editor
     """
@@ -107,7 +114,7 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
             if index.column() == 0:
                 return self._trackItem.properties[index.row()].display
             elif index.column() == 1:
-                return getattr(self._trackItem, \
+                return getattr(self._trackItem,
                                self._trackItem.properties[index.row()].name)
         return None
 
@@ -115,8 +122,8 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
         """Sets the data to the model"""
         if role == Qt.EditRole:
             if index.column() == 1:
-                setattr(self._trackItem, \
-                        self._trackItem.properties[index.row()].name, \
+                setattr(self._trackItem,
+                        self._trackItem.properties[index.row()].name,
                         value)
                 self.dataChanged.emit(index, index)
                 return True
@@ -207,7 +214,8 @@ class TrackItem(QtCore.QObject):
                   TIProperty("tiId", tr("id"), True),
                   TIProperty("name", tr("Name")),
                   TIProperty("originStr", tr("Position")),
-                  TIProperty("maxSpeed", tr("Maximum speed (m/s)"))]
+                  TIProperty("maxSpeed", tr("Maximum speed (m/s)")),
+                  TIProperty("conflictTiId", tr("Conflict item ID"))]
 
     fieldTypes = {
                     "tiid":"INTEGER PRIMARY KEY",
@@ -491,6 +499,24 @@ class TrackItem(QtCore.QObject):
     def conflictTI(self, ti):
         self._conflictTrackItem = ti
 
+    @property
+    def conflictTiId(self):
+        """Returns the conflict trackitem ID."""
+        if self._conflictTrackItem is not None:
+            return str(self._conflictTrackItem.tiId)
+        else:
+            return ""
+
+    @conflictTiId.setter
+    def conflictTiId(self, value):
+        """Setter function for the conflictTiId property."""
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            if value is not None and value != "":
+                self._conflictTrackItem = \
+                                        self.simulation.trackItem(int(value))
+            else:
+                self._conflictTrackItem = None
+
     def __eq__(self, ti):
         if ti is not None and self._tiId == ti._tiId:
             return True
@@ -537,6 +563,12 @@ class TrackItem(QtCore.QObject):
         its bounding rectangle"""
         return QtCore.QRectF(0, 0, 1, 1)
 
+    def graphicsShape(self, shape):
+        """This function is called by the owned TrackGraphicsItem to return
+        its shape. The given argument is the shape given by the parent class.
+        """
+        return shape
+
     def graphicsPaint(self, painter, options, widget = 0):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. The implementation in the base class TrackItem does nothing.
@@ -547,7 +579,8 @@ class TrackItem(QtCore.QObject):
         """This function is called by the owned TrackGraphicsItem to handle
         its mousePressEvent. In the base TrackItem class, this function only
         emits the trackItemClicked signal."""
-        if event.button() == Qt.LeftButton and self.tiId > 0:
+        if event.button() == Qt.LeftButton and \
+           self.tiId > 0:
             self.trackItemClicked.emit(self.tiId)
 
     def graphicsMouseMoveEvent(self, event):

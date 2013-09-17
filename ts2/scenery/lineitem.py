@@ -93,7 +93,8 @@ class LineItem(TrackItem):
                   TIProperty("placeCode", tr("Place code")),
                   TIProperty("trackCode", tr("Track code")),
                   TIProperty("realLength", tr("Real length (m)")),
-                  TIProperty("maxSpeed", tr("Maximum speed (m/s)"))]
+                  TIProperty("maxSpeed", tr("Maximum speed (m/s)")),
+                  TIProperty("conflictTiId", tr("Conflict item ID"))]
 
     @property
     def saveParameters(self):
@@ -252,6 +253,27 @@ class LineItem(TrackItem):
         """Returns the bounding rectangle of the line item"""
         return self._boundingRect
 
+    def graphicsShape(self, shape):
+        """This function is called by the owned TrackGraphicsItem to return
+        its shape. The given argument is the shape given by the parent class.
+        """
+        path = QtGui.QPainterPath(self._boundingRect.topLeft())
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            d = 5
+        else:
+            d = 2
+        x1 = self._line.p1().x()
+        x2 = self._line.p2().x()
+        y1 = self._line.p1().y()
+        y2 = self._line.p2().y()
+        path.lineTo(x1 - d, y1 + d)
+        path.lineTo(x2 - d, y2 + d)
+        path.lineTo(self._boundingRect.bottomRight())
+        path.lineTo(x2 + d, y2 - d)
+        path.lineTo(x1 + d, y1 - d)
+        path.lineTo(self._boundingRect.topLeft())
+        return path
+
     def graphicsPaint(self, p, options, widget):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws the line."""
@@ -294,7 +316,7 @@ class LineItem(TrackItem):
         drag operation on the origin or the end."""
         if event.buttons() == Qt.LeftButton and \
            self._simulation.context == utils.Context.EDITOR_SCENERY:
-            if QtCore.QLineF(event.scenePos(), \
+            if QtCore.QLineF(event.scenePos(),
                          event.buttonDownScenePos(Qt.LeftButton)).length() \
                         < 3.0:
                 return
@@ -307,7 +329,7 @@ class LineItem(TrackItem):
                                self.line.p2().y() - 5, 9, 9).contains(pos):
                 movedEnd = "end"
                 pos -= self.line.p2()
-            else:
+            elif self._gi.shape().contains(pos):
                 movedEnd = "realOrigin"
             if movedEnd is not None:
                 mime.setText(self.tiType + "#" + \
@@ -318,19 +340,26 @@ class LineItem(TrackItem):
                 drag.setMimeData(mime)
                 drag.exec_()
 
+
     def graphicsMousePressEvent(self, event):
         """This function is called by the owned TrackGraphicsItem to handle
         its mousePressEvent. Reimplemented to send the positionSelected
         signal."""
         super().graphicsMousePressEvent(event)
-        if event.button() == Qt.LeftButton and self.tiId > 0:
-            x = event.buttonDownPos(Qt.LeftButton).x()
-            ratio = (x - self.line.x1()) / (self.line.x2() - self.line.x1())
-            self.positionSelected.emit(routing.Position(
+        pos = event.buttonDownPos(Qt.LeftButton)
+        if event.button() == Qt.LeftButton and \
+           self._gi.shape().contains(pos):
+            event.accept()
+            if self.simulation.context == utils.Context.EDITOR_SCENERY and \
+               self.tiId > 0:
+                x = event.buttonDownPos(Qt.LeftButton).x()
+                ratio = (x - self.line.x1())/(self.line.x2() - self.line.x1())
+                self.positionSelected.emit(routing.Position(
                                                     self,
                                                     self.previousItem,
                                                     self.realLength * ratio))
-
+        else:
+            event.ignore()
 
     @QtCore.pyqtSlot()
     def updateGraphics(self):
