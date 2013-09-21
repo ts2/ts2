@@ -70,8 +70,8 @@ class OptionsModel(QtCore.QAbstractTableModel):
 
     def rowCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of rows of the model, corresponding to the
-        number of options -2 (i.e. minus title and description)."""
-        return len(self._editor._options) - 2
+        number of real options."""
+        return self._editor.realOptionsLength
 
     def columnCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of columns of the model"""
@@ -158,9 +158,9 @@ class Editor(simulation.Simulation):
     def drawToolBox(self):
         """Construct the library tool box"""
         # Lines
-        WhiteLineItem(0, 0, 0, 300, None, self._libraryScene)
-        WhiteLineItem(100, 0, 100, 250, None, self._libraryScene)
-        WhiteLineItem(200, 0, 200, 300, None, self._libraryScene)
+        WhiteLineItem(0, 0, 0, 350, None, self._libraryScene)
+        WhiteLineItem(100, 0, 100, 300, None, self._libraryScene)
+        WhiteLineItem(200, 0, 200, 350, None, self._libraryScene)
         WhiteLineItem(0, 0, 200, 0, None, self._libraryScene)
         WhiteLineItem(0, 50, 200, 50, None, self._libraryScene)
         WhiteLineItem(0, 100, 200, 100, None, self._libraryScene)
@@ -168,6 +168,7 @@ class Editor(simulation.Simulation):
         WhiteLineItem(0, 200, 200, 200, None, self._libraryScene)
         WhiteLineItem(0, 250, 200, 250, None, self._libraryScene)
         WhiteLineItem(0, 300, 200, 300, None, self._libraryScene)
+        WhiteLineItem(0, 350, 200, 350, None, self._libraryScene)
         # Items
         self.librarySignalItem = scenery.SignalItem(self,
                 {"tiid":-1, "name":"Signal", "x":20, "y":30, "reverse":0,
@@ -202,9 +203,12 @@ class Editor(simulation.Simulation):
                 {"tiid":-10, "name":"Invisible link", "x":120, "y":225,
                  "xf":180, "yf":225, "maxspeed":0.0, "reallength":1.0,
                  "placecode":None, "trackcode":None})
+        self.libraryTextItem = scenery.TextItem(self,
+                {"tiid":-11, "name":"TEXT", "x":36, "y":280, "maxspeed":0.0,
+                 "reallength":1.0, })
         self.libraryBinItem = TrashBinItem(self,
                                            self._libraryScene,
-                                           QtCore.QPointF(86, 260))
+                                           QtCore.QPointF(86, 310))
 
     @property
     def libraryScene(self):
@@ -279,12 +283,18 @@ class Editor(simulation.Simulation):
     @property
     def realOptions(self):
         """Returns a dictionary with the real options for the editor, i.e.
-        without the title and description fields."""
+        without the title, description and version fields."""
         options = {}
         options.update(self._options)
         del options["title"]
         del options["description"]
+        del options["version"]
         return options
+
+    @property
+    def realOptionsLength(self):
+        """Returns the number of realOptions"""
+        return len(self._options) - 3
 
     def reload(self, fileName):
         """Load or reload all the data of the simulation from the database."""
@@ -293,6 +303,7 @@ class Editor(simulation.Simulation):
         self.loadOptions(conn)
         self.optionsChanged.emit()
         self.createAllTrackItems(conn)
+        self.createTrackItemConflicts(conn)
         self.adjustSceneBackground()
         try:
             self._nextId = max(self._trackItems.keys()) + 1
@@ -319,6 +330,7 @@ class Editor(simulation.Simulation):
     def save(self):
         """Saves the data of the simulation to the database"""
         # Set up database
+        self.setOption("version", "0.3")
         conn = sqlite3.connect(self._database)
         self.saveOptions(conn)
         self.saveTrackItems(conn)
@@ -363,7 +375,7 @@ class Editor(simulation.Simulation):
                 query += ":%s," % k
             query = query[:-1] + ")"
             conn.execute(query, ti.saveParameters)
-        conn.commit()
+            conn.commit()
 
     def saveRoutes(self, conn):
         """Saves the Route instances of this editor in the database"""
@@ -650,7 +662,7 @@ class Editor(simulation.Simulation):
                     "reverse": 0,
                     "timersw": 1.0,
                     "timerwc": 1.0,
-                    "maxspeed": 25.0,
+                    "maxspeed": 0.0,
                     "reallength": 0.0,
                     "placecode":None,
                     "trackcode":None}
@@ -675,6 +687,8 @@ class Editor(simulation.Simulation):
             ti = scenery.EndItem(self, parameters)
         elif tiType == "A":
             ti = scenery.Place(self, parameters)
+        elif tiType == "ZT":
+            ti = scenery.TextItem(self, parameters)
         else:
             ti = scenery.TrackItem(self, parameters)
         self.makeTrackItemSignalSlotConnections(ti)

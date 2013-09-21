@@ -39,12 +39,10 @@ class InvisibleLinkItem(LineItem):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws nothing during the game."""
         if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            pen = QtGui.QPen(Qt.white)
-            p.setPen(pen)
+            p.setPen(Qt.cyan)
             p.drawLine(self.line)
-            p.setPen(QtGui.QPen(Qt.white))
-            p.drawRect(self.connectionRect(self.line.p1()))
-            p.drawRect(self.connectionRect(self.line.p2()))
+            self.drawConnectionRect(p, self.line.p1())
+            self.drawConnectionRect(p, self.line.p2())
 
     @QtCore.pyqtSlot()
     def updateGraphics(self):

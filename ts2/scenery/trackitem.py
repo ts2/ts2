@@ -141,8 +141,9 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
     def flags(self, index):
         """Returns the flags of the model"""
         retFlag = Qt.ItemIsEnabled
-        if not self._trackItem.properties[index.row()].readOnly:
-            retFlag |= Qt.ItemIsEditable | Qt.ItemIsSelectable
+        if not self._trackItem.properties[index.row()].readOnly and \
+            index.column() == 1:
+                retFlag |= Qt.ItemIsEditable | Qt.ItemIsSelectable
         return retFlag
 
 
@@ -220,7 +221,7 @@ class TrackItem(QtCore.QObject):
     fieldTypes = {
                     "tiid":"INTEGER PRIMARY KEY",
                     "titype":"VARCHAR(5)",
-                    "name":"VARCHAR(25) UNIQUE",
+                    "name":"VARCHAR(100)",
                     "conflicttiid":"INTEGER",
                     "x":"DOUBLE",
                     "y":"DOUBLE",
@@ -399,15 +400,14 @@ class TrackItem(QtCore.QObject):
     def saveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
         database"""
-        conflictId = self.conflictTI.tiId if self.conflictTI is not None \
-                     else None
         return  {
                     "tiid":self.tiId,
                     "titype":self.tiType,
                     "name":self.name,
-                    "conflicttiid":conflictId,
+                    "conflicttiid":self.conflictTiId,
                     "x":self.origin.x(),
-                    "y":self.origin.y()
+                    "y":self.origin.y(),
+                    "maxspeed":self.maxSpeed
                 }
 
     @property
@@ -505,7 +505,7 @@ class TrackItem(QtCore.QObject):
         if self._conflictTrackItem is not None:
             return str(self._conflictTrackItem.tiId)
         else:
-            return ""
+            return None
 
     @conflictTiId.setter
     def conflictTiId(self, value):
@@ -552,11 +552,13 @@ class TrackItem(QtCore.QObject):
             pen.setColor(Qt.darkGray)
         return pen
 
-    def connectionRect(self, point):
-        """Returns a small rectangle centered around point to be used in the
-        editor."""
+    def drawConnectionRect(self, painter, point):
+        """Draws a connection rectangle on the given painter at the given
+        point."""
+        painter.setPen(Qt.cyan)
+        painter.setBrush(Qt.NoBrush)
         topLeft = point + QtCore.QPointF(-5, -5)
-        return QtCore.QRectF(topLeft, QtCore.QSizeF(10, 10))
+        painter.drawRect(QtCore.QRectF(topLeft, QtCore.QSizeF(10, 10)))
 
     def graphicsBoundingRect(self):
         """This function is called by the owned TrackGraphicsItem to return

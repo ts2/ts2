@@ -329,6 +329,7 @@ valid.\nSee stderr for more information"""))
         self._options = {
                 "title":"",
                 "description":"",
+                "version":"0.3",
                 "timeFactor":5,
                 "currentTime":"06:00:00",
                 "warningSpeed":8.3,
@@ -388,6 +389,8 @@ valid.\nSee stderr for more information"""))
                 ti = scenery.PointsItem(self, parameters)
             elif tiType == "E":
                 ti = scenery.EndItem(self, parameters)
+            elif tiType == "ZT":
+                ti = scenery.TextItem(self, parameters)
             else:
                 ti = scenery.TrackItem(self, parameters)
             self.makeTrackItemSignalSlotConnections(ti)
@@ -484,7 +487,7 @@ valid.\nSee stderr for more information"""))
         result = True;
         QtCore.qDebug(self.tr("Checking TrackItem links"))
         for ti in self._trackItems.values():
-            if not ti.tiType.startswith("A"):
+            if not ti.tiType.startswith(("A", "ZT")):
                 if ti.nextItem is None:
                     QtCore.qCritical(
                             self.tr("TrackItem %i is unlinked at (%f, %f)" % \

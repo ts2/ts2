@@ -72,8 +72,8 @@ class NonReturnItem(SignalItem):
 
         # Draw the direction if in the editor
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            p.setPen(QtGui.QPen(Qt.red))
-            p.setBrush(QtGui.QBrush(Qt.red))
+            p.setPen(QtGui.QPen(Qt.cyan))
+            p.setBrush(QtGui.QBrush(Qt.cyan))
             if self.reverse:
                 triangle = QtGui.QPolygonF()
                 triangle << QtCore.QPointF(10, 2) \
@@ -89,13 +89,11 @@ class NonReturnItem(SignalItem):
 
         # Draw the connection rects
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            p.setBrush(Qt.NoBrush)
-            p.setPen(QtGui.QPen(Qt.white))
             if self.reverse:
-                p.drawRect(self.connectionRect(QtCore.QPointF(0, 2)))
-                p.drawRect(self.connectionRect(QtCore.QPointF(60, 2)))
+                self.drawConnectionRect(p, QtCore.QPointF(0, 2))
+                self.drawConnectionRect(p, QtCore.QPointF(60, 2))
             else:
-                p.drawRect(self.connectionRect(QtCore.QPointF(0, 18)))
-                p.drawRect(self.connectionRect(QtCore.QPointF(60, 18)))
+                self.drawConnectionRect(p, QtCore.QPointF(0, 18))
+                self.drawConnectionRect(p, QtCore.QPointF(60, 18))
 
 

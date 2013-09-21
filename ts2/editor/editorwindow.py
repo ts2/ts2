@@ -22,6 +22,7 @@ from PyQt4 import QtGui, QtCore, QtSql
 from PyQt4.QtCore import Qt
 
 from ts2 import scenery
+import ts2.gui.dialogs
 import ts2.editor.views
 
 
@@ -136,10 +137,7 @@ class EditorWindow(QtGui.QMainWindow):
         self.propertiesPanel.setFeatures(
                                     QtGui.QDockWidget.DockWidgetMovable| \
                                     QtGui.QDockWidget.DockWidgetFloatable)
-        self.propertiesView = QtGui.QTreeView(self)
-        self.propertiesView.setItemsExpandable(False)
-        self.propertiesView.setRootIsDecorated(False)
-        self.propertiesView.setHeaderHidden(False)
+        self.propertiesView = ts2.editor.views.PropertiesView(self)
         self.propertiesPanel.setWidget(self.propertiesView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.propertiesPanel)
 
@@ -400,7 +398,19 @@ class EditorWindow(QtGui.QMainWindow):
         """
         super().closeEvent(closeEvent)
         if closeEvent.isAccepted():
-            self.closed.emit()
+            choice = QtGui.QMessageBox.question(
+                            self,
+                            self.tr("Close editor"),
+                            self.tr("Do you want to save your changes ?"),
+                            QtGui.QMessageBox.Yes|QtGui.QMessageBox.No|
+                            QtGui.QMessageBox.Cancel)
+            if choice == QtGui.QMessageBox.Yes:
+                self.saveSimulation()
+            if choice == QtGui.QMessageBox.Yes or \
+               choice == QtGui.QMessageBox.No:
+                self.closed.emit()
+            else:
+                closeEvent.ignore()
 
     @QtCore.pyqtSlot(int)
     def setPropertiesModel(self, tiId):
@@ -433,7 +443,10 @@ class EditorWindow(QtGui.QMainWindow):
         if self.editor.database is None:
             self.saveAsSimulation()
         self.setCursor(Qt.WaitCursor)
-        self.editor.save()
+        try:
+            self.editor.save()
+        except Exception as e:
+            ts2.gui.dialogs.ExceptionDialog.popupException(self, e)
         self.setCursor(Qt.ArrowCursor)
 
     @QtCore.pyqtSlot()

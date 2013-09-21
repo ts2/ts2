@@ -1,32 +1,32 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau                                
-#   npi@m4x.org                                                           
-#                                                                         
-#   This program is free software; you can redistribute it and/or modify  
-#   it under the terms of the GNU General Public License as published by  
-#   the Free Software Foundation; either version 2 of the License, or     
-#   (at your option) any later version.                                   
-#                                                                         
-#   This program is distributed in the hope that it will be useful,       
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of        
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
-#   GNU General Public License for more details.                          
-#                                                                         
-#   You should have received a copy of the GNU General Public License     
-#   along with this program; if not, write to the                         
-#   Free Software Foundation, Inc.,                                       
-#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
+#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   npi@m4x.org
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the
+#   Free Software Foundation, Inc.,
+#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4.Qt import Qt
 from PyQt4 import QtGui, QtCore
+from PyQt4.QtCore import Qt
 from ts2.scenery import SignalItem
 from ts2 import utils
 
 class BumperItem(SignalItem):
     """The BumperItem is the item placed at the end of a dead end line.
     It behaves like a signal that is always set to STOP"""
-    
+
     def __init__(self, simulation, parameters):
         """Constructor for the BumperItem class"""
         super().__init__(simulation, parameters)
@@ -57,7 +57,7 @@ class BumperItem(SignalItem):
             # No Train code => Draw Line
             p.setPen(linePen)
             if self.reverse:
-                p.drawLine(20, 2, 60, 2) 
+                p.drawLine(20, 2, 60, 2)
             else:
                 p.drawLine(0, 18, 40, 18)
 
@@ -91,14 +91,11 @@ class BumperItem(SignalItem):
 
         # Draw the connection rects
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            p.setBrush(Qt.NoBrush)
-            textPen.setColor(Qt.white)
-            p.setPen(textPen)
             if self.reverse:
-                p.drawRect(self.connectionRect(QtCore.QPointF(0, 2)))
-                p.drawRect(self.connectionRect(QtCore.QPointF(60, 2)))
+                self.drawConnectionRect(p, QtCore.QPointF(0, 2))
+                self.drawConnectionRect(p, QtCore.QPointF(60, 2))
             else:
-                p.drawRect(self.connectionRect(QtCore.QPointF(0, 18)))
-                p.drawRect(self.connectionRect(QtCore.QPointF(60, 18)))
-                
+                self.drawConnectionRect(p, QtCore.QPointF(0, 18))
+                self.drawConnectionRect(p, QtCore.QPointF(60, 18))
+
 

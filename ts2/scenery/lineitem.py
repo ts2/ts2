@@ -203,7 +203,13 @@ class LineItem(TrackItem):
     def placeCode(self, value):
         """Setter function for the placeCode property"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            self._placeCode = value
+            place = self.simulation.place(value)
+            if place is not None:
+                self._placeCode = value
+                self._place = place
+                self._place.addTrack(self)
+            else:
+                self._placeCode = ""
 
     @property
     def trackCode(self):
@@ -216,7 +222,10 @@ class LineItem(TrackItem):
     def trackCode(self, value):
         """Setter function for the trackCode property"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            self._trackCode = value
+            if self._place is not None:
+                self._trackCode = value
+            else:
+                self._trackCode = ""
 
     @property
     def line(self):
@@ -262,16 +271,32 @@ class LineItem(TrackItem):
             d = 5
         else:
             d = 2
-        x1 = self._line.p1().x()
-        x2 = self._line.p2().x()
-        y1 = self._line.p1().y()
-        y2 = self._line.p2().y()
-        path.lineTo(x1 - d, y1 + d)
-        path.lineTo(x2 - d, y2 + d)
-        path.lineTo(self._boundingRect.bottomRight())
-        path.lineTo(x2 + d, y2 - d)
-        path.lineTo(x1 + d, y1 - d)
-        path.lineTo(self._boundingRect.topLeft())
+        if self._line.p1().x() < self._line.p2().x():
+            x1 = self._line.p1().x()
+            y1 = self._line.p1().y()
+            x2 = self._line.p2().x()
+            y2 = self._line.p2().y()
+        else:
+            x1 = self._line.p2().x()
+            y1 = self._line.p2().y()
+            x2 = self._line.p1().x()
+            y2 = self._line.p1().y()
+        if y1 < y2:
+            path.moveTo(x1 - d, y1 - d)
+            path.lineTo(x1 - d, y1 + d)
+            path.lineTo(x2 - d, y2 + d)
+            path.lineTo(x2 + d, y2 + d)
+            path.lineTo(x2 + d, y2 - d)
+            path.lineTo(x1 + d, y1 - d)
+            path.lineTo(x1 - d, y1 - d)
+        else:
+            path.moveTo(x1 - d, y1 + d)
+            path.lineTo(x1 + d, y1 + d)
+            path.lineTo(x2 + d, y2 + d)
+            path.lineTo(x2 + d, y2 - d)
+            path.lineTo(x2 - d, y2 - d)
+            path.lineTo(x1 - d, y1 - d)
+            path.lineTo(x1 - d, y1 + d)
         return path
 
     def graphicsPaint(self, p, options, widget):
@@ -285,9 +310,8 @@ class LineItem(TrackItem):
         p.setPen(pen)
         p.drawLine(self.line)
         if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            p.setPen(QtGui.QPen(Qt.white))
-            p.drawRect(self.connectionRect(self.line.p1()))
-            p.drawRect(self.connectionRect(self.line.p2()))
+            self.drawConnectionRect(p, self.line.p1())
+            self.drawConnectionRect(p, self.line.p2())
 
 
     def drawTrain(self):

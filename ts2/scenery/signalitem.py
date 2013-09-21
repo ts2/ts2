@@ -213,6 +213,8 @@ class SignalItem(TrackItem):
                 # The train code is selected
                 self.trainSelected.emit(self._trainServiceCode)
         elif e.button() == Qt.RightButton:
+            if self.simulation.context == utils.Context.EDITOR_SCENERY:
+                self.reverse = not self.reverse
             if (self._reverse and e.pos().x() <= 20) or \
                (not self._reverse and e.pos().x() > 40):
                 # The signal itself is right-clicked
@@ -311,15 +313,12 @@ class SignalItem(TrackItem):
 
         # Draw the connection rects
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            p.setBrush(Qt.NoBrush)
-            textPen.setColor(Qt.white)
-            p.setPen(textPen)
             if self.reverse:
-                p.drawRect(self.connectionRect(QtCore.QPointF(0, 2)))
-                p.drawRect(self.connectionRect(QtCore.QPointF(60, 2)))
+                self.drawConnectionRect(p, QtCore.QPointF(0, 2))
+                self.drawConnectionRect(p, QtCore.QPointF(60, 2))
             else:
-                p.drawRect(self.connectionRect(QtCore.QPointF(0, 18)))
-                p.drawRect(self.connectionRect(QtCore.QPointF(60, 18)))
+                self.drawConnectionRect(p, QtCore.QPointF(0, 18))
+                self.drawConnectionRect(p, QtCore.QPointF(60, 18))
 
 
     def resetNextActiveRoute(self):

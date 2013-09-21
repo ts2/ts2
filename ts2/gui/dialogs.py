@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 #
 #   Copyright (C) 2008-2013 by Nicolas Piganeau
 #   npi@m4x.org
@@ -19,6 +18,22 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-if __name__ == '__main__':
-    import ts2.application
-    ts2.application.Main()
+import sys
+import traceback
+
+from PyQt4 import QtGui, QtCore
+
+tr = QtCore.QObject().tr
+
+class ExceptionDialog:
+    """A Dialog box for displaying exception information
+    """
+
+    @staticmethod
+    def popupException(parent, exception):
+        """Displays a dialog with all the information about the exception and
+        the traceback."""
+        title = tr("Error")
+        message = str(exception) + "\n\n"
+        message += message.join(traceback.format_tb(sys.exc_info()[2]))
+        return QtGui.QMessageBox.critical(parent, title, message)

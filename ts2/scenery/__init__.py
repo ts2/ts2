@@ -35,3 +35,5 @@ from ts2.scenery.platformitem import PlatformItem
 from ts2.scenery.invisiblelinkitem import InvisibleLinkItem
 
 from ts2.scenery.pointsitem import PointsItem
+
+from ts2.scenery.textitem import TextItem

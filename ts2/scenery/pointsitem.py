@@ -1,33 +1,33 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau                                
-#   npi@m4x.org                                                           
-#                                                                         
-#   This program is free software; you can redistribute it and/or modify  
-#   it under the terms of the GNU General Public License as published by  
-#   the Free Software Foundation; either version 2 of the License, or     
-#   (at your option) any later version.                                   
-#                                                                         
-#   This program is distributed in the hope that it will be useful,       
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of        
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
-#   GNU General Public License for more details.                          
-#                                                                         
-#   You should have received a copy of the GNU General Public License     
-#   along with this program; if not, write to the                         
-#   Free Software Foundation, Inc.,                                       
-#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
+#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   npi@m4x.org
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the
+#   Free Software Foundation, Inc.,
+#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
 from PyQt4 import QtCore, QtGui
-from PyQt4.Qt import Qt
+from PyQt4.QtCore import Qt
 from ts2 import utils
 from ts2.scenery import TrackItem, TrackGraphicsItem, TIProperty
 
 class PointsItem(TrackItem):
-    """A points item is a three-way junction. 
-    We call the three ends: common end, normal end and reverse end. 
-    Trains can go from common end to normal or reverse ends depending on the 
-    state of the points. They cannot go from normal end to reverse end. 
+    """A points item is a three-way junction.
+    We call the three ends: common end, normal end and reverse end.
+    Trains can go from common end to normal or reverse ends depending on the
+    state of the points. They cannot go from normal end to reverse end.
     Usually, the normal end is aligned with the common end and the reverse end
     is sideways, but this is not mandatory.
     """
@@ -67,7 +67,7 @@ class PointsItem(TrackItem):
 
     @property
     def saveParameters(self):
-        """Returns the parameters dictionary to save this TrackItem to the 
+        """Returns the parameters dictionary to save this TrackItem to the
         database"""
         parameters = super().saveParameters
         parameters.update({ \
@@ -86,7 +86,7 @@ class PointsItem(TrackItem):
         """Returns the origin QPointF of the PointsItem, which is actually the
         common end in the scene coordinates"""
         return self._center + self._commonEnd - self.middle
-    
+
     @property
     def end(self):
         """Returns the origin QPointF of the PointsItem, which is actually the
@@ -100,7 +100,7 @@ class PointsItem(TrackItem):
 
     @property
     def realOrigin(self):
-        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is 
+        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is
         the position of the top left corner of the bounding rectangle of the
         TrackItem. Reimplemented in PointsItem"""
         return self._center - self.middle
@@ -115,7 +115,7 @@ class PointsItem(TrackItem):
             self._center = QtCore.QPointF(x, y)
             self._gi.setPos(self.realOrigin)
             self.updateGraphics()
-    
+
     @property
     def pointsReversed(self):
         """Returns true if the points are reversed, false otherwise"""
@@ -125,10 +125,10 @@ class PointsItem(TrackItem):
     def pointsReversed(self, rev):
         """Setter function for the pointsReversed property"""
         self._pointsReversed = True if rev else False
-        
+
     @property
     def middle(self):
-        """Returns the central QPointF of the PointsItem, in the item's 
+        """Returns the central QPointF of the PointsItem, in the item's
         coordinates"""
         return QtCore.QPointF(5,5)
 
@@ -139,15 +139,16 @@ class PointsItem(TrackItem):
         """
         cep = self._commonEnd - self.middle
         return "(%i,%i)" % (cep.x(), cep.y())
-    
+
     @commonEndStr.setter
     def commonEndStr(self, value):
         """Setter for the commonEndStr property"""
         if self._simulation.context == utils.Context.EDITOR_SCENERY:
             x, y = eval(value.strip('()'))
+            self._gi.prepareGeometryChange()
             self._commonEnd = QtCore.QPointF(x, y) + self.middle
             self.updateGraphics()
-        
+
     @property
     def normalEndStr(self):
         """Returns a string representation of the connecting point situated at
@@ -155,31 +156,33 @@ class PointsItem(TrackItem):
         """
         nep = self._normalEnd - self.middle
         return "(%i,%i)" % (nep.x(), nep.y())
-        
+
     @normalEndStr.setter
     def normalEndStr(self, value):
         """Setter for the normalEndStr property"""
         if self._simulation.context == utils.Context.EDITOR_SCENERY:
             x, y = eval(value.strip('()'))
+            self._gi.prepareGeometryChange()
             self._normalEnd = QtCore.QPointF(x, y) + self.middle
             self.updateGraphics()
-        
+
     @property
     def reverseEndStr(self):
         """Returns a string representation of the connecting point situated at
         the reverse end of this PointsItem, in the items centered coordinates
         """
         rep = self._reverseEnd - self.middle
-        return "(%i,%i)" % (rep.x(), rep.y())        
+        return "(%i,%i)" % (rep.x(), rep.y())
 
     @reverseEndStr.setter
     def reverseEndStr(self, value):
         """Setter for the reverseEndStr property"""
         if self._simulation.context == utils.Context.EDITOR_SCENERY:
             x, y = eval(value.strip('()'))
+            self._gi.prepareGeometryChange()
             self._reverseEnd = QtCore.QPointF(x, y) + self.middle
             self.updateGraphics()
-        
+
     @property
     def commonItem(self):
         """Returns the TrackItem linked to the common end of this PointsItem,
@@ -224,24 +227,22 @@ class PointsItem(TrackItem):
         if (not self.pointsReversed) or \
              (self._simulation.context == utils.Context.EDITOR_SCENERY):
             p.drawLine(self._normalEnd, self.middle)
-            
+
         # Draw the connection rects
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            p.setBrush(Qt.NoBrush)
-            p.setPen(QtGui.QPen(Qt.white))
-            p.drawRect(self.connectionRect(self._commonEnd))
-            p.drawRect(self.connectionRect(self._normalEnd))
-            p.drawRect(self.connectionRect(self._reverseEnd))             
+            self.drawConnectionRect(p, self._commonEnd)
+            self.drawConnectionRect(p, self._normalEnd)
+            self.drawConnectionRect(p, self._reverseEnd)
 
-            
+
     def graphicsBoundingRect(self):
-        """This function is called by the owned TrackGraphicsItem to return 
+        """This function is called by the owned TrackGraphicsItem to return
         its bounding rectangle. Reimplemented from TrackItem"""
         return QtCore.QRectF(0,0,10,10)
 
     def graphicsMousePressEvent(self, event):
         """This function is called by the owned TrackGraphicsItem to handle
-        its mousePressEvent. In the PointsItem class, this function reverses 
+        its mousePressEvent. In the PointsItem class, this function reverses
         the points."""
         super().graphicsMousePressEvent(event)
         if self.simulation.context == utils.Context.EDITOR_ROUTES:
@@ -252,11 +253,11 @@ class PointsItem(TrackItem):
             self.updateGraphics()
 
     def getFollowingItem(self, precedingItem, direction = -1):
-        """Overload of TrackItem.getFollowingItem for PointsItem, including 
+        """Overload of TrackItem.getFollowingItem for PointsItem, including
         the direction
         @param precedingItem The TrackItem we come from
-        @param direction The direction of the points 
-        (0 => normal, positive => reverse, negative => according to 
+        @param direction The direction of the points
+        (0 => normal, positive => reverse, negative => according to
         self._pointsReversed)"""
         if precedingItem == self.commonItem:
             if direction < 0:
