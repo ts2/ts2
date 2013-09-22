@@ -877,7 +877,7 @@ class Train(QtCore.QObject):
         the train head, not exceeding maxSpeed. This function does not take
         into account any sampling margin."""
         return min(self.getMaximumSpeed(),
-                   sqrt(2 * targetDistance * self._trainType.stdBraking +
+                   sqrt(abs(2 * targetDistance * self._trainType.stdBraking) +
                         targetSpeedAtPos**2))
 
     def getMaximumSpeed(self):

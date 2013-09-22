@@ -76,15 +76,15 @@ class NonReturnItem(SignalItem):
             p.setBrush(QtGui.QBrush(Qt.cyan))
             if self.reverse:
                 triangle = QtGui.QPolygonF()
-                triangle << QtCore.QPointF(10, 2) \
-                         << QtCore.QPointF(15, 4) \
-                         << QtCore.QPointF(15, 0)
+                triangle << QtCore.QPointF(15, 2) \
+                         << QtCore.QPointF(10, 6) \
+                         << QtCore.QPointF(10, -2)
                 p.drawPolygon(triangle)
             else:
                 triangle = QtGui.QPolygonF()
-                triangle << QtCore.QPointF(50, 18) \
-                         << QtCore.QPointF(45,20) \
-                         << QtCore.QPointF(45, 16)
+                triangle << QtCore.QPointF(45, 18) \
+                         << QtCore.QPointF(50, 22) \
+                         << QtCore.QPointF(50, 14)
                 p.drawPolygon(triangle)
 
         # Draw the connection rects

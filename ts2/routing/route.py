@@ -1,25 +1,25 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau                                
-#   npi@m4x.org                                                           
-#                                                                         
-#   This program is free software; you can redistribute it and/or modify  
-#   it under the terms of the GNU General Public License as published by  
-#   the Free Software Foundation; either version 2 of the License, or     
-#   (at your option) any later version.                                   
-#                                                                         
-#   This program is distributed in the hope that it will be useful,       
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of        
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
-#   GNU General Public License for more details.                          
-#                                                                         
-#   You should have received a copy of the GNU General Public License     
-#   along with this program; if not, write to the                         
-#   Free Software Foundation, Inc.,                                       
-#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
+#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   npi@m4x.org
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the
+#   Free Software Foundation, Inc.,
+#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
 from PyQt4 import QtCore
-from PyQt4.Qt import Qt
+from PyQt4.QtCore import Qt
 import ts2.routing
 
 class RoutesModel(QtCore.QAbstractTableModel):
@@ -31,14 +31,14 @@ class RoutesModel(QtCore.QAbstractTableModel):
         self._editor = editor
 
     def rowCount(self, parent = QtCore.QModelIndex()):
-        """Returns the number of rows of the model, corresponding to the 
+        """Returns the number of rows of the model, corresponding to the
         number of routes."""
         return len(self._editor.routes)
-    
+
     def columnCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of columns of the model"""
         return 4
-    
+
     def data(self, index, role = Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole or role == Qt.EditRole:
@@ -52,7 +52,7 @@ class RoutesModel(QtCore.QAbstractTableModel):
             elif index.column() == 3:
                 return routes[index.row()].initialState
         return None
-    
+
     def setData(self, index, value, role):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
@@ -62,7 +62,7 @@ class RoutesModel(QtCore.QAbstractTableModel):
                 self.dataChanged.emit(index, index)
                 return True
         return False
-    
+
     def headerData(self, section, orientation, role = Qt.DisplayRole):
         """Returns the header labels"""
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
@@ -75,7 +75,7 @@ class RoutesModel(QtCore.QAbstractTableModel):
             elif section == 3:
                 return self.tr("Initial State")
         return None
-    
+
     def flags(self, index):
         """Returns the flags of the model"""
         retFlag = Qt.ItemIsEnabled | Qt.ItemIsSelectable
@@ -86,16 +86,16 @@ class RoutesModel(QtCore.QAbstractTableModel):
 
 class Route(QtCore.QObject):
     """@brief Path between two signals
-    A route is a path between two signals. If a route is activated, the path 
+    A route is a path between two signals. If a route is activated, the path
     is selected, and the signals at the beginning and the end of the route are
-    changed and the conflicting possible other routes are inhibited. Routes 
-    are static and defined in the game file. The player can only activate or 
+    changed and the conflicting possible other routes are inhibited. Routes
+    are static and defined in the game file. The player can only activate or
     deactivate them.
     """
     def __init__(self, simulation, routeNum, beginSignal, endSignal, \
                                                             initialState = 0):
         """Constructor of the Route class. After construction, the directions
-        dictionary must be filled and then the _positions list must be 
+        dictionary must be filled and then the _positions list must be
         populated by calling createPositionsList().
         @param routeNum The route number (id)
         @param beginSignal Pointer to the SignalItem at which the route starts
@@ -132,7 +132,7 @@ class Route(QtCore.QObject):
         1 => Activated, non persistent
         2 => Activated, persistent"""
         return self._initialState
-    
+
     @initialState.setter
     def initialState(self, value):
         """Setter function for the initialState property"""
@@ -193,7 +193,7 @@ class Route(QtCore.QObject):
             return False
 
     def activate(self, persistent = False):
-        """ This function is called by the simulation when the route is 
+        """ This function is called by the simulation when the route is
         activated."""
         for pos in self._positions:
             pos.trackItem.setActiveRoute(self, pos.previousTI)
@@ -202,15 +202,17 @@ class Route(QtCore.QObject):
         self.persistent = persistent
 
     def desactivate(self):
-        """This function is called by the simulation when the route is 
+        """This function is called by the simulation when the route is
         desactivated."""
         self.beginSignal.resetNextActiveRoute()
         self.endSignal.resetPreviousActiveRoute()
         for pos in self._positions:
-            pos.trackItem.resetActiveRoute()
-        
+            if pos.trackItem.activeRoute is None or \
+               pos.trackItem.activeRoute == self:
+                pos.trackItem.resetActiveRoute()
+
     def isActivable(self):
-        """Returns true if this route can be activated, i.e. that no other 
+        """Returns true if this route can be activated, i.e. that no other
         active route is conflicting with this route."""
         flag = False
         for pos in self._positions:
@@ -233,8 +235,8 @@ class Route(QtCore.QObject):
                         return False;
                     else:
                         # We set flag to true to remember we have come across
-                        # a TI with activeRoute with same dir. This enables 
-                        # the user to set a route ending with the same end 
+                        # a TI with activeRoute with same dir. This enables
+                        # the user to set a route ending with the same end
                         # signal when it is cleared by a train still
                         # on the route
                         flag = True
@@ -254,9 +256,9 @@ class Route(QtCore.QObject):
     def persistent(self, p = True):
         """Setter function for the persistent property"""
         self._persistent = p
-        
+
     def __eq__(self, other):
-        """Two routes are equal if they have the save routeNum or if both 
+        """Two routes are equal if they have the save routeNum or if both
         beginSignal and endSignal are equal"""
         if self.routeNum == other.routeNum or \
           (self.beginSignal == other.beginSignal and \
@@ -266,7 +268,7 @@ class Route(QtCore.QObject):
             return False
 
     def __ne__(self, other):
-        """Two routes are not equal if they have different routeNum and if 
+        """Two routes are not equal if they have different routeNum and if
         at least one of beginSignal or endSignal is different"""
         if self.routeNum != other.routeNum and \
           (self.beginSignal != other.beginSignal or \
@@ -282,4 +284,4 @@ class Route(QtCore.QObject):
     def __gt__(self, other):
         """Route is greater than other when its routeNum is greater"""
         return (self.routeNum > other.routeNum)
-        
+

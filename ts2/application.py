@@ -32,9 +32,8 @@ def Main():
         mw = mainwindow.MainWindow()
         mw.show()
         return app.exec_();
-    except Exception as e:
-        gui.dialogs.ExceptionDialog.popupException(None, e)
-        print("Error !")
+    except:
+        gui.dialogs.ExceptionDialog.popupException(None)
         #QMessageBox.critical(None,
                              #QObject.trUtf8(QObject(), "Error"),
                              #str(e),

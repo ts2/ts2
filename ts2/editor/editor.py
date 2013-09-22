@@ -375,7 +375,7 @@ class Editor(simulation.Simulation):
                 query += ":%s," % k
             query = query[:-1] + ")"
             conn.execute(query, ti.saveParameters)
-            conn.commit()
+        conn.commit()
 
     def saveRoutes(self, conn):
         """Saves the Route instances of this editor in the database"""

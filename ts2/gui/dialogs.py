@@ -30,10 +30,13 @@ class ExceptionDialog:
     """
 
     @staticmethod
-    def popupException(parent, exception):
+    def popupException(parent, exception=None):
         """Displays a dialog with all the information about the exception and
         the traceback."""
         title = tr("Error")
-        message = str(exception) + "\n\n"
-        message += message.join(traceback.format_tb(sys.exc_info()[2]))
-        return QtGui.QMessageBox.critical(parent, title, message)
+        if exception is not None:
+            message = str(exception) + "\n\n"
+            message += message.join(traceback.format_tb(sys.exc_info()[2]))
+        else:
+            message += message.join(traceback.format_exc())
+            return QtGui.QMessageBox.critical(parent, title, message)
