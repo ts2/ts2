@@ -374,7 +374,7 @@ class LineItem(TrackItem):
         if event.button() == Qt.LeftButton and \
            self._gi.shape().contains(pos):
             event.accept()
-            if self.simulation.context == utils.Context.EDITOR_SCENERY and \
+            if self.simulation.context == utils.Context.EDITOR_TRAINS and \
                self.tiId > 0:
                 x = event.buttonDownPos(Qt.LeftButton).x()
                 ratio = (x - self.line.x1())/(self.line.x2() - self.line.x1())
