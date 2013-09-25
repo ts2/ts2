@@ -1,21 +1,21 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau                                
-#   npi@m4x.org                                                           
-#                                                                         
-#   This program is free software; you can redistribute it and/or modify  
-#   it under the terms of the GNU General Public License as published by  
-#   the Free Software Foundation; either version 2 of the License, or     
-#   (at your option) any later version.                                   
-#                                                                         
-#   This program is distributed in the hope that it will be useful,       
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of        
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
-#   GNU General Public License for more details.                          
-#                                                                         
-#   You should have received a copy of the GNU General Public License     
-#   along with this program; if not, write to the                         
-#   Free Software Foundation, Inc.,                                       
-#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
+#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   npi@m4x.org
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the
+#   Free Software Foundation, Inc.,
+#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
 from PyQt4 import QtGui, QtCore
@@ -41,7 +41,7 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
             return 5
         else:
             return 0
-    
+
     def data (self, index, role = Qt.DisplayRole):
         if self._place is not None and role == Qt.DisplayRole:
             if index.row() == 0:
@@ -82,10 +82,10 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
             else:
                 return ""
         return None
-    
+
     def flags (self, index):
         return Qt.ItemIsEnabled
-    
+
     @property
     def place(self):
         return self._place
@@ -94,7 +94,7 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
     def place(self, place):
         self._place = place
         self.reset()
-        
+
     @QtCore.pyqtSlot(str)
     def setPlace(self, place):
         self.place = place
@@ -106,7 +106,7 @@ class Place(TrackItem):
     """
     def __init__(self, simulation, parameters):
         """Constructor for the Place class"""
-        super().__init__(simulation, parameters)        
+        super().__init__(simulation, parameters)
         self._tiType = "A"
         self._placeCode = parameters["placecode"]
         self.updateBoundingRect()
@@ -120,7 +120,7 @@ class Place(TrackItem):
         self._timetable = []
         self._tracks = {}
         self.updateGraphics()
-    
+
     selectedPlaceModel = PlaceInfoModel()
 
     properties = TrackItem.properties + [\
@@ -128,16 +128,16 @@ class Place(TrackItem):
 
     @property
     def saveParameters(self):
-        """Returns the parameters dictionary to save this TrackItem to the 
+        """Returns the parameters dictionary to save this TrackItem to the
         database"""
         parameters = super().saveParameters
         parameters.update({"placecode":self.placeCode})
         return parameters
-    
+
     @property
     def origin(self):
-        """Returns the origin QPointF of the TrackItem. The origin is 
-        the right end of the track represented on the SignalItem if the 
+        """Returns the origin QPointF of the TrackItem. The origin is
+        the right end of the track represented on the SignalItem if the
         signal is reversed, the left end otherwise"""
         return self._origin
 
@@ -149,11 +149,11 @@ class Place(TrackItem):
 
     @property
     def realOrigin(self):
-        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is 
+        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is
         the position of the top left corner of the bounding rectangle of the
         TrackItem. Reimplemented in Place"""
         return self.origin - self._rect.bottomLeft()
-        
+
     @realOrigin.setter
     def realOrigin(self, pos):
         """Setter function for the realOrigin property"""
@@ -164,10 +164,10 @@ class Place(TrackItem):
             self._origin = QtCore.QPointF(x, y)
             self._gi.setPos(self.realOrigin)
             self.updateGraphics()
-            
+
     def addTrack(self, li):
         self._tracks[li.trackCode] = li
-    
+
     def addTimetable(self, sl):
         self._timetable.append(sl)
         self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
@@ -175,27 +175,27 @@ class Place(TrackItem):
     @property
     def placeName(self):
         return self.name
-    
+
     @property
     def timetable(self):
         return self._timetable
-    
+
     @property
     def placeCode(self):
         """Returns the place code of this place"""
         return self._placeCode
-    
+
     @placeCode.setter
     def placeCode(self, value):
         """Setter function for the placeCode property"""
         if self._simulation.context == utils.Context.EDITOR_SCENERY:
             self._placeCode = value
-    
+
     @property
     def name(self):
-        """Returns the unique name of the Place"""
+        """Returns the name of the Place"""
         return self._name
-    
+
     @name.setter
     def name(self, value):
         """Setter function for the name property"""
@@ -205,21 +205,20 @@ class Place(TrackItem):
             self._gi.setToolTip(self.toolTipText)
             self.updateBoundingRect()
             self.updateGraphics()
-            
+
     def track(self, trackCode):
         return self._tracks[trackCode]
-    
+
     def updateBoundingRect(self):
         """Updates the bounding rectangle of the graphics item"""
-        tl = QtGui.QTextLayout(self.name)
+        tl = QtGui.QTextLayout(self._name)
         tl.beginLayout()
         line = tl.createLine()
-        line.setLineWidth(len(self.name))
         tl.endLayout()
         self._rect = tl.boundingRect()
-    
+
     def graphicsBoundingRect(self):
-        """This function is called by the owned TrackGraphicsItem to return 
+        """This function is called by the owned TrackGraphicsItem to return
         its bounding rectangle"""
         if self.name is None or self.name == "":
             return super().boundingRect()
@@ -227,13 +226,13 @@ class Place(TrackItem):
             return self._rect
 
     def graphicsPaint(self, p, options, widget = 0):
-        """This function is called by the owned TrackGraphicsItem to paint its 
+        """This function is called by the owned TrackGraphicsItem to paint its
         painter."""
         pen = self.getPen()
         pen.setWidth(0)
         pen.setColor(Qt.white)
         p.setPen(pen)
         p.drawText(self._rect.bottomLeft(), self.name)
-    
+
 
 

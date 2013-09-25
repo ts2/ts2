@@ -103,7 +103,6 @@ class TextItem(TrackItem):
         tl = QtGui.QTextLayout(self.text)
         tl.beginLayout()
         line = tl.createLine()
-        line.setLineWidth(len(self.text))
         tl.endLayout()
         self._rect = tl.boundingRect()
 
