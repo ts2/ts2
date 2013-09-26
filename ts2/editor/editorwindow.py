@@ -186,7 +186,7 @@ class EditorWindow(QtGui.QMainWindow):
         self.validateSceneryBtn = QtGui.QPushButton(\
                                     self.tr("Validate Scenery"), sceneryTab)
         self.validateSceneryBtn.clicked.connect(\
-                                    self.editor.validateScenery)
+                                    self.validateSceneryBtnClicked)
         self.editor.sceneryIsValidated.connect(\
                                     self.validateSceneryBtn.setDisabled)
         self.zoomSlider = QtGui.QSlider(Qt.Horizontal, sceneryTab)
@@ -431,11 +431,13 @@ class EditorWindow(QtGui.QMainWindow):
                            QtCore.QDir.currentPath(),
                            self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
+            self.setCursor(Qt.WaitCursor)
             self.editor.database = fileName
             self.editor.reload(fileName)
             self.setWindowTitle(
                     self.tr("ts2 - Train Signalling Simulation - Editor - %s")
                     % fileName)
+            self.setCursor(Qt.ArrowCursor)
 
     @QtCore.pyqtSlot()
     def saveSimulation(self):
@@ -493,6 +495,13 @@ class EditorWindow(QtGui.QMainWindow):
         """Updates the data in the general tab with the simulation options."""
         self.titleTxt.setText(self.editor.option("title"))
         self.descriptionTxt.setPlainText(self.editor.option("description"))
+
+    @QtCore.pyqtSlot()
+    def validateSceneryBtnClicked(self):
+        """Validates the scenery by calling the editor to perform the task."""
+        self.setCursor(Qt.WaitCursor)
+        self.editor.validateScenery()
+        self.setCursor(Qt.ArrowCursor)
 
     @QtCore.pyqtSlot()
     def delRouteBtnClicked(self):
