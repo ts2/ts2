@@ -743,10 +743,12 @@ class Editor(simulation.Simulation):
                             trackItem.graphicsItem.pos() + \
                             QtCore.QPointF(300, 300)
         rect = self._sceneBackground.rect()
-        if not self._sceneBackground.rect().contains(tl):
-            rect.setTopLeft(tl)
-        if not self._sceneBackground.rect().contains(br):
-            rect.setBottomRight(br)
+        if not rect.contains(tl):
+            rect.setLeft(min(tl.x(), rect.left()))
+            rect.setTop(min(tl.y(), rect.top()))
+        if not rect.contains(br):
+            rect.setRight(max(br.x(), rect.right()))
+            rect.setBottom(max(br.y(), rect.bottom()))
         self._sceneBackground.setRect(rect)
         self._sceneBackground.update()
 

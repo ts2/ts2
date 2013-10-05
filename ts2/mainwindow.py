@@ -186,13 +186,13 @@ class MainWindow(QMainWindow):
                            QDir.currentPath(),\
                            self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
-            self.setCursor(Qt.WaitCursor)
+            QApplication.setOverrideCursor(Qt.WaitCursor)
             qDebug("Simulation loading")
             self.simulation.reload(fileName)
             self.setWindowTitle( \
                 self.tr("ts2 - Train Signalling Simulation - %s") % fileName)
             qDebug("Simulation loaded")
-            self.setCursor(Qt.ArrowCursor)
+            QApplication.restoreOverrideCursor()
 
     @pyqtSlot(int)
     def zoom(self, percent):
@@ -201,7 +201,7 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def showAboutBox(self):
         """Shows the about box"""
-        QMessageBox.about(self, self.tr("About TS2"), self.tr( 
+        QMessageBox.about(self, self.tr("About TS2"), self.tr(
 """TS2 is a train signalling simulation.\n
 Version 0.3 (beta 2)\n
 Copyright 2008-2013, NPi (npi@users.sourceforge.net)

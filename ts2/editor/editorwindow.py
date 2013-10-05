@@ -431,25 +431,25 @@ class EditorWindow(QtGui.QMainWindow):
                            QtCore.QDir.currentPath(),
                            self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
-            self.setCursor(Qt.WaitCursor)
+            QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
             self.editor.database = fileName
             self.editor.reload(fileName)
             self.setWindowTitle(
                     self.tr("ts2 - Train Signalling Simulation - Editor - %s")
                     % fileName)
-            self.setCursor(Qt.ArrowCursor)
+            QtGui.QApplication.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def saveSimulation(self):
         """Saves the simulation to the database"""
         if self.editor.database is None:
             self.saveAsSimulation()
-        self.setCursor(Qt.WaitCursor)
+        QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
         try:
             self.editor.save()
         except Exception as e:
             ts2.gui.dialogs.ExceptionDialog.popupException(self, e)
-        self.setCursor(Qt.ArrowCursor)
+        QtGui.QApplication.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def saveAsSimulation(self):
@@ -499,9 +499,9 @@ class EditorWindow(QtGui.QMainWindow):
     @QtCore.pyqtSlot()
     def validateSceneryBtnClicked(self):
         """Validates the scenery by calling the editor to perform the task."""
-        self.setCursor(Qt.WaitCursor)
+        QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
         self.editor.validateScenery()
-        self.setCursor(Qt.ArrowCursor)
+        QtGui.QApplication.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def delRouteBtnClicked(self):

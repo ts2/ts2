@@ -50,8 +50,7 @@ class LineItem(TrackItem):
             self._trackCode = ""
         realLength = parameters["reallength"]
         if realLength is None or realLength == 0:
-            realLength = sqrt(pow(xf - self.origin.x(), 2) + \
-                              pow(yf - self.origin.y(), 2))
+            realLength = 1.0
         self._realLength = realLength
         self.updateGeometry()
         gli = TrackGraphicsItem(self)
