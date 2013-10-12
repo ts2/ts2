@@ -34,6 +34,7 @@ class ExceptionDialog:
         """Displays a dialog with all the information about the exception and
         the traceback."""
         title = tr("Error")
+        message = ""
         if exception is not None:
             message = str(exception) + "\n\n"
             message += message.join(traceback.format_tb(sys.exc_info()[2]))

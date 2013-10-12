@@ -229,10 +229,13 @@ class Route(QtCore.QObject):
                         # The trackItem is a pointsItem and it is the first
                         # trackItem with active route that we meet
                         return False
-                    if pos.previousTI != pos.trackItem.activeRoutePreviousItem:
+                    if pos.previousTI!=pos.trackItem.activeRoutePreviousItem:
                         # The direction of this route is different from that
                         # of the active route of the TI
                         return False;
+                    if pos.trackItem.activeRoute == self:
+                        # Always allow to setup the same route again
+                        return True
                     else:
                         # We set flag to true to remember we have come across
                         # a TI with activeRoute with same dir. This enables

@@ -106,6 +106,7 @@ class Simulation(QtCore.QObject):
         self.loadRoutes(conn)
         self.loadTrainTypes(conn)
         self.loadServices(conn)
+        self.startServices()
         self.loadTrains(conn)
         conn.close()
         self.setupConnections()
@@ -181,6 +182,7 @@ class Simulation(QtCore.QObject):
     timeElapsed = QtCore.pyqtSignal(float)
     trainSelected = QtCore.pyqtSignal(str)
     itemSelected = QtCore.pyqtSignal(int)
+    trainStatusChanged = QtCore.pyqtSignal(str)
 
     @QtCore.pyqtSlot(int, bool)
     def activateRoute(self, siId, persistent = False):
@@ -312,6 +314,7 @@ valid.\nSee stderr for more information"""))
     def loadTrainTypes(self, conn):
         """Creates the instances of TrainType from the data of the database.
         """
+        QtCore.qDebug(self.tr("Loading train types"))
         for trainType in conn.execute("SELECT * FROM traintypes"):
             code = str(trainType["code"])
             parameters = dict(trainType)
@@ -319,13 +322,19 @@ valid.\nSee stderr for more information"""))
 
     def loadTrains(self, conn):
         """Creates the instances of Train from the data of the database."""
+        QtCore.qDebug(self.tr("Loading trains"))
         for train in conn.execute("SELECT * FROM trains"):
             parameters = dict(train)
             train = trains.Train(self, parameters)
+            train.trainStatusChanged.connect(self.trainStatusChanged)
             self._trains.append(train)
+        self._trains.sort(key = lambda x:
+                         x.currentService.lines[0].scheduledDepartureTimeStr)
+
 
     def loadOptions(self, conn):
         """Populates the options dict with data from the database"""
+        QtCore.qDebug(self.tr("Loading options"))
         self._options = {
                 "title":"",
                 "description":"",
@@ -347,6 +356,7 @@ valid.\nSee stderr for more information"""))
     def loadTrackItems(self, conn):
         """Loads the instances of trackItems and its subclasses from the
         data of the database, and make all the necessary links"""
+        QtCore.qDebug(self.tr("Loading TrackItems"))
         self.createAllTrackItems(conn)
         self.createTrackItemsLinks()
         self.createTrackItemConflicts(conn)
@@ -407,6 +417,7 @@ valid.\nSee stderr for more information"""))
 
     def loadServices(self, conn):
         """Creates the instances of Service from the data of the database."""
+        QtCore.qDebug(self.tr("Loading services"))
         for service in conn.execute("SELECT * FROM services"):
             serviceCode = service["servicecode"]
             parameters = dict(service)
@@ -417,6 +428,8 @@ valid.\nSee stderr for more information"""))
             parameters = dict(serviceLine)
             self._services[serviceCode].addLine(parameters)
 
+    def startServices(self):
+        """Starts each service of this simulation."""
         for s in self._services.values():
             s.start()
 
@@ -438,6 +451,7 @@ valid.\nSee stderr for more information"""))
 
     def createTrackItemConflicts(self, conn):
         """Create the trackitems' conflicts from the data in database."""
+        QtCore.qDebug(self.tr("Creating TrackItem conflicts"))
         for trackItem in conn.execute("SELECT * FROM trackitems"):
             conflictTiId = trackItem["conflicttiid"]
             if conflictTiId is not None and conflictTiId != 0:
@@ -451,6 +465,7 @@ valid.\nSee stderr for more information"""))
         """Find the items that are linked together through their coordinates
         and populate the _nextItem and _previousItem variables of each items.
         """
+        QtCore.qDebug(self.tr("Creating TrackItem links"))
         for ki, vi in self._trackItems.items():
             for kj, vj in self._trackItems.items():
                 if ki < kj:

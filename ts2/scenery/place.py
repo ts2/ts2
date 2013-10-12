@@ -19,7 +19,7 @@
 #
 
 from PyQt4 import QtGui, QtCore
-from PyQt4.Qt import Qt
+from PyQt4.QtCore import Qt
 from ts2.scenery import TrackItem, TIProperty, TrackGraphicsItem
 from ts2 import utils
 

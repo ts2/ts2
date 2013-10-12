@@ -45,7 +45,7 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
     def columnCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of columns of the model"""
         if self._service is not None:
-            return 4
+            return 5
         else:
             return 0
 
@@ -64,10 +64,12 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
                 if index.column() == 0:
                     return line.place.placeName
                 elif index.column() == 1:
-                    return line.scheduledArrivalTime
+                    return line.trackCode
                 elif index.column() == 2:
-                    return line.scheduledDepartureTime
+                    return line.scheduledArrivalTime
                 elif index.column() == 3:
+                    return line.scheduledDepartureTime
+                elif index.column() == 4:
                     return ""
         return None
 
@@ -79,10 +81,12 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
             if column == 0:
                 return ""
             elif column == 1:
-                return self.tr("Arrival")
+                return self.tr("Track")
             elif column == 2:
-                return self.tr("Departure")
+                return self.tr("Arrival")
             elif column == 3:
+                return self.tr("Departure")
+            elif column == 4:
                 return self.tr("Remarks")
             else:
                 return ""
@@ -100,29 +104,34 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
 
 
 class ServiceListModel(QtCore.QAbstractTableModel):
-    """Model for displaying services during the game
+    """Model for displaying services during the game. This model makes a
+    copy of the services of the simulation at the time it is created.
     """
     def __init__(self, simulation):
         """Constructor for the ServiceInfoModel class"""
         super().__init__()
         self._simulation = simulation
+        self.updateModel()
+
+    def updateModel(self):
+        """Updates the internal copy of the services with the simulation
+        services."""
+        self._services = sorted(self._simulation.services.values(),
+                        key = lambda x: x.lines[0].scheduledDepartureTimeStr)
 
     def rowCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of rows of the model, corresponding to the
         number of services in the simulation."""
-        return len(self._simulation.services)
+        return len(self._services)
 
     def columnCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of columns of the model"""
-        return 4
+        return 5
 
     def data(self, index, role = Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole:
-            services = sorted(self._simulation.services.values(), \
-                        key = lambda x: x.lines[0].scheduledDepartureTimeStr \
-                        )
-            service = services[index.row()]
+            service = self._services[index.row()]
             if index.column() == 0:
                 return service.serviceCode
             elif index.column() == 1:
@@ -170,7 +179,7 @@ class ServicesModel(QtCore.QAbstractTableModel):
 
     def columnCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of columns of the model"""
-        return 4
+        return 5
 
     def data(self, index, role = Qt.DisplayRole):
         """Returns the data at the given index"""
@@ -185,6 +194,8 @@ class ServicesModel(QtCore.QAbstractTableModel):
                 return service.nextServiceCode
             elif index.column() == 3:
                 return bool(service.autoReverse)
+            elif index.column() == 4:
+                return service.plannedTrainType
         return None
 
     def setData(self, index, value, role):
@@ -203,6 +214,8 @@ class ServicesModel(QtCore.QAbstractTableModel):
                 self._editor.services[code].nextServiceCode = value
             elif index.column() == 3:
                 self._editor.services[code].autoReverse = value
+            elif index.column() == 4:
+                self._editor.services[code].plannedTrainType = value
             else:
                 return False
             self.dataChanged.emit(index, index)
@@ -220,6 +233,8 @@ class ServicesModel(QtCore.QAbstractTableModel):
                 return self.tr("Next service code")
             elif section == 3:
                 return self.tr("Auto reverse")
+            elif section == 4:
+                return self.tr("Planned Train Type")
         return None
 
     def flags(self, index):
@@ -324,23 +339,10 @@ class ServiceLine:
         if self._simulation.context == utils.Context.EDITOR_SERVICES:
             self._scheduledArrivalTime = QtCore.QTime.fromString(value)
 
-    def __lt__(self, other):
-        """Lower than operator"""
-        if self.scheduledArrivalTime < other.scheduledArrivalTime:
-            return True
-        else:
-            return False
-
-    def __gt__(self, other):
-        """Greater than operator"""
-        if self.scheduledArrivalTime > other.scheduledArrivalTime:
-            return True
-        else:
-            return False
-
     def __eq__(self, other):
         """Equal operator"""
-        if self.scheduledArrivalTime == other.scheduledArrivalTime:
+        if self.placeCode == other.placeCode and \
+           self.scheduledDepartureTime == other.scheduledDepartureTime:
             return True
         else:
             return False
@@ -446,6 +448,7 @@ class Service:
         self._description = parameters["description"]
         self._nextServiceCode = parameters["nextservice"]
         self._autoReverse = parameters["autoreverse"]
+        self._plannedTrainType = parameters.get("plannedtraintype")
         self._current = None
         self._lines = []
 
@@ -463,9 +466,9 @@ class Service:
     def start(self):
         """Call this function once all the lines of the service are filled to
         initialize the pointer to the next Place (station)."""
-        self._lines.sort()
         self._current = self._lines[0]
 
+    @property
     def nextPlace(self):
         """Returns the next Place that this service is scheduled to."""
         if self._current is not None:
@@ -473,6 +476,12 @@ class Service:
         else:
             return None
 
+    @property
+    def nextLine(self):
+        """Returns the currently active service line."""
+        return self._current
+
+    @property
     def nextStopLine(self):
         """Returns the ServiceLine where this service is scheduled to stop
         next."""
@@ -482,32 +491,55 @@ class Service:
                     return it
         return None
 
-    def nextStopName(self):
+    @property
+    def nextPlaceName(self):
         """Returns the name of the place where this service is scheduled to
-        stop  next, or an empty string if there isn't any."""
-        sl = self.nextStopLine()
+         or an empty string if there isn't any."""
+        sl = self.nextLine
         if sl is not None:
             return sl.place.placeName
         else:
             return ""
 
-    def nextStopArrivalTime(self):
+    @property
+    def nextPlaceArrivalTime(self):
         """Returns the arrival time in the next place where this service is
-        supposed to stop or an empty QTime if there isn't any."""
-        sl = self.nextStopLine()
+        scheduled to or an empty QTime if there isn't any."""
+        sl = self.nextLine
         if sl is not None:
             return sl.scheduledArrivalTime
         else:
             return QtCore.QTime()
 
-    def nextStopDepartureTime(self):
+    @property
+    def nextPlaceDepartureTime(self):
         """Returns the departure time in the next place where this service is
-        supposed to stop or an empty QTime if there isn't any."""
-        sl = self.nextStopLine()
+        scheduled to or an empty QTime if there isn't any."""
+        sl = self.nextLine
         if sl is not None:
             return sl.scheduledDepartureTime
         else:
             return QtCore.QTime()
+
+    @property
+    def nextPlaceTrackCode(self):
+        """Returns the track code in the next place where this service is
+        scheduled to or an empty string if there isn't any."""
+        sl = self.nextLine
+        if sl is not None:
+            return sl.trackCode
+        else:
+            return ""
+
+    @property
+    def nextPlaceMustStop(self):
+        """Returns true if the service is scheduled to stop at the next
+        place."""
+        sl = self.nextLine
+        if sl is not None:
+            return sl.mustStop
+        else:
+            return False
 
     def jumpToNextPlace(self):
         """Set the _current pointer to the next serviceLine. If there is no
@@ -601,3 +633,16 @@ class Service:
     def simulation(self):
         """Returns the simulation this service belongs to"""
         return self._simulation
+
+    @property
+    def plannedTrainType(self):
+        """Returns the planned train type for this service, which is not
+        necessarily the actual train type of the train to which this service
+        is assigned."""
+        return self._plannedTrainType
+
+    @plannedTrainType.setter
+    def plannedTrainType(self, value):
+        """Setter function for the plannedTrainType property."""
+        if self._simulation.context == utils.Context.EDITOR_SERVICES:
+            self._plannedTrainType = value

@@ -109,6 +109,7 @@ class MainWindow(QMainWindow):
         self.trainListPanel = QDockWidget(self.tr("Trains"), self)
         self.trainListPanel.setFeatures(QDockWidget.DockWidgetMovable|QDockWidget.DockWidgetFloatable)
         self._trainListView = TrainListView(self, self.simulation)
+        self._trainListView.trainSelected.connect(self.simulation.selectedTrainModel.setTrainByServiceCode)
         self.simulation.trainSelected.connect(self._trainListView.updateTrainSelection)
         self.trainListPanel.setWidget(self._trainListView)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.trainListPanel)
@@ -116,6 +117,8 @@ class MainWindow(QMainWindow):
         self.serviceListPanel = QDockWidget(self.tr("Services"), self)
         self.serviceListPanel.setFeatures(QDockWidget.DockWidgetMovable|QDockWidget.DockWidgetFloatable)
         self._serviceListView = ServiceListView(self, self.simulation)
+        self._serviceListView.serviceSelected.connect(
+                        self.simulation.selectedServiceModel.setServiceCode)
         self._trainListView.trainSelected.connect(self._serviceListView.updateServiceSelection)
         self.serviceListPanel.setWidget(self._serviceListView)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.serviceListPanel)

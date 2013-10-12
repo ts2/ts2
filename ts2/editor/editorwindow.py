@@ -363,7 +363,9 @@ class EditorWindow(QtGui.QMainWindow):
         hgridr.addWidget(self.reverseTrainBtn)
         hgridr.addStretch()
         self.trainsView = ts2.editor.views.TrainsEditorView(trainsTab)
-        self.trainsView.setModel(self.editor.trainsModel)
+        trainsSortedModel = QtGui.QSortFilterProxyModel()
+        trainsSortedModel.setSourceModel(self.editor.trainsModel)
+        self.trainsView.setModel(trainsSortedModel)
         self.trainsView.trainSelected.connect(self.editor.selectTrain)
         self.trainsView.trainsUnselected.connect(self.editor.unselectTrains)
         self.editor.trainsChanged.connect(self.trainsView.model().reset)
@@ -653,7 +655,9 @@ class EditorWindow(QtGui.QMainWindow):
                                     "Are you sure you want to continue?"),
                             QtGui.QMessageBox.Yes|QtGui.QMessageBox.No
                                          ) == QtGui.QMessageBox.Yes:
+                QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
                 self.editor.importServicesFromFile(fileName)
+                QtGui.QApplication.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def exportServicesBtnClicked(self):
@@ -681,7 +685,9 @@ class EditorWindow(QtGui.QMainWindow):
                                 "Are you sure you want to continue?"),
                         QtGui.QMessageBox.Yes|QtGui.QMessageBox.No
                                         ) == QtGui.QMessageBox.Yes:
+            QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
             self.editor.setupTrainsFromServices()
+            QtGui.QApplication.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def reverseTrainBtnClicked(self):

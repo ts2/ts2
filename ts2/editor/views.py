@@ -86,6 +86,7 @@ class ServicesEditorView(QtGui.QTableView):
                                        QtGui.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setSizePolicy(sizePolicy)
+        self.setSortingEnabled(True)
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 
@@ -109,6 +110,7 @@ class TrainsEditorView(QtGui.QTableView):
                                        QtGui.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setSizePolicy(sizePolicy)
+        self.setSortingEnabled(True)
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         servicesDelegate = delegates.ServicesDelegate(self)
@@ -125,7 +127,7 @@ class TrainsEditorView(QtGui.QTableView):
         super().selectionChanged(selected, deselected)
         index = selected.indexes()[0]
         if index.isValid():
-            self.trainSelected.emit(index.row())
+            self.trainSelected.emit(self.model().index(index.row(), 0).data())
 
 
 class TrainsGraphicsView(QtGui.QGraphicsView):

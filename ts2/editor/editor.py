@@ -454,26 +454,29 @@ class Editor(simulation.Simulation):
     def saveServices(self, conn):
         """Saves the Service instances of this editor in the database"""
         conn.execute("DROP TABLE IF EXISTS services")
-        conn.execute("CREATE TABLE services (\n" \
-                            "servicecode VARCHAR(10),\n" \
-                            "description VARCHAR(200),\n" \
-                            "nextservice VARCHAR(10),\n" \
-                            "autoreverse BOOLEAN)" \
+        conn.execute("CREATE TABLE services (\n"
+                            "servicecode VARCHAR(10),\n"
+                            "description VARCHAR(200),\n"
+                            "nextservice VARCHAR(10),\n"
+                            "autoreverse BOOLEAN,\n"
+                            "plannedtraintype VARCHAR(10))"
                     )
         for service in self._services.values():
             query = "INSERT INTO services "\
-                    "(servicecode, description, nextservice, autoreverse) "\
-                    "VALUES " \
-                    "(:servicecode, :description, :nextservice, :autoreverse)"
+                    "(servicecode, description, nextservice, autoreverse,"\
+                    "plannedtraintype) VALUES " \
+                    "(:servicecode, :description, :nextservice, "\
+                    ":autoreverse, :plannedtraintype)"
             parameters = { \
                     "servicecode":service.serviceCode,
                     "description":service.description,
                     "nextservice":service.nextServiceCode,
-                    "autoreverse":service.autoReverse
+                    "autoreverse":service.autoReverse,
+                    "plannedtraintype":service.plannedTrainType
                          }
             conn.execute(query, parameters)
 
-        # Save the directions
+        # Save the service lines
         conn.execute("DROP TABLE IF EXISTS servicelines")
         conn.execute("CREATE TABLE servicelines (\n"
                             "servicecode VARCHAR(10),\n"
@@ -539,6 +542,7 @@ class Editor(simulation.Simulation):
         services CSV format"""
         file = open(fileName, "w", encoding="utf-8")
         file.write("servicecode;description;nextservice;autoreverse;")
+        file.write("plannedtraintype;")
         file.write("places=>;placecode;scheduledarrivaltime;")
         file.write("scheduleddeparturetime;trackcode;stop\n")
         for service in self.services.values():
@@ -546,6 +550,7 @@ class Editor(simulation.Simulation):
             file.write("\"%s\";" % service.description)
             file.write("\"%s\";" % service.nextServiceCode)
             file.write("%s;" % service.autoReverse)
+            file.write("\"%s\";" % service.plannedTrainType)
 
             file.write(";")
             for line in service.lines:
@@ -562,9 +567,9 @@ class Editor(simulation.Simulation):
         fileName, deleting any previous service in the editor if any."""
         self._services = {}
         allowedHeaders = ["servicecode","description","nextservice",
-                          "autoreverse","places=>","placecode",
-                          "scheduledarrivaltime", "scheduleddeparturetime",
-                          "trackcode","stop"]
+                          "autoreverse","plannedtraintype","places=>",
+                          "placecode","scheduledarrivaltime",
+                          "scheduleddeparturetime","trackcode","stop"]
         file = open(fileName, "r", encoding="utf-8")
         headers = file.readline().split(";")
         headers = [h.strip('" \n') for h in headers]
@@ -575,7 +580,7 @@ class Editor(simulation.Simulation):
             if header != "":
                 if header not in allowedHeaders:
                     raise Exception(self.tr(
-                            "Format Error: invalid header %s detected") % header)
+                         "Format Error: invalid header %s detected") % header)
                 if header == "places=>":
                     inPlaces = True
                     placesIndex = headers.index(header)
@@ -947,7 +952,10 @@ class Editor(simulation.Simulation):
         for s in self.services.values():
             if s.nextServiceCode is not None and \
                s.nextServiceCode != "":
-                serviceList.remove(s.nextServiceCode)
+                try:
+                    serviceList.remove(s.nextServiceCode)
+                except:
+                    QtCore.qDebug("nextServiceCode: %s does not exist" % s.nextServiceCode)
         for sc in serviceList:
             train = self.addTrain()
             train.serviceCode = sc
@@ -970,6 +978,7 @@ class Editor(simulation.Simulation):
                 initialSpeed = 0
             train.trainHead = position
             train.initialSpeed = initialSpeed
+            train.trainTypeCode = service.plannedTrainType
             if service.lines[0].scheduledArrivalTimeStr != "":
                 train.appearTimeStr = service.lines[0].scheduledArrivalTimeStr
             else:
