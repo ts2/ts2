@@ -14,6 +14,7 @@ TS2 Train Signalling Simulation is beta software, meaning it is playable, but la
 TS2 is provided with two simulations:
 * A demo simulation called "drain"
 * A full-featured simulation called "liverpool-st"
+
 New simulations can be created with the editor provided with ts2.
 
 ## Installation
@@ -59,6 +60,7 @@ New simulations can be created with the editor provided with ts2.
 ## File format
 The ts2 files are in fact sqlite3 databases. 
 One ts2 file holds all the information for a simulation.
+
 Simulations can be created/modified using the editor provided with ts2.
 
 ## Known bugs
