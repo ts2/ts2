@@ -1,7 +1,8 @@
 # TS2 - Train Signalling Simulation
+version 0.3
 
 ## Overview
-"Train Signalling Simulation" (TS2) is a simulation game where you have to dispatch trains across an area and keep them on schedule. See homepage for more details.
+"Train Signalling Simulation" (TS2) is a railways simulation game where you have to dispatch trains across an area and keep them on schedule. See homepage for more details.
 
 ## Links
 * [TS2 Homepage](http://ts2.sf.net)
@@ -10,18 +11,23 @@
 
 ## Status
 TS2 Train Signalling Simulation is beta software, meaning it is playable, but lacks many features that one would expect from a simulation.
-A demo simulation called "drain" can be found in the _data_ directory.
+TS2 is provided with two simulations:
+* A demo simulation called "drain"
+* A full-featured simulation called "liverpool-st"
+New simulations can be created with the editor provided with ts2.
 
 ## Installation
-* Released versions: Unzip the file to a suitable location and run ts2.exe
-* Development versions:
+* Released versions: 
+    - Windows: use provided installer and run ts2.exe.
+    - Other platforms: see source installation.
+* Source installation:
     - Download and install Python v3 or above at [www.python.org](http://www.python.org).
     - Download and install PyQt v4.8 or above at [http://www.riverbankcomputing.co.uk](http://www.riverbankcomputing.co.uk).
-    - Grab the sources from GitHub.
+    - Grab the sources from GitHub development page.
     - Run ts2.py
 
 ## Playing (QuickStart)
-* Load the demo simulation "drain.ts2" in the "data" directory.
+* Load a simulation from the _simulation_ directory (or the _data_ directory if you have installed from sources).
 * Route setting:
     - To turn a signal from red to green, you need to set a route from this signal to the next one.
     - To set a route left click on the signal and then to the next one. If you can create a route
@@ -53,12 +59,15 @@ A demo simulation called "drain" can be found in the _data_ directory.
 ## File format
 The ts2 files are in fact sqlite3 databases. 
 One ts2 file holds all the information for a simulation.
-See the [How to create your own Simulation](http://ts2.sourceforge.net/create_simulations.pdf) documentation for database format.
+Simulations can be created/modified using the editor provided with ts2.
 
 ## Known bugs
-- When reversing a train, the previous route is not cancelled, and the track remains highlighted.
-- When running with simulation speeds above 5x, trains sometime overtake red signals. 
+- Under windows, trains leave display artefacts (red traces) when scrolling the layout.
+- Sometimes, routes seem to be stuck in place while blocking the whole game. Workaround: It is possible to force a route setting by pressing _ctrl_ and _alt_ while clicking on the second signal. Beware as this will not check other conflicting routes and may result in train crashes or other unknown behaviour.
 
 ## Roadmap
-The objective for next version (0.3) is to have an integrated graphical editor so that users can easily create their own simulations.
+The next version (0.4) will focus on the following features: 
+- Add scoring system, 
+- Add load/save game support,
+- Add an option for track system based simulation.
 
