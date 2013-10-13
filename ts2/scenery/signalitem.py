@@ -63,7 +63,7 @@ class SignalItem(TrackItem):
 
     properties = TrackItem.properties + [TIProperty("reverse", tr("Reverse"))]
 
-    signalSelected = QtCore.pyqtSignal(int, bool)
+    signalSelected = QtCore.pyqtSignal(int, bool, bool)
     signalUnselected = QtCore.pyqtSignal(int)
     trainSelected = QtCore.pyqtSignal(str)
 
@@ -208,7 +208,8 @@ class SignalItem(TrackItem):
                 if self.simulation.context == utils.Context.GAME:
                     self._selected = True;
                 persistent = (e.modifiers() == Qt.ShiftModifier)
-                self.signalSelected.emit(self.tiId, persistent);
+                force = (e.modifiers() == Qt.AltModifier|Qt.ControlModifier)
+                self.signalSelected.emit(self.tiId, persistent, force);
             else:
                 # The train code is selected
                 self.trainSelected.emit(self._trainServiceCode)

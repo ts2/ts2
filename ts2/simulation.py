@@ -184,8 +184,8 @@ class Simulation(QtCore.QObject):
     itemSelected = QtCore.pyqtSignal(int)
     trainStatusChanged = QtCore.pyqtSignal(str)
 
-    @QtCore.pyqtSlot(int, bool)
-    def activateRoute(self, siId, persistent = False):
+    @QtCore.pyqtSlot(int, bool, bool)
+    def activateRoute(self, siId, persistent=False, force=False):
         """This slot is normally connected to the signal
         SignalItem.signalSelected(SignalItem), which itself is emitted when a
         signal is left-clicked.
@@ -211,7 +211,7 @@ class Simulation(QtCore.QObject):
             r = self.findRoute(self._selectedSignal, si)
             if r is not None:
                 # There exists a route between both signals
-                if r.isActivable():
+                if r.isActivable() or force:
                     # We can activate it
                     r.activate(persistent)
                     self._selectedSignal.unselect()
@@ -225,7 +225,8 @@ class Simulation(QtCore.QObject):
             else:
                 # No route between both signals
                 self.noRouteBetweenSignals.emit(self._selectedSignal, si)
-                si.unselect()
+                self._selectedSignal.unselect()
+                self._selectedSignal = si
                 QtCore.qWarning(self.tr("No route between signals"))
 
     @QtCore.pyqtSlot(int)
