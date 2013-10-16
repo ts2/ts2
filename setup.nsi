@@ -45,8 +45,8 @@
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "dist\ts2-setup.exe"
-InstallDir "$PROGRAMFILES\TS2"
+OutFile "dist\${PRODUCT_NAME}-${PRODUCT_VERSION}-x64-setup.exe"
+InstallDir "$PROGRAMFILES64\TS2"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 ShowUnInstDetails show
