@@ -41,12 +41,11 @@
 
 ; Language files
 !insertmacro MUI_LANGUAGE "English"
-!insertmacro MUI_LANGUAGE "French"
 
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "setup\ts2-setup.exe"
+OutFile "dist\ts2-setup.exe"
 InstallDir "$PROGRAMFILES\TS2"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
