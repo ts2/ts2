@@ -10,7 +10,9 @@ build_exe_options = {
     "include_files" : [
         ("data/drain.ts2","simulations/drain.ts2"),
         ("data/liverpool-st.ts2","simulations/liverpool-st.ts2"),
-        ("README.md","doc/README.txt")],
+        ("README.md","doc/README.txt"),
+        ("COPYING","doc/COPYING.txt")],
+    "include_msvcr" : True,
     "icon" : "images/ts2.ico"}
 
 base = None
