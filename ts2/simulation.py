@@ -37,11 +37,6 @@ class Simulation(QtCore.QObject):
         self._scene = QtGui.QGraphicsScene()
         self._timer = QtCore.QTimer(self)
         self.initialize()
-        self._routes = {}
-        self._serviceListModel = trains.ServiceListModel(self)
-        self._selectedServiceModel = trains.ServiceInfoModel(self)
-        self._trainListModel = trains.TrainListModel(self)
-        self._selectedTrainModel = trains.TrainInfoModel(self)
 
     @property
     def scene(self):
@@ -138,6 +133,10 @@ class Simulation(QtCore.QObject):
         self._trains = []
         self._scene.clear()
         self._time = QtCore.QTime()
+        self._serviceListModel = trains.ServiceListModel(self)
+        self._selectedServiceModel = trains.ServiceInfoModel(self)
+        self._trainListModel = trains.TrainListModel(self)
+        self._selectedTrainModel = trains.TrainInfoModel(self)
 
     def train(self, serviceCode):
         """Returns the Train object corresponding to the train whose

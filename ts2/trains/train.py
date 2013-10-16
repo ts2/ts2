@@ -258,7 +258,7 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
     def columnCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of columns of the model"""
         if self._train is not None:
-            return 3
+            return 2
         else:
             return 0
 
@@ -278,15 +278,15 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
                     elif index.row() == 4:
                         return ""
                     elif index.row() == 5:
-                        return self.tr("From:")
+                        return self.tr("Entry point:")
                     elif index.row() == 6:
-                        return self.tr("Destination:")
+                        return self.tr("Exit point:")
                     elif index.row() == 7:
                         return ""
                     elif index.row() == 8:
-                        return self.tr("Next Stop:")
+                        return self.tr("Next:")
                     elif index.row() == 9:
-                        return self.tr("Track")
+                        return self.tr("Track:")
                     elif index.row() == 10:
                         return self.tr("Arrival time:")
                     elif index.row() == 11:

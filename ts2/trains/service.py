@@ -38,14 +38,14 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
         number of serviceLines of this service + lines for displaying general
         service information."""
         if self._service is not None:
-            return len(self._service._lines) + 2
+            return len(self._service._lines) + 3
         else:
             return 0
 
     def columnCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of columns of the model"""
         if self._service is not None:
-            return 5
+            return 4
         else:
             return 0
 
@@ -56,11 +56,16 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
                 if index.column() == 0:
                     return self.tr("Service no:")
                 if index.column() == 1:
-                    return self._service._serviceCode
+                    return self._service.serviceCode
             elif (index.row() == 1):
+                if index.column() == 0:
+                    return self.tr("Description:")
+                if index.column() == 1:
+                    return self._service.description
+            elif (index.row() == 2):
                 return None
             else:
-                line = self._service._lines[index.row() - 2]
+                line = self._service._lines[index.row() - 3]
                 if index.column() == 0:
                     return line.place.placeName
                 elif index.column() == 1:
@@ -69,8 +74,6 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
                     return line.scheduledArrivalTime
                 elif index.column() == 3:
                     return line.scheduledDepartureTime
-                elif index.column() == 4:
-                    return ""
         return None
 
     def headerData(self, column, orientation, role = Qt.DisplayRole):
@@ -86,10 +89,6 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
                 return self.tr("Arrival")
             elif column == 3:
                 return self.tr("Departure")
-            elif column == 4:
-                return self.tr("Remarks")
-            else:
-                return ""
         return None
 
     def flags(self, index):
@@ -137,11 +136,11 @@ class ServiceListModel(QtCore.QAbstractTableModel):
             elif index.column() == 1:
                 return service._lines[0].scheduledDepartureTime
             elif index.column() == 2:
-                return service.entryPlaceName
+                return service.description
             elif index.column() == 3:
+                return service.entryPlaceName
+            elif index.column() == 4:
                 return service.exitPlaceName
-            else:
-                return ""
         return None
 
     def headerData(self, section, orientation, role = Qt.DisplayRole):
@@ -152,9 +151,11 @@ class ServiceListModel(QtCore.QAbstractTableModel):
             elif section == 1:
                 return self.tr("Time")
             elif section == 2:
-                return self.tr("From")
+                return self.tr("Description")
             elif section == 3:
-                return self.tr("Destination")
+                return self.tr("Entry point")
+            elif section == 4:
+                return self.tr("Exit point")
             else:
                 return ""
         return None
