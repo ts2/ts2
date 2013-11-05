@@ -657,6 +657,7 @@ class Train(QtCore.QObject):
             self.status = TrainStatus.RUNNING
         else:
             if self.currentService.nextStopLine is not None and \
+               self._trainHead.trackItem.tiType.startswith("L") and \
                self._trainHead.trackItem.placeCode == \
                                 self.currentService.nextStopLine.placeCode:
                 # Train is stopped at the scheduled nextStop place
