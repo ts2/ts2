@@ -52,9 +52,9 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
         """Painting function for the SignalGraphicsItem.
         This function calls the graphicsPaint function of the owning TrackItem
         to paint its painter."""
-        #pen = QtGui.QPen(Qt.white)
+        #pen = QtGui.QPen(Qt.red)
         #painter.setPen(pen)
-        #painter.drawRect(self.boundingRect())
+        #painter.drawPath(self.shape())
         self.trackItem.graphicsPaint(painter, option, widget)
 
     def mousePressEvent(self, event):

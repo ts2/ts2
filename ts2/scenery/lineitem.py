@@ -317,13 +317,13 @@ class LineItem(TrackItem):
         """Draws the train on the line, if any"""
         if self.simulation.context == utils.Context.GAME and \
            self.trainPresent():
-            tline = QtCore.QLineF( \
+            tline = QtCore.QLineF(
                     self.sceneLine.pointAt(self._trainHead/self._realLength),
                     self.sceneLine.pointAt(self._trainTail/self._realLength))
             if tline.length() < 5.0 and self._trainTail != 0:
                 # Make sure that the train representation is always at least
                 # 5 pixel long.
-                tline.setLength(min(5.0, \
+                tline.setLength(min(5.0,
                                     (1 - self._trainTail/self._realLength) *
                                      self.sceneLine.length()))
             self._tli.setLine(tline)
@@ -346,19 +346,19 @@ class LineItem(TrackItem):
             drag = QtGui.QDrag(event.widget())
             mime = QtCore.QMimeData()
             pos = event.buttonDownPos(Qt.LeftButton)
-            if QtCore.QRectF(0,0,9,9).contains(pos):
+            if QtCore.QRectF(-5,-5,9,9).contains(pos):
                 movedEnd = "origin"
-            elif QtCore.QRectF(self.line.p2().x() - 5, \
+            elif QtCore.QRectF(self.line.p2().x() - 5,
                                self.line.p2().y() - 5, 9, 9).contains(pos):
                 movedEnd = "end"
                 pos -= self.line.p2()
             elif self._gi.shape().contains(pos):
                 movedEnd = "realOrigin"
             if movedEnd is not None:
-                mime.setText(self.tiType + "#" + \
-                            str(self.tiId)+ "#" + \
-                            str(pos.x()) + "#" + \
-                            str(pos.y()) + "#" + \
+                mime.setText(self.tiType + "#" +
+                            str(self.tiId)+ "#" +
+                            str(pos.x()) + "#" +
+                            str(pos.y()) + "#" +
                             movedEnd)
                 drag.setMimeData(mime)
                 drag.exec_()
@@ -372,7 +372,6 @@ class LineItem(TrackItem):
         pos = event.buttonDownPos(Qt.LeftButton)
         if event.button() == Qt.LeftButton and \
            self._gi.shape().contains(pos):
-            event.accept()
             if self.simulation.context == utils.Context.EDITOR_TRAINS and \
                self.tiId > 0:
                 x = event.buttonDownPos(Qt.LeftButton).x()
@@ -381,8 +380,6 @@ class LineItem(TrackItem):
                                                     self,
                                                     self.previousItem,
                                                     self.realLength * ratio))
-        else:
-            event.ignore()
 
     @QtCore.pyqtSlot()
     def updateGraphics(self):
