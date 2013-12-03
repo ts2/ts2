@@ -18,16 +18,24 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4.QtCore import QObject
-from PyQt4.QtGui import QApplication, QIcon, QPixmap, QMessageBox
+from PyQt4 import QtCore, QtGui
 import sys
 from ts2 import mainwindow
 from ts2 import ressources_rc
 from ts2 import gui
 
 def Main():
-    app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(QPixmap(":/ts2.png")))
+    app = QtGui.QApplication(sys.argv)
+    app.setWindowIcon(QtGui.QIcon(QtGui.QPixmap(":/ts2.png")))
+    qtTranslator = QtCore.QTranslator()
+    qtTranslator.load("qt_" + QtCore.QLocale.system().name(),
+                      QtCore.QLibraryInfo.location(
+                                      QtCore.QLibraryInfo.TranslationsPath))
+    app.installTranslator(qtTranslator)
+    ts2Translator = QtCore.QTranslator()
+    ts2Translator.load(QtCore.QLocale.system(), "ts2", "_", "i18n", ".qm")
+    app.installTranslator(ts2Translator)
+    QtCore.qDebug(QtCore.QLocale.system().name())
     try:
         mw = mainwindow.MainWindow()
         mw.show()
