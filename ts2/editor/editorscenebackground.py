@@ -31,8 +31,8 @@ class EditorSceneBackground(QtGui.QGraphicsRectItem):
         self.setZValue(-100)
         self.setAcceptDrops(True)
         self._editor = editor
-        pen = QtGui.QPen(Qt.cyan)
-        self.setPen(pen)
+        #pen = QtGui.QPen(Qt.cyan)
+        #self.setPen(pen)
 
 
     def dragEnterEvent(self, event):
