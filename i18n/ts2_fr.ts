@@ -4,36 +4,6 @@
 <context>
     <name>@default</name>
     <message>
-        <location filename="../ts2/trains/train.py" line="47"/>
-        <source>Inactive</source>
-        <translation>Inactif</translation>
-    </message>
-    <message>
-        <location filename="../ts2/trains/train.py" line="49"/>
-        <source>Running</source>
-        <translation>En marche</translation>
-    </message>
-    <message>
-        <location filename="../ts2/trains/train.py" line="51"/>
-        <source>Stopped at station</source>
-        <translation>A l&apos;arrêt en gare</translation>
-    </message>
-    <message>
-        <location filename="../ts2/trains/train.py" line="53"/>
-        <source>Waiting at red signal</source>
-        <translation>Bloqué à un signal fermé</translation>
-    </message>
-    <message>
-        <location filename="../ts2/trains/train.py" line="55"/>
-        <source>Exited the area</source>
-        <translation>Sorti de la zone</translation>
-    </message>
-    <message>
-        <location filename="../ts2/trains/train.py" line="57"/>
-        <source>End of service</source>
-        <translation>Fin de mission</translation>
-    </message>
-    <message>
         <location filename="../ts2/gui/dialogs.py" line="36"/>
         <source>Error</source>
         <translation>Erreur</translation>
@@ -650,6 +620,16 @@ http://ts2.sourceforge.net
 TS2 est disponible sous la licence GNU GPL v2
 </translation>
     </message>
+    <message>
+        <location filename="../ts2/mainwindow.py" line="193"/>
+        <source>Simulation loading</source>
+        <translation>Chargement de la simulation</translation>
+    </message>
+    <message>
+        <location filename="../ts2/mainwindow.py" line="197"/>
+        <source>Simulation loaded</source>
+        <translation>Simulation chargee</translation>
+    </message>
 </context>
 <context>
     <name>OptionsModel</name>
@@ -743,7 +723,7 @@ Voie %s</translation>
     <message>
         <location filename="../ts2/routing/route.py" line="181"/>
         <source>Invalid route %i. Impossible to link beginSignal with endSignal</source>
-        <translation>Route invalide %i. Impossible de relier le signal d&apos;entrée avec le signal de sortie</translation>
+        <translation>Route invalide %i. Impossible de relier le signal d&apos;entree avec le signal de sortie</translation>
     </message>
 </context>
 <context>
@@ -920,7 +900,7 @@ Voir la sortie stderr pour plus d&apos;informations</translation>
     <message>
         <location filename="../ts2/simulation.py" line="317"/>
         <source>Loading train types</source>
-        <translation>Chargement des matériels roulants</translation>
+        <translation>Chargement des materiels roulants</translation>
     </message>
     <message>
         <location filename="../ts2/simulation.py" line="325"/>
@@ -935,32 +915,44 @@ Voir la sortie stderr pour plus d&apos;informations</translation>
     <message>
         <location filename="../ts2/simulation.py" line="359"/>
         <source>Loading TrackItems</source>
-        <translation>Chargement des éléments de voie</translation>
+        <translation>Chargement des elements de voie</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="420"/>
+        <location filename="../ts2/simulation.py" line="421"/>
         <source>Loading services</source>
         <translation>Chargement des missions</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="454"/>
+        <location filename="../ts2/simulation.py" line="455"/>
         <source>Creating TrackItem conflicts</source>
-        <translation>Création des conflits entre éléments</translation>
+        <translation>Creation des conflits entre elements</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="468"/>
+        <location filename="../ts2/simulation.py" line="469"/>
         <source>Creating TrackItem links</source>
-        <translation>Création des liens entre éléments</translation>
+        <translation>Creation des liens entre elements</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="503"/>
+        <location filename="../ts2/simulation.py" line="504"/>
         <source>Checking TrackItem links</source>
-        <translation>Vérification des liens entre éléments</translation>
+        <translation>Verification des liens entre elements</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="512"/>
+        <location filename="../ts2/simulation.py" line="513"/>
         <source>TrackItem %i is unlinked at (%f, %f)</source>
-        <translation>L&apos;élément %i n&apos;est pas relié au point (%f, %f)</translation>
+        <translation>L&apos;element %i n&apos;est pas relie au point (%f, %f)</translation>
+    </message>
+    <message>
+        <location filename="../ts2/simulation.py" line="280"/>
+        <source>Loading routes</source>
+        <translation>Chargement des routes</translation>
+    </message>
+    <message>
+        <location filename="../ts2/simulation.py" line="365"/>
+        <source>Invalid simulation: Not all items are linked.
+ See stderr for more information</source>
+        <translation>Simulation invalide: Tous les elements ne sont pas relies. 
+Voir la sortie stderr pour plus d&apos;informations</translation>
     </message>
 </context>
 <context>
@@ -1123,6 +1115,39 @@ Voir la sortie stderr pour plus d&apos;informations</translation>
         <location filename="../ts2/trains/train.py" line="135"/>
         <source>Departure time</source>
         <translation>Heure de départ</translation>
+    </message>
+</context>
+<context>
+    <name>TrainStatus</name>
+    <message>
+        <location filename="../ts2/trains/train.py" line="47"/>
+        <source>Inactive</source>
+        <translation>Inactif</translation>
+    </message>
+    <message>
+        <location filename="../ts2/trains/train.py" line="49"/>
+        <source>Running</source>
+        <translation>En marche</translation>
+    </message>
+    <message>
+        <location filename="../ts2/trains/train.py" line="51"/>
+        <source>Stopped at station</source>
+        <translation>A l&apos;arrêt en gare</translation>
+    </message>
+    <message>
+        <location filename="../ts2/trains/train.py" line="53"/>
+        <source>Waiting at red signal</source>
+        <translation>Bloqué à un signal fermé</translation>
+    </message>
+    <message>
+        <location filename="../ts2/trains/train.py" line="55"/>
+        <source>Exited the area</source>
+        <translation>Sorti de la zone</translation>
+    </message>
+    <message>
+        <location filename="../ts2/trains/train.py" line="57"/>
+        <source>End of service</source>
+        <translation>Fin de mission</translation>
     </message>
 </context>
 <context>

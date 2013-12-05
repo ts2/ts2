@@ -190,11 +190,11 @@ class MainWindow(QMainWindow):
                            self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            qDebug("Simulation loading")
+            qDebug(self.tr("Simulation loading"))
             self.simulation.reload(fileName)
             self.setWindowTitle( \
                 self.tr("ts2 - Train Signalling Simulation - %s") % fileName)
-            qDebug("Simulation loaded")
+            qDebug(self.tr("Simulation loaded"))
             QApplication.restoreOverrideCursor()
 
     @pyqtSlot(int)
@@ -206,7 +206,7 @@ class MainWindow(QMainWindow):
         """Shows the about box"""
         QMessageBox.about(self, self.tr("About TS2"), self.tr(
 """TS2 is a train signalling simulation.\n
-Version 0.3.2\n
+Version 0.3.3\n
 Copyright 2008-2013, NPi (npi@users.sourceforge.net)
 http://ts2.sourceforge.net\n
 TS2 is licensed under the terms of the GNU GPL v2\n"""))

@@ -27,9 +27,9 @@ from ts2 import scenery
 from ts2 import routing
 from ts2 import utils
 
-tr = QtCore.QObject().tr
+translate = QtGui.QApplication.translate
 
-class TrainStatus:
+class TrainStatus(QtCore.QObject):
     """This class holds the enum describing the status of a train"""
 
     INACTIVE = 0        # Not yet entered on the scene
@@ -44,17 +44,17 @@ class TrainStatus:
         """Returns the text corresponding to each status to display in the
         application."""
         if status == cls.INACTIVE:
-            return tr("Inactive")
+            return translate("TrainStatus", "Inactive")
         elif status == cls.RUNNING:
-            return tr("Running")
+            return translate("TrainStatus", "Running")
         elif status == cls.STOPPED:
-            return tr("Stopped at station")
-        elif status == cls.WAITING:
-            return tr("Waiting at red signal")
+            return translate("TrainStatus", "Stopped at station")
+        elif status== cls.WAITING:
+            return translate("TrainStatus", "Waiting at red signal")
         elif status == cls.OUT:
-            return tr("Exited the area")
+            return translate("TrainStatus", "Exited the area")
         elif status == cls.END_OF_SERVICE:
-            return tr("End of service")
+            return translate("TrainStatus", "End of service")
         else:
             return ""
 

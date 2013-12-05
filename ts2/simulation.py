@@ -277,7 +277,7 @@ class Simulation(QtCore.QObject):
 
     def loadRoutes(self, conn):
         """Creates the instances of routes from the data of the database."""
-        QtCore.qDebug("Loading routes")
+        QtCore.qDebug(self.tr("Loading routes"))
         for route in conn.execute("SELECT * FROM routes"):
             routeNum = route["routenum"]
             beginSignalId = route["beginsignal"]
@@ -362,8 +362,9 @@ valid.\nSee stderr for more information"""))
         self.createTrackItemConflicts(conn)
         # Check that all the items are linked
         if not self.checkTrackItemsLinks():
-            QtCore.qFatal("Invalid simulation: Not all items are linked.\n \
-                           See stderr for more information")
+            QtCore.qFatal(self.tr("Invalid simulation: "
+                "Not all items are linked.\n "
+                "See stderr for more information"))
 
     def createAllTrackItems(self, conn):
         """Creates the instances of TrackItem and its subclasses (including
