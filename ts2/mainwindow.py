@@ -206,7 +206,7 @@ class MainWindow(QMainWindow):
         """Shows the about box"""
         QMessageBox.about(self, self.tr("About TS2"), self.tr(
 """TS2 is a train signalling simulation.\n
-Version 0.3.3\n
+Version 0.4\n
 Copyright 2008-2013, NPi (npi@users.sourceforge.net)
 http://ts2.sourceforge.net\n
 TS2 is licensed under the terms of the GNU GPL v2\n"""))

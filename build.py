@@ -23,7 +23,7 @@ if sys.platform == "win32":
 
 setup(
         name = "ts2",
-        version = "0.3.3",
+        version = "0.4",
         description = "Train Signalling Simulation",
         options = {"build_exe" : build_exe_options},
         executables = [Executable("ts2.py", base = base)])
