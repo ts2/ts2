@@ -11,7 +11,8 @@ build_exe_options = {
         ("data/drain.ts2","simulations/drain.ts2"),
         ("data/liverpool-st.ts2","simulations/liverpool-st.ts2"),
         ("README.md","doc/README.txt"),
-        ("COPYING","doc/COPYING.txt")],
+        ("COPYING","doc/COPYING.txt"),
+        ("i18n/ts2_fr.qm","i18n/ts2_fr.qm")],
     "include_msvcr" : True,
     "icon" : "images/ts2.ico"}
 

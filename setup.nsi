@@ -88,6 +88,8 @@ Section "SectionPrincipale" SEC01
   SetOutPath "$INSTDIR\simulations"
   File "build\exe.win-amd64-3.3\simulations\drain.ts2"
   File "build\exe.win-amd64-3.3\simulations\liverpool-st.ts2"
+  SetOutPath "$INSTDIR\i18n"
+  File "build\exe.win-amd64-3.3\i18n\ts2_fr.qm"
   SetOutPath "$INSTDIR"
   File "build\exe.win-amd64-3.3\sip.pyd"
   File "build\exe.win-amd64-3.3\sqlite3.dll"
