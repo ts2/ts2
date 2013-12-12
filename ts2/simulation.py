@@ -101,7 +101,7 @@ class Simulation(QtCore.QObject):
         self.loadRoutes(conn)
         self.loadTrainTypes(conn)
         self.loadServices(conn)
-        self.startServices()
+        #self.startServices()
         self.loadTrains(conn)
         conn.close()
         self.setupConnections()
@@ -138,13 +138,13 @@ class Simulation(QtCore.QObject):
         self._trainListModel = trains.TrainListModel(self)
         self._selectedTrainModel = trains.TrainInfoModel(self)
 
-    def train(self, serviceCode):
-        """Returns the Train object corresponding to the train whose
-        serviceCode is currently serviceCode"""
-        for t in self._trains:
-            if t.serviceCode == serviceCode:
-                return t
-        return None
+    #def train(self, serviceCode):
+        #"""Returns the Train object corresponding to the train whose
+        #serviceCode is currently serviceCode"""
+        #for t in self._trains:
+            #if t.serviceCode == serviceCode:
+                #return t
+        #return None
 
     @property
     def trains(self):
@@ -179,9 +179,9 @@ class Simulation(QtCore.QObject):
     routeDeleted = QtCore.pyqtSignal(routing.Route)
     timeChanged = QtCore.pyqtSignal(QtCore.QTime)
     timeElapsed = QtCore.pyqtSignal(float)
-    trainSelected = QtCore.pyqtSignal(str)
+    trainSelected = QtCore.pyqtSignal(int)
     itemSelected = QtCore.pyqtSignal(int)
-    trainStatusChanged = QtCore.pyqtSignal(str)
+    trainStatusChanged = QtCore.pyqtSignal(int)
 
     @QtCore.pyqtSlot(int, bool, bool)
     def activateRoute(self, siId, persistent=False, force=False):
@@ -429,10 +429,10 @@ valid.\nSee stderr for more information"""))
             parameters = dict(serviceLine)
             self._services[serviceCode].addLine(parameters)
 
-    def startServices(self):
-        """Starts each service of this simulation."""
-        for s in self._services.values():
-            s.start()
+    #def startServices(self):
+        #"""Starts each service of this simulation."""
+        #for s in self._services.values():
+            #s.start()
 
     def setupConnections(self):
         """Sets up the connections which need a simulation loaded"""

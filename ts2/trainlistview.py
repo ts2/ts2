@@ -35,14 +35,14 @@ class TrainListView(QTreeView):
         self.setSortingEnabled(True)
         self._simulation.simulationLoaded.connect(self.setupTrainList)
 
-    trainSelected = pyqtSignal(str)
+    trainSelected = pyqtSignal(int)
 
-    @pyqtSlot(str)
-    def updateTrainSelection(self, serviceCode):
-        for i in range(self.model().rowCount()):
-            index = self.model().index(i, 0)
-            if self.model().data(index) == serviceCode:
-                self.selectionModel().select(index, QItemSelectionModel.Rows|QItemSelectionModel.ClearAndSelect)
+    @pyqtSlot(int)
+    def updateTrainSelection(self, trainId):
+        index = self.model().index(trainId, 0)
+        self.selectionModel().select(index,
+                                     QItemSelectionModel.Rows|
+                                     QItemSelectionModel.ClearAndSelect)
 
     @pyqtSlot()
     def setupTrainList(self):
@@ -61,13 +61,14 @@ class TrainListView(QTreeView):
     def contextMenuEvent(self, event):
         index = self.selectionModel().selection().indexes()[0]
         if index.isValid():
-            train = self._simulation.train(index.data())
+            train = self._simulation.trains[index.row()]
             train.showTrainActionsMenu(self, event.globalPos())
 
     @pyqtSlot(QItemSelection, QItemSelection)
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)
-        index = selected.indexes()[0]
-        if index.isValid():
-            self.trainSelected.emit(index.data())
+        if len(selected.indexes()) > 0:
+            index = selected.indexes()[0]
+            if index.isValid():
+                self.trainSelected.emit(index.row())
 

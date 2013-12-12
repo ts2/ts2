@@ -474,12 +474,12 @@ class TrackItem(QtCore.QObject):
         else:
             return False
 
-    def trainHeadActions(self, serviceCode):
+    def trainHeadActions(self, trainId):
         """Performs the actions to be done when a train head reaches this
         TrackItem"""
         pass
 
-    def trainTailActions(self, serviceCode):
+    def trainTailActions(self, trainId):
         """Performs the actions to be done when a train tail reaches this
         TrackItem"""
         if self.activeRoute is not None:

@@ -85,6 +85,7 @@ class MainWindow(QMainWindow):
         self._trainInfoView.setModel(self.simulation.selectedTrainModel)
         self._trainInfoView.setContextMenuPolicy(Qt.CustomContextMenu)
         self._trainInfoView.customContextMenuRequested.connect(self.showContextMenu)
+        self.simulation.trainStatusChanged.connect(self._trainInfoView.model().update)
         self.trainInfoPanel.setWidget(self._trainInfoView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.trainInfoPanel)
 
