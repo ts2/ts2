@@ -473,6 +473,7 @@ class Train(QtCore.QObject):
     @status.setter
     def status(self, value):
         """Setter function for the status property."""
+        oldStatus = self._status
         if self._status == TrainStatus.INACTIVE:
             if value == TrainStatus.RUNNING:
                 self._speed = self._initialSpeed
@@ -498,15 +499,14 @@ class Train(QtCore.QObject):
                 self._status = value
         else:
             self._status = value
-        self.trainStatusChanged.emit(self.trainId)
+        if self._status != oldStatus:
+            self.trainStatusChanged.emit(self.trainId)
 
 
     @property
     def currentService(self):
         """Returns the Service object assigned to this train"""
-        if self._serviceCode is None:
-            return None
-        else:
+        if self._serviceCode is not None:
             return self.simulation.service(self._serviceCode)
 
     @property

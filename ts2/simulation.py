@@ -154,11 +154,11 @@ class Simulation(QtCore.QObject):
         return self._trackItems[id]
 
     def place(self, placeCode):
+        """Returns the place defined by placeCode."""
         if placeCode is not None and placeCode != "":
-            for ti in self._trackItems.values():
-                if ti.tiType.startswith("A") and ti.placeCode == placeCode:
-                    return ti
-        return None
+            return self._places[placeCode]
+        else:
+            return None
 
     def service(self, serviceCode):
         return self._services[serviceCode]
@@ -369,13 +369,12 @@ valid.\nSee stderr for more information"""))
     def createAllTrackItems(self, conn):
         """Creates the instances of TrackItem and its subclasses (including
         Places) from the database."""
-        for place in \
-                    conn.execute("SELECT * FROM trackitems WHERE titype='A'"):
-            parameters = dict(place)
+        for p in conn.execute("SELECT * FROM trackitems WHERE titype='A'"):
+            parameters = dict(p)
             tiId = parameters["tiid"]
-            placeCode = parameters["placecode"]
             place = scenery.Place(self, parameters)
             self._trackItems[tiId] = place
+            self._places[place.placeCode] = place
 
         for trackItem in \
                    conn.execute("SELECT * FROM trackitems WHERE titype<>'A'"):
