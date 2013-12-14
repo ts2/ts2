@@ -238,6 +238,9 @@ class TrackItem(QtCore.QObject):
                     "trackcode":"VARCHAR(10)",
                     "timersw":"DOUBLE",
                     "timerwc":"DOUBLE",
+                    "ptiid":"INTEGER",
+                    "ntiid":"INTEGER",
+                    "rtiid":"INTEGER"
                  }
 
     trackItemClicked = QtCore.pyqtSignal(int)
@@ -400,6 +403,14 @@ class TrackItem(QtCore.QObject):
     def saveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
         database"""
+        if self.previousItem is not None:
+            previousTiId = self.previousItem.tiId
+        else:
+            previousTiId = None
+        if self.nextItem is not None:
+            nextTiId = self.nextItem.tiId
+        else:
+            nextTiId = None
         return  {
                     "tiid":self.tiId,
                     "titype":self.tiType,
@@ -407,7 +418,9 @@ class TrackItem(QtCore.QObject):
                     "conflicttiid":self.conflictTiId,
                     "x":self.origin.x(),
                     "y":self.origin.y(),
-                    "maxspeed":self.maxSpeed
+                    "maxspeed":self.maxSpeed,
+                    "ptiid":previousTiId,
+                    "ntiid":nextTiId
                 }
 
     @property

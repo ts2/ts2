@@ -26,7 +26,7 @@ from ts2.scenery import Place
 from ts2.servicelistview import ServiceListView
 from ts2.trainlistview import TrainListView
 from ts2.panel import Panel
-from ts2 import editor
+from ts2 import editor, utils
 
 class MainWindow(QMainWindow):
     """ TODO Document MainWindow Class"""
@@ -192,10 +192,22 @@ class MainWindow(QMainWindow):
         if fileName != "":
             QApplication.setOverrideCursor(Qt.WaitCursor)
             qDebug(self.tr("Simulation loading"))
-            self.simulation.reload(fileName)
-            self.setWindowTitle( \
-                self.tr("ts2 - Train Signalling Simulation - %s") % fileName)
-            qDebug(self.tr("Simulation loaded"))
+            try:
+                self.simulation.reload(fileName)
+            except utils.FormatException as err:
+                QMessageBox.critical(self,
+                             self.tr("Bad version of TS2 simulation file"),
+                             str(err),
+                             QMessageBox.Ok)
+            except Exception as err:
+                QMessageBox.critical(self,
+                             self.tr("Error"),
+                             str(err),
+                             QMessageBox.Ok)
+            else:
+                self.setWindowTitle(self.tr(
+                        "ts2 - Train Signalling Simulation - %s") % fileName)
+                qDebug(self.tr("Simulation loaded"))
             QApplication.restoreOverrideCursor()
 
     @pyqtSlot(int)
@@ -206,11 +218,12 @@ class MainWindow(QMainWindow):
     def showAboutBox(self):
         """Shows the about box"""
         QMessageBox.about(self, self.tr("About TS2"), self.tr(
-"""TS2 is a train signalling simulation.\n
-Version 0.4\n
-Copyright 2008-2013, NPi (npi@users.sourceforge.net)
-http://ts2.sourceforge.net\n
-TS2 is licensed under the terms of the GNU GPL v2\n"""))
+            "TS2 is a train signalling simulation.\n\n"
+            "Version %s\n\n"
+            "Copyright 2008-2013, NPi (npi@users.sourceforge.net)\n"
+            "http://ts2.sourceforge.net\n\n"
+            "TS2 is licensed under the terms of the GNU GPL v2\n""") %
+            utils.TS2_VERSION)
         if self.editorOpened:
             self.editorWindow.activateWindow()
 

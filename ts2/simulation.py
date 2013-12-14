@@ -27,6 +27,7 @@ from ts2 import routing
 from ts2 import scenery
 from ts2 import trains
 
+
 class Simulation(QtCore.QObject):
     """The Simulation class holds all the game logic."""
 
@@ -96,12 +97,22 @@ class Simulation(QtCore.QObject):
         conn = sqlite3.connect(fileName)
         conn.row_factory = sqlite3.Row
         self.loadOptions(conn)
-        #self.loadPlaces(conn)
+        version = float(self.option("version"))
+        if version > utils.TS2_FILE_FORMAT:
+            conn.close()
+            raise utils.FormatException(self.tr(
+                            "The simulation is from a newer version of TS2.\n"
+                            "Please upgrade TS2 to version %s.") % version)
+        if version < utils.TS2_FILE_FORMAT:
+            conn.close()
+            raise utils.FormatException(self.tr(
+                        "The simulation is from an older version of TS2.\n"
+                        "Open it in the editor and save it again to play "
+                        "with this version of TS2"))
         self.loadTrackItems(conn)
         self.loadRoutes(conn)
         self.loadTrainTypes(conn)
         self.loadServices(conn)
-        #self.startServices()
         self.loadTrains(conn)
         conn.close()
         self.setupConnections()
@@ -137,14 +148,6 @@ class Simulation(QtCore.QObject):
         self._selectedServiceModel = trains.ServiceInfoModel(self)
         self._trainListModel = trains.TrainListModel(self)
         self._selectedTrainModel = trains.TrainInfoModel(self)
-
-    #def train(self, serviceCode):
-        #"""Returns the Train object corresponding to the train whose
-        #serviceCode is currently serviceCode"""
-        #for t in self._trains:
-            #if t.serviceCode == serviceCode:
-                #return t
-        #return None
 
     @property
     def trains(self):
@@ -338,7 +341,7 @@ valid.\nSee stderr for more information"""))
         self._options = {
                 "title":"",
                 "description":"",
-                "version":"0.3",
+                "version":utils.TS2_FILE_FORMAT,
                 "timeFactor":5,
                 "currentTime":"06:00:00",
                 "warningSpeed":8.3,
@@ -358,7 +361,8 @@ valid.\nSee stderr for more information"""))
         data of the database, and make all the necessary links"""
         QtCore.qDebug(self.tr("Loading TrackItems"))
         self.createAllTrackItems(conn)
-        self.createTrackItemsLinks()
+        self.linkTrackItems(conn)
+        #self.createTrackItemsLinks()
         self.createTrackItemConflicts(conn)
         # Check that all the items are linked
         if not self.checkTrackItemsLinks():
@@ -435,7 +439,7 @@ valid.\nSee stderr for more information"""))
 
     def setupConnections(self):
         """Sets up the connections which need a simulation loaded"""
-        self.timeChanged.connect(self.selectedTrainModel.reset)
+        #self.timeChanged.connect(self.selectedTrainModel.reset)
 
     def findRoute(self, si1, si2):
         """Checks whether a route exists between two signals, and return this
@@ -448,6 +452,23 @@ valid.\nSee stderr for more information"""))
             if r.links(si1, si2):
                 return r;
         return None;
+
+    def linkTrackItems(self, conn):
+        """Link trackItems using the data from the database connection."""
+        QtCore.qDebug(self.tr("Linking trackItems"))
+        for trackItem in conn.execute("SELECT * FROM trackitems"):
+            tiId = trackItem["tiid"]
+            previousTiId = trackItem["ptiid"]
+            if previousTiId is not None:
+                self._trackItems[tiId].previousItem = \
+                                                self._trackItems[previousTiId]
+            nextTiId = trackItem["ntiid"]
+            if nextTiId is not None:
+                self._trackItems[tiId].nextItem = self._trackItems[nextTiId]
+            reverseTiId = trackItem["rtiid"]
+            if reverseTiId is not None:
+                self._trackItems[tiId].reverseItem = \
+                                                self._trackItems[reverseTiId]
 
     def createTrackItemConflicts(self, conn):
         """Create the trackitems' conflicts from the data in database."""

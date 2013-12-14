@@ -3,6 +3,7 @@
 import sys
 
 from cx_Freeze import setup, Executable
+from ts2 import utils
 
 build_exe_options = {
     "includes" : ["atexit"],
@@ -23,7 +24,7 @@ if sys.platform == "win32":
 
 setup(
         name = "ts2",
-        version = "0.4",
+        version = utils.TS2_VERSION,
         description = "Train Signalling Simulation",
         options = {"build_exe" : build_exe_options},
         executables = [Executable("ts2.py", base = base)])

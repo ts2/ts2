@@ -70,15 +70,16 @@ class PointsItem(TrackItem):
         """Returns the parameters dictionary to save this TrackItem to the
         database"""
         parameters = super().saveParameters
-        parameters.update({ \
-                                "x":self._center.x(), \
-                                "y":self._center.y(), \
-                                "xf":(self._commonEnd - self.middle).x(), \
-                                "yf":(self._commonEnd - self.middle).y(), \
-                                "xn":(self._normalEnd - self.middle).x(), \
-                                "yn":(self._normalEnd - self.middle).y(), \
-                                "xr":(self._reverseEnd - self.middle).x(), \
-                                "yr":(self._reverseEnd - self.middle).y()})
+        parameters.update({
+                                "x":self._center.x(),
+                                "y":self._center.y(),
+                                "xf":(self._commonEnd - self.middle).x(),
+                                "yf":(self._commonEnd - self.middle).y(),
+                                "xn":(self._normalEnd - self.middle).x(),
+                                "yn":(self._normalEnd - self.middle).y(),
+                                "xr":(self._reverseEnd - self.middle).x(),
+                                "yr":(self._reverseEnd - self.middle).y(),
+                                "rtiid":self.reverseItem.tiId})
         return parameters
 
     @property

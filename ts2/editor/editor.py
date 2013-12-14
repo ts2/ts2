@@ -298,6 +298,7 @@ class Editor(simulation.Simulation):
 
     def reload(self, fileName):
         """Load or reload all the data of the simulation from the database."""
+        self.updateFileFormat(fileName)
         conn = sqlite3.connect(fileName)
         conn.row_factory = sqlite3.Row
         self.loadOptions(conn)
@@ -326,11 +327,29 @@ class Editor(simulation.Simulation):
         self.servicesChanged.emit()
         self.loadTrains(conn)
         self.trainsChanged.emit()
+        conn.close()
+
+    def updateFileFormat(self, fileName):
+        """Updates the database given by fileName to the current file format.
+        """
+        conn = sqlite3.connect(fileName)
+        conn.row_factory = sqlite3.Row
+        self.loadOptions(conn)
+        version = float(self.option("version"))
+        if version < utils.TS2_FILE_FORMAT:
+            if version <= 0.3:
+                conn.execute("ALTER TABLE trackitems ADD COLUMN ptiid")
+                conn.execute("ALTER TABLE trackitems ADD COLUMN ntiid")
+                conn.execute("ALTER TABLE trackitems ADD COLUMN rtiid")
+                conn.commit()
+            self.setOption("version", utils.TS2_FILE_FORMAT)
+            self.saveOptions(conn)
+        conn.close()
 
     def save(self):
         """Saves the data of the simulation to the database"""
         # Set up database
-        self.setOption("version", "0.3")
+        self.setOption("version", utils.TS2_FILE_FORMAT)
         conn = sqlite3.connect(self._database)
         self.saveOptions(conn)
         self.saveTrackItems(conn)
