@@ -185,8 +185,7 @@ class ServicesModel(QtCore.QAbstractTableModel):
     def data(self, index, role = Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            key = sorted(self._editor.services.keys())[index.row()]
-            service = self._editor.services[key]
+            service = list(self._editor.services.values())[index.row()]
             if index.column() == 0:
                 return str(service.serviceCode)
             elif index.column() == 1:

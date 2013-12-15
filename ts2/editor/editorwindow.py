@@ -288,7 +288,9 @@ class EditorWindow(QtGui.QMainWindow):
         hgride.addWidget(self.importServicesBtn)
         hgride.addStretch()
         self.servicesView = ts2.editor.views.ServicesEditorView(servicesTab)
-        self.servicesView.setModel(self.editor.servicesModel)
+        servicesSortedModel = QtGui.QSortFilterProxyModel()
+        servicesSortedModel.setSourceModel(self.editor.servicesModel)
+        self.servicesView.setModel(servicesSortedModel)
         self.editor.servicesChanged.connect(self.servicesView.model().reset)
         self.editor.servicesChanged.connect(
                                 self.servicesView.resizeColumnsToContents)
