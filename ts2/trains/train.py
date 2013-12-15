@@ -22,7 +22,7 @@ from math import sqrt
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 
-from ts2 import serviceassigndialog
+from ts2.gui import serviceassigndialog
 from ts2 import scenery
 from ts2 import routing
 from ts2 import utils

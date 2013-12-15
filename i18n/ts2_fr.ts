@@ -4,11 +4,6 @@
 <context>
     <name>@default</name>
     <message>
-        <location filename="../ts2/gui/dialogs.py" line="36"/>
-        <source>Error</source>
-        <translation>Erreur</translation>
-    </message>
-    <message>
         <location filename="../ts2/scenery/platformitem.py" line="80"/>
         <source>Platform top left point</source>
         <translation>Point en haut à gauche du quai</translation>
@@ -87,7 +82,7 @@
 <context>
     <name>Editor</name>
     <message>
-        <location filename="../ts2/editor/editor.py" line="582"/>
+        <location filename="../ts2/editor/editor.py" line="601"/>
         <source>Format Error: invalid header %s detected</source>
         <translation>Erreur de format: l&apos;en-tête %s est invalide</translation>
     </message>
@@ -490,145 +485,150 @@ Are you sure you want to continue?</source>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../ts2/mainwindow.py" line="39"/>
+        <location filename="../ts2/mainwindow.py" line="36"/>
         <source>ts2 - Train Signalling Simulation</source>
         <translation>ts2 - Train Signalling Simulation</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="45"/>
+        <location filename="../ts2/mainwindow.py" line="42"/>
         <source>&amp;Open...</source>
         <translation>&amp;Ouvrir...</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="186"/>
+        <location filename="../ts2/mainwindow.py" line="200"/>
         <source>Open a simulation</source>
         <translation>Ouvrir une simulation</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="50"/>
+        <location filename="../ts2/mainwindow.py" line="47"/>
         <source>&amp;Quit</source>
         <translation>&amp;Quitter</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="51"/>
+        <location filename="../ts2/mainwindow.py" line="48"/>
         <source>Ctrl+Q</source>
         <translation>Ctrl+Q</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="52"/>
+        <location filename="../ts2/mainwindow.py" line="49"/>
         <source>Quit TS2</source>
         <translation>Quitter TS2</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="55"/>
+        <location filename="../ts2/mainwindow.py" line="52"/>
         <source>&amp;Editor</source>
         <translation>&amp;Editeur</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="56"/>
+        <location filename="../ts2/mainwindow.py" line="53"/>
         <source>Ctrl+E</source>
         <translation>Ctrl+E</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="57"/>
+        <location filename="../ts2/mainwindow.py" line="54"/>
         <source>Open the simulation editor</source>
         <translation>Ouvrir l&apos;éditeur de simulations</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="60"/>
+        <location filename="../ts2/mainwindow.py" line="57"/>
         <source>&amp;About TS2...</source>
         <translation>&amp;A propos de TS2...</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="207"/>
+        <location filename="../ts2/mainwindow.py" line="231"/>
         <source>About TS2</source>
         <translation>A propos de TS2</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="64"/>
+        <location filename="../ts2/mainwindow.py" line="61"/>
         <source>About Qt...</source>
         <translation>A propos de Qt...</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="65"/>
+        <location filename="../ts2/mainwindow.py" line="62"/>
         <source>About Qt</source>
         <translation>A propos de Qt</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="69"/>
+        <location filename="../ts2/mainwindow.py" line="66"/>
         <source>&amp;File</source>
         <translation>&amp;Fichier</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="74"/>
+        <location filename="../ts2/mainwindow.py" line="71"/>
         <source>&amp;Help</source>
         <translation>&amp;Aide</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="80"/>
+        <location filename="../ts2/mainwindow.py" line="77"/>
         <source>Train Information</source>
         <translation>Détails du train</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="91"/>
+        <location filename="../ts2/mainwindow.py" line="93"/>
         <source>Service Information</source>
         <translation>Détails de la mission</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="100"/>
+        <location filename="../ts2/mainwindow.py" line="105"/>
         <source>Station Information</source>
         <translation>Gare</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="109"/>
+        <location filename="../ts2/mainwindow.py" line="116"/>
         <source>Trains</source>
         <translation>Trains</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="117"/>
+        <location filename="../ts2/mainwindow.py" line="128"/>
         <source>Services</source>
         <translation>Missions</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="186"/>
+        <location filename="../ts2/mainwindow.py" line="200"/>
         <source>TS2 simulation files (*.ts2)</source>
         <translation>Simulations TS2 (*.ts2)</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="195"/>
+        <location filename="../ts2/mainwindow.py" line="218"/>
         <source>ts2 - Train Signalling Simulation - %s</source>
         <translation>ts2 - Train Signalling Simulation - %s</translation>
     </message>
     <message>
         <location filename="../ts2/mainwindow.py" line="207"/>
+        <source>Simulation loading</source>
+        <translation>Chargement de la simulation</translation>
+    </message>
+    <message>
+        <location filename="../ts2/mainwindow.py" line="220"/>
+        <source>Simulation loaded</source>
+        <translation>Simulation chargee</translation>
+    </message>
+    <message>
+        <location filename="../ts2/mainwindow.py" line="211"/>
+        <source>Bad version of TS2 simulation file</source>
+        <translation>Mauvaise version de fichier TS2</translation>
+    </message>
+    <message>
+        <location filename="../ts2/mainwindow.py" line="231"/>
         <source>TS2 is a train signalling simulation.
 
-Version 0.3.2
+Version %s
 
 Copyright 2008-2013, NPi (npi@users.sourceforge.net)
 http://ts2.sourceforge.net
 
 TS2 is licensed under the terms of the GNU GPL v2
 </source>
-        <translation>TS2 est une simulation d&apos;aiguillage
+        <translation>TS2 est une simulation de poste d&apos;aiguillage
 
-Version 0.3.2
+Version %s
 
 Copyright 2008-2013, NPi (npi@users.sourceforge.net)
 http://ts2.sourceforge.net
 
-TS2 est disponible sous la licence GNU GPL v2
+TS2 est distribué sous les termes de la license GNU GPL v2
 </translation>
-    </message>
-    <message>
-        <location filename="../ts2/mainwindow.py" line="193"/>
-        <source>Simulation loading</source>
-        <translation>Chargement de la simulation</translation>
-    </message>
-    <message>
-        <location filename="../ts2/mainwindow.py" line="197"/>
-        <source>Simulation loaded</source>
-        <translation>Simulation chargee</translation>
     </message>
 </context>
 <context>
@@ -647,24 +647,24 @@ TS2 est disponible sous la licence GNU GPL v2
 <context>
     <name>Panel</name>
     <message>
-        <location filename="../ts2/panel.py" line="92"/>
+        <location filename="../ts2/gui/widgets.py" line="111"/>
         <source>Pause</source>
         <translation>Pause</translation>
     </message>
     <message>
-        <location filename="../ts2/panel.py" line="58"/>
+        <location filename="../ts2/gui/widgets.py" line="75"/>
         <source>Simulation speed: </source>
-        <translation>Vitesse de la simulation : </translation>
+        <translation>Vitesse de simulation :</translation>
     </message>
     <message>
-        <location filename="../ts2/panel.py" line="61"/>
+        <location filename="../ts2/gui/widgets.py" line="78"/>
         <source>Zoom: </source>
-        <translation>Zoom :</translation>
+        <translation>Zoom : </translation>
     </message>
     <message>
-        <location filename="../ts2/panel.py" line="90"/>
+        <location filename="../ts2/gui/widgets.py" line="109"/>
         <source>Continue</source>
-        <translation>Reprendre</translation>
+        <translation>Continuer</translation>
     </message>
 </context>
 <context>
@@ -713,7 +713,7 @@ Voie %s</translation>
 <context>
     <name>PointsItem</name>
     <message>
-        <location filename="../ts2/scenery/pointsitem.py" line="212"/>
+        <location filename="../ts2/scenery/pointsitem.py" line="213"/>
         <source>Points no: %s</source>
         <translation>Aiguilles n°: %s</translation>
     </message>
@@ -752,7 +752,7 @@ Voie %s</translation>
 <context>
     <name>ServiceAssignDialog</name>
     <message>
-        <location filename="../ts2/serviceassigndialog.py" line="29"/>
+        <location filename="../ts2/gui/serviceassigndialog.py" line="29"/>
         <source>Choose a service to assign to this train</source>
         <translation>Choisir une mission à assigner à ce train</translation>
     </message>
@@ -880,17 +880,17 @@ Voie %s</translation>
 <context>
     <name>Simulation</name>
     <message>
-        <location filename="../ts2/simulation.py" line="223"/>
+        <location filename="../ts2/simulation.py" line="226"/>
         <source>Conflicting route</source>
         <translation>Route en conflit</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="229"/>
+        <location filename="../ts2/simulation.py" line="232"/>
         <source>No route between signals</source>
         <translation>Pas de route entre ces deux signaux</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="302"/>
+        <location filename="../ts2/simulation.py" line="305"/>
         <source>Invalid simulation: Some routes are not
 valid.
 See stderr for more information</source>
@@ -898,61 +898,80 @@ See stderr for more information</source>
 Voir la sortie stderr pour plus d&apos;informations</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="317"/>
+        <location filename="../ts2/simulation.py" line="320"/>
         <source>Loading train types</source>
         <translation>Chargement des materiels roulants</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="325"/>
+        <location filename="../ts2/simulation.py" line="328"/>
         <source>Loading trains</source>
         <translation>Chargement des trains</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="337"/>
+        <location filename="../ts2/simulation.py" line="340"/>
         <source>Loading options</source>
         <translation>Chargement des options</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="359"/>
+        <location filename="../ts2/simulation.py" line="362"/>
         <source>Loading TrackItems</source>
         <translation>Chargement des elements de voie</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="421"/>
+        <location filename="../ts2/simulation.py" line="424"/>
         <source>Loading services</source>
         <translation>Chargement des missions</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="455"/>
+        <location filename="../ts2/simulation.py" line="475"/>
         <source>Creating TrackItem conflicts</source>
         <translation>Creation des conflits entre elements</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="469"/>
+        <location filename="../ts2/simulation.py" line="489"/>
         <source>Creating TrackItem links</source>
         <translation>Creation des liens entre elements</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="504"/>
+        <location filename="../ts2/simulation.py" line="524"/>
         <source>Checking TrackItem links</source>
         <translation>Verification des liens entre elements</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="513"/>
+        <location filename="../ts2/simulation.py" line="533"/>
         <source>TrackItem %i is unlinked at (%f, %f)</source>
         <translation>L&apos;element %i n&apos;est pas relie au point (%f, %f)</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="280"/>
+        <location filename="../ts2/simulation.py" line="283"/>
         <source>Loading routes</source>
         <translation>Chargement des routes</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="365"/>
+        <location filename="../ts2/simulation.py" line="369"/>
         <source>Invalid simulation: Not all items are linked.
  See stderr for more information</source>
         <translation>Simulation invalide: Tous les elements ne sont pas relies. 
 Voir la sortie stderr pour plus d&apos;informations</translation>
+    </message>
+    <message>
+        <location filename="../ts2/simulation.py" line="103"/>
+        <source>The simulation is from a newer version of TS2.
+Please upgrade TS2 to version %s.</source>
+        <translation>La simulation provient d&apos;une version ultérieure de TS2.
+Merci de mettre à jour TS2 vers la version %s.</translation>
+    </message>
+    <message>
+        <location filename="../ts2/simulation.py" line="108"/>
+        <source>The simulation is from an older version of TS2.
+Open it in the editor and save it again to play with this version of TS2</source>
+        <translation>La simulation provient d&apos;une ancienne version de TS2.
+Ouvrez la avec l&apos;éditeur et sauvegardez-là à nouveau pour pouvoir jouer avec cette version de TS2.</translation>
+    </message>
+    <message>
+        <location filename="../ts2/simulation.py" line="458"/>
+        <source>Linking trackItems</source>
+        <translation>Liaison des elements de voie</translation>
     </message>
 </context>
 <context>
@@ -971,100 +990,105 @@ Voir la sortie stderr pour plus d&apos;informations</translation>
 <context>
     <name>Train</name>
     <message>
-        <location filename="../ts2/trains/train.py" line="401"/>
+        <location filename="../ts2/trains/train.py" line="417"/>
         <source>Reassign service...</source>
         <translation>Réassigner une mission...</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="404"/>
+        <location filename="../ts2/trains/train.py" line="420"/>
         <source>Reset service</source>
         <translation>Recommencer la mission</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="407"/>
+        <location filename="../ts2/trains/train.py" line="423"/>
         <source>Reverse</source>
         <translation>Inverser le sens de marche</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="609"/>
+        <location filename="../ts2/trains/train.py" line="663"/>
         <source>Reset a service</source>
         <translation>Recommencer la mission</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="609"/>
+        <location filename="../ts2/trains/train.py" line="663"/>
         <source>Are you sure you really want to reset service %s?</source>
         <translation>Êtes-vous sûrs de vraiment vouloir recommencer la mission %s ?</translation>
+    </message>
+    <message>
+        <location filename="../ts2/trains/train.py" line="457"/>
+        <source>No service with code %s</source>
+        <translation>Aucune mission avec le code %s</translation>
     </message>
 </context>
 <context>
     <name>TrainInfoModel</name>
     <message>
-        <location filename="../ts2/trains/train.py" line="271"/>
+        <location filename="../ts2/trains/train.py" line="276"/>
         <source>Service Code:</source>
         <translation>Code mission :</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="273"/>
+        <location filename="../ts2/trains/train.py" line="278"/>
         <source>Status</source>
         <translation>Etat</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="275"/>
+        <location filename="../ts2/trains/train.py" line="280"/>
         <source>Speed:</source>
         <translation>Vitesse :</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="277"/>
+        <location filename="../ts2/trains/train.py" line="282"/>
         <source>Train Type:</source>
         <translation>Matériel roulant :</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="281"/>
+        <location filename="../ts2/trains/train.py" line="286"/>
         <source>Entry point:</source>
         <translation>Point d&apos;entrée :</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="283"/>
+        <location filename="../ts2/trains/train.py" line="288"/>
         <source>Exit point:</source>
         <translation>Point de sortie :</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="287"/>
+        <location filename="../ts2/trains/train.py" line="292"/>
         <source>Next:</source>
         <translation>Suivant :</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="289"/>
+        <location filename="../ts2/trains/train.py" line="294"/>
         <source>Track:</source>
         <translation>Voie :</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="291"/>
+        <location filename="../ts2/trains/train.py" line="296"/>
         <source>Arrival time:</source>
         <translation>Heure d&apos;arrivée :</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="293"/>
+        <location filename="../ts2/trains/train.py" line="298"/>
         <source>Departure time:</source>
         <translation>Heure de départ :</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="301"/>
+        <location filename="../ts2/trains/train.py" line="306"/>
         <source>%3.0d km/h</source>
         <translation>%3.0d km/h</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="321"/>
+        <location filename="../ts2/trains/train.py" line="326"/>
         <source>Non-stop</source>
         <translation>Sans arrêt</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="346"/>
+        <location filename="../ts2/trains/train.py" line="351"/>
         <source>Key</source>
         <translation>Clé</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="348"/>
+        <location filename="../ts2/trains/train.py" line="353"/>
         <source>Value</source>
         <translation>Valeur</translation>
     </message>
@@ -1072,47 +1096,47 @@ Voir la sortie stderr pour plus d&apos;informations</translation>
 <context>
     <name>TrainListModel</name>
     <message>
-        <location filename="../ts2/trains/train.py" line="100"/>
+        <location filename="../ts2/trains/train.py" line="103"/>
         <source>Non-stop</source>
         <translation>Sans arrêt</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="121"/>
+        <location filename="../ts2/trains/train.py" line="123"/>
         <source>Code</source>
         <translation>Code</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="123"/>
+        <location filename="../ts2/trains/train.py" line="125"/>
         <source>Status</source>
         <translation>Etat</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="125"/>
+        <location filename="../ts2/trains/train.py" line="127"/>
         <source>Entry Point</source>
         <translation>Point d&apos;entrée</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="127"/>
+        <location filename="../ts2/trains/train.py" line="129"/>
         <source>Exit Point</source>
         <translation>Point de sortie</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="129"/>
+        <location filename="../ts2/trains/train.py" line="131"/>
         <source>Next place</source>
         <translation>Lieu suivant</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="131"/>
+        <location filename="../ts2/trains/train.py" line="133"/>
         <source>Track</source>
         <translation>Voie</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="133"/>
+        <location filename="../ts2/trains/train.py" line="135"/>
         <source>Arrival time</source>
         <translation>Heure d&apos;arrivée</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="135"/>
+        <location filename="../ts2/trains/train.py" line="137"/>
         <source>Departure time</source>
         <translation>Heure de départ</translation>
     </message>

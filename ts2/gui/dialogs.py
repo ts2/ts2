@@ -23,7 +23,7 @@ import traceback
 
 from PyQt4 import QtGui, QtCore
 
-tr = QtCore.QObject().tr
+translate = QtGui.QApplication.translate
 
 class ExceptionDialog:
     """A Dialog box for displaying exception information
@@ -33,7 +33,7 @@ class ExceptionDialog:
     def popupException(parent, exception=None):
         """Displays a dialog with all the information about the exception and
         the traceback."""
-        title = tr("Error")
+        title = translate("Error")
         message = ""
         if exception is not None:
             message = str(exception) + "\n\n"
