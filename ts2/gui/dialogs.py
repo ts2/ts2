@@ -33,7 +33,7 @@ class ExceptionDialog:
     def popupException(parent, exception=None):
         """Displays a dialog with all the information about the exception and
         the traceback."""
-        title = translate("Error")
+        title = translate("ExceptionDialog", "Error")
         message = ""
         if exception is not None:
             message = str(exception) + "\n\n"

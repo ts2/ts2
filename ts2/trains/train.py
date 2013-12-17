@@ -491,10 +491,14 @@ class Train(QtCore.QObject):
                 self.updateStatus(0)
                 self.drawTrain()
                 self.executeActions(0)
+                self.simulation.messageLogger.addMessage(
+                      self.tr("Train %s entered the area") % self.serviceCode)
         elif self._status == TrainStatus.RUNNING:
             if value == TrainStatus.OUT:
                 self._speed = 0
                 self._status = TrainStatus.OUT
+                self.simulation.messageLogger.addMessage(
+                       self.tr("Train %s exited the area") % self.serviceCode)
             else:
                 self._status = value
         else:

@@ -136,6 +136,23 @@ class MainWindow(QtGui.QMainWindow):
                         self._serviceListView.updateServiceSelection)
         self.serviceListPanel.setWidget(self._serviceListView)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.serviceListPanel)
+        self.tabifyDockWidget(self.serviceListPanel, self.trainListPanel)
+
+        self.loggerPanel = QtGui.QDockWidget(self.tr("Messages"), self)
+        self.loggerPanel.setFeatures(QtGui.QDockWidget.DockWidgetMovable|
+                                        QtGui.QDockWidget.DockWidgetFloatable)
+        self.loggerView = QtGui.QTreeView(self)
+        self.loggerView.setItemsExpandable(False)
+        self.loggerView.setRootIsDecorated(False)
+        self.loggerView.setHeaderHidden(True)
+        self.loggerView.setPalette(QtGui.QPalette(Qt.black))
+        self.loggerView.setVerticalScrollMode(
+                                        QtGui.QAbstractItemView.ScrollPerItem)
+        self.simulation.messageLogger.rowsInserted.connect(
+                                            self.loggerView.scrollToBottom)
+        self.loggerView.setModel(self.simulation.messageLogger)
+        self.loggerPanel.setWidget(self.loggerView)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.loggerPanel)
 
         # board
         self.board = QtGui.QWidget(self)
@@ -204,7 +221,6 @@ class MainWindow(QtGui.QMainWindow):
                            self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
             QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
-            QtCore.qDebug(self.tr("Simulation loading"))
             try:
                 self.simulation.reload(fileName)
             except utils.FormatException as err:
@@ -217,7 +233,6 @@ class MainWindow(QtGui.QMainWindow):
             else:
                 self.setWindowTitle(self.tr(
                         "ts2 - Train Signalling Simulation - %s") % fileName)
-                QtCore.qDebug(self.tr("Simulation loaded"))
             QtGui.QApplication.restoreOverrideCursor()
 
     @QtCore.pyqtSlot(int)

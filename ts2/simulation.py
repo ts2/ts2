@@ -22,10 +22,7 @@ from PyQt4 import QtCore, QtSql, QtGui
 from PyQt4.QtCore import Qt
 from math import sqrt
 import sqlite3
-from ts2 import utils
-from ts2 import routing
-from ts2 import scenery
-from ts2 import trains
+from ts2 import utils, routing, scenery, trains, logger
 
 
 class Simulation(QtCore.QObject):
@@ -37,6 +34,7 @@ class Simulation(QtCore.QObject):
         self._simulationWindow = simulationWindow
         self._scene = QtGui.QGraphicsScene()
         self._timer = QtCore.QTimer(self)
+        self._messageLogger = logger.MessageLogger(self)
         self.initialize()
 
     @property
@@ -44,6 +42,11 @@ class Simulation(QtCore.QObject):
         """Returns the QGraphicsScene on which the simulation scenery is
         displayed"""
         return self._scene
+
+    @property
+    def messageLogger(self):
+        """Returns the message logger of the simulation."""
+        return self._messageLogger
 
     @property
     def simulationWindow(self):
@@ -93,6 +96,8 @@ class Simulation(QtCore.QObject):
 
     def reload(self, fileName):
         """Load or reload all the data of the simulation from the database."""
+        self.messageLogger.addMessage(self.tr("Simulation loading"),
+                               logger.Message.SOFTWARE_MSG)
         self.initialize()
         conn = sqlite3.connect(fileName)
         conn.row_factory = sqlite3.Row
@@ -100,15 +105,19 @@ class Simulation(QtCore.QObject):
         version = float(self.option("version"))
         if version > utils.TS2_FILE_FORMAT:
             conn.close()
-            raise utils.FormatException(self.tr(
+            self.messageLogger.addMessage(self.tr(
                             "The simulation is from a newer version of TS2.\n"
-                            "Please upgrade TS2 to version %s.") % version)
+                            "Please upgrade TS2 to version %s.") % version,
+                                          logger.Message.SOFTWARE_MSG)
+            return
         if version < utils.TS2_FILE_FORMAT:
             conn.close()
-            raise utils.FormatException(self.tr(
+            self.messageLogger.addMessage(self.tr(
                         "The simulation is from an older version of TS2.\n"
                         "Open it in the editor and save it again to play "
-                        "with this version of TS2"))
+                        "with this version of TS2"),
+                        logger.Message.SOFTWARE_MSG)
+            return
         self.loadTrackItems(conn)
         self.loadRoutes(conn)
         self.loadTrainTypes(conn)
@@ -125,6 +134,8 @@ class Simulation(QtCore.QObject):
         interval = 500
         self._timer.setInterval(interval)
         self._timer.start()
+        self.messageLogger.addMessage(self.tr("Simulation loaded"),
+                                      logger.Message.SOFTWARE_MSG)
 
     def initialize(self):
         """Clears and initialize the current simulation"""
@@ -223,13 +234,17 @@ class Simulation(QtCore.QObject):
                     # We cannot activate it (another route is conflicting)
                     self.conflictingRoute.emit(r)
                     si.unselect()
-                    QtCore.qWarning(self.tr("Conflicting route"))
+                    self.messageLogger.addMessage(
+                                            self.tr("Conflicting route"),
+                                            logger.Message.PLAYER_WARNING_MSG)
             else:
                 # No route between both signals
                 self.noRouteBetweenSignals.emit(self._selectedSignal, si)
                 self._selectedSignal.unselect()
                 self._selectedSignal = si
-                QtCore.qWarning(self.tr("No route between signals"))
+                self.messageLogger.addMessage(
+                                        self.tr("No route between signals"),
+                                        logger.Message.PLAYER_WARNING_MSG)
 
     @QtCore.pyqtSlot(int)
     def desactivateRoute(self, siId):
@@ -280,7 +295,8 @@ class Simulation(QtCore.QObject):
 
     def loadRoutes(self, conn):
         """Creates the instances of routes from the data of the database."""
-        QtCore.qDebug(self.tr("Loading routes"))
+        self.messageLogger.addMessage(self.tr("Loading routes"),
+                               logger.Message.SOFTWARE_MSG)
         for route in conn.execute("SELECT * FROM routes"):
             routeNum = route["routenum"]
             beginSignalId = route["beginsignal"]
@@ -302,8 +318,9 @@ class Simulation(QtCore.QObject):
             check = (route.createPositionsList() and check)
 
         if not check:
-            QtCore.qFatal(self.tr("""Invalid simulation: Some routes are not
-valid.\nSee stderr for more information"""))
+            self.messageLogger.addMessage(
+                    self.tr("Invalid simulation: Some routes are not valid."),
+                    logger.Message.SOFTWARE_MSG)
 
         # Activates routes who are to be activated at the beginning of the
         # simulation
@@ -317,7 +334,8 @@ valid.\nSee stderr for more information"""))
     def loadTrainTypes(self, conn):
         """Creates the instances of TrainType from the data of the database.
         """
-        QtCore.qDebug(self.tr("Loading train types"))
+        self.messageLogger.addMessage(self.tr("Loading train types"),
+                                      logger.Message.SOFTWARE_MSG)
         for trainType in conn.execute("SELECT * FROM traintypes"):
             code = str(trainType["code"])
             parameters = dict(trainType)
@@ -325,7 +343,8 @@ valid.\nSee stderr for more information"""))
 
     def loadTrains(self, conn):
         """Creates the instances of Train from the data of the database."""
-        QtCore.qDebug(self.tr("Loading trains"))
+        self.messageLogger.addMessage(self.tr("Loading trains"),
+                                      logger.Message.SOFTWARE_MSG)
         for train in conn.execute("SELECT * FROM trains"):
             parameters = dict(train)
             train = trains.Train(self, parameters)
@@ -337,7 +356,8 @@ valid.\nSee stderr for more information"""))
 
     def loadOptions(self, conn):
         """Populates the options dict with data from the database"""
-        QtCore.qDebug(self.tr("Loading options"))
+        self.messageLogger.addMessage(self.tr("Loading options"),
+                                      logger.Message.SOFTWARE_MSG)
         self._options = {
                 "title":"",
                 "description":"",
@@ -359,16 +379,17 @@ valid.\nSee stderr for more information"""))
     def loadTrackItems(self, conn):
         """Loads the instances of trackItems and its subclasses from the
         data of the database, and make all the necessary links"""
-        QtCore.qDebug(self.tr("Loading TrackItems"))
+        self.messageLogger.addMessage(self.tr("Loading TrackItems"),
+                                      logger.Message.SOFTWARE_MSG)
         self.createAllTrackItems(conn)
         self.linkTrackItems(conn)
         #self.createTrackItemsLinks()
         self.createTrackItemConflicts(conn)
         # Check that all the items are linked
         if not self.checkTrackItemsLinks():
-            QtCore.qFatal(self.tr("Invalid simulation: "
-                "Not all items are linked.\n "
-                "See stderr for more information"))
+           self.messageLogger(self.tr("Invalid simulation: "
+                                      "Not all items are linked."),
+                              logger.Message.SOFTWARE_MSG)
 
     def createAllTrackItems(self, conn):
         """Creates the instances of TrackItem and its subclasses (including
@@ -421,7 +442,8 @@ valid.\nSee stderr for more information"""))
 
     def loadServices(self, conn):
         """Creates the instances of Service from the data of the database."""
-        QtCore.qDebug(self.tr("Loading services"))
+        self.messageLogger.addMessage(self.tr("Loading services"),
+                                      logger.Message.SOFTWARE_MSG)
         for service in conn.execute("SELECT * FROM services"):
             serviceCode = service["servicecode"]
             parameters = dict(service)
@@ -431,11 +453,6 @@ valid.\nSee stderr for more information"""))
             serviceCode = serviceLine["servicecode"]
             parameters = dict(serviceLine)
             self._services[serviceCode].addLine(parameters)
-
-    #def startServices(self):
-        #"""Starts each service of this simulation."""
-        #for s in self._services.values():
-            #s.start()
 
     def setupConnections(self):
         """Sets up the connections which need a simulation loaded"""
@@ -455,7 +472,8 @@ valid.\nSee stderr for more information"""))
 
     def linkTrackItems(self, conn):
         """Link trackItems using the data from the database connection."""
-        QtCore.qDebug(self.tr("Linking trackItems"))
+        self.messageLogger.addMessage(self.tr("Linking trackItems"),
+                                      logger.Message.SOFTWARE_MSG)
         for trackItem in conn.execute("SELECT * FROM trackitems"):
             tiId = trackItem["tiid"]
             previousTiId = trackItem["ptiid"]
@@ -472,7 +490,8 @@ valid.\nSee stderr for more information"""))
 
     def createTrackItemConflicts(self, conn):
         """Create the trackitems' conflicts from the data in database."""
-        QtCore.qDebug(self.tr("Creating TrackItem conflicts"))
+        self.messageLogger.addMessage(self.tr("Creating TrackItem conflicts"),
+                                      logger.Message.SOFTWARE_MSG)
         for trackItem in conn.execute("SELECT * FROM trackitems"):
             conflictTiId = trackItem["conflicttiid"]
             if conflictTiId is not None and conflictTiId != 0:
@@ -486,7 +505,8 @@ valid.\nSee stderr for more information"""))
         """Find the items that are linked together through their coordinates
         and populate the _nextItem and _previousItem variables of each items.
         """
-        QtCore.qDebug(self.tr("Creating TrackItem links"))
+        self.messageLogger.addMessage(self.tr("Creating TrackItem links"),
+                                      logger.Message.SOFTWARE_MSG)
         for ki, vi in self._trackItems.items():
             for kj, vj in self._trackItems.items():
                 if ki < kj:
@@ -521,18 +541,21 @@ valid.\nSee stderr for more information"""))
     def checkTrackItemsLinks(self):
         """Checks that all TrackItems are linked together"""
         result = True;
-        QtCore.qDebug(self.tr("Checking TrackItem links"))
+        self.messageLogger.addMessage(self.tr("Checking TrackItem links"),
+                                      logger.Message.SOFTWARE_MSG)
         for ti in self._trackItems.values():
             if not ti.tiType.startswith(("A", "ZT")):
                 if ti.nextItem is None:
-                    QtCore.qCritical(
-                            self.tr("TrackItem %i is unlinked at (%f, %f)" % \
-                                    (ti.tiId, ti.end.x(), ti.end.y())))
+                    self.messageLogger.addMessage(
+                            self.tr("TrackItem %i is unlinked at (%f, %f)" %
+                                    (ti.tiId, ti.end.x(), ti.end.y())),
+                            logger.Message.SOFTWARE_MSG)
                     result = False
                 if ti.previousItem is None:
-                    QtCore.qCritical(
-                            self.tr("TrackItem %i is unlinked at (%f, %f)" % \
-                                    (ti.tiId, ti.origin.x(), ti.origin.y())))
+                    self.messageLogger.addMessage(
+                            self.tr("TrackItem %i is unlinked at (%f, %f)" %
+                                    (ti.tiId, ti.origin.x(), ti.origin.y())),
+                            logger.Message.SOFTWARE_MSG)
                     result = False
         return result
 
