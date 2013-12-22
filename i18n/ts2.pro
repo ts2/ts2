@@ -25,6 +25,9 @@ SOURCES =  \
 ../ts2/editor/editorwindow.py \
 ../ts2/editor/editorscenebackground.py \
 ../ts2/editor/views.py \
+../ts2/game/__init__.py \
+../ts2/game/logger.py \
+../ts2/game/scorer.py \
 ../ts2/gui/__init__.py \
 ../ts2/gui/dialogs.py \
 ../ts2/gui/servicelistview.py \
@@ -53,9 +56,9 @@ SOURCES =  \
 ../ts2/trains/traintype.py \
 ../ts2/__init__.py \
 ../ts2/application.py \
-../ts2/simulation.py \
 ../ts2/mainwindow.py \
 ../ts2/ressources_rc.py \
+../ts2/simulation.py \
 ../ts2/utils.py \
 ../build.py \
 ../ts2.py \

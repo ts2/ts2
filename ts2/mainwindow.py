@@ -167,6 +167,8 @@ class MainWindow(QtGui.QMainWindow):
         # Panel
         self.panel = widgets.Panel(self.board, self.simulation);
         self.simulation.timeChanged.connect(self.panel.clock.setTime)
+        self.simulation.scorer.scoreChanged.connect(
+                                            self.panel.scoreDisplay.display)
         self.panel.zoomChanged.connect(self.zoom)
 
         # Display
@@ -229,7 +231,7 @@ class MainWindow(QtGui.QMainWindow):
                              str(err),
                              QtGui.QMessageBox.Ok)
             except Exception as err:
-                gui.dialogs.ExceptionDialog.popupException(self, err)
+                dialogs.ExceptionDialog.popupException(self, err)
             else:
                 self.setWindowTitle(self.tr(
                         "ts2 - Train Signalling Simulation - %s") % fileName)

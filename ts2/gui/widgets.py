@@ -65,6 +65,13 @@ class Panel(QtGui.QWidget):
         self._zoomSpinBox.setSingleStep(10)
         self._zoomSpinBox.setValue(100)
         self._zoomSpinBox.valueChanged.connect(self.zoomSpinBoxChanged)
+        # score display
+        self._scoreDisplay = QtGui.QLCDNumber(self)
+        self._scoreDisplay.setFrameShape(QtGui.QFrame.NoFrame)
+        self._scoreDisplay.setFrameShadow(QtGui.QFrame.Plain)
+        self._scoreDisplay.setSegmentStyle(QtGui.QLCDNumber.Flat)
+        self._scoreDisplay.setNumDigits(5)
+        self._scoreDisplay.resize(70, 25)
 
         layout = QtGui.QHBoxLayout()
         layout.addSpacing(5)
@@ -78,6 +85,8 @@ class Panel(QtGui.QWidget):
         layout.addWidget(QtGui.QLabel(self.tr("Zoom: ")))
         layout.addWidget(self._zoomSpinBox)
         layout.addStretch()
+        layout.addWidget(QtGui.QLabel(self.tr("Penalty points: ")))
+        layout.addWidget(self._scoreDisplay)
         self.setLayout(layout)
 
         self._simulation.simulationLoaded.connect(self.updateWidgets)
@@ -87,6 +96,11 @@ class Panel(QtGui.QWidget):
     @property
     def clock(self):
         return self._clock
+
+    @property
+    def scoreDisplay(self):
+        """Returns the scoreDisplay widget."""
+        return self._scoreDisplay
 
     def sizeHint(self):
         return QtCore.QSize(800,40)

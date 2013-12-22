@@ -47,13 +47,16 @@ class MessageLogger(QtCore.QAbstractTableModel):
         """Constructor for the MessageLogger class."""
         super().__init__(simulation)
         self.simulation = simulation
-        self._messages = []
+        self._messages = [Message(self, " ")]
 
     def addMessage(self, msgText, msgType=Message.SIMULATION_MSG):
         """Adds a message to the logger."""
-        row = len(self._messages)
+        row = len(self._messages) - 1
+        if msgType == Message.SIMULATION_MSG:
+            msgText = self.simulation.currentTime.toString("HH:mm - ") \
+                                                                    + msgText
         self.beginInsertRows(QtCore.QModelIndex(), row, row)
-        self._messages.append(Message(self, msgText, msgType))
+        self._messages.insert(row, Message(self, msgText, msgType))
         self.endInsertRows()
 
     def rowCount(self, parent = QtCore.QModelIndex()):

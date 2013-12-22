@@ -22,7 +22,8 @@ from PyQt4 import QtCore, QtSql, QtGui
 from PyQt4.QtCore import Qt
 from math import sqrt
 import sqlite3
-from ts2 import utils, routing, scenery, trains, logger
+from ts2 import utils, routing, scenery, trains
+from ts2.game import logger, scorer
 
 
 class Simulation(QtCore.QObject):
@@ -35,6 +36,7 @@ class Simulation(QtCore.QObject):
         self._scene = QtGui.QGraphicsScene()
         self._timer = QtCore.QTimer(self)
         self._messageLogger = logger.MessageLogger(self)
+        self._scorer = scorer.Scorer(self)
         self.initialize()
 
     @property
@@ -47,6 +49,11 @@ class Simulation(QtCore.QObject):
     def messageLogger(self):
         """Returns the message logger of the simulation."""
         return self._messageLogger
+
+    @property
+    def scorer(self):
+        """Returns the scorer instance of the simulation."""
+        return self._scorer
 
     @property
     def simulationWindow(self):
@@ -185,7 +192,6 @@ class Simulation(QtCore.QObject):
         self._scene.addItem(graphicItem)
 
     simulationLoaded = QtCore.pyqtSignal()
-
     conflictingRoute = QtCore.pyqtSignal(routing.Route)
     noRouteBetweenSignals = QtCore.pyqtSignal(scenery.SignalItem, \
                                               scenery.SignalItem)
@@ -349,6 +355,9 @@ class Simulation(QtCore.QObject):
             parameters = dict(train)
             train = trains.Train(self, parameters)
             train.trainStatusChanged.connect(self.trainStatusChanged)
+            train.trainStoppedAtStation.connect(
+                                            self.scorer.trainArrivedAtStation)
+            train.trainExitedArea.connect(self.scorer.trainExitedArea)
             self._trains.append(train)
         self._trains.sort(key = lambda x:
                          x.currentService.lines[0].scheduledDepartureTimeStr)

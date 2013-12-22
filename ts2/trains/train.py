@@ -387,6 +387,7 @@ class Train(QtCore.QObject):
     trainStoppedAtStation = QtCore.pyqtSignal(int)
     trainDepartedFromStation = QtCore.pyqtSignal(int)
     trainStatusChanged = QtCore.pyqtSignal(int)
+    trainExitedArea = QtCore.pyqtSignal(int)
 
     def __init__(self, simulation, parameters):
         """Constructor for the Train class"""
@@ -406,6 +407,7 @@ class Train(QtCore.QObject):
                                     posOnTI)
         self._status = TrainStatus.INACTIVE
         self._stoppedTime = 0
+        self._initalDelay = 0
         if self.currentService is not None:
             self._nextPlaceIndex = 0
         else:
@@ -444,6 +446,12 @@ class Train(QtCore.QObject):
         except ValueError:
             trainId = None
         return trainId
+
+    @property
+    def initialDelay(self):
+        """Returns the number of seconds of delay that this train had when it
+        was activated."""
+        return self._initalDelay
 
     @property
     def serviceCode(self):
@@ -722,6 +730,7 @@ class Train(QtCore.QObject):
             ti.trainTailActions(self.trainId)
             if ti.tiType.startswith("E") and trainExiting:
                 self.status = TrainStatus.OUT
+                self.trainExitedArea.emit(self.trainId)
                 break
 
     def updateStatus(self, secs):
