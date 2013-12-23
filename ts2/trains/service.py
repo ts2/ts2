@@ -463,11 +463,11 @@ class Service:
         """Returns the lines of this service"""
         return self._lines
 
-    @property
-    def minimumStopTime(self):
-        """Returns the minimum stop time applicable for this Service in the
-        next plasce."""
-        return float(self._simulation.option("defaultMinimumStopTime"))
+    #@property
+    #def minimumStopTime(self):
+        #"""Returns the minimum stop time applicable for this Service in the
+        #next plasce."""
+        #return float(self._simulation.option("defaultMinimumStopTime"))
 
     @property
     def entryPlaceName(self):

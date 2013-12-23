@@ -18,21 +18,12 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
+import random
+
 from PyQt4 import QtCore
 
 TS2_VERSION = "0.4.0"
 TS2_FILE_FORMAT = 0.4
-
-def recordToDict(record):
-    """This helper function returns a dictionary from a QSqlRecord"""
-    retDict = {}
-    for i in range(record.count()):
-        if not isinstance(record.value(i), QtCore.QPyNullVariant):
-            retDict[record.fieldName(i)] = record.value(i)
-        else:
-            retDict[record.fieldName(i)] = None
-    return retDict
-
 
 class Context():
     """This class holds the different contexts for ts2."""
@@ -51,3 +42,57 @@ class FormatException(Exception):
     def __init__(self, arg):
         """Constructor of the Exception class."""
         super().__init__(arg)
+
+def cumsum(lis):
+    """Returns a list with the cumulated sum of lis."""
+    summ = 0
+    for x in lis:
+        summ += x
+        yield summ
+
+class DurationProba(QtCore.QObject):
+    """A DurationProba is a probability distribution for a duration in
+    seconds."""
+
+    def __init__(self, data):
+        """Constructor for the DurationProba class."""
+        super().__init__()
+        self._probaList = None
+        if isinstance(data, str):
+            self._probaList = eval(data)
+        else:
+            self._probaList = data
+
+    def __str__(self):
+        """Returns the string representation of the DurationProba."""
+        return str(self._probaList)
+
+    def isNull(self):
+        """Returns true if the DurationProba instance has no data."""
+        return (self._probaList is None)
+
+    def yieldValue(self):
+        """Returns a random value in the bounds and probabilities given by
+        this DurationProba instance."""
+        try:
+            probas = list(cumsum([t[2] for t in self._probaList]))
+            probas.insert(0, 0)
+        except TypeError:
+            return self._probaList
+        except Exception as err:
+            QtCore.qDebug(str(err))
+            return None
+        r0 = 100 * random.random()
+        seg = 0
+        for i in range(len(probas) - 1):
+            if r0 > probas[i] and r0 < probas[i+1]:
+                break
+            seg += 1
+        else:
+            # Out of range: returns max value
+            return self._probaList[-1][1]
+        r1 = random.random()
+        low, high, prob = self._probaList[seg]
+        return r1 * (high - low) + low
+
+

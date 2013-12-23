@@ -341,6 +341,7 @@ class Editor(simulation.Simulation):
                 conn.execute("ALTER TABLE trackitems ADD COLUMN ptiid")
                 conn.execute("ALTER TABLE trackitems ADD COLUMN ntiid")
                 conn.execute("ALTER TABLE trackitems ADD COLUMN rtiid")
+                conn.execute("ALTER TABLE trains ADD COLUMN initialdelay")
                 conn.commit()
             self.setOption("version", utils.TS2_FILE_FORMAT)
             self.saveOptions(conn)
@@ -534,15 +535,16 @@ class Editor(simulation.Simulation):
                             "tiid INTEGER,\n"
                             "previoustiid INTEGER,\n"
                             "posonti DOUBLE,\n"
-                            "appeartime TIME)\n")
+                            "appeartime TIME,\n"
+                            "initialdelay VARCHAR(255))\n")
 
         for train in self._trains:
             query = "INSERT INTO trains " \
                     "(servicecode, traintype, speed, tiid, previoustiid, "\
-                    "posonti, appeartime) " \
+                    "posonti, appeartime, initialdelay) " \
                     "VALUES " \
                     "(:servicecode, :traintype, :speed, :tiid, "\
-                    ":previoustiid, :posonti, :appeartime)"
+                    ":previoustiid, :posonti, :appeartime, :initialdelay)"
             parameters = {
                     "servicecode":train.serviceCode,
                     "traintype":train.trainTypeCode,
@@ -550,7 +552,8 @@ class Editor(simulation.Simulation):
                     "tiid":train.trainHead.trackItem.tiId,
                     "previoustiid":train.trainHead.previousTI.tiId,
                     "posonti":train.trainHead.positionOnTI,
-                    "appeartime":train.appearTimeStr
+                    "appeartime":train.appearTimeStr,
+                    "initialdelay":train.initialDelayStr
                     }
             conn.execute(query, parameters)
         conn.commit()

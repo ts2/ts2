@@ -165,7 +165,7 @@ class TrainsModel(QtCore.QAbstractTableModel):
 
     def columnCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of columns of the model"""
-        return 6
+        return 7
 
     def data(self, index, role = Qt.DisplayRole):
         """Returns the data at the given index"""
@@ -183,6 +183,8 @@ class TrainsModel(QtCore.QAbstractTableModel):
                 return train.trainHeadStr
             elif index.column() == 5:
                 return train.initialSpeed
+            elif index.column() == 6:
+                return train.initialDelayStr
             else:
                 return ""
         return None
@@ -202,6 +204,8 @@ class TrainsModel(QtCore.QAbstractTableModel):
                 return self.tr("Entry position")
             elif column == 5:
                 return self.tr("Entry speed")
+            elif column == 6:
+                return self.tr("Initial Delay")
             else:
                 return ""
         return None
@@ -219,6 +223,8 @@ class TrainsModel(QtCore.QAbstractTableModel):
                 self._editor.trains[index.row()].trainHeadStr = value
             elif index.column() == 5:
                 self._editor.trains[index.row()].initialSpeed = value
+            elif index.column() == 6:
+                self._editor.trains[index.row()].initialDelayStr = value
             else:
                 return False
             self.dataChanged.emit(index, index)
@@ -401,13 +407,17 @@ class Train(QtCore.QObject):
         tiId = parameters["tiid"]
         previousTiId = parameters["previoustiid"]
         posOnTI = parameters["posonti"]
+
         self._trainHead = routing.Position(
                                     self.simulation.trackItem(tiId),
                                     self.simulation.trackItem(previousTiId),
                                     posOnTI)
         self._status = TrainStatus.INACTIVE
         self._stoppedTime = 0
-        self._initalDelay = 0
+        self.updateStopTime()
+        self._initialDelayProba = utils.DurationProba(
+                                                parameters["initialdelay"])
+        self.setInitialDelay()
         if self.currentService is not None:
             self._nextPlaceIndex = 0
         else:
@@ -451,7 +461,18 @@ class Train(QtCore.QObject):
     def initialDelay(self):
         """Returns the number of seconds of delay that this train had when it
         was activated."""
-        return self._initalDelay
+        return self._initialDelay
+
+    @property
+    def minimumStopTime(self):
+        """Returns the minimum stopping time for next station."""
+        return self._minimumStopTime
+
+    def updateStopTime(self):
+        """Updates the minimum stopping time for next station."""
+        self._minimumStopTime = utils.DurationProba(
+                            self.simulation.option("defaultMinimumStopTime"))\
+                            .yieldValue()
 
     @property
     def serviceCode(self):
@@ -499,8 +520,16 @@ class Train(QtCore.QObject):
                 self.updateStatus(0)
                 self.drawTrain()
                 self.executeActions(0)
-                self.simulation.messageLogger.addMessage(
-                      self.tr("Train %s entered the area") % self.serviceCode)
+                if abs(self.initialDelay) < 60:
+                    self.simulation.messageLogger.addMessage(
+                                self.tr("Train %s entered the area on time") %
+                                self.serviceCode)
+                else:
+                    loe = "late" if self.initialDelay > 0 else "early"
+                    self.simulation.messageLogger.addMessage(
+                      self.tr("Train %s entered the area %i minutes %s") %
+                      (self.serviceCode, abs(self.initialDelay // 60), loe))
+
         elif self._status == TrainStatus.RUNNING:
             if value == TrainStatus.OUT:
                 self._speed = 0
@@ -606,6 +635,17 @@ class Train(QtCore.QObject):
             self.trainHead = routing.Position(trackItem, previousTI, posOnTI)
 
     @property
+    def initialDelayStr(self):
+        """Returns the initialDelay probability function as a string."""
+        return str(self._initialDelayProba)
+
+    @initialDelayStr.setter
+    def initialDelayStr(self, value):
+        """Setter function for the initialDelayStr property."""
+        if self.simulation.context == utils.Context.EDITOR_TRAINS:
+            self._initialDelayProba = utils.DurationProba(value)
+
+    @property
     def appearTimeStr(self):
         """Returns the time at which this train appears on the scene as a
         String."""
@@ -617,6 +657,14 @@ class Train(QtCore.QObject):
         if self.simulation.context == utils.Context.EDITOR_TRAINS:
             self._appearTime = QtCore.QTime.fromString(value)
 
+    def setInitialDelay(self):
+        """Sets up the initial delay variable."""
+        if self._initialDelayProba.isNull():
+            self._initialDelay = utils.DurationProba(
+                            self.simulation.option("defaultDelayAtEntry"))\
+                            .yieldValue()
+        else:
+            self._initialDelay = self._initialDelayProba.yieldValue()
 
     @QtCore.pyqtSlot(float)
     def advance(self, secs):
@@ -635,7 +683,9 @@ class Train(QtCore.QObject):
     def activate(self, time):
         """Activate this Train if time is after this Train appearTime."""
         if self.status == TrainStatus.INACTIVE:
-            if self._appearTime < time:
+            realAppearTime = self._appearTime.addSecs(self.initialDelay)
+            if (realAppearTime < time and
+                realAppearTime >= self.simulation.startTime.addSecs(-3600)):
                 self.status = TrainStatus.RUNNING
 
     @QtCore.pyqtSlot()
@@ -687,6 +737,7 @@ class Train(QtCore.QObject):
         """Set the nextPlaceIndex to the next serviceLine. If there is no
         serviceLine after the current one, change the service of the train to
         nextService if any."""
+        self.updateStopTime()
         if self.nextPlaceIndex == len(self.currentService.lines) - 1:
             # The service is ended
             if self.currentService.autoReverse:
@@ -757,8 +808,7 @@ class Train(QtCore.QObject):
                         # Train is already stopped at the place
                         if (line.scheduledDepartureTime >
                                             self._simulation.currentTime) or \
-                           (self._stoppedTime <
-                                     self.currentService.minimumStopTime) or \
+                           (self._stoppedTime < self.minimumStopTime) or \
                            (line.scheduledDepartureTime == QtCore.QTime()):
                             # Conditions to depart are not met
                             self.status = TrainStatus.STOPPED

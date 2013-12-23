@@ -230,8 +230,8 @@ class MainWindow(QtGui.QMainWindow):
                              self.tr("Bad version of TS2 simulation file"),
                              str(err),
                              QtGui.QMessageBox.Ok)
-            except Exception as err:
-                dialogs.ExceptionDialog.popupException(self, err)
+            except:
+                dialogs.ExceptionDialog.popupException(self)
             else:
                 self.setWindowTitle(self.tr(
                         "ts2 - Train Signalling Simulation - %s") % fileName)

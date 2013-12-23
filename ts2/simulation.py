@@ -72,6 +72,11 @@ class Simulation(QtCore.QObject):
         self._options[key] = value
 
     @property
+    def startTime(self):
+        """Returns the time at which the simulation starts."""
+        return self._startTime
+
+    @property
     def currentTime(self):
         return self._time
 
@@ -134,8 +139,9 @@ class Simulation(QtCore.QObject):
         self.setupConnections()
         self.simulationLoaded.emit()
         self._scene.update()
-        self._time = QtCore.QTime.fromString(\
+        self._startTime = QtCore.QTime.fromString(
                                     self.option("currentTime"), "hh:mm:ss")
+        self._time = self._startTime
         self._timer.timeout.connect(self.timerOut)
         #interval = min(max(100, 5000 / float(self.option("timeFactor"))),500)
         interval = 500
@@ -375,7 +381,8 @@ class Simulation(QtCore.QObject):
                 "currentTime":"06:00:00",
                 "warningSpeed":8.3,
                 "defaultMaxSpeed":44.44,
-                "defaultMinimumStopTime":60
+                "defaultMinimumStopTime":[(45,75,70),(75,90,30)],
+                "defaultDelayAtEntry":[(-60,0,50),(0,60,50)]
             }
         options = {}
         for option in conn.execute("SELECT * FROM options"):

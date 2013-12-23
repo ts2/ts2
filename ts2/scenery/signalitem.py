@@ -381,9 +381,8 @@ class SignalItem(TrackItem):
     def trainHeadActions(self, trainId):
         """Actions to be performed when the train head reaches this signal.
         Pushes the train code to the next signal."""
-        if self.nextActiveRoute is not None and \
-           self.trainId is not None:
-            self.nextActiveRoute.endSignal.trainId = self.trainId
+        if self.nextActiveRoute is not None:
+            self.nextActiveRoute.endSignal.trainId = trainId
             self.resetTrainId()
         super().trainHeadActions(trainId)
 

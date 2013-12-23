@@ -80,14 +80,15 @@ class Scorer(QtCore.QObject):
                                      actualPlatform, plannedPlatform))
         scheduledArrivalTime = serviceLine.scheduledArrivalTime
         currentTime = self.simulation.currentTime
-        minutesLate = abs(scheduledArrivalTime.secsTo(currentTime)) // 60
-        if minutesLate > 0:
-            self.score += self.latePenalty * minutesLate
+        secondsLate = abs(scheduledArrivalTime.secsTo(currentTime))
+        if secondsLate // 60 > 0:
+            minutesLateByPlayer = (secondsLate - train.initialDelay) // 60
+            self.score += max(self.latePenalty * minutesLateByPlayer, 0)
             self.simulation.messageLogger.addMessage(self.tr(
                                     "Train %s arrived %i minutes late at "
-                                    "station %s") %
-                                    (train.serviceCode, minutesLate,
-                                     place.placeName))
+                                    "station %s (%+i minutes)") %
+                                    (train.serviceCode, secondsLate//60,
+                                     place.placeName, minutesLateByPlayer))
         if self.score != oldScore:
             self.scoreChanged.emit(self.score)
 
