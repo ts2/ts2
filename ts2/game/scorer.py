@@ -37,7 +37,7 @@ class Scorer(QtCore.QObject):
         """Returns the number of penalty points for leading a train in a wrong
         destination."""
         wdp = self.simulation.option("wrongDestinationPenalty")
-        if wdp is not None:
+        if wdp is not None and wdp != "":
             return int(wdp)
         else:
             return 100
@@ -47,7 +47,7 @@ class Scorer(QtCore.QObject):
         """Returns the number of penalty points for each minute each train is
         late at each station."""
         lp = self.simulation.option("latePenalty")
-        if lp is not None:
+        if lp is not None and lp != "":
             return int(lp)
         else:
             return 1
@@ -57,7 +57,7 @@ class Scorer(QtCore.QObject):
         """Returns the number of penalty points for leading a train onto a
         wrong platform."""
         wpp = self.simulation.option("wrongPlatformPenalty")
-        if wpp is not None:
+        if wpp is not None and wpp != "":
             return int(wpp)
         else:
             return 5
@@ -82,12 +82,13 @@ class Scorer(QtCore.QObject):
         currentTime = self.simulation.currentTime
         secondsLate = abs(scheduledArrivalTime.secsTo(currentTime))
         if secondsLate // 60 > 0:
-            minutesLateByPlayer = (secondsLate - train.initialDelay) // 60
+            minutesLateByPlayer = ((secondsLate // 60) -
+                                   (train.initialDelay // 60))
             self.score += max(self.latePenalty * minutesLateByPlayer, 0)
             self.simulation.messageLogger.addMessage(self.tr(
                                     "Train %s arrived %i minutes late at "
                                     "station %s (%+i minutes)") %
-                                    (train.serviceCode, secondsLate//60,
+                                    (train.serviceCode, secondsLate // 60,
                                      place.placeName, minutesLateByPlayer))
         if self.score != oldScore:
             self.scoreChanged.emit(self.score)
