@@ -525,7 +525,8 @@ class Train(QtCore.QObject):
                                 self.tr("Train %s entered the area on time") %
                                 self.serviceCode)
                 else:
-                    loe = "late" if self.initialDelay > 0 else "early"
+                    loe = self.tr("late") if self.initialDelay > 0 \
+                                        else self.tr("early")
                     self.simulation.messageLogger.addMessage(
                       self.tr("Train %s entered the area %i minutes %s") %
                       (self.serviceCode, abs(self.initialDelay // 60), loe))

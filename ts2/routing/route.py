@@ -204,7 +204,7 @@ class Route(QtCore.QObject):
     def desactivate(self):
         """This function is called by the simulation when the route is
         desactivated."""
-        self.beginSignal.resetNextActiveRoute()
+        self.beginSignal.resetNextActiveRoute(self)
         self.endSignal.resetPreviousActiveRoute()
         for pos in self._positions:
             if pos.trackItem.activeRoute is None or \

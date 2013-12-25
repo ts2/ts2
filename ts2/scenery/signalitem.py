@@ -322,10 +322,14 @@ class SignalItem(TrackItem):
                 self.drawConnectionRect(p, QtCore.QPointF(60, 18))
 
 
-    def resetNextActiveRoute(self):
-        """Resets the nextActiveRoute information."""
-        self._nextActiveRoute = None
-        self.updateSignalState()
+    def resetNextActiveRoute(self, route=None):
+        """Resets the nextActiveRoute information. If route is not None, do
+        this only if the nextActiveRoute is equal to route."""
+        if (route is None or
+            (self._nextActiveRoute is not None and
+             self._nextActiveRoute == route)):
+            self._nextActiveRoute = None
+            self.updateSignalState()
 
     @previousActiveRoute.setter
     def previousActiveRoute(self, route):
@@ -333,10 +337,14 @@ class SignalItem(TrackItem):
         self._previousActiveRoute = route
         self.updateSignalState()
 
-    def resetPreviousActiveRoute(self):
-        """Reset the previousActiveRoute information."""
-        self._previousActiveRoute = None
-        self.updateSignalState()
+    def resetPreviousActiveRoute(self, route=None):
+        """Reset the previousActiveRoute information. If route is not None, do
+        this only if the previousActiveRoute is equal to route."""
+        if (route is None or
+            (self._previousActiveRoute is not None and
+             self._previousActiveRoute == route)):
+            self._previousActiveRoute = None
+            self.updateSignalState()
 
     @property
     def trainServiceCode(self):

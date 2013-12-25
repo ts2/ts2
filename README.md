@@ -39,6 +39,9 @@ New simulations can be created with the editor provided with ts2.
     - Routes are automatically cancelled by the first train passing through. However, you can set a
         persistent route by holding the shift key before clicking on the second signal. Persistent
         routes have a little white square next to their first signal.
+    - Forcing route setting: It is possible to force a route setting by pressing _ctrl_ and _alt_ while
+        clicking on the second signal. Beware as this will not check other conflicting routes and may result
+        in train crashes or other unknown behaviour.
 * Train information:
     - Click on a train code on the scene or on the train list to see its information on the
         "Train Information" window. The "Service information" window will also update.
@@ -68,14 +71,14 @@ Simulations can be created/modified using the editor provided with ts2.
 
 ## Known bugs
 - Under windows, trains leave display artefacts (red traces) when scrolling the layout.
-- Sometimes, routes seem to be stuck in place while blocking the whole game. Workaround: It is possible to force a route setting by pressing _ctrl_ and _alt_ while clicking on the second signal. Beware as this will not check other conflicting routes and may result in train crashes or other unknown behaviour.
 
 ## Roadmap
-Next version (0.5) will focus on train manoeuvring and train joining/dividing.
+Next version (0.5) will focus on train shunting, joining/dividing, etc.
 
 ## Change log
 Version 0.4:
 - Added scoring system,
+- Added statistical delays to trains,
 - Added load/save game support,
 - Added an option for track system based simulation.
 
