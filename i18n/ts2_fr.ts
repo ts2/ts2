@@ -765,7 +765,7 @@ Voie %s</translation>
         <translation>Le train %s est arrivé à %s voie %s au lieu de voie %s</translation>
     </message>
     <message>
-        <location filename="../ts2/game/scorer.py" line="103"/>
+        <location filename="../ts2/game/scorer.py" line="108"/>
         <source>Train %s badly routed</source>
         <translation>Le train %s a été mal aiguillé</translation>
     </message>
@@ -773,6 +773,11 @@ Voie %s</translation>
         <location filename="../ts2/game/scorer.py" line="88"/>
         <source>Train %s arrived %i minutes late at station %s (%+i minutes)</source>
         <translation>Le train %s est arrivé %i minutes en retard à %s (%+i minutes)</translation>
+    </message>
+    <message>
+        <location filename="../ts2/game/scorer.py" line="94"/>
+        <source>Train %s arrived on time at station %s</source>
+        <translation>Le train %s est arrivé à %s à l&apos;heure</translation>
     </message>
 </context>
 <context>
@@ -976,7 +981,7 @@ Merci de mettre à jour TS2 vers la version %s.</translation>
         <location filename="../ts2/simulation.py" line="127"/>
         <source>The simulation is from an older version of TS2.
 Open it in the editor and save it again to play with this version of TS2</source>
-        <translation>La simulation provient d&apos;une ancienne version de TS2.
+        <translation type="obsolete">La simulation provient d&apos;une ancienne version de TS2.
 Ouvrez la avec l&apos;éditeur et sauvegardez-là à nouveau pour pouvoir jouer avec cette version de TS2.</translation>
     </message>
     <message>
@@ -1003,6 +1008,13 @@ Ouvrez la avec l&apos;éditeur et sauvegardez-là à nouveau pour pouvoir jouer 
         <location filename="../ts2/simulation.py" line="406"/>
         <source>Invalid simulation: Not all items are linked.</source>
         <translation>Simulation invalide: Tous les éléments ne sont pas reliés.</translation>
+    </message>
+    <message>
+        <location filename="../ts2/simulation.py" line="127"/>
+        <source>The simulation is from an older version of TS2.
+Open it in the editor and save it again to play with this version of TS2.</source>
+        <translation>La simulation provient d&apos;une ancienne version de TS2.
+Ouvrez la avec l&apos;éditeur et sauvegardez-là à nouveau pour pouvoir jouer avec cette version de TS2.</translation>
     </message>
 </context>
 <context>

@@ -40,67 +40,69 @@ class Clock(QtGui.QLCDNumber):
 
 
 class Panel(QtGui.QWidget):
+    """The panel is the display rectangle below the scene holding the widgets
+    necessary to play the simulation (e.g. clock)."""
 
-    def __init__(self, parent, simulation):
+    def __init__(self, parent, simulationWindow):
+        """Constructor for the Panel class."""
         super().__init__(parent)
-        self._simulation = simulation
+        self.simulation = None
+        self.simulationWindow = simulationWindow
         # Clock
-        self._clock = Clock(self)
+        self.clock = Clock(self)
         # Pause button
-        self._pauseButton = QtGui.QPushButton(self.tr("Pause"), self)
-        self._pauseButton.setCheckable(True)
-        self._pauseButton.toggled.connect(self._simulation.pause)
-        self._pauseButton.toggled.connect(self.changePauseButtonText)
+        self.pauseButton = QtGui.QPushButton(self.tr("Pause"), self)
+        self.pauseButton.setCheckable(True)
         # Time factor spinBox
-        self._timeFactorSpinBox = QtGui.QSpinBox(self)
-        self._timeFactorSpinBox.setRange(0, 10)
-        self._timeFactorSpinBox.setSingleStep(1)
-        self._timeFactorSpinBox.setValue(1)
-        self._timeFactorSpinBox.setSuffix("x")
-        self._timeFactorSpinBox.valueChanged.connect(
-                                            self._simulation.setTimeFactor)
+        self.timeFactorSpinBox = QtGui.QSpinBox(self)
+        self.timeFactorSpinBox.setRange(0, 10)
+        self.timeFactorSpinBox.setSingleStep(1)
+        self.timeFactorSpinBox.setValue(1)
+        self.timeFactorSpinBox.setSuffix("x")
         # Zoom spinBox
-        self._zoomSpinBox = QtGui.QSpinBox(self)
-        self._zoomSpinBox.setRange(10,200)
-        self._zoomSpinBox.setSingleStep(10)
-        self._zoomSpinBox.setValue(100)
-        self._zoomSpinBox.valueChanged.connect(self.zoomSpinBoxChanged)
+        self.zoomSpinBox = QtGui.QSpinBox(self)
+        self.zoomSpinBox.setRange(10,200)
+        self.zoomSpinBox.setSingleStep(10)
+        self.zoomSpinBox.setValue(100)
+        self.zoomSpinBox.valueChanged.connect(self.zoomSpinBoxChanged)
         # score display
-        self._scoreDisplay = QtGui.QLCDNumber(self)
-        self._scoreDisplay.setFrameShape(QtGui.QFrame.NoFrame)
-        self._scoreDisplay.setFrameShadow(QtGui.QFrame.Plain)
-        self._scoreDisplay.setSegmentStyle(QtGui.QLCDNumber.Flat)
-        self._scoreDisplay.setNumDigits(5)
-        self._scoreDisplay.resize(70, 25)
+        self.scoreDisplay = QtGui.QLCDNumber(self)
+        self.scoreDisplay.setFrameShape(QtGui.QFrame.NoFrame)
+        self.scoreDisplay.setFrameShadow(QtGui.QFrame.Plain)
+        self.scoreDisplay.setSegmentStyle(QtGui.QLCDNumber.Flat)
+        self.scoreDisplay.setNumDigits(5)
+        self.scoreDisplay.resize(70, 25)
 
         layout = QtGui.QHBoxLayout()
         layout.addSpacing(5)
-        layout.addWidget(self._clock)
+        layout.addWidget(self.clock)
         layout.addSpacing(5)
-        layout.addWidget(self._pauseButton)
+        layout.addWidget(self.pauseButton)
         layout.addSpacing(5)
         layout.addWidget(QtGui.QLabel(self.tr("Simulation speed: ")))
-        layout.addWidget(self._timeFactorSpinBox)
+        layout.addWidget(self.timeFactorSpinBox)
         layout.addSpacing(5)
         layout.addWidget(QtGui.QLabel(self.tr("Zoom: ")))
-        layout.addWidget(self._zoomSpinBox)
+        layout.addWidget(self.zoomSpinBox)
         layout.addStretch()
         layout.addWidget(QtGui.QLabel(self.tr("Penalty points: ")))
-        layout.addWidget(self._scoreDisplay)
+        layout.addWidget(self.scoreDisplay)
         self.setLayout(layout)
 
-        self._simulation.simulationLoaded.connect(self.updateWidgets)
+        self.simulationWindow.simulationLoaded.connect(self.activate)
+
+    @QtCore.pyqtSlot(simulation.Simulation)
+    def activate(self, simulation):
+        """Activates the panel with the given simulation."""
+        self.simulation = simulation
+        self.pauseButton.toggled.connect(self.simulation.pause)
+        self.pauseButton.toggled.connect(self.changePauseButtonText)
+        self.timeFactorSpinBox.valueChanged.connect(
+                                            self.simulation.setTimeFactor)
+        self.timeFactorSpinBox.setValue(
+                                float(self.simulation.option("timeFactor")))
 
     zoomChanged = QtCore.pyqtSignal(int)
-
-    @property
-    def clock(self):
-        return self._clock
-
-    @property
-    def scoreDisplay(self):
-        """Returns the scoreDisplay widget."""
-        return self._scoreDisplay
 
     def sizeHint(self):
         return QtCore.QSize(800,40)
@@ -112,17 +114,12 @@ class Panel(QtGui.QWidget):
         return QtCore.QSizePolicy(QtGui.QSizePolicy.Expanding,
                                   QtGui.QSizePolicy.Fixed)
 
-    @QtCore.pyqtSlot()
-    def updateWidgets(self):
-        self._timeFactorSpinBox.setValue(
-                                float(self._simulation.option("timeFactor")))
-
     @QtCore.pyqtSlot(bool)
     def changePauseButtonText(self, paused):
         if paused:
-            self._pauseButton.setText(self.tr("Continue"));
+            self.pauseButton.setText(self.tr("Continue"));
         else:
-            self._pauseButton.setText(self.tr("Pause"));
+            self.pauseButton.setText(self.tr("Pause"));
 
     @QtCore.pyqtSlot(int)
     def zoomSpinBoxChanged(self, percent):

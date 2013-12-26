@@ -90,6 +90,11 @@ class Scorer(QtCore.QObject):
                                     "station %s (%+i minutes)") %
                                     (train.serviceCode, secondsLate // 60,
                                      place.placeName, minutesLateByPlayer))
+        else:
+            self.simulation.messageLogger.addMessage(self.tr(
+                                    "Train %s arrived on time at "
+                                    "station %s") %
+                                    (train.serviceCode, place.placeName))
         if self.score != oldScore:
             self.scoreChanged.emit(self.score)
 

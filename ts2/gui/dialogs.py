@@ -23,6 +23,8 @@ import traceback
 
 from PyQt4 import QtGui, QtCore
 
+from ts2.gui import servicelistview
+
 translate = QtGui.QApplication.translate
 
 class ExceptionDialog:
@@ -41,3 +43,42 @@ class ExceptionDialog:
         else:
             message += message.join(traceback.format_exc())
             return QtGui.QMessageBox.critical(parent, title, message)
+
+
+class ServiceAssignDialog(QtGui.QDialog):
+    """TODO Document ServiceAssignDialog"""
+
+    def __init__(self, parent, simulation):
+        super().__init__(parent)
+        self.setWindowTitle(self.tr(
+                                "Choose a service to assign to this train"))
+        self.serviceListView = servicelistview.ServiceListView(self)
+        self.serviceListView.setupServiceList(simulation)
+        buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok|
+                                           QtGui.QDialogButtonBox.Cancel)
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.serviceListView)
+        layout.addWidget(buttonBox)
+        self.setLayout(layout)
+        self.resize(600, 300)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+    def getServiceCode(self):
+        index = self.serviceListView.selectionModel().selection().indexes()[0]
+        if index.isValid():
+            return index.data()
+        else:
+            return ""
+
+    @staticmethod
+    def reassignServiceToTrain(simulation, trainId):
+        """Reassigns a service to the train given by trainId by poping-up a
+        reassignServiceDialog."""
+        sad = ServiceAssignDialog(simulation.simulationWindow, simulation)
+        if sad.exec_() == QtGui.QDialog.Accepted:
+            newServiceCode = sad.getServiceCode()
+            if newServiceCode != "":
+                train = simulation.trains[trainId]
+                train.serviceCode = newServiceCode
+

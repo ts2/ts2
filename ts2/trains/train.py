@@ -22,10 +22,7 @@ from math import sqrt
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 
-from ts2.gui import serviceassigndialog
-from ts2 import scenery
-from ts2 import routing
-from ts2 import utils
+from ts2 import scenery, routing, utils
 
 translate = QtGui.QApplication.translate
 
@@ -394,6 +391,7 @@ class Train(QtCore.QObject):
     trainDepartedFromStation = QtCore.pyqtSignal(int)
     trainStatusChanged = QtCore.pyqtSignal(int)
     trainExitedArea = QtCore.pyqtSignal(int)
+    reassignServiceRequested = QtCore.pyqtSignal(int)
 
     def __init__(self, simulation, parameters):
         """Constructor for the Train class"""
@@ -488,6 +486,7 @@ class Train(QtCore.QObject):
         self.nextPlaceIndex = 0
         self.drawTrain(0)
         self.findNextSignal().trainId = self.trainId
+        self.status = TrainStatus.INACTIVE
 
     @property
     def simulation(self):
@@ -712,13 +711,7 @@ class Train(QtCore.QObject):
         """ Pops up a dialog for the user to choose the new service and
         reassign it to this train, if the service is not already assigned
         to another train"""
-        sad = serviceassigndialog.ServiceAssignDialog(
-                                        self.simulation.simulationWindow)
-        if sad.exec_() == QtGui.QDialog.Accepted:
-            newServiceCode = sad.getServiceCode()
-            if newServiceCode != "":
-                self.serviceCode = newServiceCode
-                self.status = TrainStatus.INACTIVE
+        self.reassignServiceRequested.emit(self.trainId)
 
     @QtCore.pyqtSlot()
     def resetService(self):

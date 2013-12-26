@@ -18,53 +18,52 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from ts2.simulation import Simulation
-from ts2 import trains
+from PyQt4 import QtCore, QtGui
 
-class TrainListView(QTreeView):
+from ts2 import simulation, trains
+
+class TrainListView(QtGui.QTreeView):
     """ TODO Document TrainListView class"""
 
-    def __init__(self, parent, simulation):
+    def __init__(self, parent):
         super().__init__(parent)
-        self._simulation = simulation
+        self.simulation = None
         self.setItemsExpandable(False)
         self.setRootIsDecorated(False)
         self.setHeaderHidden(False)
         self.setSortingEnabled(True)
-        self._simulation.simulationLoaded.connect(self.setupTrainList)
 
-    trainSelected = pyqtSignal(int)
+    trainSelected = QtCore.pyqtSignal(int)
 
-    @pyqtSlot(int)
+    @QtCore.pyqtSlot(int)
     def updateTrainSelection(self, trainId):
         index = self.model().index(trainId, 0)
         self.selectionModel().select(index,
-                                     QItemSelectionModel.Rows|
-                                     QItemSelectionModel.ClearAndSelect)
+                                     QtGui.QItemSelectionModel.Rows|
+                                     QtGui.QItemSelectionModel.ClearAndSelect)
 
-    @pyqtSlot()
-    def setupTrainList(self):
-        if self.model() is None:
-            #trainsSortedModel = QSortFilterProxyModel()
-            #trainsSortedModel.setSourceModel()
-            self.setModel(self._simulation.trainListModel)
-            self.header().setStretchLastSection(False)
-            self.header().setSortIndicatorShown(False)
-            self.setSelectionBehavior(QAbstractItemView.SelectRows)
-            self._simulation.trainStatusChanged.connect(self.model().update)
-            #self._simulation.timeChanged.connect(self.model().update)
-            #self.trainSelected.connect(self._simulation.selectedTrainModel.setTrainByServiceCode)
+    @QtCore.pyqtSlot(simulation.Simulation)
+    def setupTrainList(self, simulation):
+        self.simulation = simulation
+        #if self.model() is None:
+        #trainsSortedModel = QSortFilterProxyModel()
+        #trainsSortedModel.setSourceModel()
+        self.setModel(self.simulation.trainListModel)
+        self.header().setStretchLastSection(False)
+        self.header().setSortIndicatorShown(False)
+        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.simulation.trainStatusChanged.connect(self.model().update)
+        #self._simulation.timeChanged.connect(self.model().update)
+        #self.trainSelected.connect(self._simulation.selectedTrainModel.setTrainByServiceCode)
 
 
     def contextMenuEvent(self, event):
         index = self.selectionModel().selection().indexes()[0]
         if index.isValid():
-            train = self._simulation.trains[index.row()]
+            train = self.simulation.trains[index.row()]
             train.showTrainActionsMenu(self, event.globalPos())
 
-    @pyqtSlot(QItemSelection, QItemSelection)
+    @QtCore.pyqtSlot(QtGui.QItemSelection, QtGui.QItemSelection)
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)
         if len(selected.indexes()) > 0:
