@@ -72,6 +72,7 @@ class MainWindow(QtGui.QMainWindow):
         # Menu
         self.fileMenu = self.menuBar().addMenu(self.tr("&File"))
         self.fileMenu.addAction(self.openAction)
+        self.fileMenu.addAction(self.saveGameAsAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitAction)
         self.editorMenu = self.menuBar().addAction(self.editorAction)
@@ -215,8 +216,12 @@ class MainWindow(QtGui.QMainWindow):
                            self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
             QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+            if self.simulation is not None:
+                self.simulationDisconnect()
+                del self.simulation
             try:
-                self.simulation = simulation.Simulation(self, fileName)
+                self.simulation = simulation.Simulation(self)
+                self.simulation.load(fileName)
             except utils.FormatException as err:
                 QtGui.QMessageBox.critical(self,
                              self.tr("Bad version of TS2 simulation file"),
@@ -229,33 +234,77 @@ class MainWindow(QtGui.QMainWindow):
             else:
                 self.setWindowTitle(self.tr(
                         "ts2 - Train Signalling Simulation - %s") % fileName)
-
-                self._trainInfoView.setModel(self.simulation.selectedTrainModel)
-                self.simulation.trainStatusChanged.connect(
-                                        self._trainInfoView.model().update)
-                self.simulation.trainSelected.connect(
-                                    self._trainListView.updateTrainSelection)
-                self._serviceInfoView.setModel(self.simulation.selectedServiceModel)
-                self._trainListView.trainSelected.connect(
-                    self.simulation.selectedTrainModel.setTrainByServiceCode)
-                self._serviceListView.serviceSelected.connect(
-                        self.simulation.selectedServiceModel.setServiceCode)
-                self._trainListView.trainSelected.connect(
-                        self._serviceListView.updateServiceSelection)
-                self.simulation.messageLogger.rowsInserted.connect(
-                                            self.loggerView.scrollToBottom)
-                self.loggerView.setModel(self.simulation.messageLogger)
-                self._view.setScene(self.simulation.scene)
-                self.simulation.timeChanged.connect(self.panel.clock.setTime)
-                self.simulation.scorer.scoreChanged.connect(
-                                            self.panel.scoreDisplay.display)
+                self.simulationConnect()
                 self.simulationLoaded.emit(self.simulation)
             QtGui.QApplication.restoreOverrideCursor()
+
+    def simulationConnect(self):
+        """Connects the signals and slots to the simulation."""
+        # Set models
+        self._trainInfoView.setModel(self.simulation.selectedTrainModel)
+        self._serviceInfoView.setModel(self.simulation.selectedServiceModel)
+        self.loggerView.setModel(self.simulation.messageLogger)
+        # Set scene
+        self._view.setScene(self.simulation.scene)
+        # TrainListView
+        self.simulation.trainSelected.connect(
+                                    self._trainListView.updateTrainSelection)
+        self._trainListView.trainSelected.connect(
+                    self.simulation.selectedTrainModel.setTrainByServiceCode)
+        self._trainListView.trainSelected.connect(
+                    self._serviceListView.updateServiceSelection)
+        # ServiceListView
+        self._serviceListView.serviceSelected.connect(
+                    self.simulation.selectedServiceModel.setServiceCode)
+        # TrainInfoView
+        self.simulation.trainStatusChanged.connect(
+                                    self._trainInfoView.model().update)
+        self.simulation.timeChanged.connect(
+                                    self._trainInfoView.model().updateSpeed)
+        # MessageLogger
+        self.simulation.messageLogger.rowsInserted.connect(
+                                    self.loggerView.scrollToBottom)
+        # Panel
+        self.simulation.timeChanged.connect(self.panel.clock.setTime)
+        self.simulation.scorer.scoreChanged.connect(
+                                    self.panel.scoreDisplay.display)
+
+    def simulationDisconnect(self):
+        """Disconnects the simulation for deletion."""
+        # Unset models
+        self._trainInfoView.setModel(None)
+        self._serviceInfoView.setModel(None)
+        self.loggerView.setModel(None)
+        # Unset scene
+        self._view.setScene(None)
+        # Disconnect signals
+        try:
+            self.simulation.trainSelected.disconnect()
+        except: pass
+        try:
+            self._trainListView.trainSelected.disconnect()
+        except: pass
+        try:
+            self._serviceListView.serviceSelected.disconnect()
+        except: pass
+        try:
+            self.simulation.trainStatusChanged.disconnect()
+        except: pass
+        try:
+            self.simulation.timeChanged.disconnect()
+        except: pass
+        try:
+            self.simulation.messageLogger.rowsInserted.disconnect()
+        except: pass
+        try:
+            self.simulation.scorer.scoreChanged.disconnect()
+        except: pass
 
     @QtCore.pyqtSlot()
     def saveGame(self):
         """Saves the current game to file."""
-
+        self.simulationDisconnect()
+        del self.simulation
 
     @QtCore.pyqtSlot(int)
     def zoom(self, percent):

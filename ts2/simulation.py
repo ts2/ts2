@@ -29,15 +29,19 @@ from ts2.game import logger, scorer
 class Simulation(QtCore.QObject):
     """The Simulation class holds all the game logic."""
 
-    def __init__(self, simulationWindow, fileName):
-        """ Constructor for the Simulation class. Loads the simulation from
-        fileName."""
+    def __init__(self, simulationWindow):
+        """ Constructor for the Simulation class. """
         super().__init__()
+        self._database = None
         self._simulationWindow = simulationWindow
         self._scene = QtGui.QGraphicsScene()
         self._timer = QtCore.QTimer(self)
         self._messageLogger = logger.MessageLogger(self)
         self._scorer = scorer.Scorer(self)
+        self.initialize()
+
+    def initialize(self):
+        """Initialize the simulation."""
         self._selectedSignal = None
         self._timer.stop()
         try:
@@ -58,9 +62,13 @@ class Simulation(QtCore.QObject):
         self._selectedServiceModel = trains.ServiceInfoModel(self)
         self._trainListModel = trains.TrainListModel(self)
         self._selectedTrainModel = trains.TrainInfoModel(self)
+
+    def load(self, fileName):
+        """Loads the simulation from fileName."""
         self.messageLogger.addMessage(self.tr("Simulation loading"),
-                                      logger.Message.SOFTWARE_MSG)
-        # Simulation loading
+                                    logger.Message.SOFTWARE_MSG)
+        self.initialize()
+        self._database = fileName
         conn = sqlite3.connect(fileName)
         conn.row_factory = sqlite3.Row
         self.loadOptions(conn)
@@ -68,17 +76,17 @@ class Simulation(QtCore.QObject):
         if version > utils.TS2_FILE_FORMAT:
             conn.close()
             self.messageLogger.addMessage(self.tr(
-                            "The simulation is from a newer version of TS2.\n"
-                            "Please upgrade TS2 to version %s.") % version,
-                                          logger.Message.SOFTWARE_MSG)
+                        "The simulation is from a newer version of TS2.\n"
+                        "Please upgrade TS2 to version %s.") % version,
+                        logger.Message.SOFTWARE_MSG)
             return
         if version < utils.TS2_FILE_FORMAT:
             conn.close()
             self.messageLogger.addMessage(self.tr(
-                        "The simulation is from an older version of TS2.\n"
-                        "Open it in the editor and save it again to play "
-                        "with this version of TS2."),
-                        logger.Message.SOFTWARE_MSG)
+                    "The simulation is from an older version of TS2.\n"
+                    "Open it in the editor and save it again to play "
+                    "with this version of TS2."),
+                    logger.Message.SOFTWARE_MSG)
             return
         self.loadTrackItems(conn)
         self.loadRoutes(conn)
@@ -89,7 +97,7 @@ class Simulation(QtCore.QObject):
         self.setupConnections()
         self._scene.update()
         self._startTime = QtCore.QTime.fromString(
-                                    self.option("currentTime"), "hh:mm:ss")
+                                self.option("currentTime"), "hh:mm:ss")
         self._time = self._startTime
         self._timer.timeout.connect(self.timerOut)
         #interval = min(max(100, 5000 / float(self.option("timeFactor"))),500)
@@ -97,8 +105,7 @@ class Simulation(QtCore.QObject):
         self._timer.setInterval(interval)
         self._timer.start()
         self.messageLogger.addMessage(self.tr("Simulation loaded"),
-                                      logger.Message.SOFTWARE_MSG)
-
+                                        logger.Message.SOFTWARE_MSG)
 
     @property
     def scene(self):

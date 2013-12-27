@@ -436,8 +436,7 @@ class EditorWindow(QtGui.QMainWindow):
                            self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
             QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
-            self.editor.database = fileName
-            self.editor.reload(fileName)
+            self.editor.load(fileName)
             self.setWindowTitle(
                     self.tr("ts2 - Train Signalling Simulation - Editor - %s")
                     % fileName)
@@ -734,4 +733,8 @@ class EditorWindow(QtGui.QMainWindow):
         self.sceneryView.setMatrix(QtGui.QMatrix(percent/100, 0, 0,
                                                  percent/100, 0, 0))
 
+    @QtCore.pyqtSlot(int)
+    def openReassignServiceWindow(self, trainId):
+        """To conform to Mainwindow morphism."""
+        pass
 

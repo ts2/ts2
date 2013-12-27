@@ -380,6 +380,10 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
         self.dataChanged.emit(self.index(1, 1), self.index(2, 1))
         self.dataChanged.emit(self.index(8, 1), self.index(11, 1))
 
+    @QtCore.pyqtSlot()
+    def updateSpeed(self):
+        """Emits the dataChanged signal for the speed only."""
+        self.dataChanged.emit(self.index(2, 1), self.index(2, 1))
 
 
 class Train(QtCore.QObject):
@@ -486,7 +490,6 @@ class Train(QtCore.QObject):
         self.nextPlaceIndex = 0
         self.drawTrain(0)
         self.findNextSignal().trainId = self.trainId
-        self.status = TrainStatus.INACTIVE
 
     @property
     def simulation(self):
@@ -504,32 +507,8 @@ class Train(QtCore.QObject):
         oldStatus = self._status
         if self._status == TrainStatus.INACTIVE:
             if value == TrainStatus.RUNNING:
-                self._speed = self._initialSpeed
-                signalAhead = self.findNextSignal()
-                if signalAhead is not None:
-                    signalAhead.trainId = self.trainId
-                signalBehind = self.findPreviousSignal()
-                if signalBehind is not None:
-                    signalBehind.updateSignalState()
-                invertedHead = self._trainHead.reversed()
-                oppositeSignalAhead = self.findPreviousSignal(invertedHead)
-                if oppositeSignalAhead is not None:
-                    oppositeSignalAhead.updateSignalState()
                 self._status = TrainStatus.RUNNING
                 self.updateStatus(0)
-                self.drawTrain()
-                self.executeActions(0)
-                if abs(self.initialDelay) < 60:
-                    self.simulation.messageLogger.addMessage(
-                                self.tr("Train %s entered the area on time") %
-                                self.serviceCode)
-                else:
-                    loe = self.tr("late") if self.initialDelay > 0 \
-                                        else self.tr("early")
-                    self.simulation.messageLogger.addMessage(
-                      self.tr("Train %s entered the area %i minutes %s") %
-                      (self.serviceCode, abs(self.initialDelay // 60), loe))
-
         elif self._status == TrainStatus.RUNNING:
             if value == TrainStatus.OUT:
                 self._speed = 0
@@ -684,9 +663,35 @@ class Train(QtCore.QObject):
         """Activate this Train if time is after this Train appearTime."""
         if self.status == TrainStatus.INACTIVE:
             realAppearTime = self._appearTime.addSecs(self.initialDelay)
-            if (realAppearTime < time and
-                realAppearTime >= self.simulation.startTime.addSecs(-3600)):
+            if realAppearTime < time and \
+               realAppearTime >= self.simulation.startTime.addSecs(-3600):
+                self._speed = self._initialSpeed
+                # Signals update
+                signalAhead = self.findNextSignal()
+                if signalAhead is not None:
+                    signalAhead.trainId = self.trainId
+                signalBehind = self.findPreviousSignal()
+                if signalBehind is not None:
+                    signalBehind.updateSignalState()
+                invertedHead = self._trainHead.reversed()
+                oppositeSignalAhead = self.findPreviousSignal(invertedHead)
+                if oppositeSignalAhead is not None:
+                    oppositeSignalAhead.updateSignalState()
+                # Status update
                 self.status = TrainStatus.RUNNING
+                self.drawTrain()
+                self.executeActions(0)
+                # Print messages
+                if abs(self.initialDelay) < 60:
+                    self.simulation.messageLogger.addMessage(
+                                self.tr("Train %s entered the area on time") %
+                                self.serviceCode)
+                else:
+                    loe = self.tr("late") if self.initialDelay > 0 \
+                                        else self.tr("early")
+                    self.simulation.messageLogger.addMessage(
+                      self.tr("Train %s entered the area %i minutes %s") %
+                      (self.serviceCode, abs(self.initialDelay // 60), loe))
 
     @QtCore.pyqtSlot()
     def reverse(self):
@@ -724,7 +729,6 @@ class Train(QtCore.QObject):
                             % self.serviceCode),
                     QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel
                     ) == QtGui.QMessageBox.Ok:
-            self.status = TrainStatus.INACTIVE
             self.nextPlaceIndex = 0
 
     def jumpToNextPlace(self):

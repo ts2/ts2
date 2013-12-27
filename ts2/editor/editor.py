@@ -296,8 +296,9 @@ class Editor(simulation.Simulation):
         """Returns the number of realOptions"""
         return len(self._options) - 3
 
-    def reload(self, fileName):
-        """Load or reload all the data of the simulation from the database."""
+    def load(self, fileName):
+        """Load all the data of the simulation from the database."""
+        self._database = fileName
         self.updateFileFormat(fileName)
         conn = sqlite3.connect(fileName)
         conn.row_factory = sqlite3.Row

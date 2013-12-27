@@ -59,7 +59,10 @@ class DurationProba(QtCore.QObject):
         super().__init__()
         self._probaList = None
         if isinstance(data, str):
-            self._probaList = eval(data)
+            try:
+                self._probaList = eval(data)
+            except:
+                pass
         else:
             self._probaList = data
 
