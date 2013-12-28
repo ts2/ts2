@@ -530,6 +530,7 @@ class Editor(simulation.Simulation):
         """Saves the Train instances of this editor in the database"""
         conn.execute("DROP TABLE IF EXISTS trains")
         conn.execute("CREATE TABLE trains (\n"
+                            "trainid INTEGER,\n"
                             "servicecode VARCHAR(10),\n"
                             "traintype VARCHAR(10),\n"
                             "speed DOUBLE,\n"
@@ -537,16 +538,21 @@ class Editor(simulation.Simulation):
                             "previoustiid INTEGER,\n"
                             "posonti DOUBLE,\n"
                             "appeartime TIME,\n"
-                            "initialdelay VARCHAR(255))\n")
+                            "initialdelay VARCHAR(255),\n"
+                            "nextplaceindex INTEGER,\n"
+                            "stoppedtime INTEGER)\n")
 
         for train in self._trains:
             query = "INSERT INTO trains " \
-                    "(servicecode, traintype, speed, tiid, previoustiid, "\
-                    "posonti, appeartime, initialdelay) " \
+                    "(trainid, servicecode, traintype, speed, tiid, " \
+                    "previoustiid, posonti, appeartime, initialdelay, " \
+                    "nextplaceindex, stoppedtime) " \
                     "VALUES " \
-                    "(:servicecode, :traintype, :speed, :tiid, "\
-                    ":previoustiid, :posonti, :appeartime, :initialdelay)"
+                    "(:trainid, :servicecode, :traintype, :speed, :tiid, "\
+                    ":previoustiid, :posonti, :appeartime, :initialdelay, "\
+                    ":nextplaceindex, :stoppedtime)"
             parameters = {
+                    "trainid":train.trainId,
                     "servicecode":train.serviceCode,
                     "traintype":train.trainTypeCode,
                     "speed":train.initialSpeed,
@@ -554,7 +560,9 @@ class Editor(simulation.Simulation):
                     "previoustiid":train.trainHead.previousTI.tiId,
                     "posonti":train.trainHead.positionOnTI,
                     "appeartime":train.appearTimeStr,
-                    "initialdelay":train.initialDelayStr
+                    "initialdelay":train.initialDelayStr,
+                    "nextplaceindex":0,
+                    "stoppedtime":0
                     }
             conn.execute(query, parameters)
         conn.commit()

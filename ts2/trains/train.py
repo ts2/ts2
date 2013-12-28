@@ -409,19 +409,22 @@ class Train(QtCore.QObject):
         tiId = parameters["tiid"]
         previousTiId = parameters["previoustiid"]
         posOnTI = parameters["posonti"]
-
         self._trainHead = routing.Position(
                                     self.simulation.trackItem(tiId),
                                     self.simulation.trackItem(previousTiId),
                                     posOnTI)
         self._status = TrainStatus.INACTIVE
         self._stoppedTime = 0
-        self.updateStopTime()
+        if "stoppedtime" in parameters:
+            self._stoppedTime = parameters["stoppedtime"]
+        self.updateMinimumStopTime()
         self._initialDelayProba = utils.DurationProba(
                                                 parameters["initialdelay"])
         self.setInitialDelay()
         if self.currentService is not None:
             self._nextPlaceIndex = 0
+            if "nextplaceindex" in parameters:
+                self._nextPlaceIndex = parameters["nextplaceindex"]
         else:
             self._nextPlaceIndex = None
         self._appearTime = QtCore.QTime.fromString(parameters["appeartime"])
@@ -470,7 +473,13 @@ class Train(QtCore.QObject):
         """Returns the minimum stopping time for next station."""
         return self._minimumStopTime
 
-    def updateStopTime(self):
+    @property
+    def stoppedTime(self):
+        """Returns the number of seconds that this train is stopped at then
+        current station."""
+        return self._stoppedTime
+
+    def updateMinimumStopTime(self):
         """Updates the minimum stopping time for next station."""
         self._minimumStopTime = utils.DurationProba(
                             self.simulation.option("defaultMinimumStopTime"))\
@@ -506,8 +515,8 @@ class Train(QtCore.QObject):
         """Setter function for the status property."""
         oldStatus = self._status
         if self._status == TrainStatus.INACTIVE:
-            if value == TrainStatus.RUNNING:
-                self._status = TrainStatus.RUNNING
+            if (value == TrainStatus.RUNNING or value == TrainStatus.STOPPED):
+                self._status = value
                 self.updateStatus(0)
         elif self._status == TrainStatus.RUNNING:
             if value == TrainStatus.OUT:
@@ -678,7 +687,10 @@ class Train(QtCore.QObject):
                 if oppositeSignalAhead is not None:
                     oppositeSignalAhead.updateSignalState()
                 # Status update
-                self.status = TrainStatus.RUNNING
+                if self._stoppedTime != 0:
+                    self.status = TrainStatus.STOPPED
+                else:
+                    self.status = TrainStatus.RUNNING
                 self.drawTrain()
                 self.executeActions(0)
                 # Print messages
@@ -735,7 +747,7 @@ class Train(QtCore.QObject):
         """Set the nextPlaceIndex to the next serviceLine. If there is no
         serviceLine after the current one, change the service of the train to
         nextService if any."""
-        self.updateStopTime()
+        self.updateMinimumStopTime()
         if self.nextPlaceIndex == len(self.currentService.lines) - 1:
             # The service is ended
             if self.currentService.autoReverse:

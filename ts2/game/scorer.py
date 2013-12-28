@@ -28,9 +28,22 @@ class Scorer(QtCore.QObject):
         """Constructor class for the Scorer class."""
         super().__init__(simulation)
         self.simulation = simulation
-        self.score = 0
+        self._score = 0
 
     scoreChanged = QtCore.pyqtSignal(int)
+
+    @property
+    def score(self):
+        """Returns the current score."""
+        return self._score
+
+    @score.setter
+    def score(self, value):
+        """Setter function for the score property."""
+        oldScore = self._score
+        self._score = int(value)
+        if self._score != oldScore:
+            self.scoreChanged.emit(value)
 
     @property
     def wrongDestinationPenalty(self):
@@ -95,8 +108,6 @@ class Scorer(QtCore.QObject):
                                     "Train %s arrived on time at "
                                     "station %s") %
                                     (train.serviceCode, place.placeName))
-        if self.score != oldScore:
-            self.scoreChanged.emit(self.score)
 
     @QtCore.pyqtSlot(int)
     def trainExitedArea(self, trainId):
@@ -108,5 +119,4 @@ class Scorer(QtCore.QObject):
             self.simulation.messageLogger.addMessage(self.tr(
                                     "Train %s badly routed") %
                                     train.serviceCode)
-            self.scoreChanged.emit(self.score)
 

@@ -450,8 +450,8 @@ class EditorWindow(QtGui.QMainWindow):
         QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
         try:
             self.editor.save()
-        except Exception as e:
-            ts2.gui.dialogs.ExceptionDialog.popupException(self, e)
+        except:
+            ts2.gui.dialogs.ExceptionDialog.popupException(self)
         QtGui.QApplication.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
