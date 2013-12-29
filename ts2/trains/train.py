@@ -976,6 +976,33 @@ class Train(QtCore.QObject):
             distance += pos.trackItem.realLength
         return -1
 
+    def getDistanceToNextTrain(self, maxDistance, trackCircuit=False):
+        """Returns the distance to the next train by looking forward of
+        the _trainHead up to a maximum distance of maxDistance. If
+        trackCircuit is True, then the distance is given to the trackItem on
+        which a train is present. Otherwise, the real distance to the train is
+        returned."""
+        pos = self.trainHead
+        distance = pos.trackItem.realLength - self.trainHead.positionOnTI
+        pos = pos.next()
+        while ((pos.trackItem is not None) and
+               (not pos.trackItem.tiType.startswith("E")) and
+               (distance < maxDistance)):
+            ti = pos.trackItem
+            if ti.tiType.startswith("S"):
+                if ti.isOnPosition(pos) and \
+                   ti.signalState == scenery.SignalState.STOP:
+                    # We have a red signal here, no need to go further
+                    return -1
+            if ti.trainPresent():
+                if trackCircuit:
+                    return distance
+                else:
+                    return distance + ti.distanceToTrainEnd(pos.previousTI)
+            pos = pos.next()
+            distance += pos.trackItem.realLength
+        return -1
+
     def getNextSpeedLimitInfo(self, maxDistance):
         """Returns the next speed limit and the distance at which it starts,
         looking at each trackitem forward of the trainHead up to a maximum
@@ -1014,7 +1041,9 @@ class Train(QtCore.QObject):
         # Next speed limit
         nextSpeedLimit, distanceToNextLimit = self.getNextSpeedLimitInfo(
                                                                 maxDistance)
-
+        # Next train
+        distanceToNextTrain = self.getDistanceToNextTrain(maxDistance,
+                                                          trackCircuit=True)
         # Choose target and define speed
         if distanceToNextStation != -1:
             if distanceToNextStation < d:
@@ -1055,9 +1084,20 @@ class Train(QtCore.QObject):
         else:
             targetSpeedForLimit = maxSpeed
 
+        if distanceToNextTrain != -1:
+            if distanceToNextTrain < d:
+                targetSpeedForTrain = 0
+            else:
+                targetSpeedForTrain = self.targetSpeed(secs,
+                                                       distanceToNextTrain,
+                                                       0)
+        else:
+            targetSpeedForTrain = maxSpeed
+
         ts = min(targetSpeedForSignal,
                  targetSpeedForStation,
-                 targetSpeedForLimit)
+                 targetSpeedForLimit,
+                 targetSpeedForTrain)
         self._accel = max(-self._trainType.emergBraking,
                           min(k * (ts - self._speed),
                               self._trainType.stdAccel))

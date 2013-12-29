@@ -462,7 +462,6 @@ class TrackItem(QtCore.QObject):
                 self._trainHead = self._realLength - pos
         self.updateTrain()
 
-
     def setTrainTail(self, pos, prevTI = None):
         """Same as setTrainHead() but with the trainTail information."""
         if pos == -1:
@@ -480,6 +479,15 @@ class TrackItem(QtCore.QObject):
             return True
         else:
             return False
+
+    def distanceToTrainEnd(self, previousTI):
+        """Returns the distance to the closest end (either trainHead or
+        trainTail) of the train from previousTI."""
+        if previousTI == self.previousItem:
+            return min(self._trainHead, self._trainTail)
+        else:
+            return min(self.realLength - self._trainHead,
+                       self.realLength - self._trainTail)
 
     def isOnPosition(self, p):
         if p.trackItem() == self:
@@ -501,8 +509,11 @@ class TrackItem(QtCore.QObject):
                             self.activeRoute.beginSignal.nextActiveRoute
                 if beginSignalNextRoute is None or \
                    beginSignalNextRoute != self.activeRoute:
-                    self.activeRoutePreviousItem.resetActiveRoute()
-                    self.updateGraphics()
+                    if (self.activeRoutePreviousItem.activeRoute is not None
+                        and self.activeRoutePreviousItem.activeRoute
+                                        == self.activeRoute):
+                        self.activeRoutePreviousItem.resetActiveRoute()
+                        self.updateGraphics()
 
     @property
     def conflictTI(self):
