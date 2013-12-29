@@ -317,15 +317,20 @@ class LineItem(TrackItem):
         """Draws the train on the line, if any"""
         if self.simulation.context == utils.Context.GAME and \
            self.trainPresent():
-            tline = QtCore.QLineF(
-                    self.sceneLine.pointAt(self._trainHead/self._realLength),
-                    self.sceneLine.pointAt(self._trainTail/self._realLength))
-            if tline.length() < 5.0 and self._trainTail != 0:
-                # Make sure that the train representation is always at least
-                # 5 pixel long.
-                tline.setLength(min(5.0,
-                                    (1 - self._trainTail/self._realLength) *
-                                     self.sceneLine.length()))
+            if int(self.simulation.option("trackCircuitBased")) == 0:
+                tline = QtCore.QLineF(
+                        self.sceneLine.pointAt(
+                                            self._trainHead/self._realLength),
+                        self.sceneLine.pointAt(
+                                            self._trainTail/self._realLength))
+                if tline.length() < 5.0 and self._trainTail != 0:
+                    # Make sure that the train representation is always at least
+                    # 5 pixel long.
+                    tline.setLength(min(5.0,
+                                        (1 - self._trainTail/self._realLength) *
+                                        self.sceneLine.length()))
+            else:
+                tline = self.sceneLine
             self._tli.setLine(tline)
             self._tli.show()
             self._tli.update()

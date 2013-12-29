@@ -144,6 +144,11 @@ class Simulation(QtCore.QObject):
                          "WHERE optionkey='currentScore'",
                          {"currentScore":self.scorer.score}
                          )
+        connFile.execute("UPDATE options SET optionvalue=:trackCircuitBased "
+                         "WHERE optionkey='trackCircuitBased'",
+                         {"trackCircuitBased":
+                                            self.option("trackCircuitBased")}
+                         )
         connFile.commit()
         # Routes
         for route in self.routes.values():
@@ -484,7 +489,8 @@ class Simulation(QtCore.QObject):
                 "currentScore":0,
                 "defaultMaxSpeed":44.44,
                 "defaultMinimumStopTime":[(45,75,70),(75,90,30)],
-                "defaultDelayAtEntry":[(-60,0,50),(0,60,50)]
+                "defaultDelayAtEntry":[(-60,0,50),(0,60,50)],
+                "trackCircuitBased":0
             }
         options = {}
         for option in conn.execute("SELECT * FROM options"):

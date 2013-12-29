@@ -50,6 +50,17 @@ class MainWindow(QtGui.QMainWindow):
         self.saveGameAsAction.setShortcut(QtGui.QKeySequence.SaveAs)
         self.saveGameAsAction.setToolTip(self.tr("Save the current game"))
         self.saveGameAsAction.triggered.connect(self.saveGame)
+        self.saveGameAsAction.setEnabled(False)
+
+        self.propertiesAction = QtGui.QAction(self.tr("&Properties..."),
+                                              self)
+        self.propertiesAction.setShortcut(QtGui.QKeySequence(
+                                                        self.tr("Ctrl+P")))
+        self.propertiesAction.setToolTip(
+                                        self.tr("Edit simulation properties"))
+        self.propertiesAction.triggered.connect(self.openPropertiesDialog)
+        self.propertiesAction.setEnabled(False)
+
 
         self.quitAction = QtGui.QAction(self.tr("&Quit"), self)
         self.quitAction.setShortcut(QtGui.QKeySequence(self.tr("Ctrl+Q")))
@@ -73,6 +84,8 @@ class MainWindow(QtGui.QMainWindow):
         self.fileMenu = self.menuBar().addMenu(self.tr("&File"))
         self.fileMenu.addAction(self.openAction)
         self.fileMenu.addAction(self.saveGameAsAction)
+        self.fileMenu.addSeparator()
+        self.fileMenu.addAction(self.propertiesAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitAction)
         self.editorMenu = self.menuBar().addAction(self.editorAction)
@@ -200,7 +213,7 @@ class MainWindow(QtGui.QMainWindow):
             QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
             if self.simulation is not None:
                 self.simulationDisconnect()
-                del self.simulation
+                self.simulation = None
             try:
                 self.simulation = simulation.Simulation(self)
                 self.simulation.load(fileName)
@@ -251,6 +264,9 @@ class MainWindow(QtGui.QMainWindow):
         self.simulation.scorer.scoreChanged.connect(
                                     self.panel.scoreDisplay.display)
         self.panel.scoreDisplay.display(self.simulation.scorer.score)
+        # Menus
+        self.saveGameAsAction.setEnabled(True)
+        self.propertiesAction.setEnabled(True)
 
     def simulationDisconnect(self):
         """Disconnects the simulation for deletion."""
@@ -282,23 +298,27 @@ class MainWindow(QtGui.QMainWindow):
         try:
             self.simulation.scorer.scoreChanged.disconnect()
         except: pass
+        # Menus
+        self.saveGameAsAction.setEnabled(False)
+        self.propertiesAction.setEnabled(False)
 
     @QtCore.pyqtSlot()
     def saveGame(self):
         """Saves the current game to file."""
-        self.simulation.pause()
-        fileName = QtGui.QFileDialog.getSaveFileName(
-                           self,
-                           self.tr("Save the simulation as"),
-                           QtCore.QDir.homePath(),
-                           self.tr("TS2 game files (*.tsg)"))
-        if fileName != "":
-            QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
-            try:
-                self.simulation.saveGame(fileName)
-            except:
-                dialogs.ExceptionDialog.popupException(self)
-            QtGui.QApplication.restoreOverrideCursor()
+        if self.simulation is not None:
+            self.panel.pauseButton.click()
+            fileName = QtGui.QFileDialog.getSaveFileName(
+                            self,
+                            self.tr("Save the simulation as"),
+                            QtCore.QDir.homePath(),
+                            self.tr("TS2 game files (*.tsg)"))
+            if fileName != "":
+                QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+                try:
+                    self.simulation.saveGame(fileName)
+                except:
+                    dialogs.ExceptionDialog.popupException(self)
+                QtGui.QApplication.restoreOverrideCursor()
 
     @QtCore.pyqtSlot(int)
     def zoom(self, percent):
@@ -341,6 +361,18 @@ class MainWindow(QtGui.QMainWindow):
     @QtCore.pyqtSlot()
     def editorIsClosed(self):
         self.editorOpened = False
+
+    @QtCore.pyqtSlot()
+    def openPropertiesDialog(self):
+        """Pops-up the simulation properties dialog."""
+        if self.simulation is not None:
+            paused = self.panel.pauseButton.isChecked()
+            if not paused:
+                self.panel.pauseButton.click()
+            propertiesDialog = dialogs.PropertiesDialog(self, self.simulation)
+            propertiesDialog.exec_()
+            if not paused:
+                self.panel.pauseButton.click()
 
     @QtCore.pyqtSlot(int)
     def openReassignServiceWindow(self, trainId):

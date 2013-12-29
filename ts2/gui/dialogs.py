@@ -22,6 +22,7 @@ import sys
 import traceback
 
 from PyQt4 import QtGui, QtCore
+from PyQt4.QtCore import Qt
 
 from ts2.gui import servicelistview
 
@@ -43,6 +44,59 @@ class ExceptionDialog:
         else:
             message += message.join(traceback.format_exc())
             return QtGui.QMessageBox.critical(parent, title, message)
+
+
+class PropertiesDialog(QtGui.QDialog):
+    """Dialog box for editing simulation properties during the game."""
+
+    def __init__(self, parent, simulation):
+        """Constructor for the PropertiesDialog class."""
+        super().__init__(parent)
+        self.simulation = simulation
+        self.setWindowTitle(self.tr("Simulation properties"))
+        titleLabel = QtGui.QLabel(self)
+        titleLabel.setText("<u>" +
+                           self.tr("Simulation title:") +
+                           "</u>")
+        titleText = QtGui.QLabel(simulation.option("title"), self)
+        hlayout = QtGui.QHBoxLayout()
+        hlayout.addWidget(titleLabel)
+        hlayout.addWidget(titleText)
+        hlayout.addStretch()
+        descriptionLabel = QtGui.QLabel(self)
+        descriptionLabel.setText("<u>" +
+                                 self.tr("Description:") +
+                                 "</u>")
+        descriptionText = QtGui.QTextEdit(self)
+        descriptionText.setReadOnly(True)
+        descriptionText.setText(simulation.option("description"))
+        optionsLabel = QtGui.QLabel(self)
+        optionsLabel.setText("<u>" + self.tr("Options:") + "</u>")
+        tibOptionCB = QtGui.QCheckBox(self)
+        tibOptionCB.stateChanged.connect(self.changeTIB)
+        tibOptionCB.setChecked(
+                            int(simulation.option("trackCircuitBased")) != 0)
+        optionLayout = QtGui.QFormLayout()
+        optionLayout.addRow(self.tr("Play simulation with track circuits"),
+                            tibOptionCB)
+        buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
+        layout = QtGui.QVBoxLayout()
+        layout.addLayout(hlayout)
+        layout.addWidget(descriptionLabel)
+        layout.addWidget(descriptionText)
+        layout.addWidget(optionsLabel)
+        layout.addLayout(optionLayout)
+        layout.addWidget(buttonBox)
+        self.setLayout(layout)
+        buttonBox.accepted.connect(self.accept)
+
+    @QtCore.pyqtSlot(int)
+    def changeTIB(self, checkState):
+        """Changes the trackItemBased Option."""
+        if checkState == Qt.Checked:
+            self.simulation.setOption("trackCircuitBased", 1)
+        else:
+            self.simulation.setOption("trackCircuitBased", 0)
 
 
 class ServiceAssignDialog(QtGui.QDialog):
