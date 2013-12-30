@@ -62,7 +62,10 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
                 elif index.column() == 3:
                     return line.trackCode
                 elif index.column() == 4:
-                    return ""
+                    if not line.mustStop:
+                        return self.tr("non-stop")
+                    else:
+                        return ""
         return None
 
     def headerData (self, column, orientation, role = Qt.DisplayRole):
@@ -234,5 +237,8 @@ class Place(TrackItem):
         p.setPen(pen)
         p.drawText(self._rect.bottomLeft(), self.name)
 
-
+    @QtCore.pyqtSlot()
+    def sortTimetable(self):
+        """Sorts the timetable of the place."""
+        self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
 

@@ -19,7 +19,7 @@ New simulations can be created with the editor provided with ts2.
 
 ## Installation
 * Released versions:
-    - Windows: use provided installer and run ts2.exe.
+    - Windows 64 bits: use provided installer and run ts2.exe.
     - Other platforms: see source installation.
 * Source installation:
     - Download and install Python v3 or above at [www.python.org](http://www.python.org).
@@ -29,12 +29,14 @@ New simulations can be created with the editor provided with ts2.
 
 ## Playing (QuickStart)
 * Load a simulation from the _simulation_ directory (or the _data_ directory if you have installed from sources).
+    If you want to load a simulation from a previous version of TS2, you will need to open it with the editor
+    first and save it before loading it again in the main window.
 * Route setting:
     - To turn a signal from red to green, you need to set a route from this signal to the next one.
     - To set a route left click on the signal and then to the next one. If you can create a route
         between these signals, the track between both signals is highlighted in white, the points are
         turned automatically for this route and the first signal color turn to yellow (or green if
-        the second signal is already yellow).
+        the second signal is already yellow or green).
     - To cancel a route, right-click on its first signal.
     - Routes are automatically cancelled by the first train passing through. However, you can set a
         persistent route by holding the shift key before clicking on the second signal. Persistent
@@ -57,20 +59,18 @@ New simulations can be created with the editor provided with ts2.
     - Trains automatically change service when it is over (on drain demo BW01 becomes WB01 when reaching
     depot)
 * You should see trains run, stop at red signals and at scheduled stations. They should depart at the
-    departure time or 30 seconds after the arrival time if the departure time is past (parameter for Drain
-    demo simulation).
+    departure time or after some time after the arrival time if the departure time is past.
 * Scoring:
     Each time a train arrives late at a station, stops at the wrong platform or is routed to a wrong direction
     penalty points are added to the score.
 
-## File format
-The ts2 files are in fact sqlite3 databases.
-One ts2 file holds all the information for a simulation.
+## Creating new simulations
 
 Simulations can be created/modified using the editor provided with ts2.
 
 ## Known bugs
-- Under windows, trains leave display artefacts (red traces) when scrolling the layout.
+- Under windows, trains leave display artefacts (red traces) when scrolling the layout. These do not affect the
+    game and finally disappear.
 
 ## Roadmap
 Next version (0.5) will focus on train shunting, joining/dividing, etc.

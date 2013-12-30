@@ -312,6 +312,7 @@ class Simulation(QtCore.QObject):
     trainSelected = QtCore.pyqtSignal(int)
     itemSelected = QtCore.pyqtSignal(int)
     trainStatusChanged = QtCore.pyqtSignal(int)
+    servicesLoaded = QtCore.pyqtSignal()
 
     @QtCore.pyqtSlot(int, bool, bool)
     def activateRoute(self, siId, persistent=False, force=False):
@@ -522,6 +523,7 @@ class Simulation(QtCore.QObject):
             parameters = dict(p)
             tiId = parameters["tiid"]
             place = scenery.Place(self, parameters)
+            self.servicesLoaded.connect(place.sortTimetable)
             self._trackItems[tiId] = place
             self._places[place.placeCode] = place
 
@@ -577,6 +579,8 @@ class Simulation(QtCore.QObject):
             serviceCode = serviceLine["servicecode"]
             parameters = dict(serviceLine)
             self._services[serviceCode].addLine(parameters)
+
+        self.servicesLoaded.emit()
 
     def setupConnections(self):
         """Sets up the connections which need a simulation loaded"""

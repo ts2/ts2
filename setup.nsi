@@ -41,6 +41,7 @@
 
 ; Language files
 !insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "French"
 
 ; MUI end ------
 
@@ -60,6 +61,7 @@ Section "SectionPrincipale" SEC01
   SetOverwrite try
   File "build\exe.win-amd64-3.3\doc\COPYING.txt"
   File "build\exe.win-amd64-3.3\doc\README.txt"
+  File "build\exe.win-amd64-3.3\doc\README_fr.txt"
   SetOutPath "$INSTDIR"
   File "build\exe.win-amd64-3.3\LIBEAY32.dll"
   File "build\exe.win-amd64-3.3\library.zip"
@@ -169,6 +171,7 @@ Section Uninstall
   Delete "$INSTDIR\library.zip"
   Delete "$INSTDIR\LIBEAY32.dll"
   Delete "$INSTDIR\doc\README.txt"
+  Delete "$INSTDIR\doc\README_fr.txt"
   Delete "$INSTDIR\doc\COPYING.txt"
 
   Delete "$SMPROGRAMS\Train Signalling Simulation\Uninstall.lnk"

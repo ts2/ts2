@@ -22,8 +22,8 @@ SOURCES =  \
 ../ts2/editor/__init__.py \
 ../ts2/editor/delegates.py \
 ../ts2/editor/editor.py \
-../ts2/editor/editorwindow.py \
 ../ts2/editor/editorscenebackground.py \
+../ts2/editor/editorwindow.py \
 ../ts2/editor/views.py \
 ../ts2/game/__init__.py \
 ../ts2/game/logger.py \
@@ -31,7 +31,6 @@ SOURCES =  \
 ../ts2/gui/__init__.py \
 ../ts2/gui/dialogs.py \
 ../ts2/gui/servicelistview.py \
-../ts2/gui/serviceassigndialog.py \
 ../ts2/gui/trainlistview.py \
 ../ts2/gui/widgets.py \
 ../ts2/routing/__init__.py \
