@@ -185,8 +185,7 @@ class ServicesModel(QtCore.QAbstractTableModel):
     def data(self, index, role = Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            key = sorted(self._editor.services.keys())[index.row()]
-            service = self._editor.services[key]
+            service = list(self._editor.services.values())[index.row()]
             if index.column() == 0:
                 return str(service.serviceCode)
             elif index.column() == 1:
@@ -464,110 +463,11 @@ class Service:
         """Returns the lines of this service"""
         return self._lines
 
-    def start(self):
-        """Call this function once all the lines of the service are filled to
-        initialize the pointer to the next Place (station)."""
-        self._current = self._lines[0]
-
-    @property
-    def nextPlace(self):
-        """Returns the next Place that this service is scheduled to."""
-        if self._current is not None:
-            return self._current.place
-        else:
-            return None
-
-    @property
-    def nextLine(self):
-        """Returns the currently active service line."""
-        return self._current
-
-    @property
-    def nextStopLine(self):
-        """Returns the ServiceLine where this service is scheduled to stop
-        next."""
-        if self._current is not None:
-            for it in self._lines[self._lines.index(self._current):]:
-                if it.mustStop:
-                    return it
-        return None
-
-    @property
-    def nextPlaceName(self):
-        """Returns the name of the place where this service is scheduled to
-         or an empty string if there isn't any."""
-        sl = self.nextLine
-        if sl is not None:
-            return sl.place.placeName
-        else:
-            return ""
-
-    @property
-    def nextPlaceArrivalTime(self):
-        """Returns the arrival time in the next place where this service is
-        scheduled to or an empty QTime if there isn't any."""
-        sl = self.nextLine
-        if sl is not None:
-            return sl.scheduledArrivalTime
-        else:
-            return QtCore.QTime()
-
-    @property
-    def nextPlaceDepartureTime(self):
-        """Returns the departure time in the next place where this service is
-        scheduled to or an empty QTime if there isn't any."""
-        sl = self.nextLine
-        if sl is not None:
-            return sl.scheduledDepartureTime
-        else:
-            return QtCore.QTime()
-
-    @property
-    def nextPlaceTrackCode(self):
-        """Returns the track code in the next place where this service is
-        scheduled to or an empty string if there isn't any."""
-        sl = self.nextLine
-        if sl is not None:
-            return sl.trackCode
-        else:
-            return ""
-
-    @property
-    def nextPlaceMustStop(self):
-        """Returns true if the service is scheduled to stop at the next
-        place."""
-        sl = self.nextLine
-        if sl is not None:
-            return sl.mustStop
-        else:
-            return False
-
-    def jumpToNextPlace(self):
-        """Set the _current pointer to the next serviceLine. If there is no
-        serviceLine after the current one, change the service of the train to
-        nextService if any."""
-        if self._current == self._lines[-1]:
-            # The service is ended
-            train = self._simulation.train(self._serviceCode)
-            if self._nextServiceCode != "":
-                train.serviceCode = self._nextServiceCode
-            else:
-                self._current = None
-            if self.autoReverse:
-                train.reverse()
-        else:
-            i = self._lines.index(self._current)
-            self._current = self._lines[i+1]
-
-    def depart(self):
-        """Called when leaving a place"""
-        self.jumpToNextPlace()
-
-    @property
-    def minimumStopTime(self):
-        """Returns the minimum stop time applicable for this Service in the
-        next plasce."""
-        return float(self._simulation.option("defaultMinimumStopTime"))
+    #@property
+    #def minimumStopTime(self):
+        #"""Returns the minimum stop time applicable for this Service in the
+        #next plasce."""
+        #return float(self._simulation.option("defaultMinimumStopTime"))
 
     @property
     def entryPlaceName(self):

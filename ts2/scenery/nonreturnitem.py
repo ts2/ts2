@@ -44,7 +44,7 @@ class NonReturnItem(SignalItem):
         if self.trainPresent():
             linePen.setColor(Qt.red)
 
-        if self._trainServiceCode != "" and \
+        if self.trainId is not None and \
            self.simulation.context == utils.Context.GAME:
             # Train code to draw
             p.setPen(textPen)
@@ -53,7 +53,7 @@ class NonReturnItem(SignalItem):
             p.setFont(font)
             textOrigin = QtCore.QPointF(23,6) if self.reverse \
                     else QtCore.QPointF(3,22)
-            p.drawText(textOrigin, self._trainServiceCode.rjust(5))
+            p.drawText(textOrigin, self.trainServiceCode.rjust(5))
         else:
             # No Train code => Draw Line
             p.setPen(linePen)

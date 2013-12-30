@@ -141,6 +141,20 @@ class Route(QtCore.QObject):
             value = 0
         self._initialState = value
 
+    def getRouteState(self):
+        """Returns the current route state:
+        0 => Not activated
+        1 => Activated, non persistent
+        2 => Activated, persistent."""
+        if self.beginSignal.nextActiveRoute is not None and \
+           self.beginSignal.nextActiveRoute == self:
+            if self._persistent:
+                return 2
+            else:
+                return 1
+        else:
+            return 0
+
     @property
     def directions(self):
         """Returns the directions dictionary"""
@@ -204,7 +218,7 @@ class Route(QtCore.QObject):
     def desactivate(self):
         """This function is called by the simulation when the route is
         desactivated."""
-        self.beginSignal.resetNextActiveRoute()
+        self.beginSignal.resetNextActiveRoute(self)
         self.endSignal.resetPreviousActiveRoute()
         for pos in self._positions:
             if pos.trackItem.activeRoute is None or \

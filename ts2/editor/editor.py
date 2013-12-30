@@ -296,8 +296,10 @@ class Editor(simulation.Simulation):
         """Returns the number of realOptions"""
         return len(self._options) - 3
 
-    def reload(self, fileName):
-        """Load or reload all the data of the simulation from the database."""
+    def load(self, fileName):
+        """Load all the data of the simulation from the database."""
+        self._database = fileName
+        self.updateFileFormat(fileName)
         conn = sqlite3.connect(fileName)
         conn.row_factory = sqlite3.Row
         self.loadOptions(conn)
@@ -326,11 +328,30 @@ class Editor(simulation.Simulation):
         self.servicesChanged.emit()
         self.loadTrains(conn)
         self.trainsChanged.emit()
+        conn.close()
+
+    def updateFileFormat(self, fileName):
+        """Updates the database given by fileName to the current file format.
+        """
+        conn = sqlite3.connect(fileName)
+        conn.row_factory = sqlite3.Row
+        self.loadOptions(conn)
+        version = float(self.option("version"))
+        if version < utils.TS2_FILE_FORMAT:
+            if version <= 0.3:
+                conn.execute("ALTER TABLE trackitems ADD COLUMN ptiid")
+                conn.execute("ALTER TABLE trackitems ADD COLUMN ntiid")
+                conn.execute("ALTER TABLE trackitems ADD COLUMN rtiid")
+                conn.execute("ALTER TABLE trains ADD COLUMN initialdelay")
+                conn.commit()
+            self.setOption("version", utils.TS2_FILE_FORMAT)
+            self.saveOptions(conn)
+        conn.close()
 
     def save(self):
         """Saves the data of the simulation to the database"""
         # Set up database
-        self.setOption("version", "0.3")
+        self.setOption("version", utils.TS2_FILE_FORMAT)
         conn = sqlite3.connect(self._database)
         self.saveOptions(conn)
         self.saveTrackItems(conn)
@@ -509,29 +530,39 @@ class Editor(simulation.Simulation):
         """Saves the Train instances of this editor in the database"""
         conn.execute("DROP TABLE IF EXISTS trains")
         conn.execute("CREATE TABLE trains (\n"
+                            "trainid INTEGER,\n"
                             "servicecode VARCHAR(10),\n"
                             "traintype VARCHAR(10),\n"
                             "speed DOUBLE,\n"
                             "tiid INTEGER,\n"
                             "previoustiid INTEGER,\n"
                             "posonti DOUBLE,\n"
-                            "appeartime TIME)\n")
+                            "appeartime TIME,\n"
+                            "initialdelay VARCHAR(255),\n"
+                            "nextplaceindex INTEGER,\n"
+                            "stoppedtime INTEGER)\n")
 
         for train in self._trains:
             query = "INSERT INTO trains " \
-                    "(servicecode, traintype, speed, tiid, previoustiid, "\
-                    "posonti, appeartime) " \
+                    "(trainid, servicecode, traintype, speed, tiid, " \
+                    "previoustiid, posonti, appeartime, initialdelay, " \
+                    "nextplaceindex, stoppedtime) " \
                     "VALUES " \
-                    "(:servicecode, :traintype, :speed, :tiid, "\
-                    ":previoustiid, :posonti, :appeartime)"
+                    "(:trainid, :servicecode, :traintype, :speed, :tiid, "\
+                    ":previoustiid, :posonti, :appeartime, :initialdelay, "\
+                    ":nextplaceindex, :stoppedtime)"
             parameters = {
+                    "trainid":train.trainId,
                     "servicecode":train.serviceCode,
                     "traintype":train.trainTypeCode,
                     "speed":train.initialSpeed,
                     "tiid":train.trainHead.trackItem.tiId,
                     "previoustiid":train.trainHead.previousTI.tiId,
                     "posonti":train.trainHead.positionOnTI,
-                    "appeartime":train.appearTimeStr
+                    "appeartime":train.appearTimeStr,
+                    "initialdelay":train.initialDelayStr,
+                    "nextplaceindex":0,
+                    "stoppedtime":0
                     }
             conn.execute(query, parameters)
         conn.commit()

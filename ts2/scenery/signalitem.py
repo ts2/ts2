@@ -50,7 +50,7 @@ class SignalItem(TrackItem):
         self._signalState = SignalState.STOP
         self._previousActiveRoute = None
         self._nextActiveRoute = None
-        self._trainServiceCode = ""
+        self._trainId = None
         self._signalPos = 0
         sgi = TrackGraphicsItem(self)
         sgi.setPos(self.realOrigin)
@@ -65,7 +65,7 @@ class SignalItem(TrackItem):
 
     signalSelected = QtCore.pyqtSignal(int, bool, bool)
     signalUnselected = QtCore.pyqtSignal(int)
-    trainSelected = QtCore.pyqtSignal(str)
+    trainSelected = QtCore.pyqtSignal(int)
 
     @property
     def origin(self):
@@ -212,7 +212,7 @@ class SignalItem(TrackItem):
                 self.signalSelected.emit(self.tiId, persistent, force);
             else:
                 # The train code is selected
-                self.trainSelected.emit(self._trainServiceCode)
+                self.trainSelected.emit(self._trainId)
         elif e.button() == Qt.RightButton:
             if self.simulation.context == utils.Context.EDITOR_SCENERY:
                 self.reverse = not self.reverse
@@ -224,7 +224,7 @@ class SignalItem(TrackItem):
                 self.signalUnselected.emit(self.tiId)
             else:
                 # The train code is right-clicked
-                train = self._simulation.train(self._trainServiceCode)
+                train = self._simulation.trains[self._trainId]
                 if train is not None:
                     train.showTrainActionsMenu(
                                     self._simulation.simulationWindow.view,
@@ -245,16 +245,16 @@ class SignalItem(TrackItem):
         textPen.setColor(Qt.white)
         if self.trainPresent():
             linePen.setColor(Qt.red)
-        if self._trainServiceCode != "" and \
+        if self._trainId is not None and \
            self.simulation.context == utils.Context.GAME:
             # Draw Train code
             p.setPen(textPen)
             font = QtGui.QFont("Courier new")
             font.setPixelSize(11)
             p.setFont(font)
-            textOrigin = QtCore.QPointF(23,6) if self.reverse else\
+            textOrigin = QtCore.QPointF(23,6) if self.reverse else \
                          QtCore.QPointF(3,22)
-            p.drawText(textOrigin, self._trainServiceCode.rjust(5))
+            p.drawText(textOrigin, self.trainServiceCode.rjust(5))
         else:
             # No Train code => Draw Line
             p.setPen(linePen)
@@ -322,10 +322,14 @@ class SignalItem(TrackItem):
                 self.drawConnectionRect(p, QtCore.QPointF(60, 18))
 
 
-    def resetNextActiveRoute(self):
-        """Resets the nextActiveRoute information."""
-        self._nextActiveRoute = None
-        self.updateSignalState()
+    def resetNextActiveRoute(self, route=None):
+        """Resets the nextActiveRoute information. If route is not None, do
+        this only if the nextActiveRoute is equal to route."""
+        if (route is None or
+            (self._nextActiveRoute is not None and
+             self._nextActiveRoute == route)):
+            self._nextActiveRoute = None
+            self.updateSignalState()
 
     @previousActiveRoute.setter
     def previousActiveRoute(self, route):
@@ -333,27 +337,38 @@ class SignalItem(TrackItem):
         self._previousActiveRoute = route
         self.updateSignalState()
 
-    def resetPreviousActiveRoute(self):
-        """Reset the previousActiveRoute information."""
-        self._previousActiveRoute = None
-        self.updateSignalState()
+    def resetPreviousActiveRoute(self, route=None):
+        """Reset the previousActiveRoute information. If route is not None, do
+        this only if the previousActiveRoute is equal to route."""
+        if (route is None or
+            (self._previousActiveRoute is not None and
+             self._previousActiveRoute == route)):
+            self._previousActiveRoute = None
+            self.updateSignalState()
 
     @property
     def trainServiceCode(self):
         """Returns the trainServiceCode of this signal. This is for display
         only."""
-        return self._trainServiceCode
+        if self._trainId is not None:
+            return self.simulation.trains[self._trainId].serviceCode
+        else:
+            return ""
 
-    @trainServiceCode.setter
-    def trainServiceCode(self, code):
-        """Sets the trainServiceCode of this signal to the given code. This is
-        for display only."""
-        self._trainServiceCode = code
+    @property
+    def trainId(self):
+        """Returns the train internal Id."""
+        return self._trainId
+
+    @trainId.setter
+    def trainId(self, code):
+        """Sets the trainId of this signal to the given Id."""
+        self._trainId = code
         self.updateGraphics()
 
-    def resetTrainServiceCode(self):
-        """Resets the trainServiceCode of this signal."""
-        self._trainServiceCode = ""
+    def resetTrainId(self):
+        """Resets the trainId of this signal."""
+        self._trainId = None
         self.updateGraphics()
 
     def trainsAhead(self):
@@ -371,24 +386,22 @@ class SignalItem(TrackItem):
             pos = pos.next()
         return False
 
-    def trainHeadActions(self, serviceCode):
+    def trainHeadActions(self, trainId):
         """Actions to be performed when the train head reaches this signal.
         Pushes the train code to the next signal."""
-        if (self.nextActiveRoute is not None) and \
-           (self.trainServiceCode != ""):
-            self.nextActiveRoute.endSignal.trainServiceCode = \
-                    self.trainServiceCode
-            self.resetTrainServiceCode()
-        super().trainHeadActions(serviceCode)
+        if self.nextActiveRoute is not None:
+            self.nextActiveRoute.endSignal.trainId = trainId
+            self.resetTrainId()
+        super().trainHeadActions(trainId)
 
-    def trainTailActions(self, serviceCode):
+    def trainTailActions(self, trainId):
         """Actions that are to be done when a train tail reaches this signal.
         It deals with desactivating this signal."""
         if self.activeRoute is not None and \
            self.activeRoutePreviousItem != self.previousItem:
             # The line is highlighted by an opposite direction route
             # => base TrackItem actions
-            super().trainTailActions(serviceCode)
+            super().trainTailActions(trainId)
         else:
 
             self.resetActiveRoute() # For cleaning purposes:

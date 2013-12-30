@@ -18,47 +18,49 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-SOURCES = ../ts2/routing/route.py \
-../ts2/routing/__init__.py \
-../ts2/routing/position.py \
-../ts2/simulation.py \
-../ts2/ressources_rc.py \
-../ts2/mainwindow.py \
-../ts2/servicelistview.py \
-../ts2/trainlistview.py \
-../ts2/clock.py \
-../ts2/application.py \
-../ts2/trains/train.py \
-../ts2/trains/traintype.py \
-../ts2/trains/__init__.py \
-../ts2/trains/service.py \
-../ts2/__init__.py \
-../ts2/panel.py \
-../ts2/serviceassigndialog.py \
-../ts2/editor/editorwindow.py \
+SOURCES =  \
+../ts2/editor/__init__.py \
 ../ts2/editor/delegates.py \
 ../ts2/editor/editor.py \
-../ts2/editor/__init__.py \
 ../ts2/editor/editorscenebackground.py \
+../ts2/editor/editorwindow.py \
 ../ts2/editor/views.py \
-../ts2/gui/dialogs.py \
+../ts2/game/__init__.py \
+../ts2/game/logger.py \
+../ts2/game/scorer.py \
 ../ts2/gui/__init__.py \
-../ts2/scenery/platformitem.py \
-../ts2/scenery/lineitem.py \
-../ts2/scenery/signaltimeritem.py \
-../ts2/scenery/invisiblelinkitem.py \
+../ts2/gui/dialogs.py \
+../ts2/gui/servicelistview.py \
+../ts2/gui/trainlistview.py \
+../ts2/gui/widgets.py \
+../ts2/routing/__init__.py \
+../ts2/routing/position.py \
+../ts2/routing/route.py \
 ../ts2/scenery/__init__.py \
 ../ts2/scenery/bumperitem.py \
-../ts2/scenery/pointsitem.py \
 ../ts2/scenery/enditem.py \
+../ts2/scenery/invisiblelinkitem.py \
+../ts2/scenery/lineitem.py \
 ../ts2/scenery/nonreturnitem.py \
 ../ts2/scenery/place.py \
+../ts2/scenery/platformitem.py \
+../ts2/scenery/pointsitem.py \
 ../ts2/scenery/signalitem.py \
+../ts2/scenery/signaltimeritem.py \
 ../ts2/scenery/textitem.py \
 ../ts2/scenery/trackitem.py \
+../ts2/trains/__init__.py \
+../ts2/trains/service.py \
+../ts2/trains/train.py \
+../ts2/trains/traintype.py \
+../ts2/__init__.py \
+../ts2/application.py \
+../ts2/mainwindow.py \
+../ts2/ressources_rc.py \
+../ts2/simulation.py \
 ../ts2/utils.py \
-../ts2.py \
 ../build.py \
+../ts2.py \
 
 TRANSLATIONS = ts2_fr.ts
 

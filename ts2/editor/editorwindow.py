@@ -288,7 +288,9 @@ class EditorWindow(QtGui.QMainWindow):
         hgride.addWidget(self.importServicesBtn)
         hgride.addStretch()
         self.servicesView = ts2.editor.views.ServicesEditorView(servicesTab)
-        self.servicesView.setModel(self.editor.servicesModel)
+        servicesSortedModel = QtGui.QSortFilterProxyModel()
+        servicesSortedModel.setSourceModel(self.editor.servicesModel)
+        self.servicesView.setModel(servicesSortedModel)
         self.editor.servicesChanged.connect(self.servicesView.model().reset)
         self.editor.servicesChanged.connect(
                                 self.servicesView.resizeColumnsToContents)
@@ -434,8 +436,7 @@ class EditorWindow(QtGui.QMainWindow):
                            self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
             QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
-            self.editor.database = fileName
-            self.editor.reload(fileName)
+            self.editor.load(fileName)
             self.setWindowTitle(
                     self.tr("ts2 - Train Signalling Simulation - Editor - %s")
                     % fileName)
@@ -449,8 +450,8 @@ class EditorWindow(QtGui.QMainWindow):
         QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
         try:
             self.editor.save()
-        except Exception as e:
-            ts2.gui.dialogs.ExceptionDialog.popupException(self, e)
+        except:
+            ts2.gui.dialogs.ExceptionDialog.popupException(self)
         QtGui.QApplication.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
@@ -732,4 +733,8 @@ class EditorWindow(QtGui.QMainWindow):
         self.sceneryView.setMatrix(QtGui.QMatrix(percent/100, 0, 0,
                                                  percent/100, 0, 0))
 
+    @QtCore.pyqtSlot(int)
+    def openReassignServiceWindow(self, trainId):
+        """To conform to Mainwindow morphism."""
+        pass
 

@@ -20,45 +20,49 @@
 
 from PyQt4 import QtGui, QtCore
 
+from ts2 import simulation
+
 
 class ServiceListView(QtGui.QTreeView):
     """TODO Document ServiceListView"""
 
-    def __init__(self, parent, simulation):
+    def __init__(self, parent):
         super().__init__(parent)
-        self._simulation = simulation
+        self.simulation = None
         self.setItemsExpandable(False)
         self.setRootIsDecorated(False)
         self.setHeaderHidden(False)
-        self._simulation.simulationLoaded.connect(self.setupServiceList)
 
     serviceSelected = QtCore.pyqtSignal(str)
 
-    @QtCore.pyqtSlot(str)
-    def updateServiceSelection(self, serviceCode):
-        """Update the selection by selecting the service given by serviceCode.
-        """
-        for i in range(self.model().rowCount()):
-            index = self.model().index(i, 0)
-            if self.model().data(index) == serviceCode:
-                self.selectionModel().select( \
-                                index, \
-                                QtGui.QItemSelectionModel.Rows| \
-                                QtGui.QItemSelectionModel.ClearAndSelect)
+    @QtCore.pyqtSlot(int)
+    def updateServiceSelection(self, trainId):
+        """Update the selection by selecting the service of the train given by
+        trainId. """
+        if self.simulation is not None:
+            serviceCode = self.simulation.trains[trainId].serviceCode
+            for i in range(self.model().rowCount()):
+                index = self.model().index(i, 0)
+                if self.model().data(index) == serviceCode:
+                    self.selectionModel().select(
+                                    index,
+                                    QtGui.QItemSelectionModel.Rows|
+                                    QtGui.QItemSelectionModel.ClearAndSelect)
 
-    @QtCore.pyqtSlot()
-    def setupServiceList(self):
+    @QtCore.pyqtSlot(simulation.Simulation)
+    def setupServiceList(self, simulation):
         """Updates the service list view."""
-        if self.model() is None:
-            model = self._simulation.serviceListModel
-            model.updateModel()
-            self.setModel(model)
-            self.setSortingEnabled(True)
-            for i in range(0, 4):
-                self.resizeColumnToContents(i)
-            self.header().setStretchLastSection(False)
-            self.header().setSortIndicatorShown(False)
-            self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.simulation = simulation
+        #if self.model() is None:
+        model = self.simulation.serviceListModel
+        model.updateModel()
+        self.setModel(model)
+        self.setSortingEnabled(True)
+        for i in range(0, 4):
+            self.resizeColumnToContents(i)
+        self.header().setStretchLastSection(False)
+        self.header().setSortIndicatorShown(False)
+        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 
 
     @QtCore.pyqtSlot(QtGui.QItemSelection, QtGui.QItemSelection)
