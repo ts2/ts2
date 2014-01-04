@@ -129,11 +129,10 @@ class Place(TrackItem):
     properties = TrackItem.properties + [\
                                     TIProperty("placeCode", tr("Place code"))]
 
-    @property
-    def saveParameters(self):
+    def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
         database"""
-        parameters = super().saveParameters
+        parameters = super().getSaveParameters()
         parameters.update({"placecode":self.placeCode})
         return parameters
 

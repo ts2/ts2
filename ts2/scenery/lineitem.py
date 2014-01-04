@@ -95,11 +95,10 @@ class LineItem(TrackItem):
                   TIProperty("maxSpeed", tr("Maximum speed (m/s)")),
                   TIProperty("conflictTiId", tr("Conflict item ID"))]
 
-    @property
-    def saveParameters(self):
+    def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
         database"""
-        parameters = super().saveParameters
+        parameters = super().getSaveParameters()
         parameters.update({ \
                             "xf":self._end.x(), \
                             "yf":self._end.y(), \

@@ -296,6 +296,16 @@ class Editor(simulation.Simulation):
         """Returns the number of realOptions"""
         return len(self._options) - 3
 
+    def place(self, placeCode):
+        """Returns the place defined by placeCode. Reimplemented from
+        Simulation so as not to rely on the places dictionary."""
+        if placeCode is not None and placeCode != "":
+            for ti in self._trackItems.values():
+                if ti.tiType.startswith("A") and ti.placeCode == placeCode:
+                    return ti
+        return None
+
+
     def load(self, fileName):
         """Load all the data of the simulation from the database."""
         self._database = fileName
@@ -389,13 +399,13 @@ class Editor(simulation.Simulation):
         fieldString = fieldString[:-1] + ")"
         conn.execute("CREATE TABLE trackitems %s" % fieldString)
         for ti in self._trackItems.values():
-            keysCodes = map(lambda a:":%s" % a, ti.saveParameters.keys())
+            keysCodes = map(lambda a:":%s" % a, ti.getSaveParameters().keys())
             query = "INSERT INTO trackitems %s VALUES (" % \
-                                        str(tuple(ti.saveParameters.keys()))
-            for k in ti.saveParameters.keys():
+                                    str(tuple(ti.getSaveParameters().keys()))
+            for k in ti.getSaveParameters().keys():
                 query += ":%s," % k
             query = query[:-1] + ")"
-            conn.execute(query, ti.saveParameters)
+            conn.execute(query, ti.getSaveParameters())
         conn.commit()
 
     def saveRoutes(self, conn):

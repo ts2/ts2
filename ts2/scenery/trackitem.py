@@ -399,8 +399,7 @@ class TrackItem(QtCore.QObject):
     def activeRoutePreviousItem(self):
         return self._activeRoutePreviousItem
 
-    @property
-    def saveParameters(self):
+    def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
         database"""
         if self.previousItem is not None:

@@ -42,12 +42,10 @@ class SignalTimerItem(SignalItem):
                 TIProperty("timerSW", "Time from STOP to WARNING (s)"), \
                 TIProperty("timerWC", "Time from WARNING to CLEAR (s)")]
 
-    @property
-    def saveParameters(self):
+    def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
         database"""
-        timeFactor = float(self._simulation.option("timeFactor"))
-        parameters = super().saveParameters
+        parameters = super().getSaveParameters()
         parameters.update( {
                             "timersw":self._timerSW,
                             "timerwc":self._timerWC })
