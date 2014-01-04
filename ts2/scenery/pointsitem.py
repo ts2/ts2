@@ -65,11 +65,14 @@ class PointsItem(TrackItem):
                             TIProperty("normalEndStr", "Normal End"), \
                             TIProperty("reverseEndStr", "Reverse End")]
 
-    @property
-    def saveParameters(self):
+    def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
         database"""
-        parameters = super().saveParameters
+        parameters = super().getSaveParameters()
+        if self.reverseItem is not None:
+            reverseTiId = self.reverseItem.tiId
+        else:
+            reverseTiId = None
         parameters.update({
                                 "x":self._center.x(),
                                 "y":self._center.y(),
@@ -79,7 +82,7 @@ class PointsItem(TrackItem):
                                 "yn":(self._normalEnd - self.middle).y(),
                                 "xr":(self._reverseEnd - self.middle).x(),
                                 "yr":(self._reverseEnd - self.middle).y(),
-                                "rtiid":self.reverseItem.tiId})
+                                "rtiid":reverseTiId})
         return parameters
 
     @property

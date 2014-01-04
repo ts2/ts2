@@ -186,11 +186,10 @@ class SignalItem(TrackItem):
         else:
             return False
 
-    @property
-    def saveParameters(self):
+    def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
         database"""
-        parameters = super().saveParameters
+        parameters = super().getSaveParameters()
         parameters.update({"reverse":int(self.reverse)})
         return parameters
 
