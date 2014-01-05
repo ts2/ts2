@@ -1,5 +1,5 @@
 # TS2 - Train Signalling Simulation
-version 0.4
+version 0.4.1
 
 ## Overview
 "Train Signalling Simulation" (TS2) is a railways simulation game where you have to dispatch trains across an area and keep them on schedule. See homepage for more details.
@@ -76,6 +76,9 @@ Simulations can be created/modified using the editor provided with ts2.
 Next version (0.5) will focus on train shunting, joining/dividing, etc.
 
 ## Change log
+Version 0.4.1:
+- Fixed bug in editor: new places are now taken into account immediately
+
 Version 0.4:
 - Added scoring system,
 - Added statistical delays to trains,

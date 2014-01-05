@@ -1,5 +1,5 @@
 # TS2 - Train Signalling Simulation
-version 0.4
+version 0.4.1
 
 ## Présentation
 "Train Signalling Simulation" (TS2) est un jeu de simulation ferroviaire où vous
@@ -82,6 +82,10 @@ Les simulations peuvent être créées/modifiées à l'aide de l'éditeur incorp
 La prochaine version (0.5) ajoutera les fonctionnalités liées aux manoeuvres des trains.
 
 ## Historique des versions
+Version 0.4.1:
+- Correction d'un bug dans l'éditeur: les nouvelles "Places" sont maintenant prises en compte immédiatement
+    après leur création.
+
 Version 0.4:
 - Ajout du système de comptage du score
 - Ajout de retards statistiques sur les trains

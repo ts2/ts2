@@ -22,7 +22,7 @@ import random
 
 from PyQt4 import QtCore
 
-TS2_VERSION = "0.4.0"
+TS2_VERSION = "0.4.1"
 TS2_FILE_FORMAT = 0.4
 
 class Context():
