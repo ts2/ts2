@@ -1,5 +1,5 @@
 # TS2 - Train Signalling Simulation
-version 0.4.1
+version 0.5
 
 ## Présentation
 "Train Signalling Simulation" (TS2) est un jeu de simulation ferroviaire où vous
