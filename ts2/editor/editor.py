@@ -172,16 +172,17 @@ class Editor(simulation.Simulation):
         # Items
         self.librarySignalItem = scenery.SignalItem(self,
                 {"tiid":-1, "name":"Signal", "x":20, "y":30, "reverse":0,
-                 "maxspeed":0.0})
+                 "xf":0, "yf":0, "maxspeed":0.0})
         self.librarySignalTimerItem = scenery.SignalTimerItem(self,
                 {"tiid":-2, "name":"Timer Signal", "x":120, "y":30,
-                 "reverse":0, "maxspeed":0.0, "timersw":1.0, "timerwc":1.0})
+                 "xf":0, "yf":0, "reverse":0, "maxspeed":0.0, "timersw":1.0,
+                 "timerwc":1.0})
         self.libraryPointsItem = scenery.PointsItem(self,
                 {"tiid":-3, "name":"Points", "maxspeed":0.0, "x":50, "y":75,
                  "xf":-5, "yf":0, "xn":5, "yn":0, "xr":5, "yr":-5})
         self.libraryBumperItem = scenery.BumperItem(self,
                 {"tiid":-4, "name":"Bumper", "maxspeed":0.0, "x":120, "y":75,
-                 "reverse":0})
+                 "xf":0, "yf":0, "reverse":0})
         self.libraryLineItem = scenery.LineItem(self,
                 {"tiid":-5, "name":"Line", "x":20, "y":125, "xf":80,
                  "yf":125, "maxspeed":0.0, "reallength":1.0,
@@ -192,20 +193,21 @@ class Editor(simulation.Simulation):
                  "maxspeed":0.0, "reallength":1.0,
                  "placecode":None, "trackcode":None})
         self.libraryEndItem = scenery.EndItem(self,
-                {"tiid":-7, "name":"End", "maxspeed":0.0, "x":50, "y":175})
+                {"tiid":-7, "name":"End", "maxspeed":0.0, "x":50, "y":175,
+                 "xf":0, "yf":0})
         self.libraryPlaceItem = scenery.Place(self,
                 {"tiid":-8, "name":"PLACE", "placecode":"", "maxspeed":0.0,
-                 "x":132, "y":180})
+                 "x":132, "y":180, "xf":0, "yf":0})
         self.libraryNonReturnItem = scenery.NonReturnItem(self,
                 {"tiid":-9, "name":"Non-return", "maxspeed":0.0, "x":20,
-                 "y":225, "reverse":0})
+                 "y":225, "xf":0, "yf":0, "reverse":0})
         self.libraryInvisibleLinkItem = scenery.InvisibleLinkItem(self,
                 {"tiid":-10, "name":"Invisible link", "x":120, "y":225,
                  "xf":180, "yf":225, "maxspeed":0.0, "reallength":1.0,
                  "placecode":None, "trackcode":None})
         self.libraryTextItem = scenery.TextItem(self,
-                {"tiid":-11, "name":"TEXT", "x":36, "y":280, "maxspeed":0.0,
-                 "reallength":1.0, })
+                {"tiid":-11, "name":"TEXT", "x":36, "y":280, "xf":0, "yf":0,
+                 "maxspeed":0.0, "reallength":1.0, })
         self.libraryBinItem = TrashBinItem(self,
                                            self._libraryScene,
                                            QtCore.QPointF(86, 310))
@@ -348,12 +350,31 @@ class Editor(simulation.Simulation):
         self.loadOptions(conn)
         version = float(self.option("version"))
         if version < utils.TS2_FILE_FORMAT:
-            if version <= 0.3:
+            if version < 0.4:
                 conn.execute("ALTER TABLE trackitems ADD COLUMN ptiid")
                 conn.execute("ALTER TABLE trackitems ADD COLUMN ntiid")
                 conn.execute("ALTER TABLE trackitems ADD COLUMN rtiid")
                 conn.execute("ALTER TABLE trains ADD COLUMN initialdelay")
                 conn.commit()
+            if version < 0.5:
+                for p in conn.execute(
+                                "SELECT * FROM trackitems WHERE titype='LP'"):
+                    parameters = dict(p)
+                    tiId = int(parameters["tiid"])
+                    conn.execute("UPDATE trackitems "
+                                 "SET xn=NULL, yn=NULL, xr=NULL, yr=NULL, "
+                                 "titype='L' WHERE tiid=?", (tiId,))
+                    parameters.update({"x": parameters["xn"],
+                                       "y": parameters["yn"],
+                                       "xf": parameters["xr"],
+                                       "yf": parameters["yr"],
+                                       "titype": "ZP"})
+                    conn.execute("INSERT INTO trackitems "
+                                 "(x, y, xf, yf, titype, placecode, "
+                                 "trackcode) VALUES "
+                                 "(:x, :y, :xf, :yf, :titype, :placecode,"
+                                 ":trackcode)", parameters)
+                    conn.commit()
             self.setOption("version", utils.TS2_FILE_FORMAT)
             self.saveOptions(conn)
         conn.close()
@@ -715,7 +736,7 @@ class Editor(simulation.Simulation):
 
         if tiType == "L":
             ti = scenery.LineItem(self, parameters)
-        elif tiType == "LP":
+        elif tiType == "ZP":
             ti = scenery.PlatformItem(self, parameters)
         elif tiType == "LI":
             ti = scenery.InvisibleLinkItem(self, parameters)

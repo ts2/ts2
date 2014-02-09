@@ -421,7 +421,7 @@ class EditorWindow(QtGui.QMainWindow):
         """Sets the TrackPropertiesModel related to trackItem on the
         properties view"""
         ti = self.editor.trackItem(tiId)
-        self.propertiesView.setModel(scenery.TrackPropertiesModel(ti))
+        self.propertiesView.setModel(scenery.helper.TrackPropertiesModel(ti))
 
     @QtCore.pyqtSlot()
     def loadSimulation(self):

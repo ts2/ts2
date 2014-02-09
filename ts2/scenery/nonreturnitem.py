@@ -31,7 +31,7 @@ class NonReturnItem(SignalItem):
     def __init__(self, simulation, parameters):
         """Constructor for the NonReturnItem class"""
         super().__init__(simulation, parameters)
-        self._tiType = "SN"
+        self.tiType = "SN"
 
 
     def graphicsPaint(self, p, options, widget):

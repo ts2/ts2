@@ -23,7 +23,7 @@ import random
 from PyQt4 import QtCore
 
 TS2_VERSION = "0.5"
-TS2_FILE_FORMAT = 0.4
+TS2_FILE_FORMAT = 0.5
 
 class Context():
     """This class holds the different contexts for ts2."""

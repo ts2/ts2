@@ -53,8 +53,8 @@ class TrainListView(QtGui.QTreeView):
         self.header().setSortIndicatorShown(False)
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.simulation.trainStatusChanged.connect(self.model().update)
-        #self._simulation.timeChanged.connect(self.model().update)
-        #self.trainSelected.connect(self._simulation.selectedTrainModel.setTrainByServiceCode)
+        #self.simulation.timeChanged.connect(self.model().update)
+        #self.trainSelected.connect(self.simulation.selectedTrainModel.setTrainByServiceCode)
 
 
     def contextMenuEvent(self, event):

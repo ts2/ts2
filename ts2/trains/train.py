@@ -62,12 +62,12 @@ class TrainListModel(QtCore.QAbstractTableModel):
     def __init__(self, simulation):
         """Constructor for the TrainListModel class"""
         super().__init__()
-        self._simulation = simulation
+        self.simulation = simulation
 
     def rowCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of rows of the model, corresponding to the
         number of trains of the simulation"""
-        return len(self._simulation.trains)
+        return len(self.simulation.trains)
 
     def columnCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of columns of the model"""
@@ -75,7 +75,7 @@ class TrainListModel(QtCore.QAbstractTableModel):
 
     def data(self, index, role = Qt.DisplayRole):
         """Returns the data at the given index"""
-        train = self._simulation.trains[index.row()]
+        train = self.simulation.trains[index.row()]
         if train.nextPlaceIndex is not None:
             line = train.currentService.lines[train.nextPlaceIndex]
         else:
@@ -248,7 +248,7 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
     def __init__(self, simulation):
         """Constructor for the TrainInfoModel class"""
         super().__init__()
-        self._simulation = simulation
+        self.simulation = simulation
         self._train = None
 
     def rowCount(self, parent = QtCore.QModelIndex()):
@@ -371,7 +371,7 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
     def setTrainByServiceCode(self, trainId):
         """Sets the train instance associated with this model from its
         serviceCode"""
-        self._train = self._simulation.trains[trainId]
+        self._train = self.simulation.trains[trainId]
         self.reset()
 
     @QtCore.pyqtSlot()
@@ -400,7 +400,7 @@ class Train(QtCore.QObject):
     def __init__(self, simulation, parameters):
         """Constructor for the Train class"""
         super().__init__()
-        self._simulation = simulation
+        self.simulation = simulation
         self._serviceCode = parameters["servicecode"]
         self._trainType = self.simulation.trainTypes[parameters["traintype"]]
         self._speed = 0
@@ -428,8 +428,8 @@ class Train(QtCore.QObject):
         else:
             self._nextPlaceIndex = None
         self._appearTime = QtCore.QTime.fromString(parameters["appeartime"])
-        self._simulation.timeElapsed.connect(self.advance)
-        self._simulation.timeChanged.connect(self.activate)
+        self.simulation.timeElapsed.connect(self.advance)
+        self.simulation.timeChanged.connect(self.activate)
         # FIXME Throw back all these actions to MainWindow
         self.assignAction = QtGui.QAction(self.tr("Reassign service..."),
                                             self)
@@ -499,11 +499,6 @@ class Train(QtCore.QObject):
         self.nextPlaceIndex = 0
         self.drawTrain(0)
         self.findNextSignal().trainId = self.trainId
-
-    @property
-    def simulation(self):
-        """Returns the simulation owning this train"""
-        return self._simulation
 
     @property
     def status(self):
@@ -817,7 +812,7 @@ class Train(QtCore.QObject):
                     elif self.status == TrainStatus.STOPPED:
                         # Train is already stopped at the place
                         if (line.scheduledDepartureTime >
-                                            self._simulation.currentTime) or \
+                                            self.simulation.currentTime) or \
                            (self._stoppedTime < self.minimumStopTime) or \
                            (line.scheduledDepartureTime == QtCore.QTime()):
                             # Conditions to depart are not met
@@ -1024,7 +1019,7 @@ class Train(QtCore.QObject):
             self._speed = 0
             return
 
-        warningSpeed = float(self._simulation.option("warningSpeed"))
+        warningSpeed = float(self.simulation.option("warningSpeed"))
         maxSpeed = self.getMaximumSpeed()
         # k is the gain factor to set acceleration from the difference
         # between current speed and target speed

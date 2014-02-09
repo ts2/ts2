@@ -101,7 +101,7 @@ class Route(QtCore.QObject):
         @param beginSignal Pointer to the SignalItem at which the route starts
         @param endSignal Pointer to the SignalItem at which the route ends"""
         super().__init__(simulation)
-        self._simulation = simulation
+        self.simulation = simulation
         self._routeNum = routeNum
         bsp = ts2.routing.Position(beginSignal, beginSignal.previousItem, 0)
         esp = ts2.routing.Position(endSignal, endSignal.previousItem, 0)

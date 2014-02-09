@@ -18,8 +18,6 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from ts2.scenery.trackitem import TrackItem, TrackGraphicsItem,\
-                                  TrackPropertiesModel, TIProperty
 
 from ts2.scenery.place import Place
 

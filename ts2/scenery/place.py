@@ -20,7 +20,7 @@
 
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
-from ts2.scenery import TrackItem, TIProperty, TrackGraphicsItem
+from ts2.scenery import abstract, helper
 from ts2 import utils
 
 tr = QtCore.QObject().tr
@@ -103,31 +103,31 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
         self.place = place
 
 
-class Place(TrackItem):
+class Place(abstract.TrackItem):
     """A Place is a place where trains will have a schedule (mainly station,
     but can also be a main junction for example)
     """
     def __init__(self, simulation, parameters):
         """Constructor for the Place class"""
         super().__init__(simulation, parameters)
-        self._tiType = "A"
+        self.tiType = "A"
         self._placeCode = parameters["placecode"]
         self.updateBoundingRect()
-        gi = TrackGraphicsItem(self)
+        gi = helper.TrackGraphicsItem(self)
         gi.setPos(self.realOrigin)
         gi.setCursor(Qt.PointingHandCursor)
         gi.setToolTip(self.toolTipText)
         gi.setZValue(0)
         self._gi = gi
-        self._simulation.registerGraphicsItem(self._gi)
+        self.simulation.registerGraphicsItem(self._gi)
         self._timetable = []
         self._tracks = {}
         self.updateGraphics()
 
     selectedPlaceModel = PlaceInfoModel()
 
-    properties = TrackItem.properties + [\
-                                    TIProperty("placeCode", tr("Place code"))]
+    properties = abstract.TrackItem.properties + [
+                            helper.TIProperty("placeCode", tr("Place code"))]
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
@@ -136,18 +136,12 @@ class Place(TrackItem):
         parameters.update({"placecode":self.placeCode})
         return parameters
 
-    @property
-    def origin(self):
-        """Returns the origin QPointF of the TrackItem. The origin is
-        the right end of the track represented on the SignalItem if the
-        signal is reversed, the left end otherwise"""
-        return self._origin
-
-    @origin.setter
-    def origin(self, value):
+    def _setOrigin(self, value):
         """Setter function for the origin property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self.realOrigin = value - self._rect.bottomLeft()
+
+    origin = property(abstract.TrackItem._getOrigin, _setOrigin)
 
     @property
     def realOrigin(self):
@@ -159,7 +153,7 @@ class Place(TrackItem):
     @realOrigin.setter
     def realOrigin(self, pos):
         """Setter function for the realOrigin property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             grid = self.simulation.grid
             x = round((pos.x() + self._rect.bottomLeft().x()) / grid) * grid
             y = round((pos.y() + self._rect.bottomLeft().y()) / grid) * grid
@@ -190,7 +184,7 @@ class Place(TrackItem):
     @placeCode.setter
     def placeCode(self, value):
         """Setter function for the placeCode property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self._placeCode = value
 
     @property
@@ -201,7 +195,7 @@ class Place(TrackItem):
     @name.setter
     def name(self, value):
         """Setter function for the name property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self._gi.prepareGeometryChange()
             self._name = value
             self._gi.setToolTip(self.toolTipText)

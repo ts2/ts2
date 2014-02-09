@@ -33,7 +33,7 @@ class Simulation(QtCore.QObject):
         """ Constructor for the Simulation class. """
         super().__init__()
         self._database = None
-        self._simulationWindow = simulationWindow
+        self.simulationWindow = simulationWindow
         self._scene = QtGui.QGraphicsScene()
         self._timer = QtCore.QTimer(self)
         self._messageLogger = logger.MessageLogger(self)
@@ -51,7 +51,7 @@ class Simulation(QtCore.QObject):
         self._options = {}
         self._routes = {}
         self._trackItems = {}
-        self._activeRouteNumbers = []
+        self.activeRouteNumbers = []
         self._trainTypes = {}
         self._services = {}
         self._places = {}
@@ -226,10 +226,6 @@ class Simulation(QtCore.QObject):
     def scorer(self):
         """Returns the scorer instance of the simulation."""
         return self._scorer
-
-    @property
-    def simulationWindow(self):
-        return self._simulationWindow
 
     @property
     def context(self):
@@ -534,7 +530,7 @@ class Simulation(QtCore.QObject):
             tiType = parameters["titype"]
             if tiType == "L":
                 ti = scenery.LineItem(self, parameters)
-            elif tiType == "LP":
+            elif tiType == "ZP":
                 ti = scenery.PlatformItem(self, parameters)
             elif tiType == "LI":
                 ti = scenery.InvisibleLinkItem(self, parameters)
@@ -672,7 +668,7 @@ class Simulation(QtCore.QObject):
         self.messageLogger.addMessage(self.tr("Checking TrackItem links"),
                                       logger.Message.SOFTWARE_MSG)
         for ti in self._trackItems.values():
-            if not ti.tiType.startswith(("A", "ZT")):
+            if not ti.tiType.startswith(("A", "Z")):
                 if ti.nextItem is None:
                     self.messageLogger.addMessage(
                             self.tr("TrackItem %i is unlinked at (%f, %f)" %

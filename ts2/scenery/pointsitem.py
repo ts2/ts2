@@ -21,9 +21,9 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from ts2 import utils
-from ts2.scenery import TrackItem, TrackGraphicsItem, TIProperty
+from ts2.scenery import helper, abstract
 
-class PointsItem(TrackItem):
+class PointsItem(abstract.TrackItem):
     """A points item is a three-way junction.
     We call the three ends: common end, normal end and reverse end.
     Trains can go from common end to normal or reverse ends depending on the
@@ -34,7 +34,7 @@ class PointsItem(TrackItem):
     def __init__(self, simulation, parameters):
         """Constructor for the PointsItem class"""
         super().__init__(simulation, parameters)
-        self._tiType = "P"
+        self.tiType = "P"
         x = parameters["x"]
         y = parameters["y"]
         cpx = parameters["xf"]
@@ -51,19 +51,19 @@ class PointsItem(TrackItem):
         #self._end = QtCore.QPointF(x,y) + QtCore.QPointF(npx, npy)
         self._pointsReversed = False
         self._reverseItem = None
-        pgi = TrackGraphicsItem(self)
+        pgi = helper.TrackGraphicsItem(self)
         pgi.setPos(self.realOrigin)
         pgi.setZValue(100)
         pgi.setCursor(Qt.PointingHandCursor)
         pgi.setToolTip(self.toolTipText)
         self._gi = pgi
-        self._simulation.registerGraphicsItem(self._gi)
+        self.simulation.registerGraphicsItem(self._gi)
         self.updateGraphics()
 
-    properties = TrackItem.properties + [\
-                            TIProperty("commonEndStr", "Common End"), \
-                            TIProperty("normalEndStr", "Normal End"), \
-                            TIProperty("reverseEndStr", "Reverse End")]
+    properties = abstract.TrackItem.properties + [
+                            helper.TIProperty("commonEndStr", "Common End"),
+                            helper.TIProperty("normalEndStr", "Normal End"),
+                            helper.TIProperty("reverseEndStr", "Reverse End")]
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
@@ -85,17 +85,19 @@ class PointsItem(TrackItem):
                                 "rtiid":reverseTiId})
         return parameters
 
-    @property
-    def origin(self):
+    def _getOrigin(self):
         """Returns the origin QPointF of the PointsItem, which is actually the
         common end in the scene coordinates"""
         return self._center + self._commonEnd - self.middle
 
-    @property
-    def end(self):
+    origin = property(_getOrigin)
+
+    def _getEnd(self):
         """Returns the origin QPointF of the PointsItem, which is actually the
         normal end in the scene coordinates"""
         return self._center + self._normalEnd - self.middle
+
+    end = property(_getEnd)
 
     @property
     def reverse(self):
@@ -112,7 +114,7 @@ class PointsItem(TrackItem):
     @realOrigin.setter
     def realOrigin(self, pos):
         """Setter function for the realOrigin property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             grid = self.simulation.grid
             x = round((pos.x() + 5.0) / grid) * grid
             y = round((pos.y() + 5.0) / grid) * grid
@@ -147,7 +149,7 @@ class PointsItem(TrackItem):
     @commonEndStr.setter
     def commonEndStr(self, value):
         """Setter for the commonEndStr property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             x, y = eval(value.strip('()'))
             self._gi.prepareGeometryChange()
             self._commonEnd = QtCore.QPointF(x, y) + self.middle
@@ -164,7 +166,7 @@ class PointsItem(TrackItem):
     @normalEndStr.setter
     def normalEndStr(self, value):
         """Setter for the normalEndStr property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             x, y = eval(value.strip('()'))
             self._gi.prepareGeometryChange()
             self._normalEnd = QtCore.QPointF(x, y) + self.middle
@@ -181,7 +183,7 @@ class PointsItem(TrackItem):
     @reverseEndStr.setter
     def reverseEndStr(self, value):
         """Setter for the reverseEndStr property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             x, y = eval(value.strip('()'))
             self._gi.prepareGeometryChange()
             self._reverseEnd = QtCore.QPointF(x, y) + self.middle
@@ -226,10 +228,10 @@ class PointsItem(TrackItem):
 
         p.drawLine(self._commonEnd, self.middle)
         if self.pointsReversed or \
-           self._simulation.context == utils.Context.EDITOR_SCENERY:
+           self.simulation.context == utils.Context.EDITOR_SCENERY:
             p.drawLine(self._reverseEnd, self.middle)
         if (not self.pointsReversed) or \
-             (self._simulation.context == utils.Context.EDITOR_SCENERY):
+             (self.simulation.context == utils.Context.EDITOR_SCENERY):
             p.drawLine(self._normalEnd, self.middle)
 
         # Draw the connection rects

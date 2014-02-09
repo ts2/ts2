@@ -20,14 +20,14 @@
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
-from ts2.scenery import TrackItem, TrackGraphicsItem, TIProperty
+from ts2.scenery import helper, abstract
 from ts2 import utils, routing
 from math import sqrt
 
 tr = QtCore.QObject().tr
 
 
-class LineItem(TrackItem):
+class LineItem(abstract.ResizableItem):
     """A line is a simple track used to connect other items together. The
     important parameter of a line is its real length, i.e. the length it would
     have in real life, since this will determine the time the train takes to
@@ -36,10 +36,7 @@ class LineItem(TrackItem):
     def __init__(self, simulation, parameters):
         """Constructor for the LineItem class"""
         super().__init__(simulation, parameters)
-        self._tiType = "L"
-        xf = float(parameters["xf"])
-        yf = float(parameters["yf"])
-        self._end = QtCore.QPointF (xf, yf)
+        self.tiType = "L"
         self._placeCode = parameters["placecode"]
         trackCode = parameters["trackcode"]
         self._place = simulation.place(self._placeCode)
@@ -53,7 +50,7 @@ class LineItem(TrackItem):
             realLength = 1.0
         self._realLength = realLength
         self.updateGeometry()
-        gli = TrackGraphicsItem(self)
+        gli = helper.TrackGraphicsItem(self)
         if simulation.context in utils.Context.EDITORS:
             gli.setCursor(Qt.PointingHandCursor)
         else:
@@ -80,70 +77,56 @@ class LineItem(TrackItem):
 
     def __del__(self):
         """Destructor for the LineItem class"""
-        self._simulation.scene.removeItem(self._tli)
+        self.simulation.scene.removeItem(self._tli)
         super().__del__()
 
 
-    properties = [TIProperty("tiTypeStr", tr("Type"), True),
-                  TIProperty("tiId", tr("id"), True),
-                  TIProperty("name", tr("Name")),
-                  TIProperty("originStr", tr("Point 1")),
-                  TIProperty("endStr", tr("Point 2")),
-                  TIProperty("placeCode", tr("Place code")),
-                  TIProperty("trackCode", tr("Track code")),
-                  TIProperty("realLength", tr("Real length (m)")),
-                  TIProperty("maxSpeed", tr("Maximum speed (m/s)")),
-                  TIProperty("conflictTiId", tr("Conflict item ID"))]
+    properties = [helper.TIProperty("tiTypeStr", tr("Type"), True),
+                  helper.TIProperty("tiId", tr("id"), True),
+                  helper.TIProperty("name", tr("Name")),
+                  helper.TIProperty("originStr", tr("Point 1")),
+                  helper.TIProperty("endStr", tr("Point 2")),
+                  helper.TIProperty("placeCode", tr("Place code")),
+                  helper.TIProperty("trackCode", tr("Track code")),
+                  helper.TIProperty("realLength", tr("Real length (m)")),
+                  helper.TIProperty("maxSpeed", tr("Maximum speed (m/s)")),
+                  helper.TIProperty("conflictTiId", tr("Conflict item ID"))]
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
         database"""
         parameters = super().getSaveParameters()
-        parameters.update({ \
-                            "xf":self._end.x(), \
-                            "yf":self._end.y(), \
-                            "placecode":self.placeCode, \
-                            "trackCode":self.trackCode, \
-                            "reallength":self.realLength, \
+        parameters.update({
+                            "xf":self._end.x(),
+                            "yf":self._end.y(),
+                            "placecode":self.placeCode,
+                            "trackCode":self.trackCode,
+                            "reallength":self.realLength,
                             "maxspeed":self._maxSpeed})
         return parameters
 
-    @property
-    def origin(self):
-        """Returns the origin QPointF of the TrackItem. The origin is
-        one end of the LineItem"""
-        return self._origin
 
-    @origin.setter
-    def origin(self, pos):
+    def _setOrigin(self, pos):
         """Setter function for the origin property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            grid = self._simulation.grid
-            x = round((pos.x()) / grid) * grid
-            y = round((pos.y()) / grid) * grid
-            self._gi.prepareGeometryChange()
-            self._origin = QtCore.QPointF(x, y)
-            self._gi.setPos(self.realOrigin)
-            self.updateGeometry()
-            self.updateGraphics()
+        super()._setOrigin(pos)
+        self.updateGeometry()
 
-    @property
-    def end(self):
-        """Returns the end QPointF of the TrackItem. The end is
-        the opposite end of the line from origin"""
-        return self._end
+    origin = property(abstract.ResizableItem._getOrigin, _setOrigin)
 
-    @end.setter
-    def end(self, pos):
+    def _setEnd(self, pos):
         """Setter function for the origin property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            grid = self._simulation.grid
-            x = round((pos.x()) / grid) * grid
-            y = round((pos.y()) / grid) * grid
-            self._gi.prepareGeometryChange()
-            self._end = QtCore.QPointF(x, y)
-            self.updateGeometry()
-            self.updateGraphics()
+        super()._setEnd(pos)
+        self.updateGeometry()
+
+    end = property(abstract.ResizableItem._getEnd, _setEnd)
+
+    def _setRealOrigin(self, pos):
+        """Setter function for the realOrigin property"""
+        super()._setRealOrigin(pos)
+        self.updateGeometry()
+
+    realOrigin = property(abstract.ResizableItem._getRealOrigin,
+                          _setRealOrigin)
 
     @property
     def realLength(self):
@@ -154,43 +137,9 @@ class LineItem(TrackItem):
     @realLength.setter
     def realLength(self, value):
         """Setter function for the realLength property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             if value == "": value = "0.0"
             self._realLength = float(value)
-
-    @property
-    def endStr(self):
-        """Returns a string representation of the QPointF end"""
-        return "(%i, %i)" % (self.end.x(), self.end.y())
-
-    @endStr.setter
-    def endStr(self, value):
-        """Setter for the endStr property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            x, y = eval(value.strip('()'))
-            self.end = QtCore.QPointF(x, y)
-
-    @property
-    def realOrigin(self):
-        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is
-        the position of the top left corner of the bounding rectangle of the
-        TrackItem."""
-        return self.origin
-
-    @realOrigin.setter
-    def realOrigin(self, pos):
-        """Setter function for the realOrigin property."""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            grid = self._simulation.grid
-            x = round((pos.x() + 5.0) / grid) * grid
-            y = round((pos.y() + 5.0) / grid) * grid
-            vector = QtCore.QPointF(x, y) - self._origin
-            self._gi.prepareGeometryChange()
-            self._origin += vector
-            self._end += vector
-            self._gi.setPos(self.realOrigin)
-            self.updateGeometry()
-            self.updateGraphics()
 
     @property
     def placeCode(self):
@@ -244,7 +193,7 @@ class LineItem(TrackItem):
         rx = max(x1, x2) + 2.0
         ty = min(y1, y2) - 2.0
         by = max(y1, y2) + 2.0
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             lx -= 3.0
             rx += 3.0
             ty -= 3.0
@@ -307,7 +256,7 @@ class LineItem(TrackItem):
         pen = self.getPen()
         p.setPen(pen)
         p.drawLine(self.line)
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self.drawConnectionRect(p, self.line.p1())
             self.drawConnectionRect(p, self.line.p2())
 
@@ -342,7 +291,7 @@ class LineItem(TrackItem):
         its mouseMoveEvent. Reimplemented in the LineItem class to begin a
         drag operation on the origin or the end."""
         if event.buttons() == Qt.LeftButton and \
-           self._simulation.context == utils.Context.EDITOR_SCENERY:
+           self.simulation.context == utils.Context.EDITOR_SCENERY:
             if QtCore.QLineF(event.scenePos(),
                          event.buttonDownScenePos(Qt.LeftButton)).length() \
                         < 3.0:

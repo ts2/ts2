@@ -20,22 +20,22 @@
 
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
-from ts2.scenery import TrackItem, TIProperty, TrackGraphicsItem
+from ts2.scenery import abstract, helper
 from ts2 import utils
 
 tr = QtCore.QObject().tr
 
 
-class TextItem(TrackItem):
+class TextItem(abstract.TrackItem):
     """A TextItem is a prop to display simple text on the layout
     """
     def __init__(self, simulation, parameters):
         """Constructor for the TextItem class"""
         super().__init__(simulation, parameters)
-        self._tiType = "ZT"
+        self.tiType = "ZT"
         self._name = parameters["name"]
         self.updateBoundingRect()
-        gi = TrackGraphicsItem(self)
+        gi = helper.TrackGraphicsItem(self)
         gi.setPos(self.realOrigin)
         gi.setToolTip(self.toolTipText)
         gi.setZValue(0)
@@ -44,26 +44,20 @@ class TextItem(TrackItem):
         else:
             gi.setCursor(Qt.ArrowCursor)
         self._gi = gi
-        self._simulation.registerGraphicsItem(self._gi)
+        self.simulation.registerGraphicsItem(self._gi)
         self.updateGraphics()
 
-    properties = [TIProperty("tiTypeStr", tr("Type"), True),
-                  TIProperty("tiId", tr("id"), True),
-                  TIProperty("text", tr("Text")),
-                  TIProperty("originStr", tr("Point 1"))]
+    properties = [helper.TIProperty("tiTypeStr", tr("Type"), True),
+                  helper.TIProperty("tiId", tr("id"), True),
+                  helper.TIProperty("text", tr("Text")),
+                  helper.TIProperty("originStr", tr("Point 1"))]
 
-    @property
-    def origin(self):
-        """Returns the origin QPointF of the TrackItem. The origin is
-        the right end of the track represented on the SignalItem if the
-        signal is reversed, the left end otherwise"""
-        return self._origin
-
-    @origin.setter
-    def origin(self, value):
+    def _setOrigin(self, value):
         """Setter function for the origin property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self.realOrigin = value - self._rect.bottomLeft()
+
+    origin = property(abstract.TrackItem._getOrigin, _setOrigin)
 
     @property
     def realOrigin(self):
@@ -75,7 +69,7 @@ class TextItem(TrackItem):
     @realOrigin.setter
     def realOrigin(self, pos):
         """Setter function for the realOrigin property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             grid = self.simulation.grid
             x = round((pos.x() + self._rect.bottomLeft().x()) / grid) * grid
             y = round((pos.y() + self._rect.bottomLeft().y()) / grid) * grid
@@ -91,7 +85,7 @@ class TextItem(TrackItem):
     @text.setter
     def text(self, value):
         """Setter function for the text property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self._gi.prepareGeometryChange()
             self._name = value
             self._gi.setToolTip(self.toolTipText)

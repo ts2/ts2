@@ -32,13 +32,13 @@ class InvisibleLinkItem(LineItem):
     def __init__(self, simulation, parameters):
         """Constructor for the InvisibleLinkItem class"""
         super().__init__(simulation, parameters)
-        self._tiType = "LI"
+        self.tiType = "LI"
         self._tli.hide()
 
     def graphicsPaint(self, p, options, widget):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws nothing during the game."""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             p.setPen(Qt.cyan)
             p.drawLine(self.line)
             self.drawConnectionRect(p, self.line.p1())

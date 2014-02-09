@@ -29,7 +29,7 @@ class PositionGraphicsItem(QtGui.QGraphicsPolygonItem):
     def __init__(self, simulation, position=None, parent=None):
         """Constructor for the PositionGraphicsItem class"""
         super().__init__(parent)
-        self._simulation = simulation
+        self.simulation = simulation
         self._position = position
         self._leftToRightPolygon = QtGui.QPolygonF()
         self._leftToRightPolygon << QtCore.QPointF(-5,-5) \
@@ -62,7 +62,7 @@ class PositionGraphicsItem(QtGui.QGraphicsPolygonItem):
         """Updates the position of this PositionGraphicsItem according to its
         Position."""
         if self._position is not None and \
-           self._simulation.context == utils.Context.EDITOR_TRAINS:
+           self.simulation.context == utils.Context.EDITOR_TRAINS:
             trackItem = self._position.trackItem
             if not trackItem.tiType.startswith("L"):
                 raise Exception("Error: PositionGraphicsItem can be used only"

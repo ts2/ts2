@@ -30,7 +30,7 @@ class BumperItem(SignalItem):
     def __init__(self, simulation, parameters):
         """Constructor for the BumperItem class"""
         super().__init__(simulation, parameters)
-        self._tiType = "SB"
+        self.tiType = "SB"
 
 
     def graphicsPaint(self, p, options, widget):

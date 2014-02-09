@@ -20,7 +20,7 @@
 
 from PyQt4 import QtGui, QtCore, QtSql
 from PyQt4.QtCore import Qt
-from ts2.scenery import TrackItem, TrackGraphicsItem, TIProperty
+from ts2.scenery import helper, abstract
 from ts2 import routing
 from ts2 import utils
 
@@ -33,7 +33,7 @@ class SignalState:
     STOP = 100
 
 
-class SignalItem(TrackItem):
+class SignalItem(abstract.TrackItem):
     """ @brief Logical item for signals
     This class holds the logics of a basic signal (CLEAR, WARNING, STOP).
     A signal is the item from and to which routes are created.
@@ -44,53 +44,49 @@ class SignalItem(TrackItem):
         """ Constructor for the SignalItem class."""
         super().__init__(simulation, parameters)
         reverse = parameters["reverse"]
-        self._tiType = "S"
-        self._selected = False
+        self.tiType = "S"
         self._reverse = reverse
         self._signalState = SignalState.STOP
         self._previousActiveRoute = None
         self._nextActiveRoute = None
         self._trainId = None
         self._signalPos = 0
-        sgi = TrackGraphicsItem(self)
+        sgi = helper.TrackGraphicsItem(self)
         sgi.setPos(self.realOrigin)
         sgi.setCursor(Qt.PointingHandCursor)
         sgi.setToolTip(self.toolTipText)
         sgi.setZValue(50)
         self._gi = sgi
-        self._simulation.registerGraphicsItem(self._gi)
+        self.simulation.registerGraphicsItem(self._gi)
         self.updateGraphics()
 
-    properties = TrackItem.properties + [TIProperty("reverse", tr("Reverse"))]
+    properties = abstract.TrackItem.properties + [
+                                helper.TIProperty("reverse", tr("Reverse"))]
 
     signalSelected = QtCore.pyqtSignal(int, bool, bool)
     signalUnselected = QtCore.pyqtSignal(int)
     trainSelected = QtCore.pyqtSignal(int)
 
-    @property
-    def origin(self):
-        """Returns the origin QPointF of the TrackItem. The origin is
-        the right end of the track represented on the SignalItem if the
-        signal is reversed, the left end otherwise"""
-        return self._origin
-
-    @origin.setter
-    def origin(self, value):
+    def _setOrigin(self, value):
         """Setter function for the origin property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             if self.reverse:
                 self.realOrigin = value + QtCore.QPointF(-60,-2)
             else:
                 self.realOrigin = value + QtCore.QPointF(0,-18)
 
-    @property
-    def end(self):
+    origin = property(abstract.TrackItem._getOrigin,
+                      lambda self: self._setOrigin)
+
+    def _getEnd(self):
         """Returns the end QPointF of the TrackItem. The end is
         generally the right end of the track represented on the TrackItem"""
         if self.reverse:
             return self._origin + QtCore.QPointF(-60, 0)
         else:
             return self._origin + QtCore.QPointF(60, 0)
+
+    end = property(_getEnd)
 
     @property
     def reverse(self):
@@ -101,7 +97,7 @@ class SignalItem(TrackItem):
     @reverse.setter
     def reverse(self, value):
         """Setter function for the reverse property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self._reverse = bool(value)
             if self._reverse:
                 self.realOrigin += QtCore.QPointF(60, 0)
@@ -116,13 +112,13 @@ class SignalItem(TrackItem):
 
     @property
     def highlighted(self):
-        return ((self._activeRoute is not None) or \
-               (self._previousActiveRoute is not None) or \
-               (self._nextActiveRoute is not None))
+        return ((self.activeRoute is not None) or
+               (self.previousActiveRoute is not None) or
+               (self.nextActiveRoute is not None))
 
     @property
     def signalHighlighted(self):
-        return (self._nextActiveRoute is not None)
+        return (self.nextActiveRoute is not None)
 
 
     @property
@@ -138,7 +134,7 @@ class SignalItem(TrackItem):
     @realOrigin.setter
     def realOrigin(self, pos):
         """Setter function for the realOrigin property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             grid = self.simulation.grid
             if self.reverse:
                 x = round((pos.x() + 60.0) / grid) * grid
@@ -205,7 +201,7 @@ class SignalItem(TrackItem):
                (not self._reverse and e.pos().x() > 40):
                 # The signal itself is selected
                 if self.simulation.context == utils.Context.GAME:
-                    self._selected = True;
+                    self.selected = True;
                 persistent = (e.modifiers() == Qt.ShiftModifier)
                 force = (e.modifiers() == Qt.AltModifier|Qt.ControlModifier)
                 self.signalSelected.emit(self.tiId, persistent, force);
@@ -219,14 +215,14 @@ class SignalItem(TrackItem):
                (not self._reverse and e.pos().x() > 40):
                 # The signal itself is right-clicked
                 if self.simulation.context == utils.Context.GAME:
-                    self._selected = False
+                    self.selected = False
                 self.signalUnselected.emit(self.tiId)
             else:
                 # The train code is right-clicked
-                train = self._simulation.trains[self._trainId]
+                train = self.simulation.trains[self._trainId]
                 if train is not None:
                     train.showTrainActionsMenu(
-                                    self._simulation.simulationWindow.view,
+                                    self.simulation.simulationWindow.view,
                                     e.screenPos())
         self.updateGraphics()
 
@@ -293,8 +289,8 @@ class SignalItem(TrackItem):
             p.drawLine(18, 2, 18, 11);
             p.drawLine(18, 11, 15, 11);
             p.drawEllipse(r);
-            if self._nextActiveRoute is not None and \
-               self._nextActiveRoute.persistent:
+            if self.nextActiveRoute is not None and \
+               self.nextActiveRoute.persistent:
                 # Draw persistent route rectangle marker
                 brush.setColor(Qt.white)
                 p.setBrush(brush)
@@ -304,8 +300,8 @@ class SignalItem(TrackItem):
             p.drawLine(42, 18, 42, 9)
             p.drawLine(42, 9, 45, 9)
             p.drawEllipse(r)
-            if self._nextActiveRoute is not None and \
-               self._nextActiveRoute.persistent:
+            if self.nextActiveRoute is not None and \
+               self.nextActiveRoute.persistent:
                 # Draw persistent route rectangle marker
                 brush.setColor(Qt.white)
                 p.setBrush(brush)
@@ -325,8 +321,8 @@ class SignalItem(TrackItem):
         """Resets the nextActiveRoute information. If route is not None, do
         this only if the nextActiveRoute is equal to route."""
         if (route is None or
-            (self._nextActiveRoute is not None and
-             self._nextActiveRoute == route)):
+            (self.nextActiveRoute is not None and
+             self.nextActiveRoute == route)):
             self._nextActiveRoute = None
             self.updateSignalState()
 
@@ -340,8 +336,8 @@ class SignalItem(TrackItem):
         """Reset the previousActiveRoute information. If route is not None, do
         this only if the previousActiveRoute is equal to route."""
         if (route is None or
-            (self._previousActiveRoute is not None and
-             self._previousActiveRoute == route)):
+            (self.previousActiveRoute is not None and
+             self.previousActiveRoute == route)):
             self._previousActiveRoute = None
             self.updateSignalState()
 
@@ -423,26 +419,26 @@ class SignalItem(TrackItem):
     @QtCore.pyqtSlot()
     def unselect(self):
         """Unselect the signal."""
-        self._selected = False
+        self.selected = False
         self.updateGraphics()
 
     @QtCore.pyqtSlot()
     def updateSignalState(self):
         """Update the signal state."""
-        if self._nextActiveRoute is None or self.trainsAhead():
+        if self.nextActiveRoute is None or self.trainsAhead():
             self._signalState = SignalState.STOP
         else:
-            if self._nextActiveRoute.endSignal.signalState == \
+            if self.nextActiveRoute.endSignal.signalState == \
                                                         SignalState.CLEAR:
                 self._signalState = SignalState.CLEAR
-            elif self._nextActiveRoute.endSignal.signalState == \
+            elif self.nextActiveRoute.endSignal.signalState == \
                                                         SignalState.WARNING:
                 self._signalState = SignalState.CLEAR
-            elif self._nextActiveRoute.endSignal.signalState == \
+            elif self.nextActiveRoute.endSignal.signalState == \
                                                         SignalState.STOP:
                 self._signalState = SignalState.WARNING
             else:
                 self._signalState = SignalState.STOP
-        if self._previousActiveRoute is not None:
-            self._previousActiveRoute.beginSignal.updateSignalState()
+        if self.previousActiveRoute is not None:
+            self.previousActiveRoute.beginSignal.updateSignalState()
         self.updateGraphics()

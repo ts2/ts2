@@ -31,7 +31,7 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
         """Constructor for the ServiceInfoModel class"""
         super().__init__()
         self._service = None
-        self._simulation = simulation
+        self.simulation = simulation
 
     def rowCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of rows of the model, corresponding to the
@@ -98,7 +98,7 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
     @QtCore.pyqtSlot(str)
     def setServiceCode(self, serviceCode):
         """Sets the service linked with this model from its serviceCode."""
-        self._service = self._simulation.service(serviceCode)
+        self._service = self.simulation.service(serviceCode)
         self.reset()
 
 
@@ -109,13 +109,13 @@ class ServiceListModel(QtCore.QAbstractTableModel):
     def __init__(self, simulation):
         """Constructor for the ServiceInfoModel class"""
         super().__init__()
-        self._simulation = simulation
+        self.simulation = simulation
         self.updateModel()
 
     def updateModel(self):
         """Updates the internal copy of the services with the simulation
         services."""
-        self._services = sorted(self._simulation.services.values(),
+        self._services = sorted(self.simulation.services.values(),
                         key = lambda x: x.lines[0].scheduledDepartureTimeStr)
 
     def rowCount(self, parent = QtCore.QModelIndex()):
@@ -250,7 +250,7 @@ class ServiceLine:
     def __init__(self, service, parameters):
         """Constructor for the ServiceLine class"""
         self._service = service
-        self._simulation = service.simulation
+        self.simulation = service.simulation
         self._placeCode = parameters["placecode"]
         self._scheduledArrivalTime = \
                 QtCore.QTime.fromString(parameters["scheduledarrivaltime"])
@@ -277,7 +277,7 @@ class ServiceLine:
     @placeCode.setter
     def placeCode(self, value):
         """Setter function for the placeCode property"""
-        if self._simulation.context == utils.Context.EDITOR_SERVICES:
+        if self.simulation.context == utils.Context.EDITOR_SERVICES:
             self._placeCode = value
 
     @property
@@ -288,7 +288,7 @@ class ServiceLine:
     @trackCode.setter
     def trackCode(self, value):
         """Setter function for the trackCode property"""
-        if self._simulation.context == utils.Context.EDITOR_SERVICES:
+        if self.simulation.context == utils.Context.EDITOR_SERVICES:
             self._trackCode = value
 
     @property
@@ -300,7 +300,7 @@ class ServiceLine:
     @mustStop.setter
     def mustStop(self, value):
         """Setter function for the mustStop property"""
-        if self._simulation.context == utils.Context.EDITOR_SERVICES:
+        if self.simulation.context == utils.Context.EDITOR_SERVICES:
             self._stop = value
 
     @property
@@ -318,7 +318,7 @@ class ServiceLine:
     @scheduledDepartureTimeStr.setter
     def scheduledDepartureTimeStr(self, value):
         """Setter function for the scheduledDepartureTime property"""
-        if self._simulation.context == utils.Context.EDITOR_SERVICES:
+        if self.simulation.context == utils.Context.EDITOR_SERVICES:
             self._scheduledDepartureTime = QtCore.QTime.fromString(value)
 
     @property
@@ -336,7 +336,7 @@ class ServiceLine:
     @scheduledArrivalTimeStr.setter
     def scheduledArrivalTimeStr(self, value):
         """Setter function for the scheduledArrivalTime property"""
-        if self._simulation.context == utils.Context.EDITOR_SERVICES:
+        if self.simulation.context == utils.Context.EDITOR_SERVICES:
             self._scheduledArrivalTime = QtCore.QTime.fromString(value)
 
     def __eq__(self, other):
@@ -443,7 +443,7 @@ class Service:
     """
     def __init__(self, simulation, parameters):
         """Constructor for the Service class"""
-        self._simulation = simulation
+        self.simulation = simulation
         self._serviceCode = parameters["servicecode"]
         self._description = parameters["description"]
         self._nextServiceCode = parameters["nextservice"]
@@ -467,7 +467,7 @@ class Service:
     #def minimumStopTime(self):
         #"""Returns the minimum stop time applicable for this Service in the
         #next plasce."""
-        #return float(self._simulation.option("defaultMinimumStopTime"))
+        #return float(self.simulation.option("defaultMinimumStopTime"))
 
     @property
     def entryPlaceName(self):
@@ -492,7 +492,7 @@ class Service:
     @serviceCode.setter
     def serviceCode(self, value):
         """Setter function for the serviceCode property"""
-        if self._simulation.context == utils.Context.EDITOR_SERVICES:
+        if self.simulation.context == utils.Context.EDITOR_SERVICES:
             self._serviceCode = value
 
     @property
@@ -503,7 +503,7 @@ class Service:
     @description.setter
     def description(self, value):
         """Setter function for the description property"""
-        if self._simulation.context == utils.Context.EDITOR_SERVICES:
+        if self.simulation.context == utils.Context.EDITOR_SERVICES:
             self._description = value
 
     @property
@@ -515,7 +515,7 @@ class Service:
     @nextServiceCode.setter
     def nextServiceCode(self, value):
         """Setter function for the nextServiceCode property"""
-        if self._simulation.context == utils.Context.EDITOR_SERVICES:
+        if self.simulation.context == utils.Context.EDITOR_SERVICES:
             self._nextServiceCode = value
 
     @property
@@ -527,13 +527,8 @@ class Service:
     @autoReverse.setter
     def autoReverse(self, value):
         """Setter function for the autoReverse property"""
-        if self._simulation.context == utils.Context.EDITOR_SERVICES:
+        if self.simulation.context == utils.Context.EDITOR_SERVICES:
             self._autoReverse = value
-
-    @property
-    def simulation(self):
-        """Returns the simulation this service belongs to"""
-        return self._simulation
 
     @property
     def plannedTrainType(self):
@@ -545,5 +540,5 @@ class Service:
     @plannedTrainType.setter
     def plannedTrainType(self, value):
         """Setter function for the plannedTrainType property."""
-        if self._simulation.context == utils.Context.EDITOR_SERVICES:
+        if self.simulation.context == utils.Context.EDITOR_SERVICES:
             self._plannedTrainType = value

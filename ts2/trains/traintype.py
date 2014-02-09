@@ -118,7 +118,7 @@ class TrainType:
     """
     def __init__(self, simulation, parameters):
         """Constructor for the TrainType class"""
-        self._simulation = simulation
+        self.simulation = simulation
         self._code = str(parameters["code"])
         self._description = parameters["description"]
         self._maxSpeed = float(parameters["maxspeed"])
@@ -135,7 +135,7 @@ class TrainType:
     @code.setter
     def code(self, value):
         """Setter function for the code property"""
-        if self._simulation.context == utils.Context.EDITOR_TRAINTYPES:
+        if self.simulation.context == utils.Context.EDITOR_TRAINTYPES:
             self._code = value
     
     @property
@@ -146,7 +146,7 @@ class TrainType:
     @description.setter
     def description(self, value):
         """Setter function for the description property"""
-        if self._simulation.context == utils.Context.EDITOR_TRAINTYPES:
+        if self.simulation.context == utils.Context.EDITOR_TRAINTYPES:
             self._description = value
     
     @property
@@ -158,7 +158,7 @@ class TrainType:
     @maxSpeed.setter
     def maxSpeed(self, value):
         """Setter function for the maxSpeed property"""
-        if self._simulation.context == utils.Context.EDITOR_TRAINTYPES:
+        if self.simulation.context == utils.Context.EDITOR_TRAINTYPES:
             self._maxSpeed = value
     
     @property
@@ -170,7 +170,7 @@ class TrainType:
     @stdAccel.setter
     def stdAccel(self, value):
         """Setter function for the stdAccel property"""
-        if self._simulation.context == utils.Context.EDITOR_TRAINTYPES:
+        if self.simulation.context == utils.Context.EDITOR_TRAINTYPES:
             self._stdAccel = value
     
     @property
@@ -183,7 +183,7 @@ class TrainType:
     @stdBraking.setter
     def stdBraking(self, value):
         """Setter function for the stdBraking property"""
-        if self._simulation.context == utils.Context.EDITOR_TRAINTYPES:
+        if self.simulation.context == utils.Context.EDITOR_TRAINTYPES:
             self._stdBraking = value
     
     @property
@@ -196,7 +196,7 @@ class TrainType:
     @emergBraking.setter
     def emergBraking(self, value):
         """Setter function for the emergBraking property"""
-        if self._simulation.context == utils.Context.EDITOR_TRAINTYPES:
+        if self.simulation.context == utils.Context.EDITOR_TRAINTYPES:
             self._emergBraking = value
     
     @property
@@ -207,6 +207,6 @@ class TrainType:
     @length.setter
     def length(self, value):
         """Setter function for the length property"""
-        if self._simulation.context == utils.Context.EDITOR_TRAINTYPES:
+        if self.simulation.context == utils.Context.EDITOR_TRAINTYPES:
             self._length = value
 

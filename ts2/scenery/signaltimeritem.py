@@ -19,7 +19,7 @@
 #
 
 from PyQt4 import QtCore
-from ts2.scenery import SignalItem, SignalState, TIProperty
+from ts2.scenery import abstract, helper, SignalItem, SignalState
 from ts2 import utils
 
 class SignalTimerItem(SignalItem):
@@ -30,7 +30,7 @@ class SignalTimerItem(SignalItem):
     def __init__(self, simulation, parameters):
         """Constructor for the SignalTimerItem class"""
         super().__init__(simulation, parameters)
-        self._tiType = "ST"
+        self.tiType = "ST"
         self._signalState = SignalState.CLEAR
         self._timerSW = parameters["timersw"]
         self._timerWC = parameters["timerwc"]
@@ -39,8 +39,8 @@ class SignalTimerItem(SignalItem):
         self._timer.timeout.connect(self.updateSignalState)
 
     properties = SignalItem.properties + [ \
-                TIProperty("timerSW", "Time from STOP to WARNING (s)"), \
-                TIProperty("timerWC", "Time from WARNING to CLEAR (s)")]
+            helper.TIProperty("timerSW", "Time from STOP to WARNING (s)"), 
+            helper.TIProperty("timerWC", "Time from WARNING to CLEAR (s)")]
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
@@ -57,7 +57,7 @@ class SignalTimerItem(SignalItem):
         super().trainTailActions(serviceCode)
         self._timer.stop()
         self._signalState = SignalState.STOP
-        timeFactor = float(self._simulation.option("timeFactor"))
+        timeFactor = float(self.simulation.option("timeFactor"))
         self._timer.start(self._timerSW * 1000 / timeFactor)
         self.updateGraphics()
 
@@ -70,37 +70,37 @@ class SignalTimerItem(SignalItem):
                 self._signalState = SignalState.CLEAR
             elif self._signalState == SignalState.STOP:
                 self._signalState = SignalState.WARNING
-                timeFactor = float(self._simulation.option("timeFactor"))
+                timeFactor = float(self.simulation.option("timeFactor"))
                 self._timer.start(self._timerWC * 1000 / timeFactor)
-        if self._previousActiveRoute is not None:
-            self._previousActiveRoute.beginSignal.updateSignalState()
+        if self.previousActiveRoute is not None:
+            self.previousActiveRoute.beginSignal.updateSignalState()
         self.updateGraphics()
 
     @property
     def timerSW(self):
         """Returns the time in minutes for the SignalTimerItem to pass from
         the STOP state to the WARNING state"""
-        timeFactor = float(self._simulation.option("timeFactor"))
+        timeFactor = float(self.simulation.option("timeFactor"))
         return float(self._timerSW)
 
     @timerSW.setter
     def timerSW(self, value):
         """Setter function for the timerSW property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            timeFactor = float(self._simulation.option("timeFactor"))
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            timeFactor = float(self.simulation.option("timeFactor"))
             self._timerSW = value
 
     @property
     def timerWC(self):
         """Returns the time in minutes for the SignalTimerItem to pass from
         the WARNING state to the CLEAR state"""
-        timeFactor = float(self._simulation.option("timeFactor"))
+        timeFactor = float(self.simulation.option("timeFactor"))
         return float(self._timerWC)
 
     @timerWC.setter
     def timerWC(self, value):
         """Setter function for the timerWC property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            timeFactor = float(self._simulation.option("timeFactor"))
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            timeFactor = float(self.simulation.option("timeFactor"))
             self._timerWC = value
 
