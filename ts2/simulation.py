@@ -542,12 +542,6 @@ class Simulation(QtCore.QObject):
                 ti = invisiblelinkitem.InvisibleLinkItem(self, parameters)
             elif tiType == "S":
                 ti = signalitem.SignalItem(self, parameters)
-            elif tiType == "SB":
-                ti = bumperitem.BumperItem(self, parameters)
-            elif tiType == "ST":
-                ti = signaltimeritem.SignalTimerItem(self, parameters)
-            elif tiType == "SN":
-                ti = nonreturnitem.NonReturnItem(self, parameters)
             elif tiType == "P":
                 ti = pointsitem.PointsItem(self, parameters)
             elif tiType == "E":

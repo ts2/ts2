@@ -63,10 +63,10 @@ class SignalItem(abstract.TrackItem):
                         helper.TIProperty("signalTypeStr",
                                           translate("SignalItem",
                                                     "Signal Type")),
-                        helper.TIProperty("routesSetParams",
+                        helper.TIProperty("routesSetParamsStr",
                                           translate("SignalItem",
                                                     "Route set params")),
-                        helper.TIProperty("trainPresentParams",
+                        helper.TIProperty("trainPresentParamsStr",
                                           translate("SignalItem",
                                                     "Train presence params"))]
 
@@ -153,7 +153,10 @@ class SignalItem(abstract.TrackItem):
     def _setRouteSetParamsStr(self, value):
         """Setter function for the routesSetParamsStr property."""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            self._routesSetParams = eval(str(value))
+            if value == "":
+                self._routesSetParams = {}
+            else:
+                self._routesSetParams = eval(str(value))
 
     routesSetParamsStr = property(_getRouteSetParamsStr,
                                   _setRouteSetParamsStr)
@@ -172,7 +175,10 @@ class SignalItem(abstract.TrackItem):
     def _setTrainPresentParamsStr(self, value):
         """Setter function for the trainPresentParamsStr."""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            self._trainPresentParams = eval(str(value))
+            if value == "":
+                self._trainPresentParams = {}
+            else:
+                self._trainPresentParams = eval(str(value))
 
     trainPresentParamsStr = property(_getTrainPresentParamsStr,
                                      _setTrainPresentParamsStr)
@@ -281,9 +287,10 @@ class SignalItem(abstract.TrackItem):
         """ Returns true if there is a train ahead of this signalItem and
         before the end of the next active route. Note that this function
         returns False if no route is set from this signal."""
-        for pos in self.nextActiveRoute.positions:
-            if pos.trackItem.trainPresent():
-                return True
+        if self.nextActiveRoute is not None:
+            for pos in self.nextActiveRoute.positions:
+                if pos.trackItem.trainPresent():
+                    return True
         return False
 
     def trainHeadActions(self, trainId):
@@ -328,26 +335,47 @@ class SignalItem(abstract.TrackItem):
 
     @QtCore.pyqtSlot()
     def updateSignalState(self):
-        """Update the signal state."""
-        self._activeAspect = self.signalType.getDefaultAspect()
+        """Update the signal current aspect."""
+        for sc in self.signalType.conditions:
+            currentSituation = 0
+            if self.nextActiveRoute is not None:
+                currentSituation |= signaltype.ConditionCode.NEXT_ROUTE_ACTIVE
+            if self.previousActiveRoute is not None:
+                currentSituation |= signaltype.ConditionCode\
+                                                        .PREVIOUS_ROUTE_ACTIVE
+            if not self.trainsAhead():
+                currentSituation |= signaltype.ConditionCode\
+                                              .TRAIN_NOT_PRESENT_ON_NEXT_ROUTE
+            if self.nextActiveRoute is not None:
+                for sa in sc.nextSignalParams.get(4096,[]):
+                    if self.nextActiveRoute.endSignal.activeAspect.name == sa:
+                        currentSituation |= signaltype.ConditionCode\
+                                                          .NEXT_SIGNAL_ASPECTS
+            aspectName = sc.aspect.name
+            if aspectName in self.routesSetParams:
+                routesSet = self.routesSetParams[aspectName]
+                for rnum in routesSet:
+                    if self.simulation.routes[rnum].getRouteState() != 0:
+                        currentSituation |= signaltype.ConditionCode\
+                                                                   .ROUTES_SET
+                        break
+            if aspectName in self.trainPresentParams:
+                trainPresent = self.trainPresentParams[aspectName]
+                for tiId in trainPresent:
+                    if self.simulation.trackItems[tiId].trainPresent():
+                        currentSituation |= signaltype.ConditionCode\
+                                                       .TRAIN_PRESENT_ON_ITEMS
+                    break
+
+            if currentSituation & sc.conditionCode == sc.conditionCode:
+                self._activeAspect = sc.aspect
+                break
+        else:
+            self._activeAspect = self.signalType.getDefaultAspect()
+
+        if self.previousActiveRoute is not None:
+            self.previousActiveRoute.beginSignal.updateSignalState()
         self.updateGraphics()
-        #if self.nextActiveRoute is None or self.trainsAhead():
-            #self._signalState = SignalState.STOP
-        #else:
-            #if self.nextActiveRoute.endSignal.signalState == \
-                                                        #SignalState.CLEAR:
-                #self._signalState = SignalState.CLEAR
-            #elif self.nextActiveRoute.endSignal.signalState == \
-                                                        #SignalState.WARNING:
-                #self._signalState = SignalState.CLEAR
-            #elif self.nextActiveRoute.endSignal.signalState == \
-                                                        #SignalState.STOP:
-                #self._signalState = SignalState.WARNING
-            #else:
-                #self._signalState = SignalState.STOP
-        #if self.previousActiveRoute is not None:
-            #self.previousActiveRoute.beginSignal.updateSignalState()
-        #self.updateGraphics()
 
     ### Graphics Methods ################################################
 
