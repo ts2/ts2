@@ -22,8 +22,13 @@ from PyQt4 import QtCore, QtSql, QtGui
 from PyQt4.QtCore import Qt
 from math import sqrt
 import sqlite3
-from ts2 import utils, routing, scenery, trains
+
+from ts2 import utils, routing, trains
 from ts2.game import logger, scorer
+from ts2.scenery import abstract, placeitem, lineitem, platformitem, \
+                        invisiblelinkitem, enditem, pointsitem, \
+                        textitem
+from ts2.scenery.signals import signaltype, signalitem
 
 
 class Simulation(QtCore.QObject):
@@ -56,6 +61,7 @@ class Simulation(QtCore.QObject):
         self._services = {}
         self._places = {}
         self._trains = []
+        self.signalTypes = signaltype.SignalType.createBuiltinSignalLibrary()
         self._scene.clear()
         self._time = QtCore.QTime()
         self._serviceListModel = trains.ServiceListModel(self)
@@ -299,8 +305,8 @@ class Simulation(QtCore.QObject):
         self._scene.addItem(graphicItem)
 
     conflictingRoute = QtCore.pyqtSignal(routing.Route)
-    noRouteBetweenSignals = QtCore.pyqtSignal(scenery.SignalItem, \
-                                              scenery.SignalItem)
+    noRouteBetweenSignals = QtCore.pyqtSignal(signalitem.SignalItem,
+                                              signalitem.SignalItem)
     routeSelected = QtCore.pyqtSignal(routing.Route)
     routeDeleted = QtCore.pyqtSignal(routing.Route)
     timeChanged = QtCore.pyqtSignal(QtCore.QTime)
@@ -508,9 +514,9 @@ class Simulation(QtCore.QObject):
         self.createTrackItemConflicts(conn)
         # Check that all the items are linked
         if not self.checkTrackItemsLinks():
-           self.messageLogger(self.tr("Invalid simulation: "
-                                      "Not all items are linked."),
-                              logger.Message.SOFTWARE_MSG)
+           self.messageLogger.addMessage(self.tr("Invalid simulation: "
+                                                 "Not all items are linked."),
+                                         logger.Message.SOFTWARE_MSG)
 
     def createAllTrackItems(self, conn):
         """Creates the instances of TrackItem and its subclasses (including
@@ -518,7 +524,7 @@ class Simulation(QtCore.QObject):
         for p in conn.execute("SELECT * FROM trackitems WHERE titype='A'"):
             parameters = dict(p)
             tiId = parameters["tiid"]
-            place = scenery.Place(self, parameters)
+            place = placeitem.Place(self, parameters)
             self.servicesLoaded.connect(place.sortTimetable)
             self._trackItems[tiId] = place
             self._places[place.placeCode] = place
@@ -529,27 +535,27 @@ class Simulation(QtCore.QObject):
             tiId = parameters["tiid"]
             tiType = parameters["titype"]
             if tiType == "L":
-                ti = scenery.LineItem(self, parameters)
+                ti = lineitem.LineItem(self, parameters)
             elif tiType == "ZP":
-                ti = scenery.PlatformItem(self, parameters)
+                ti = platformitem.PlatformItem(self, parameters)
             elif tiType == "LI":
-                ti = scenery.InvisibleLinkItem(self, parameters)
+                ti = invisiblelinkitem.InvisibleLinkItem(self, parameters)
             elif tiType == "S":
-                ti = scenery.SignalItem(self, parameters)
+                ti = signalitem.SignalItem(self, parameters)
             elif tiType == "SB":
-                ti = scenery.BumperItem(self, parameters)
+                ti = bumperitem.BumperItem(self, parameters)
             elif tiType == "ST":
-                ti = scenery.SignalTimerItem(self, parameters)
+                ti = signaltimeritem.SignalTimerItem(self, parameters)
             elif tiType == "SN":
-                ti = scenery.NonReturnItem(self, parameters)
+                ti = nonreturnitem.NonReturnItem(self, parameters)
             elif tiType == "P":
-                ti = scenery.PointsItem(self, parameters)
+                ti = pointsitem.PointsItem(self, parameters)
             elif tiType == "E":
-                ti = scenery.EndItem(self, parameters)
+                ti = enditem.EndItem(self, parameters)
             elif tiType == "ZT":
-                ti = scenery.TextItem(self, parameters)
+                ti = textitem.TextItem(self, parameters)
             else:
-                ti = scenery.TrackItem(self, parameters)
+                ti = abstract.TrackItem(self, parameters)
             self.makeTrackItemSignalSlotConnections(ti)
             self._trackItems[tiId] = ti
 

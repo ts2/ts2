@@ -21,7 +21,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import Qt
 from ts2 import utils
-from ts2.scenery import place, helper, abstract
+from ts2.scenery import placeitem, helper, abstract
 
 translate = QtGui.QApplication.translate
 
@@ -53,7 +53,8 @@ class PlatformItem(abstract.ResizableItem):
         pgi.setZValue(0)
         self._gi = pgi
         self.simulation.registerGraphicsItem(self._gi)
-        self.platformSelected.connect(place.Place.selectedPlaceModel.setPlace)
+        self.platformSelected.connect(
+                                placeitem.Place.selectedPlaceModel.setPlace)
 
 
     properties = [helper.TIProperty("tiTypeStr", translate("PlatformItem",
@@ -71,16 +72,7 @@ class PlatformItem(abstract.ResizableItem):
                   helper.TIProperty("trackCode", translate("PlatformItem",
                                                             "Track code"))]
 
-    platformSelected = QtCore.pyqtSignal(place.Place)
-
-    @property
-    def toolTipText(self):
-        """Returns the string to show on the tool tip"""
-        if self._place is not None:
-            return self.tr("%s\nPlatform %s") % \
-                                  (self._place.placeName, self.trackCode)
-        else:
-            return ""
+    platformSelected = QtCore.pyqtSignal(placeitem.Place)
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
@@ -93,6 +85,17 @@ class PlatformItem(abstract.ResizableItem):
                             "trackcode": self.trackCode
                           })
         return parameters
+
+    ### Properties #####################################################
+
+    @property
+    def toolTipText(self):
+        """Returns the string to show on the tool tip"""
+        if self._place is not None:
+            return self.tr("%s\nPlatform %s") % \
+                                  (self._place.placeName, self.trackCode)
+        else:
+            return ""
 
     @property
     def placeCode(self):
@@ -127,16 +130,7 @@ class PlatformItem(abstract.ResizableItem):
             else:
                 self._trackCode = ""
 
-    def graphicsBoundingRect(self):
-        """Returns the bounding rectangle of this PlatformItem"""
-        x1 = self.origin.x()
-        y1 = self.origin.y()
-        x2 = self.end.x()
-        y2 = self.end.y()
-        if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            return QtCore.QRectF(-5, -5, x2 - x1 + 10, y2 - y1 + 10)
-        else:
-            return QtCore.QRectF(0, 0, x2 - x1, y2 - y1)
+    ### Graphics Methods ##############################################
 
     def graphicsPaint(self, painter, options, widget):
         """This function is called by the owned TrackGraphicsItem to paint its
@@ -163,35 +157,3 @@ class PlatformItem(abstract.ResizableItem):
             if self.simulation.context == utils.Context.GAME:
                 self.platformSelected.emit(self._place)
         self.updateGraphics()
-
-    def graphicsMouseMoveEvent(self, event):
-        """This function is called by the owned TrackGraphicsItem to handle
-        its mouseMoveEvent. Reimplemented in the PlatformItem class to begin a
-        drag operation on corners."""
-        if event.buttons() == Qt.LeftButton and \
-           self.simulation.context == utils.Context.EDITOR_SCENERY:
-            if QtCore.QLineF(event.scenePos(),
-                         event.buttonDownScenePos(Qt.LeftButton)).length() \
-                        < 3.0:
-                return
-            drag = QtGui.QDrag(event.widget())
-            mime = QtCore.QMimeData()
-            pos = event.buttonDownPos(Qt.LeftButton)
-            if QtCore.QRectF(-5,-5,9,9).contains(pos):
-                movedEnd = "origin"
-            elif QtCore.QRectF(self.end.x() - self.origin.x() - 5,
-                               self.end.y() - self.origin.y() - 5,
-                               9, 9).contains(pos):
-                movedEnd = "end"
-                pos -= self.end - self.origin
-            elif self._gi.shape().contains(pos):
-                movedEnd = "realOrigin"
-            if movedEnd is not None:
-                mime.setText(self.tiType + "#" +
-                            str(self.tiId)+ "#" +
-                            str(pos.x()) + "#" +
-                            str(pos.y()) + "#" +
-                            movedEnd)
-                drag.setMimeData(mime)
-                drag.exec_()
-

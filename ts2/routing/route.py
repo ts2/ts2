@@ -111,6 +111,11 @@ class Route(QtCore.QObject):
         self._persistent = False
 
     @property
+    def positions(self):
+        """Returns the positions list of this route."""
+        return self._positions
+
+    @property
     def routeNum(self):
         """Returns this route number"""
         return self._routeNum

@@ -21,10 +21,10 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from ts2 import utils
-from ts2.scenery import LineItem
+from ts2.scenery import lineitem
 
 
-class InvisibleLinkItem(LineItem):
+class InvisibleLinkItem(lineitem.LineItem):
     """InvisibleLinkItem behave like line items, but are not represented at
     all on the scenery. They are used to make links between lines or to
     represent bridges and tunnels.
@@ -35,6 +35,14 @@ class InvisibleLinkItem(LineItem):
         self.tiType = "LI"
         self._tli.hide()
 
+    ### Methods ########################################################
+
+    @QtCore.pyqtSlot()
+    def updateGraphics(self):
+        self._gi.update()
+
+    ### Graphics Methods ###############################################
+
     def graphicsPaint(self, p, options, widget):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws nothing during the game."""
@@ -43,10 +51,6 @@ class InvisibleLinkItem(LineItem):
             p.drawLine(self.line)
             self.drawConnectionRect(p, self.line.p1())
             self.drawConnectionRect(p, self.line.p2())
-
-    @QtCore.pyqtSlot()
-    def updateGraphics(self):
-        self._gi.update()
 
 
 

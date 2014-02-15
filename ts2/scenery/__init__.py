@@ -18,20 +18,3 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-
-from ts2.scenery.place import Place
-
-from ts2.scenery.signalitem import SignalItem, SignalState
-from ts2.scenery.signaltimeritem import SignalTimerItem
-from ts2.scenery.bumperitem import BumperItem
-from ts2.scenery.nonreturnitem import NonReturnItem
-
-from ts2.scenery.enditem import EndItem
-
-from ts2.scenery.lineitem import LineItem
-from ts2.scenery.platformitem import PlatformItem
-from ts2.scenery.invisiblelinkitem import InvisibleLinkItem
-
-from ts2.scenery.pointsitem import PointsItem
-
-from ts2.scenery.textitem import TextItem

@@ -23,7 +23,7 @@ from PyQt4.QtCore import Qt
 from ts2.scenery import abstract, helper
 from ts2 import utils
 
-tr = QtCore.QObject().tr
+translate = QtCore.QCoreApplication.translate
 
 class PlaceInfoModel(QtCore.QAbstractTableModel):
     def __init__(self):
@@ -114,7 +114,7 @@ class Place(abstract.TrackItem):
         self._placeCode = parameters["placecode"]
         self.updateBoundingRect()
         gi = helper.TrackGraphicsItem(self)
-        gi.setPos(self.realOrigin)
+        gi.setPos(self._origin)
         gi.setCursor(Qt.PointingHandCursor)
         gi.setToolTip(self.toolTipText)
         gi.setZValue(0)
@@ -124,10 +124,11 @@ class Place(abstract.TrackItem):
         self._tracks = {}
         self.updateGraphics()
 
-    selectedPlaceModel = PlaceInfoModel()
-
     properties = abstract.TrackItem.properties + [
-                            helper.TIProperty("placeCode", tr("Place code"))]
+                    helper.TIProperty("placeCode",
+                                      translate("Place", "Place code"))]
+
+    selectedPlaceModel = PlaceInfoModel()
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
@@ -136,37 +137,25 @@ class Place(abstract.TrackItem):
         parameters.update({"placecode":self.placeCode})
         return parameters
 
+    ### Properties ###################################################
+
     def _setOrigin(self, value):
         """Setter function for the origin property"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            self.realOrigin = value - self._rect.bottomLeft()
+            self._origin = value
 
     origin = property(abstract.TrackItem._getOrigin, _setOrigin)
 
-    @property
-    def realOrigin(self):
-        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is
-        the position of the top left corner of the bounding rectangle of the
-        TrackItem. Reimplemented in Place"""
-        return self.origin - self._rect.bottomLeft()
-
-    @realOrigin.setter
-    def realOrigin(self, pos):
-        """Setter function for the realOrigin property"""
+    def _setName(self, value):
+        """Setter function for the name property"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            grid = self.simulation.grid
-            x = round((pos.x() + self._rect.bottomLeft().x()) / grid) * grid
-            y = round((pos.y() + self._rect.bottomLeft().y()) / grid) * grid
-            self._origin = QtCore.QPointF(x, y)
-            self._gi.setPos(self.realOrigin)
+            self._gi.prepareGeometryChange()
+            self._name = value
+            self._gi.setToolTip(self.toolTipText)
+            self.updateBoundingRect()
             self.updateGraphics()
 
-    def addTrack(self, li):
-        self._tracks[li.trackCode] = li
-
-    def addTimetable(self, sl):
-        self._timetable.append(sl)
-        #self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
+    name = property(abstract.TrackItem._getName, _setName)
 
     @property
     def placeName(self):
@@ -187,20 +176,14 @@ class Place(abstract.TrackItem):
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self._placeCode = value
 
-    @property
-    def name(self):
-        """Returns the name of the Place"""
-        return self._name
+    ### Methods #######################################################
 
-    @name.setter
-    def name(self, value):
-        """Setter function for the name property"""
-        if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            self._gi.prepareGeometryChange()
-            self._name = value
-            self._gi.setToolTip(self.toolTipText)
-            self.updateBoundingRect()
-            self.updateGraphics()
+    def addTrack(self, li):
+        self._tracks[li.trackCode] = li
+
+    def addTimetable(self, sl):
+        self._timetable.append(sl)
+        #self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
 
     def track(self, trackCode):
         return self._tracks[trackCode]
@@ -212,6 +195,13 @@ class Place(abstract.TrackItem):
         line = tl.createLine()
         tl.endLayout()
         self._rect = tl.boundingRect()
+
+    @QtCore.pyqtSlot()
+    def sortTimetable(self):
+        """Sorts the timetable of the place."""
+        self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
+
+    ### Graphics Methods ##############################################
 
     def graphicsBoundingRect(self):
         """This function is called by the owned TrackGraphicsItem to return
@@ -229,9 +219,4 @@ class Place(abstract.TrackItem):
         pen.setColor(Qt.white)
         p.setPen(pen)
         p.drawText(self._rect.bottomLeft(), self.name)
-
-    @QtCore.pyqtSlot()
-    def sortTimetable(self):
-        """Sorts the timetable of the place."""
-        self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
 

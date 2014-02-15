@@ -22,8 +22,10 @@ from PyQt4 import QtGui, QtCore, QtSql
 from PyQt4.QtCore import Qt
 
 from ts2 import scenery
+from ts2.editor import editor
 import ts2.gui.dialogs
 import ts2.editor.views
+
 
 
 class EditorWindow(QtGui.QMainWindow):
@@ -38,7 +40,7 @@ class EditorWindow(QtGui.QMainWindow):
         self._mainWindow = mainWindow
 
         # Editor
-        self.editor = ts2.editor.Editor(self)
+        self.editor = editor.Editor(self)
         self.editor.itemSelected.connect(self.setPropertiesModel)
 
         # Actions

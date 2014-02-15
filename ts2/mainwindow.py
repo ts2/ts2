@@ -21,8 +21,10 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 
-from ts2 import simulation, scenery, utils, editor
+from ts2 import simulation, utils
 from ts2.gui import dialogs, trainlistview, servicelistview, widgets
+from ts2.scenery import placeitem
+from ts2.editor import editorwindow, editor
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -126,7 +128,7 @@ class MainWindow(QtGui.QMainWindow):
         self.placeInfoView = QtGui.QTreeView(self)
         self.placeInfoView.setItemsExpandable(False)
         self.placeInfoView.setRootIsDecorated(False)
-        self.placeInfoView.setModel(scenery.Place.selectedPlaceModel)
+        self.placeInfoView.setModel(placeitem.Place.selectedPlaceModel)
         self.placeInfoPanel.setWidget(self.placeInfoView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.placeInfoPanel)
 
@@ -350,7 +352,7 @@ class MainWindow(QtGui.QMainWindow):
     def openEditor(self):
         """This slot opens the editor window if it is not already opened"""
         if not self.editorOpened:
-            self.editorWindow = editor.EditorWindow(self)
+            self.editorWindow = editorwindow.EditorWindow(self)
             self.editorWindow.closed.connect(self.editorIsClosed)
             self.editorOpened = True
             self.editorWindow.show()

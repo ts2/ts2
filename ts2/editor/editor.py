@@ -22,8 +22,11 @@ import sqlite3
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
 from ts2 import simulation
-from ts2 import scenery, utils, trains, routing
-import ts2.editor
+from ts2 import utils, trains, routing
+from ts2.scenery import abstract, placeitem, lineitem, platformitem, \
+                        invisiblelinkitem, enditem, pointsitem, textitem
+from ts2.scenery.signals import signalitem
+from ts2.editor import editorscenebackground
 
 class TrashBinItem(QtGui.QGraphicsPixmapItem):
     """The TrashBinItem is the graphics item on which to drag TrackItems to be
@@ -124,7 +127,7 @@ class Editor(simulation.Simulation):
         super().__init__(editorWindow)
         self._context = utils.Context.EDITOR_GENERAL
         self._libraryScene = QtGui.QGraphicsScene(0, 0, 200, 250, self)
-        self._sceneBackground = ts2.editor.EditorSceneBackground(
+        self._sceneBackground = editorscenebackground.EditorSceneBackground(
                                                         self, 0, 0, 800, 600)
         self._sceneBackground.setZValue(-100)
         self._scene.addItem(self._sceneBackground)
@@ -170,42 +173,44 @@ class Editor(simulation.Simulation):
         WhiteLineItem(0, 300, 200, 300, None, self._libraryScene)
         WhiteLineItem(0, 350, 200, 350, None, self._libraryScene)
         # Items
-        self.librarySignalItem = scenery.SignalItem(self,
+        self.librarySignalItem = signalitem.SignalItem(self,
                 {"tiid":-1, "name":"Signal", "x":20, "y":30, "reverse":0,
-                 "xf":0, "yf":0, "maxspeed":0.0})
-        self.librarySignalTimerItem = scenery.SignalTimerItem(self,
-                {"tiid":-2, "name":"Timer Signal", "x":120, "y":30,
-                 "xf":0, "yf":0, "reverse":0, "maxspeed":0.0, "timersw":1.0,
-                 "timerwc":1.0})
-        self.libraryPointsItem = scenery.PointsItem(self,
+                 "xf":0, "yf":0, "signaltype":"UK_3_ASPECTS", "routesset":[],
+                 "trainpresent":[], "maxspeed":0.0})
+        #self.librarySignalTimerItem = signaltimeritem.SignalTimerItem(self,
+                #{"tiid":-2, "name":"Timer Signal", "x":120, "y":30,
+                 #"xf":0, "yf":0, "reverse":0, "maxspeed":0.0, "timersw":1.0,
+                 #"timerwc":1.0})
+        self.libraryPointsItem = pointsitem.PointsItem(self,
                 {"tiid":-3, "name":"Points", "maxspeed":0.0, "x":50, "y":75,
                  "xf":-5, "yf":0, "xn":5, "yn":0, "xr":5, "yr":-5})
-        self.libraryBumperItem = scenery.BumperItem(self,
-                {"tiid":-4, "name":"Bumper", "maxspeed":0.0, "x":120, "y":75,
-                 "xf":0, "yf":0, "reverse":0})
-        self.libraryLineItem = scenery.LineItem(self,
+        self.libraryBumperItem = signalitem.SignalItem(self,
+                {"tiid":-4, "name":"Bumper",  "x":120, "y":75, "reverse":0,
+                 "xf":0, "yf":0, "signaltype":"BUFFER", "routesset":[],
+                 "trainpresent":[], "maxspeed":0.0})
+        self.libraryLineItem = lineitem.LineItem(self,
                 {"tiid":-5, "name":"Line", "x":20, "y":125, "xf":80,
                  "yf":125, "maxspeed":0.0, "reallength":1.0,
                  "placecode":None, "trackcode":None})
-        self.libraryPlatformItem = scenery.PlatformItem(self,
+        self.libraryPlatformItem = platformitem.PlatformItem(self,
                 {"tiid":-6, "name":"Platform", "x":120, "y":135, "xf":180,
                  "yf":135,  "xn":125, "yn":120, "xr":175, "yr":130,
                  "maxspeed":0.0, "reallength":1.0,
                  "placecode":None, "trackcode":None})
-        self.libraryEndItem = scenery.EndItem(self,
+        self.libraryEndItem = enditem.EndItem(self,
                 {"tiid":-7, "name":"End", "maxspeed":0.0, "x":50, "y":175,
                  "xf":0, "yf":0})
-        self.libraryPlaceItem = scenery.Place(self,
+        self.libraryPlaceItem = placeitem.Place(self,
                 {"tiid":-8, "name":"PLACE", "placecode":"", "maxspeed":0.0,
                  "x":132, "y":180, "xf":0, "yf":0})
-        self.libraryNonReturnItem = scenery.NonReturnItem(self,
-                {"tiid":-9, "name":"Non-return", "maxspeed":0.0, "x":20,
-                 "y":225, "xf":0, "yf":0, "reverse":0})
-        self.libraryInvisibleLinkItem = scenery.InvisibleLinkItem(self,
+        #self.libraryNonReturnItem = nonreturnitem.NonReturnItem(self,
+                #{"tiid":-9, "name":"Non-return", "maxspeed":0.0, "x":20,
+                 #"y":225, "xf":0, "yf":0, "reverse":0})
+        self.libraryInvisibleLinkItem = invisiblelinkitem.InvisibleLinkItem(self,
                 {"tiid":-10, "name":"Invisible link", "x":120, "y":225,
                  "xf":180, "yf":225, "maxspeed":0.0, "reallength":1.0,
                  "placecode":None, "trackcode":None})
-        self.libraryTextItem = scenery.TextItem(self,
+        self.libraryTextItem = textitem.TextItem(self,
                 {"tiid":-11, "name":"TEXT", "x":36, "y":280, "xf":0, "yf":0,
                  "maxspeed":0.0, "reallength":1.0, })
         self.libraryBinItem = TrashBinItem(self,
@@ -357,6 +362,7 @@ class Editor(simulation.Simulation):
                 conn.execute("ALTER TABLE trains ADD COLUMN initialdelay")
                 conn.commit()
             if version < 0.5:
+                # PlatformItem change
                 for p in conn.execute(
                                 "SELECT * FROM trackitems WHERE titype='LP'"):
                     parameters = dict(p)
@@ -375,6 +381,11 @@ class Editor(simulation.Simulation):
                                  "(:x, :y, :xf, :yf, :titype, :placecode,"
                                  ":trackcode)", parameters)
                     conn.commit()
+                # SignalItem change
+                conn.execute("ALTER TABLE trackitems ADD COLUMN signaltype")
+                conn.execute("ALTER TABLE trackitems ADD COLUMN routesset")
+                conn.execute("ALTER TABLE trackitems ADD COLUMN trainpresent")
+                conn.commit()
             self.setOption("version", utils.TS2_FILE_FORMAT)
             self.saveOptions(conn)
         conn.close()
@@ -415,7 +426,7 @@ class Editor(simulation.Simulation):
         """Saves the TrackItem instances of this editor in the database"""
         conn.execute("DROP TABLE IF EXISTS trackitems")
         fieldString = "("
-        for name, type in scenery.TrackItem.fieldTypes.items():
+        for name, type in abstract.TrackItem.fieldTypes.items():
             fieldString += "%s %s," % (name, type)
         fieldString = fieldString[:-1] + ")"
         conn.execute("CREATE TABLE trackitems %s" % fieldString)
@@ -732,32 +743,29 @@ class Editor(simulation.Simulation):
                     "maxspeed": 0.0,
                     "reallength": 0.0,
                     "placecode":None,
-                    "trackcode":None}
+                    "trackcode":None,
+                    "signaltype":"UK_3_ASPECTS",
+                    "routesset":[],
+                    "trainpresent":[]}
 
         if tiType == "L":
-            ti = scenery.LineItem(self, parameters)
+            ti = lineitem.LineItem(self, parameters)
         elif tiType == "ZP":
-            ti = scenery.PlatformItem(self, parameters)
+            ti = platformitem.PlatformItem(self, parameters)
         elif tiType == "LI":
-            ti = scenery.InvisibleLinkItem(self, parameters)
+            ti = invisiblelinkitem.InvisibleLinkItem(self, parameters)
         elif tiType == "S":
-            ti = scenery.SignalItem(self, parameters)
-        elif tiType == "SB":
-            ti = scenery.BumperItem(self, parameters)
-        elif tiType == "ST":
-            ti = scenery.SignalTimerItem(self, parameters)
-        elif tiType == "SN":
-            ti = scenery.NonReturnItem(self, parameters)
+            ti = signalitem.SignalItem(self, parameters)
         elif tiType == "P":
-            ti = scenery.PointsItem(self, parameters)
+            ti = pointsitem.PointsItem(self, parameters)
         elif tiType == "E":
-            ti = scenery.EndItem(self, parameters)
+            ti = enditem.EndItem(self, parameters)
         elif tiType == "A":
-            ti = scenery.Place(self, parameters)
+            ti = placeitem.Place(self, parameters)
         elif tiType == "ZT":
-            ti = scenery.TextItem(self, parameters)
+            ti = textitem.TextItem(self, parameters)
         else:
-            ti = scenery.TrackItem(self, parameters)
+            ti = abstract.TrackItem(self, parameters)
         self.makeTrackItemSignalSlotConnections(ti)
         self.expandBackgroundTo(ti)
         self._trackItems[self._nextId] = ti
