@@ -7,7 +7,7 @@ from ts2 import utils
 
 build_exe_options = {
     "includes" : ["atexit"],
-    "packages" : ["re"],
+    "packages" : ["re","sqlite3"],
     "include_files" : [
         ("data/drain.ts2","simulations/drain.ts2"),
         ("data/liverpool-st.ts2","simulations/liverpool-st.ts2"),
