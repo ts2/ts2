@@ -386,6 +386,44 @@ class Editor(simulation.Simulation):
                 conn.execute("ALTER TABLE trackitems ADD COLUMN routesset")
                 conn.execute("ALTER TABLE trackitems ADD COLUMN trainpresent")
                 conn.commit()
+                conn.execute("UPDATE trackitems SET "
+                             "signaltype='UK_3_ASPECTS' WHERE titype='S'")
+                conn.execute("UPDATE trackitems SET "
+                             "signaltype='BUFFER', titype='S' "
+                             "WHERE titype='SB'")
+                conn.execute("UPDATE trackitems SET "
+                             "signaltype='UK_3_ASPECTS', titype='S' "
+                             "WHERE titype='ST'")
+                conn.execute("UPDATE trackitems SET "
+                             "signaltype='UK_3_ASPECTS', titype='S' "
+                             "WHERE titype='SN'")
+                conn.execute("UPDATE trackitems SET "
+                             "routesset='{}', trainpresent='{}' "
+                             "WHERE titype='S'")
+                conn.commit()
+                for s in conn.execute("SELECT * FROM trackitems "
+                                      "WHERE titype='S'"):
+                    signal = dict(s)
+                    if not bool(signal["reverse"]):
+                        lineParams = {"x":signal["x"],
+                                      "y":signal["y"],
+                                      "xf":signal["x"] + 50,
+                                      "yf":signal["y"],
+                                      "titype":"L"}
+                    else:
+                        lineParams = {"x":signal["x"],
+                                      "y":signal["y"],
+                                      "xf":signal["x"] - 50,
+                                      "yf":signal["y"],
+                                      "titype":"L"}
+                    signal.update({"x":lineParams["xf"]})
+                    conn.execute("UPDATE trackitems SET "
+                                 "x=:x WHERE tiid=:tiid", signal)
+                    conn.execute("INSERT INTO trackitems "
+                                 "(x, y, xf, yf, titype) VALUES "
+                                 "(:x, :y, :xf, :yf, :titype)", lineParams)
+                conn.commit()
+
             self.setOption("version", utils.TS2_FILE_FORMAT)
             self.saveOptions(conn)
         conn.close()

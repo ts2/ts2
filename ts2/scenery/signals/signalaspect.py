@@ -21,6 +21,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 
+
 class SignalShape:
     """This class holds the possible representation shapes for signal lights.
     """
@@ -55,15 +56,6 @@ class Target:
     BEFORE_THIS_SIGNAL = 1
     BEFORE_NEXT_SIGNAL = 2
 
-
-class Action:
-    """An action associated to a signal aspect to be performed by a train."""
-    def __init__(self, target, speedLimit):
-        """Constructor for the Action class."""
-        self.speedLimit = speedLimit
-        self.target = target
-
-
 class SignalAspect(QtCore.QObject):
     """SignalAspect class represents an aspect of a signal, that is a
     combination of on and off lights with a meaning for the train driver."""
@@ -77,9 +69,14 @@ class SignalAspect(QtCore.QObject):
         self.outerColors = eval(str(parameters["outercolors"]))
         self.shapes = eval(str(parameters["shapes"]))
         self.shapesColors = eval(str(parameters["shapescolors"]))
-        self.actions = [Action(t, s) for t, s in zip(
+        self.actions = [(t, s) for t, s in zip(
                                         eval(str(parameters["targets"])),
                                         eval(str(parameters["speedlimits"])))]
+
+    def meansProceed(self):
+        """Returns true if this aspect is a proceed aspect, returns false if
+        this aspect requires to stop."""
+        return (self.actions[0] != (0, 0) and self.actions[0] != (1, 0))
 
     def drawAspect(self, p, linePen, shapePen, persistent=False):
         """Draws the aspect on the given painter p. Draws the line with
@@ -104,8 +101,8 @@ class SignalAspect(QtCore.QObject):
             p.setPen(shapePen)
             brush = QtGui.QBrush(Qt.SolidPattern)
             for i in range(6):
-                p.drawLine(5, 0, 5, -7)
-                p.drawLine(5, -7, 8, -7)
+                p.drawLine(2, 0, 2, -7)
+                p.drawLine(2, -7, 8, -7)
                 r = QtCore.QRect((i // 2) * 8 + 8, -(i % 2) * 8 - 11, 8, 8)
                 brush.setColor(QtGui.QColor(self.outerColors[i]))
                 p.setBrush(brush)
@@ -116,9 +113,11 @@ class SignalAspect(QtCore.QObject):
 
             # Draw persistent route marker
             if persistent:
-                brush.setColor(Qt.white)
-                p.setBrush(brush)
-                p.drawRect(0, -5, 4, 3)
+                ppen = QtGui.QPen(Qt.white)
+                ppen.setWidthF(2.5)
+                ppen.setCapStyle(Qt.FlatCap)
+                p.setPen(ppen)
+                p.drawLine(6, -10, 6, -3)
 
 
     def drawShape(self, p, shape, rect):

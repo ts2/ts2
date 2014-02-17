@@ -218,6 +218,10 @@ class Position:
     def __str__(self):
         """Returns the string representation of the position, which is
         "(trackItem.tiId, previousTI.tiId, positionOnTI)"."""
+        if (self.trackItem is None and
+            self.previousTI is None and
+            self.positionOnTI == 0):
+            return "<Null position>"
         return "(%i, %i, %f)" % (self.trackItem.tiId,
                                  self.previousTI.tiId,
                                  self.positionOnTI)

@@ -493,7 +493,8 @@ class Simulation(QtCore.QObject):
                 "defaultMaxSpeed":44.44,
                 "defaultMinimumStopTime":[(45,75,70),(75,90,30)],
                 "defaultDelayAtEntry":[(-60,0,50),(0,60,50)],
-                "trackCircuitBased":0
+                "trackCircuitBased":0,
+                "defaultSignalVisibility":100
             }
         options = {}
         for option in conn.execute("SELECT * FROM options"):
