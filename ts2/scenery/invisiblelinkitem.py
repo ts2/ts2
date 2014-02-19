@@ -37,13 +37,13 @@ class InvisibleLinkItem(lineitem.LineItem):
 
     ### Methods ########################################################
 
-    @QtCore.pyqtSlot()
-    def updateGraphics(self):
-        self._gi.update()
+    def updateTrain(self):
+        """Does nothing as this is an invisible link."""
+        pass
 
     ### Graphics Methods ###############################################
 
-    def graphicsPaint(self, p, options, widget):
+    def graphicsPaint(self, p, options, itemId, widget):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws nothing during the game."""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:

@@ -53,11 +53,11 @@ class PointsItem(abstract.TrackItem):
         self._reverseItem = None
         pgi = helper.TrackGraphicsItem(self)
         pgi.setPos(self.realOrigin)
-        pgi.setZValue(100)
+        pgi.setZValue(10)
         pgi.setCursor(Qt.PointingHandCursor)
         pgi.setToolTip(self.toolTipText)
-        self._gi = pgi
-        self.simulation.registerGraphicsItem(self._gi)
+        self._gi[0] = pgi
+        self.simulation.registerGraphicsItem(pgi)
         self.updateGraphics()
 
     properties = abstract.TrackItem.properties + [
@@ -119,7 +119,7 @@ class PointsItem(abstract.TrackItem):
             x = round((pos.x() + 5.0) / grid) * grid
             y = round((pos.y() + 5.0) / grid) * grid
             self._center = QtCore.QPointF(x, y)
-            self._gi.setPos(self.realOrigin)
+            self.graphicsItem.setPos(self.realOrigin)
             self.updateGraphics()
 
     @property
@@ -151,7 +151,7 @@ class PointsItem(abstract.TrackItem):
         """Setter for the commonEndStr property"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             x, y = eval(value.strip('()'))
-            self._gi.prepareGeometryChange()
+            self.graphicsItem.prepareGeometryChange()
             self._commonEnd = QtCore.QPointF(x, y) + self.middle
             self.updateGraphics()
 
@@ -168,7 +168,7 @@ class PointsItem(abstract.TrackItem):
         """Setter for the normalEndStr property"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             x, y = eval(value.strip('()'))
-            self._gi.prepareGeometryChange()
+            self.graphicsItem.prepareGeometryChange()
             self._normalEnd = QtCore.QPointF(x, y) + self.middle
             self.updateGraphics()
 
@@ -185,7 +185,7 @@ class PointsItem(abstract.TrackItem):
         """Setter for the reverseEndStr property"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             x, y = eval(value.strip('()'))
-            self._gi.prepareGeometryChange()
+            self.graphicsItem.prepareGeometryChange()
             self._reverseEnd = QtCore.QPointF(x, y) + self.middle
             self.updateGraphics()
 
@@ -217,7 +217,7 @@ class PointsItem(abstract.TrackItem):
         """Returns the string to show on the tool tip"""
         return self.tr("Points no: %s" % self.name)
 
-    def graphicsPaint(self, p, options, widget = 0):
+    def graphicsPaint(self, p, options, itemId, widget = 0):
         """Draws the points on the painter given as parameter.
         This function is called by PointsGraphicsItem.paint.
         @param p The painter on which to draw the signal."""
@@ -241,16 +241,16 @@ class PointsItem(abstract.TrackItem):
             self.drawConnectionRect(p, self._reverseEnd)
 
 
-    def graphicsBoundingRect(self):
+    def graphicsBoundingRect(self, itemId):
         """This function is called by the owned TrackGraphicsItem to return
         its bounding rectangle. Reimplemented from TrackItem"""
         return QtCore.QRectF(0,0,10,10)
 
-    def graphicsMousePressEvent(self, event):
+    def graphicsMousePressEvent(self, event, itemId):
         """This function is called by the owned TrackGraphicsItem to handle
         its mousePressEvent. In the PointsItem class, this function reverses
         the points."""
-        super().graphicsMousePressEvent(event)
+        super().graphicsMousePressEvent(event, itemId)
         if self.simulation.context == utils.Context.EDITOR_ROUTES:
             if self.pointsReversed:
                 self.pointsReversed = False

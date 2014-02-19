@@ -51,8 +51,8 @@ class PlatformItem(abstract.ResizableItem):
         pgi.setCursor(Qt.PointingHandCursor)
         pgi.setToolTip(self.toolTipText)
         pgi.setZValue(0)
-        self._gi = pgi
-        self.simulation.registerGraphicsItem(self._gi)
+        self._gi[0] = pgi
+        self.simulation.registerGraphicsItem(pgi)
         self.platformSelected.connect(
                                 placeitem.Place.selectedPlaceModel.setPlace)
 
@@ -132,7 +132,7 @@ class PlatformItem(abstract.ResizableItem):
 
     ### Graphics Methods ##############################################
 
-    def graphicsPaint(self, painter, options, widget):
+    def graphicsPaint(self, painter, options, itemId, widget):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws the rectangle."""
         x1 = self.origin.x()
@@ -146,12 +146,12 @@ class PlatformItem(abstract.ResizableItem):
             self.drawConnectionRect(painter, QtCore.QPointF(0, 0))
             self.drawConnectionRect(painter, QtCore.QPointF(x2 - x1, y2 - y1))
 
-    def graphicsMousePressEvent(self, e):
+    def graphicsMousePressEvent(self, e, itemId):
         """Reimplemented from TrackItem.graphicsMousePressEvent to handle the
         mousePressEvent of the owned TrackGraphicsItem.
         It processes mouse clicks on the platform and emits the signal
         platformSelected."""
-        super().graphicsMousePressEvent(e)
+        super().graphicsMousePressEvent(e, itemId)
         pos = e.buttonDownPos(Qt.LeftButton)
         if e.button() == Qt.LeftButton:
             if self.simulation.context == utils.Context.GAME:

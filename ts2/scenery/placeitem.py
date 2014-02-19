@@ -118,8 +118,8 @@ class Place(abstract.TrackItem):
         gi.setCursor(Qt.PointingHandCursor)
         gi.setToolTip(self.toolTipText)
         gi.setZValue(0)
-        self._gi = gi
-        self.simulation.registerGraphicsItem(self._gi)
+        self._gi[0] = gi
+        self.simulation.registerGraphicsItem(gi)
         self._timetable = []
         self._tracks = {}
         self.updateGraphics()
@@ -149,9 +149,9 @@ class Place(abstract.TrackItem):
     def _setName(self, value):
         """Setter function for the name property"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            self._gi.prepareGeometryChange()
+            self.graphicsItem.prepareGeometryChange()
             self._name = value
-            self._gi.setToolTip(self.toolTipText)
+            self.graphicsItem.setToolTip(self.toolTipText)
             self.updateBoundingRect()
             self.updateGraphics()
 
@@ -203,7 +203,7 @@ class Place(abstract.TrackItem):
 
     ### Graphics Methods ##############################################
 
-    def graphicsBoundingRect(self):
+    def graphicsBoundingRect(self, itemId):
         """This function is called by the owned TrackGraphicsItem to return
         its bounding rectangle"""
         if self.name is None or self.name == "":
@@ -211,7 +211,7 @@ class Place(abstract.TrackItem):
         else:
             return self._rect
 
-    def graphicsPaint(self, p, options, widget = 0):
+    def graphicsPaint(self, p, options, itemId, widget = 0):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter."""
         pen = self.getPen()

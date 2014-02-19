@@ -27,6 +27,7 @@ from ts2.scenery.signals import signaltype
 
 translate = QtCore.QCoreApplication.translate
 
+
 class SignalItem(abstract.TrackItem):
     """ @brief Logical item for signals
     This class holds the logics of a signal defined by its SignalType.
@@ -41,21 +42,40 @@ class SignalItem(abstract.TrackItem):
         self._signalType = simulation.signalTypes[signalTypeName]
         self._routesSetParams = eval(str(parameters["routesset"]))
         self._trainPresentParams = eval(str(parameters["trainpresent"]))
+        try:
+            xb = float(parameters["xn"])
+        except TypeError:
+            xb = self.origin.x() - 40
+        try:
+            yb = float(parameters["yn"])
+        except TypeError:
+            yb = self.origin.y() + 5
+        self._berthOrigin = QtCore.QPointF(xb, yb)
+        self.setBerthRect()
         self._activeAspect = self._signalType.getDefaultAspect()
         self._reverse = reverse
         self._previousActiveRoute = None
         self._nextActiveRoute = None
         self._trainId = None
-        sgi = helper.TrackGraphicsItem(self)
+        sgi = helper.TrackGraphicsItem(self, SignalItem.SIGNAL_GRAPHIC_ITEM)
         sgi.setPos(self.origin)
         sgi.setCursor(Qt.PointingHandCursor)
         sgi.setToolTip(self.toolTipText)
         sgi.setZValue(50)
         if reverse:
             sgi.setRotation(180)
-        self._gi = sgi
-        self.simulation.registerGraphicsItem(self._gi)
+        self._gi[SignalItem.SIGNAL_GRAPHIC_ITEM] = sgi
+        self.simulation.registerGraphicsItem(sgi)
+        bgi = helper.TrackGraphicsItem(self, SignalItem.BERTH_GRAPHIC_ITEM)
+        bgi.setPos(self._berthOrigin)
+        bgi.setCursor(Qt.PointingHandCursor)
+        bgi.setZValue(100)
+        self._gi[SignalItem.BERTH_GRAPHIC_ITEM] = bgi
+        self.simulation.registerGraphicsItem(bgi)
         self.updateGraphics()
+
+    SIGNAL_GRAPHIC_ITEM = 0
+    BERTH_GRAPHIC_ITEM = 1
 
     properties = abstract.TrackItem.properties + [
                         helper.TIProperty("reverse", translate("SignalItem",
@@ -68,7 +88,10 @@ class SignalItem(abstract.TrackItem):
                                                     "Route set params")),
                         helper.TIProperty("trainPresentParamsStr",
                                           translate("SignalItem",
-                                                    "Train presence params"))]
+                                                    "Train presence params")),
+                        helper.TIProperty("berthOriginStr",
+                                          translate("SignalItem",
+                                                    "Berth Origin"))]
 
     signalSelected = QtCore.pyqtSignal(int, bool, bool)
     signalUnselected = QtCore.pyqtSignal(int)
@@ -81,7 +104,9 @@ class SignalItem(abstract.TrackItem):
         parameters.update({"reverse":int(self.reverse),
                            "signaltype":self.signalTypeStr,
                            "routesset":str(self.routesSetParamsStr),
-                           "trainpresent":str(self.trainPresentParamsStr)})
+                           "trainpresent":str(self.trainPresentParamsStr),
+                           "xn":self.berthOrigin.x(),
+                           "yn":self.berthOrigin.y()})
         return parameters
 
     ### Properties #########################################################
@@ -183,6 +208,26 @@ class SignalItem(abstract.TrackItem):
     trainPresentParamsStr = property(_getTrainPresentParamsStr,
                                      _setTrainPresentParamsStr)
 
+    def _getBerthOrigin(self):
+        """Returns the origin of the berth graphics item as a QPointF."""
+        return self._berthOrigin
+
+    def _setBerthOrigin(self, value):
+        """Setter function for the berthOrigin property."""
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            self._berthOrigin = value
+            self._gi[SignalItem.BERTH_GRAPHIC_ITEM].setPos(value)
+
+    berthOrigin = property(_getBerthOrigin, _setBerthOrigin)
+    berthOriginStr = property(
+                           abstract.TrackItem.qPointFStrizer("berthOrigin"),
+                           abstract.TrackItem.qPointFDestrizer("berthOrigin"))
+
+    @property
+    def berthRect(self):
+        """Returns the boundingRect of the berth graphics items."""
+        return self._berthRect
+
     @property
     def toolTipText(self):
         """Returns the string to show on the tool tip"""
@@ -272,6 +317,19 @@ class SignalItem(abstract.TrackItem):
             return ""
 
     ### Methods #########################################################
+
+    def setBerthRect(self):
+        """Sets the berth graphics item boundingRect."""
+        tl = QtGui.QTextLayout("XXXXX")
+        font = QtGui.QFont("Courier New")
+        font.setPixelSize(11)
+        tl.setFont(font)
+        tl.beginLayout()
+        line = tl.createLine()
+        tl.endLayout()
+        rect = tl.boundingRect()
+        rect.moveTop(-rect.height())
+        self._berthRect = rect
 
     def isOnPosition(self, p):
         """ Checks that the signalItem is on the position p,
@@ -379,55 +437,117 @@ class SignalItem(abstract.TrackItem):
 
     ### Graphics Methods ################################################
 
-    def graphicsMousePressEvent(self, e):
+    def graphicsMousePressEvent(self, e, itemId):
         """Reimplemented from TrackItem.graphicsMousePressEvent to handle the
         mousePressEvent of the owned TrackGraphicsItem.
         It processes mouse clicks on the signal and emits the signals
         signalSelected, trainSelected, or signalUnselected depending on the
         case."""
-        super().graphicsMousePressEvent(e)
+        super().graphicsMousePressEvent(e, itemId)
         if e.button() == Qt.LeftButton:
-            if self.simulation.context == utils.Context.GAME:
-                self.selected = True;
-            persistent = (e.modifiers() == Qt.ShiftModifier)
-            force = (e.modifiers() == Qt.AltModifier|Qt.ControlModifier)
-            self.signalSelected.emit(self.tiId, persistent, force);
+            if itemId == SignalItem.SIGNAL_GRAPHIC_ITEM:
+                if self.simulation.context == utils.Context.GAME:
+                    self.selected = True
+                persistent = (e.modifiers() == Qt.ShiftModifier)
+                force = (e.modifiers() == Qt.AltModifier|Qt.ControlModifier)
+                self.signalSelected.emit(self.tiId, persistent, force);
+            elif itemId == SignalItem.BERTH_GRAPHIC_ITEM:
+                self.trainSelected.emit(self.trainId)
         elif e.button() == Qt.RightButton:
             if self.simulation.context == utils.Context.EDITOR_SCENERY:
                 self.reverse = not self.reverse
-            elif self.simulation.context == utils.Context.GAME:
-                self.selected = False
+            if itemId == SignalItem.SIGNAL_GRAPHIC_ITEM:
+                # The signal itself is right-clicked
+                if self.simulation.context == utils.Context.GAME:
+                    self.selected = False
                 self.signalUnselected.emit(self.tiId)
+            elif itemId == SignalItem.BERTH_GRAPHIC_ITEM:
+                # The train code is right-clicked
+                train = self.simulation.trains[self._trainId]
+                if train is not None:
+                    train.showTrainActionsMenu(
+                                    self.simulation.simulationWindow.view,
+                                    e.screenPos())
         self.updateGraphics()
 
-    def graphicsBoundingRect(self):
+    def graphicsBoundingRect(self, itemId):
         """Reimplemented from TrackItem.graphicsBoundingRect to return the
         bounding rectangle of the owned TrackGraphicsItem."""
-        return self.activeAspect.boundingRect()
+        if itemId == SignalItem.SIGNAL_GRAPHIC_ITEM:
+            return self.activeAspect.boundingRect()
+        elif itemId == SignalItem.BERTH_GRAPHIC_ITEM:
+            return self.berthRect
 
-    def graphicsPaint(self, p, options, widget = 0):
+    def graphicsPaint(self, p, options, itemId, widget = 0):
         """ Reimplemented from TrackItem.graphicsPaint to
         draw the signal on the owned TrackGraphicsItem"""
         linePen = self.getPen()
         shapePen = self.getPen()
         shapePen.setColor(Qt.white)
         shapePen.setWidth(0)
-        if self.trainPresent():
-            linePen.setColor(Qt.red)
-        if self.selected:
-            linePen.setColor(Qt.cyan)
-        if self.signalHighlighted:
-            shapePen.setColor(Qt.white)
-        else:
-            shapePen.setColor(Qt.darkGray)
+        if itemId == SignalItem.SIGNAL_GRAPHIC_ITEM:
+            if self.trainPresent():
+                linePen.setColor(Qt.red)
+            if self.selected:
+                linePen.setColor(Qt.cyan)
+            if self.signalHighlighted:
+                shapePen.setColor(Qt.white)
+            else:
+                shapePen.setColor(Qt.darkGray)
 
-        persistent = (self.nextActiveRoute is not None and
-                      self.nextActiveRoute.persistent)
-        self.activeAspect.drawAspect(p, linePen, shapePen, persistent)
+            persistent = (self.nextActiveRoute is not None and
+                        self.nextActiveRoute.persistent)
+            self.activeAspect.drawAspect(p, linePen, shapePen, persistent)
 
-        # Draw the connection rects
-        if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            self.drawConnectionRect(p, QtCore.QPointF(0, 0))
-            self.drawConnectionRect(p, QtCore.QPointF(10, 0))
+            # Draw the connection rects
+            if self.simulation.context == utils.Context.EDITOR_SCENERY:
+                self.drawConnectionRect(p, QtCore.QPointF(0, 0))
+                self.drawConnectionRect(p, QtCore.QPointF(10, 0))
 
+        elif itemId == SignalItem.BERTH_GRAPHIC_ITEM:
+            # Berth
+            isGame = (self.simulation.context == utils.Context.GAME)
+            isEditorScenery = (self.simulation.context ==
+                                                 utils.Context.EDITOR_SCENERY)
+            if (isGame and self.trainId is not None) or isEditorScenery:
+                    if isEditorScenery:
+                        shapePen.setColor(Qt.cyan)
+                    else:
+                        shapePen.setColor(Qt.black)
+                    brush = QtGui.QBrush(Qt.black)
+                    p.setPen(shapePen)
+                    p.setBrush(brush)
+                    p.drawRect(self.berthRect)
 
+                    shapePen.setColor(Qt.white)
+                    p.setPen(shapePen)
+                    font = QtGui.QFont("Courier new")
+                    font.setPixelSize(11)
+                    p.setFont(font)
+                    if self.simulation.context == utils.Context.GAME:
+                        text = self.trainServiceCode
+                    else:
+                        text = "*****"
+                    p.drawText(QtCore.QPointF(0, 0), text.rjust(5))
+
+    def graphicsMouseMoveEvent(self, event, itemId=0):
+        """This function is called by the owned TrackGraphicsItem to handle
+        its mouseMoveEvent. The implementation in the base class TrackItem
+        begins a drag operation."""
+        super().graphicsMouseMoveEvent(event, itemId)
+        if itemId == SignalItem.BERTH_GRAPHIC_ITEM:
+            if event.buttons() == Qt.LeftButton and \
+               self.simulation.context == utils.Context.EDITOR_SCENERY:
+                if QtCore.QLineF(event.scenePos(), event\
+                           .buttonDownScenePos(Qt.LeftButton)).length() < 3.0:
+                    return
+                drag = QtGui.QDrag(event.widget())
+                mime = QtCore.QMimeData()
+                pos = event.buttonDownPos(Qt.LeftButton)
+                mime.setText(self.tiType + "#" +
+                            str(self.tiId)+ "#" +
+                            str(pos.x()) + "#" +
+                            str(pos.y()) + "#" +
+                            "berthOrigin")
+                drag.setMimeData(mime)
+                drag.exec_()

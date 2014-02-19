@@ -174,9 +174,9 @@ class Editor(simulation.Simulation):
         WhiteLineItem(0, 350, 200, 350, None, self._libraryScene)
         # Items
         self.librarySignalItem = signalitem.SignalItem(self,
-                {"tiid":-1, "name":"Signal", "x":20, "y":30, "reverse":0,
-                 "xf":0, "yf":0, "signaltype":"UK_3_ASPECTS", "routesset":{},
-                 "trainpresent":{}, "maxspeed":0.0})
+                {"tiid":-1, "name":"Signal", "x":40, "y":30, "reverse":0,
+                 "xf":0, "yf":0, "xn":0, "yn":25, "signaltype":"UK_3_ASPECTS",
+                 "routesset":{}, "trainpresent":{}, "maxspeed":0.0})
         #self.librarySignalTimerItem = signaltimeritem.SignalTimerItem(self,
                 #{"tiid":-2, "name":"Timer Signal", "x":120, "y":30,
                  #"xf":0, "yf":0, "reverse":0, "maxspeed":0.0, "timersw":1.0,
@@ -184,10 +184,10 @@ class Editor(simulation.Simulation):
         self.libraryPointsItem = pointsitem.PointsItem(self,
                 {"tiid":-3, "name":"Points", "maxspeed":0.0, "x":50, "y":75,
                  "xf":-5, "yf":0, "xn":5, "yn":0, "xr":5, "yr":-5})
-        self.libraryBumperItem = signalitem.SignalItem(self,
-                {"tiid":-4, "name":"Bumper",  "x":120, "y":75, "reverse":0,
-                 "xf":0, "yf":0, "signaltype":"BUFFER", "routesset":{},
-                 "trainpresent":{}, "maxspeed":0.0})
+        #self.libraryBumperItem = signalitem.SignalItem(self,
+                #{"tiid":-4, "name":"Bumper",  "x":120, "y":75, "reverse":0,
+                 #"xf":0, "yf":0, "signaltype":"BUFFER", "routesset":{},
+                 #"trainpresent":{}, "maxspeed":0.0})
         self.libraryLineItem = lineitem.LineItem(self,
                 {"tiid":-5, "name":"Line", "x":20, "y":125, "xf":80,
                  "yf":125, "maxspeed":0.0, "reallength":1.0,
@@ -821,7 +821,8 @@ class Editor(simulation.Simulation):
     def deleteTrackItem(self, tiId):
         """Delete the TrackItem given by tiId"""
         tiId = int(tiId)
-        self._scene.removeItem(self._trackItems[tiId]._gi)
+        for gi in self._trackItems[tiId]._gi.values():
+            self._scene.removeItem(gi)
         del self._trackItems[tiId]
 
     def deleteTrackItemLinks(self):

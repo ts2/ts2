@@ -43,8 +43,8 @@ class TextItem(abstract.TrackItem):
             gi.setCursor(Qt.PointingHandCursor)
         else:
             gi.setCursor(Qt.ArrowCursor)
-        self._gi = gi
-        self.simulation.registerGraphicsItem(self._gi)
+        self._gi[0] = gi
+        self.simulation.registerGraphicsItem(gi)
         self.updateGraphics()
 
     properties = [helper.TIProperty("tiTypeStr", tr("Type"), True),
@@ -74,7 +74,7 @@ class TextItem(abstract.TrackItem):
             x = round((pos.x() + self._rect.bottomLeft().x()) / grid) * grid
             y = round((pos.y() + self._rect.bottomLeft().y()) / grid) * grid
             self._origin = QtCore.QPointF(x, y)
-            self._gi.setPos(self.realOrigin)
+            self.graphicsItem.setPos(self.realOrigin)
             self.updateGraphics()
 
     @property
@@ -86,9 +86,9 @@ class TextItem(abstract.TrackItem):
     def text(self, value):
         """Setter function for the text property"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            self._gi.prepareGeometryChange()
+            self.graphicsItem.prepareGeometryChange()
             self._name = value
-            self._gi.setToolTip(self.toolTipText)
+            self.graphicsItem.setToolTip(self.toolTipText)
             self.updateBoundingRect()
             self.updateGraphics()
 
@@ -100,7 +100,7 @@ class TextItem(abstract.TrackItem):
         tl.endLayout()
         self._rect = tl.boundingRect()
 
-    def graphicsBoundingRect(self):
+    def graphicsBoundingRect(self, itemId):
         """This function is called by the owned TrackGraphicsItem to return
         its bounding rectangle"""
         if self.text is None or self.text == "":
@@ -108,7 +108,7 @@ class TextItem(abstract.TrackItem):
         else:
             return self._rect
 
-    def graphicsPaint(self, p, options, widget = 0):
+    def graphicsPaint(self, p, options, itemId, widget = 0):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter."""
         pen = self.getPen()

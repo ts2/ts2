@@ -29,10 +29,11 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
     This class is the graphics of a TrackItem on the scene. Each instance
     belongs to a trackItem which is defined in the constructor and which
     is responsible for all actions related to this graphical item."""
-    def __init__(self, trackItem, parent = None):
+    def __init__(self, trackItem, itemId=0):
         """Constructor for the TrackGraphicsItem Class"""
-        super().__init__(parent)
+        super().__init__()
         self.trackItem = trackItem
+        self.itemId = itemId
         self.setZValue(0)
 
     def boundingRect(self):
@@ -40,13 +41,13 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
         See QGraphicsItem::boundingRect() for more info.
         Actually calls the graphicsBoundingRect() function of the owning
         trackItem"""
-        return self.trackItem.graphicsBoundingRect()
+        return self.trackItem.graphicsBoundingRect(self.itemId)
 
     def shape(self):
         """Returns the shape of this item as a QPainterPath in local
         coordinates."""
         shape = super().shape()
-        return self.trackItem.graphicsShape(shape)
+        return self.trackItem.graphicsShape(shape, self.itemId)
 
     def paint(self, painter, option, widget = 0):
         """Painting function for the SignalGraphicsItem.
@@ -55,37 +56,37 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
         #pen = QtGui.QPen(Qt.red)
         #painter.setPen(pen)
         #painter.drawPath(self.shape())
-        self.trackItem.graphicsPaint(painter, option, widget)
+        self.trackItem.graphicsPaint(painter, option, self.itemId, widget)
 
     def mousePressEvent(self, event):
         """Event handler for mouse pressed.
         This function calls the graphicsMousePressEvent function of the owning
         TrackItem to handle the event"""
-        self.trackItem.graphicsMousePressEvent(event)
+        self.trackItem.graphicsMousePressEvent(event, self.itemId)
 
     def mouseMoveEvent(self, event):
         """Event handler for mouse pressed.
         This function calls the graphicsMousePressEvent function of the owning
         TrackItem to handle the event"""
-        self.trackItem.graphicsMouseMoveEvent(event)
+        self.trackItem.graphicsMouseMoveEvent(event, self.itemId)
 
     def dragEnterEvent(self, event):
         """Event handler for when drag enters the item.
         This function calls the graphicsDragEnterEvent function of the owning
         TrackItem to handle the event"""
-        self.trackItem.graphicsDragEnterEvent(event)
+        self.trackItem.graphicsDragEnterEvent(event, self.itemId)
 
     def dragLeaveEvent(self, event):
         """Event handler for when drag leaves the item.
         This function calls the graphicsDragLeaveEvent function of the owning
         TrackItem to handle the event"""
-        self.trackItem.graphicsDragLeaveEvent(event)
+        self.trackItem.graphicsDragLeaveEvent(event, self.itemId)
 
     def dropEvent(self, event):
         """Event handler for drop event on this item.
         This function calls the graphicsDropEvent function of the owning
         TrackItem to handle the event"""
-        self.trackItem.graphicsDropEvent(event)
+        self.trackItem.graphicsDropEvent(event, self.itemId)
 
 
 

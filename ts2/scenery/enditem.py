@@ -40,8 +40,8 @@ class EndItem(abstract.TrackItem):
         egi.setPos(self.realOrigin)
         if self.simulation.context in utils.Context.EDITORS:
             egi.setCursor(Qt.PointingHandCursor)
-        self._gi = egi
-        simulation.registerGraphicsItem(self._gi)
+        self._gi[0] = egi
+        simulation.registerGraphicsItem(egi)
 
     def _getEnd(self):
         """Returns a point far away of the scene"""
@@ -61,7 +61,7 @@ class EndItem(abstract.TrackItem):
             x = round((pos.x() + 3.0) / grid) * grid
             y = round((pos.y() + 3.0) / grid) * grid
             self._origin = QtCore.QPointF(x, y)
-            self._gi.setPos(self.realOrigin)
+            self.graphicsItem.setPos(self.realOrigin)
             self.updateGraphics()
 
     def getFollowingItem(self, precedingItem, direction = -1):
@@ -72,15 +72,15 @@ class EndItem(abstract.TrackItem):
         else:
             return self._previousItem
 
-    def graphicsBoundingRect(self):
+    def graphicsBoundingRect(self, itemId):
         """Reimplemented from TrackItem.graphicsBoundingRect to return the
         bounding rectangle of the owned TrackGraphicsItem."""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             return QtCore.QRectF(-5, -5, 10, 10)
         else:
-            return super().graphicsBoundingRect()
+            return super().graphicsBoundingRect(itemId)
 
-    def graphicsPaint(self, p, options, widget):
+    def graphicsPaint(self, p, options, itemId, widget):
         """ Reimplemented from TrackItem.graphicsPaint"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             pen = self.getPen()

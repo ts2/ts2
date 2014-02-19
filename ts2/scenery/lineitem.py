@@ -56,8 +56,8 @@ class LineItem(abstract.ResizableItem):
         else:
             gli.setCursor(Qt.ArrowCursor)
         gli.setPos(self._origin)
-        self._gi = gli
-        simulation.registerGraphicsItem(self._gi)
+        self._gi[0] = gli
+        simulation.registerGraphicsItem(gli)
 
         # draw the "train" graphicLineItem
         p = QtGui.QPen()
@@ -203,7 +203,7 @@ class LineItem(abstract.ResizableItem):
     @QtCore.pyqtSlot()
     def updateGraphics(self):
         """Updates the TrackGraphicsItem owned by this LineItem"""
-        self._gi.update()
+        super().updateGraphics()
         self.updateTrain()
 
     def updateTrain(self):
@@ -212,11 +212,11 @@ class LineItem(abstract.ResizableItem):
 
     ### Graphics Methods ###############################################
 
-    def graphicsBoundingRect(self):
+    def graphicsBoundingRect(self, itemId):
         """Returns the bounding rectangle of the line item"""
         return self._boundingRect
 
-    def graphicsShape(self, shape):
+    def graphicsShape(self, shape, itemId):
         """This function is called by the owned TrackGraphicsItem to return
         its shape. The given argument is the shape given by the parent class.
         """
@@ -253,13 +253,13 @@ class LineItem(abstract.ResizableItem):
             path.lineTo(x1 - d, y1 + d)
         return path
 
-    def graphicsPaint(self, p, options, widget):
+    def graphicsPaint(self, p, options, itemId, widget):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws the line."""
         if self.highlighted:
-            self._gi.setZValue(6)
+            self.graphicsItem.setZValue(6)
         else:
-            self._gi.setZValue(1)
+            self.graphicsItem.setZValue(1)
         pen = self.getPen()
         p.setPen(pen)
         p.drawLine(self.line)
@@ -292,14 +292,14 @@ class LineItem(abstract.ResizableItem):
             self._tli.hide()
             self._tli.update()
 
-    def graphicsMousePressEvent(self, event):
+    def graphicsMousePressEvent(self, event, itemId):
         """This function is called by the owned TrackGraphicsItem to handle
         its mousePressEvent. Reimplemented to send the positionSelected
         signal."""
-        super().graphicsMousePressEvent(event)
+        super().graphicsMousePressEvent(event, itemId)
         pos = event.buttonDownPos(Qt.LeftButton)
         if event.button() == Qt.LeftButton and \
-           self._gi.shape().contains(pos):
+           self.graphicsItem.shape().contains(pos):
             if self.simulation.context == utils.Context.EDITOR_TRAINS and \
                self.tiId > 0:
                 x = event.buttonDownPos(Qt.LeftButton).x()

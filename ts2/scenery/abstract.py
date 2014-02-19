@@ -59,12 +59,13 @@ class TrackItem(QtCore.QObject):
         self._trainTail = -1
         self._place = None
         self._conflictTrackItem = None
-        self._gi = helper.TrackGraphicsItem(self)
+        self._gi = {}
         self.trackItemClicked.connect(self.simulation.itemSelected)
 
     def __del__(self):
         """Destructor for the TrackItem class"""
-        self.simulation.scene.removeItem(self._gi)
+        for gi in self._gi.values():
+            self.simulation.scene.removeItem(gi)
         super().__del__()
 
     properties = [helper.TIProperty("tiTypeStr",
@@ -168,7 +169,7 @@ class TrackItem(QtCore.QObject):
             x = round((pos.x()) / grid) * grid
             y = round((pos.y()) / grid) * grid
             self._origin = QtCore.QPointF(x, y)
-            self._gi.setPos(self._origin)
+            self.graphicsItem.setPos(self._origin)
             self.updateGraphics()
 
     origin = property(_getOrigin, _setOrigin)
@@ -190,7 +191,7 @@ class TrackItem(QtCore.QObject):
         """Setter function for the name property"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self._name = value
-            self._gi.setToolTip(self.toolTipText)
+            self.graphicsItem.setToolTip(self.toolTipText)
 
     name = property(_getName, _setName)
 
@@ -255,7 +256,7 @@ class TrackItem(QtCore.QObject):
 
     def _getGraphicsItem(self):
         """Returns the graphics item of this TrackItem"""
-        return self._gi
+        return self._gi[0]
 
     graphicsItem = property(_getGraphicsItem)
 
@@ -400,7 +401,8 @@ class TrackItem(QtCore.QObject):
             return False
 
     def __updateGraphics(self):
-        self._gi.update()
+        for gi in self._gi.values():
+            gi.update()
 
     @QtCore.pyqtSlot()
     def updateGraphics(self):
@@ -432,63 +434,64 @@ class TrackItem(QtCore.QObject):
         topLeft = point + QtCore.QPointF(-5, -5)
         painter.drawRect(QtCore.QRectF(topLeft, QtCore.QSizeF(10, 10)))
 
-    def graphicsBoundingRect(self):
+    def graphicsBoundingRect(self, itemId):
         """This function is called by the owned TrackGraphicsItem to return
         its bounding rectangle"""
         return QtCore.QRectF(0, 0, 1, 1)
 
-    def graphicsShape(self, shape):
+    def graphicsShape(self, shape, itemId):
         """This function is called by the owned TrackGraphicsItem to return
         its shape. The given argument is the shape given by the parent class.
         """
         return shape
 
-    def graphicsPaint(self, painter, options, widget = 0):
+    def graphicsPaint(self, painter, options, itemId, widget=0):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. The implementation in the base class TrackItem does nothing.
         """
         pass
 
-    def graphicsMousePressEvent(self, event):
+    def graphicsMousePressEvent(self, event, itemId):
         """This function is called by the owned TrackGraphicsItem to handle
         its mousePressEvent. In the base TrackItem class, this function only
         emits the trackItemClicked signal."""
         if event.button() == Qt.LeftButton and self.tiId > 0:
             self.trackItemClicked.emit(self.tiId)
 
-    def graphicsMouseMoveEvent(self, event):
+    def graphicsMouseMoveEvent(self, event, itemId=0):
         """This function is called by the owned TrackGraphicsItem to handle
         its mouseMoveEvent. The implementation in the base class TrackItem
         begins a drag operation."""
-        if event.buttons() == Qt.LeftButton and \
-           self.simulation.context == utils.Context.EDITOR_SCENERY:
-            if QtCore.QLineF(event.scenePos(), \
-                     event.buttonDownScenePos(Qt.LeftButton)).length() < 3.0:
-                return
-            drag = QtGui.QDrag(event.widget())
-            mime = QtCore.QMimeData()
-            pos = event.buttonDownPos(Qt.LeftButton)
-            mime.setText(self.tiType + "#" +
-                         str(self.tiId)+ "#" +
-                         str(pos.x()) + "#" +
-                         str(pos.y()) + "#" +
-                         "origin")
-            drag.setMimeData(mime)
-            drag.exec_()
+        if itemId == 0:
+            if event.buttons() == Qt.LeftButton and \
+            self.simulation.context == utils.Context.EDITOR_SCENERY:
+                if QtCore.QLineF(event.scenePos(), \
+                        event.buttonDownScenePos(Qt.LeftButton)).length() < 3.0:
+                    return
+                drag = QtGui.QDrag(event.widget())
+                mime = QtCore.QMimeData()
+                pos = event.buttonDownPos(Qt.LeftButton)
+                mime.setText(self.tiType + "#" +
+                            str(self.tiId)+ "#" +
+                            str(pos.x()) + "#" +
+                            str(pos.y()) + "#" +
+                            "origin")
+                drag.setMimeData(mime)
+                drag.exec_()
 
-    def graphicsDragEnterEvent(self, event):
+    def graphicsDragEnterEvent(self, event, itemId):
         """This function is called by the owned TrackGraphicsItem to handle
         its dragEnterEvent. The implementation in the base class TrackItem
         does nothing."""
         pass
 
-    def graphicsDragLeaveEvent(self, event):
+    def graphicsDragLeaveEvent(self, event, itemId):
         """This function is called by the owned TrackGraphicsItem to handle
         its dragLeaveEvent. The implementation in the base class TrackItem
         does nothing."""
         pass
 
-    def graphicsDropEvent(self, event):
+    def graphicsDropEvent(self, event, itemId):
         """This function is called by the owned TrackGraphicsItem to handle
         its dropEvent. The implementation in the base class TrackItem
         does nothing."""
@@ -527,7 +530,7 @@ class ResizableItem(TrackItem):
 
     def _setOrigin(self, pos):
         """Setter function for the origin property"""
-        self._gi.prepareGeometryChange()
+        self.graphicsItem.prepareGeometryChange()
         super()._setOrigin(pos)
 
     origin = property(TrackItem._getOrigin, _setOrigin)
@@ -538,7 +541,7 @@ class ResizableItem(TrackItem):
             grid = self.simulation.grid
             x = round((pos.x()) / grid) * grid
             y = round((pos.y()) / grid) * grid
-            self._gi.prepareGeometryChange()
+            self.graphicsItem.prepareGeometryChange()
             self._end = QtCore.QPointF(x, y)
             self.updateGraphics()
 
@@ -559,17 +562,17 @@ class ResizableItem(TrackItem):
             x = round((pos.x() + 5.0) / grid) * grid
             y = round((pos.y() + 5.0) / grid) * grid
             vector = QtCore.QPointF(x, y) - self._origin
-            self._gi.prepareGeometryChange()
+            self.graphicsItem.prepareGeometryChange()
             self._origin += vector
             self._end += vector
-            self._gi.setPos(self.realOrigin)
+            self.graphicsItem.setPos(self.realOrigin)
             self.updateGraphics()
 
     realOrigin = property(_getRealOrigin, _setRealOrigin)
 
     ### Graphics Methods #################################################
 
-    def graphicsBoundingRect(self):
+    def graphicsBoundingRect(self, itemId):
         """Returns the bounding rectangle of this ResizableItem."""
         x1 = self.origin.x()
         y1 = self.origin.y()
@@ -580,7 +583,7 @@ class ResizableItem(TrackItem):
         else:
             return QtCore.QRectF(0, 0, x2 - x1, y2 - y1)
 
-    def graphicsMouseMoveEvent(self, event):
+    def graphicsMouseMoveEvent(self, event, itemId):
         """This function is called by the owned TrackGraphicsItem to handle
         its mouseMoveEvent. Reimplemented in the ResizableItem class to begin
         a drag operation on corners."""
@@ -600,7 +603,7 @@ class ResizableItem(TrackItem):
                                9, 9).contains(pos):
                 movedEnd = "end"
                 pos -= self.end - self.origin
-            elif self._gi.shape().contains(pos):
+            elif self._gi[itemId].shape().contains(pos):
                 movedEnd = "realOrigin"
             if movedEnd is not None:
                 mime.setText(self.tiType + "#" +
