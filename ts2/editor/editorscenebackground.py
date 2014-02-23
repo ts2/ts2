@@ -47,7 +47,7 @@ class EditorSceneBackground(QtGui.QGraphicsRectItem):
             tiType, tiId, ox, oy, point = event.mimeData().text().split("#")
             if int(tiId) > 0:
                 clickPos = QtCore.QPointF(float(ox), float(oy))
-                self._editor.moveTrackItem(tiId, event.scenePos(), \
+                self._editor.moveTrackItem(tiId, event.scenePos(),
                                                             clickPos, point)
 
     def dropEvent(self, event):
@@ -65,7 +65,7 @@ class EditorSceneBackground(QtGui.QGraphicsRectItem):
                 event.setDropAction(Qt.MoveAction)
                 event.accept()
                 clickPos = QtCore.QPointF(float(ox), float(oy))
-                self._editor.moveTrackItem(tiId, event.scenePos(), \
+                self._editor.moveTrackItem(tiId, event.scenePos(), 
                                                             clickPos, point)
         else:
             event.ignore()

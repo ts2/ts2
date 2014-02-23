@@ -49,7 +49,8 @@ class TrackItem(QtCore.QObject):
         self._previousItem = None
         self.activeRoute = None
         self.activeRoutePreviousItem = None
-        self.selected = False
+        self._selected = False
+        self.defaultZValue = 0
         x = parameters["x"]
         y = parameters["y"]
         self._origin = QtCore.QPointF(x, y)
@@ -60,7 +61,7 @@ class TrackItem(QtCore.QObject):
         self._place = None
         self._conflictTrackItem = None
         self._gi = {}
-        self.trackItemClicked.connect(self.simulation.itemSelected)
+        self.trackItemClicked.connect(self.simulation.updateSelection)
 
     def __del__(self):
         """Destructor for the TrackItem class"""
@@ -111,7 +112,7 @@ class TrackItem(QtCore.QObject):
                     "trainpresent":"VARCHAR(255)"
                  }
 
-    trackItemClicked = QtCore.pyqtSignal(int)
+    trackItemClicked = QtCore.pyqtSignal(int, int)
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
@@ -152,6 +153,22 @@ class TrackItem(QtCore.QObject):
         def setter(self, value):
             if self.simulation.context == utils.Context.EDITOR_SCENERY:
                 x, y = eval(value.strip('()'))
+                setattr(self, attr, QtCore.QPointF(x, y))
+        return setter
+
+    def qPointFTupler(attr):
+        """Returns a function giving the tuple representation of attr, the
+        latter being a QPointF property."""
+        def getter(self):
+            return (getattr(self, attr).x(), getattr(self, attr).y())
+        return getter
+
+    def qPointFDetupler(attr):
+        """Returns a function which updates a QPointF property from a tuple
+        representation of a QPointF."""
+        def setter(self, value):
+            if self.simulation.context == utils.Context.EDITOR_SCENERY:
+                x, y = value
                 setattr(self, attr, QtCore.QPointF(x, y))
         return setter
 
@@ -259,6 +276,22 @@ class TrackItem(QtCore.QObject):
         return self._gi[0]
 
     graphicsItem = property(_getGraphicsItem)
+
+    def _getSelected(self):
+        """Returns True if the item is selected."""
+        return self._selected
+
+    def _setSelected(self, value):
+        """Setter function for the selected property."""
+        for gi in self._gi.values():
+            if value:
+                gi.setZValue(100)
+            else:
+                gi.setZValue(self.defaultZValue)
+        self._selected = value
+        self.updateGraphics()
+
+    selected = property(_getSelected, _setSelected)
 
     @property
     def conflictTI(self):
@@ -429,7 +462,10 @@ class TrackItem(QtCore.QObject):
     def drawConnectionRect(self, painter, point):
         """Draws a connection rectangle on the given painter at the given
         point."""
-        painter.setPen(Qt.cyan)
+        if self.selected:
+            painter.setPen(Qt.magenta)
+        else:
+            painter.setPen(Qt.cyan)
         painter.setBrush(Qt.NoBrush)
         topLeft = point + QtCore.QPointF(-5, -5)
         painter.drawRect(QtCore.QRectF(topLeft, QtCore.QSizeF(10, 10)))
@@ -447,16 +483,23 @@ class TrackItem(QtCore.QObject):
 
     def graphicsPaint(self, painter, options, itemId, widget=0):
         """This function is called by the owned TrackGraphicsItem to paint its
-        painter. The implementation in the base class TrackItem does nothing.
+        painter. The implementation in the base class TrackItem outlines the
+        shape of the item, if it is selected.
         """
-        pass
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            if self.selected:
+                pen = QtGui.QPen(Qt.magenta)
+                painter.setPen(pen)
+                painter.drawPath(self._gi[itemId].shape())
+                #painter.drawRect(self._gi[itemId].boundingRect())
+
 
     def graphicsMousePressEvent(self, event, itemId):
         """This function is called by the owned TrackGraphicsItem to handle
         its mousePressEvent. In the base TrackItem class, this function only
         emits the trackItemClicked signal."""
         if event.button() == Qt.LeftButton and self.tiId > 0:
-            self.trackItemClicked.emit(self.tiId)
+            self.trackItemClicked.emit(self.tiId, event.modifiers())
 
     def graphicsMouseMoveEvent(self, event, itemId=0):
         """This function is called by the owned TrackGraphicsItem to handle
@@ -466,11 +509,11 @@ class TrackItem(QtCore.QObject):
             if event.buttons() == Qt.LeftButton and \
             self.simulation.context == utils.Context.EDITOR_SCENERY:
                 if QtCore.QLineF(event.scenePos(), \
-                        event.buttonDownScenePos(Qt.LeftButton)).length() < 3.0:
+                      event.buttonDownScenePos(Qt.LeftButton)).length() < 3.0:
                     return
                 drag = QtGui.QDrag(event.widget())
                 mime = QtCore.QMimeData()
-                pos = event.buttonDownPos(Qt.LeftButton)
+                pos = event.buttonDownScenePos(Qt.LeftButton) - self.origin
                 mime.setText(self.tiType + "#" +
                             str(self.tiId)+ "#" +
                             str(pos.x()) + "#" +
@@ -595,7 +638,7 @@ class ResizableItem(TrackItem):
                 return
             drag = QtGui.QDrag(event.widget())
             mime = QtCore.QMimeData()
-            pos = event.buttonDownPos(Qt.LeftButton)
+            pos = event.buttonDownScenePos(Qt.LeftButton) - self.origin
             if QtCore.QRectF(-5,-5,9,9).contains(pos):
                 movedEnd = "origin"
             elif QtCore.QRectF(self.end.x() - self.origin.x() - 5,

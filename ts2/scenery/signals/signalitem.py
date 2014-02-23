@@ -18,6 +18,8 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
+import copy
+
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import Qt
 
@@ -57,11 +59,12 @@ class SignalItem(abstract.TrackItem):
         self._previousActiveRoute = None
         self._nextActiveRoute = None
         self._trainId = None
+        self.defaultZValue = 50
         sgi = helper.TrackGraphicsItem(self, SignalItem.SIGNAL_GRAPHIC_ITEM)
         sgi.setPos(self.origin)
         sgi.setCursor(Qt.PointingHandCursor)
         sgi.setToolTip(self.toolTipText)
-        sgi.setZValue(50)
+        sgi.setZValue(self.defaultZValue)
         if reverse:
             sgi.setRotation(180)
         self._gi[SignalItem.SIGNAL_GRAPHIC_ITEM] = sgi
@@ -69,7 +72,7 @@ class SignalItem(abstract.TrackItem):
         bgi = helper.TrackGraphicsItem(self, SignalItem.BERTH_GRAPHIC_ITEM)
         bgi.setPos(self._berthOrigin)
         bgi.setCursor(Qt.PointingHandCursor)
-        bgi.setZValue(100)
+        bgi.setZValue(self.defaultZValue)
         self._gi[SignalItem.BERTH_GRAPHIC_ITEM] = bgi
         self.simulation.registerGraphicsItem(bgi)
         self.updateGraphics()
@@ -476,11 +479,18 @@ class SignalItem(abstract.TrackItem):
         if itemId == SignalItem.SIGNAL_GRAPHIC_ITEM:
             return self.activeAspect.boundingRect()
         elif itemId == SignalItem.BERTH_GRAPHIC_ITEM:
-            return self.berthRect
+            rect = copy.copy(self.berthRect)
+            if self.simulation.context == utils.Context.EDITOR_SCENERY:
+                rect.adjust(-5, -5, 5, 5)
+            return rect
 
     def graphicsPaint(self, p, options, itemId, widget = 0):
         """ Reimplemented from TrackItem.graphicsPaint to
         draw the signal on the owned TrackGraphicsItem"""
+        super().graphicsPaint(p, options, itemId, widget)
+        isGame = (self.simulation.context == utils.Context.GAME)
+        isEditorScenery = (self.simulation.context ==
+                                                utils.Context.EDITOR_SCENERY)
         linePen = self.getPen()
         shapePen = self.getPen()
         shapePen.setColor(Qt.white)
@@ -500,35 +510,34 @@ class SignalItem(abstract.TrackItem):
             self.activeAspect.drawAspect(p, linePen, shapePen, persistent)
 
             # Draw the connection rects
-            if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            if isEditorScenery:
                 self.drawConnectionRect(p, QtCore.QPointF(0, 0))
                 self.drawConnectionRect(p, QtCore.QPointF(10, 0))
 
         elif itemId == SignalItem.BERTH_GRAPHIC_ITEM:
             # Berth
-            isGame = (self.simulation.context == utils.Context.GAME)
-            isEditorScenery = (self.simulation.context ==
-                                                 utils.Context.EDITOR_SCENERY)
             if (isGame and self.trainId is not None) or isEditorScenery:
-                    if isEditorScenery:
-                        shapePen.setColor(Qt.cyan)
-                    else:
-                        shapePen.setColor(Qt.black)
-                    brush = QtGui.QBrush(Qt.black)
-                    p.setPen(shapePen)
-                    p.setBrush(brush)
-                    p.drawRect(self.berthRect)
+                shapePen.setColor(Qt.black)
+                brush = QtGui.QBrush(Qt.black)
+                p.setPen(shapePen)
+                p.setBrush(brush)
+                p.drawRect(self.berthRect)
 
-                    shapePen.setColor(Qt.white)
-                    p.setPen(shapePen)
-                    font = QtGui.QFont("Courier new")
-                    font.setPixelSize(11)
-                    p.setFont(font)
-                    if self.simulation.context == utils.Context.GAME:
-                        text = self.trainServiceCode
-                    else:
-                        text = "*****"
-                    p.drawText(QtCore.QPointF(0, 0), text.rjust(5))
+                shapePen.setColor(Qt.white)
+                p.setPen(shapePen)
+                font = QtGui.QFont("Courier new")
+                font.setPixelSize(11)
+                p.setFont(font)
+                if self.simulation.context == utils.Context.GAME:
+                    text = self.trainServiceCode
+                else:
+                    text = "XXXXX"
+                p.drawText(QtCore.QPointF(0, 0), text.rjust(5))
+
+                # Draw connection rects
+                if isEditorScenery:
+                    self.drawConnectionRect(p, QtCore.QPointF(0, 0))
+
 
     def graphicsMouseMoveEvent(self, event, itemId=0):
         """This function is called by the owned TrackGraphicsItem to handle
@@ -543,7 +552,8 @@ class SignalItem(abstract.TrackItem):
                     return
                 drag = QtGui.QDrag(event.widget())
                 mime = QtCore.QMimeData()
-                pos = event.buttonDownPos(Qt.LeftButton)
+                pos = event.buttonDownScenePos(Qt.LeftButton) - \
+                                                            self.berthOrigin
                 mime.setText(self.tiType + "#" +
                             str(self.tiId)+ "#" +
                             str(pos.x()) + "#" +

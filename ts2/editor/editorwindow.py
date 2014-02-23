@@ -23,7 +23,7 @@ from PyQt4.QtCore import Qt
 
 from ts2 import scenery
 from ts2.editor import editor
-import ts2.gui.dialogs
+from ts2.gui import dialogs, widgets
 import ts2.editor.views
 
 
@@ -41,7 +41,7 @@ class EditorWindow(QtGui.QMainWindow):
 
         # Editor
         self.editor = editor.Editor(self)
-        self.editor.itemSelected.connect(self.setPropertiesModel)
+        self.editor.selectionChanged.connect(self.setPropertiesModel)
 
         # Actions
         self.newAction = QtGui.QAction(self.tr("&New"), self)
@@ -191,17 +191,14 @@ class EditorWindow(QtGui.QMainWindow):
                                     self.validateSceneryBtnClicked)
         self.editor.sceneryIsValidated.connect(\
                                     self.validateSceneryBtn.setDisabled)
-        self.zoomSlider = QtGui.QSlider(Qt.Horizontal, sceneryTab)
-        self.zoomSlider.setRange(10, 200)
-        self.zoomSlider.setValue(100)
-        self.zoomSlider.valueChanged.connect(self.zoom)
+        self.zoomWidget = widgets.ZoomWidget(sceneryTab)
+        self.zoomWidget.valueChanged.connect(self.zoom)
         hgrid = QtGui.QHBoxLayout()
         hgrid.addWidget(self.unlockSceneryBtn)
         hgrid.addWidget(self.validateSceneryBtn)
         hgrid.addStretch()
         hgrid2 = QtGui.QHBoxLayout()
-        hgrid2.addWidget(QtGui.QLabel(self.tr("Zoom: "), sceneryTab))
-        hgrid2.addWidget(self.zoomSlider)
+        hgrid2.addWidget(self.zoomWidget)
         hgrid2.addStretch()
         vgrid = QtGui.QVBoxLayout()
         vgrid.addLayout(hgrid)

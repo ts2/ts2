@@ -146,6 +146,7 @@ class Editor(simulation.Simulation):
         self._preparedRoute = None
         self._selectedRoute = None
         self._selectedTrain = None
+        self._selectedItems = []
         self._displayedPositionGI = routing.PositionGraphicsItem(self)
         self.registerGraphicsItem(self._displayedPositionGI)
         self.trainsChanged.connect(self.unselectTrains)
@@ -174,9 +175,10 @@ class Editor(simulation.Simulation):
         WhiteLineItem(0, 350, 200, 350, None, self._libraryScene)
         # Items
         self.librarySignalItem = signalitem.SignalItem(self,
-                {"tiid":-1, "name":"Signal", "x":40, "y":30, "reverse":0,
-                 "xf":0, "yf":0, "xn":0, "yn":25, "signaltype":"UK_3_ASPECTS",
-                 "routesset":{}, "trainpresent":{}, "maxspeed":0.0})
+                {"tiid":-1, "name":"Signal", "x":60, "y":30, "reverse":0,
+                 "xf":0, "yf":0, "xn":20, "yn":35,
+                 "signaltype":"UK_3_ASPECTS", "routesset":{},
+                 "trainpresent":{}, "maxspeed":0.0})
         #self.librarySignalTimerItem = signaltimeritem.SignalTimerItem(self,
                 #{"tiid":-2, "name":"Timer Signal", "x":120, "y":30,
                  #"xf":0, "yf":0, "reverse":0, "maxspeed":0.0, "timersw":1.0,
@@ -793,6 +795,7 @@ class Editor(simulation.Simulation):
         elif tiType == "LI":
             ti = invisiblelinkitem.InvisibleLinkItem(self, parameters)
         elif tiType == "S":
+            parameters.update({"xn":pos.x() - 40, "yn":pos.y() + 5})
             ti = signalitem.SignalItem(self, parameters)
         elif tiType == "P":
             ti = pointsitem.PointsItem(self, parameters)
@@ -807,7 +810,7 @@ class Editor(simulation.Simulation):
         self.makeTrackItemSignalSlotConnections(ti)
         self.expandBackgroundTo(ti)
         self._trackItems[self._nextId] = ti
-        ti.trackItemClicked.emit(int(self._nextId))
+        ti.trackItemClicked.emit(int(self._nextId), Qt.NoModifier)
         self._nextId += 1
 
     def makeTrackItemSignalSlotConnections(self, ti):
@@ -836,16 +839,16 @@ class Editor(simulation.Simulation):
     def moveTrackItem(self, tiId, pos, clickPos, point):
         """Moves the TrackItem with id tiId to position pos.
         @param clickPos is the position in the item's coordinates on which the
-        mouse was clicked. it is used only if point equals "realOrigin".
+        mouse was clicked. it is used only if point equals "origin".
         point is the property of the TrackItem that will be modified."""
         ti = self.trackItem(int(tiId))
-        pos = QtCore.QPointF(round(pos.x() / self.grid) * self.grid, \
-                             round(pos.y() / self.grid) * self.grid)
-        if point == "realOrigin":
+        if point.endswith("rigin"):
             pos -= clickPos
+        pos = QtCore.QPointF(round(pos.x() / self.grid) * self.grid,
+                             round(pos.y() / self.grid) * self.grid)
         setattr(ti, point, pos)
         self.expandBackgroundTo(ti)
-        ti.trackItemClicked.emit(int(tiId))
+        #ti.trackItemClicked.emit(int(tiId))
 
     def expandBackgroundTo(self, trackItem):
         """Expands the EditorSceneBackground to 300px around the given
@@ -1116,7 +1119,8 @@ class Editor(simulation.Simulation):
                 "tiid": position.trackItem.tiId,
                 "previoustiid": position.previousTI.tiId,
                 "posonti": position.positionOnTI,
-                "appeartime": "00:00:00"
+                "appeartime": "00:00:00",
+                "initialdelay": self.option("defaultDelayAtEntry")
                }
             train = trains.Train(self, parameters)
             self._trains.append(train)
@@ -1148,4 +1152,17 @@ class Editor(simulation.Simulation):
         elif tabNum == 5:
             self._context = utils.Context.EDITOR_TRAINS
 
+    @QtCore.pyqtSlot(int, int)
+    def updateSelection(self, tiId, modifiers):
+        """Updates the trackItem selection. Add the trackItem defined by tiId
+        to the selection if modifiers is Shift or Ctrl. Replace the selection
+        otherwise."""
+        ti = self.trackItem(tiId)
+        if modifiers == Qt.NoModifier:
+            for t in self._selectedItems:
+                t.selected = False
+            self._selectedItems = []
+        ti.selected = True
+        self._selectedItems.append(ti)
+        self.selectionChanged.emit(tiId)
 

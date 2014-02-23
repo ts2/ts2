@@ -84,7 +84,10 @@ class EndItem(abstract.TrackItem):
         """ Reimplemented from TrackItem.graphicsPaint"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             pen = self.getPen()
-            pen.setColor(Qt.cyan)
+            if self.selected:
+                pen.setColor(Qt.magenta)
+            else:
+                pen.setColor(Qt.cyan)
             p.setPen(pen)
             p.drawEllipse(-1.5, -1.5, 3, 3)
             self.drawConnectionRect(p, QtCore.QPointF(0, 0))

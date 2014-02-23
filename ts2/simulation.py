@@ -312,9 +312,9 @@ class Simulation(QtCore.QObject):
     timeChanged = QtCore.pyqtSignal(QtCore.QTime)
     timeElapsed = QtCore.pyqtSignal(float)
     trainSelected = QtCore.pyqtSignal(int)
-    itemSelected = QtCore.pyqtSignal(int)
     trainStatusChanged = QtCore.pyqtSignal(int)
     servicesLoaded = QtCore.pyqtSignal()
+    selectionChanged = QtCore.pyqtSignal(int)
 
     @QtCore.pyqtSlot(int, bool, bool)
     def activateRoute(self, siId, persistent=False, force=False):
@@ -411,6 +411,12 @@ class Simulation(QtCore.QObject):
         self.timeChanged.emit(self._time)
         secs = self._timer.interval() * timeFactor / 1000
         self.timeElapsed.emit(secs)
+
+    @QtCore.pyqtSlot(int, int)
+    def updateSelection(self, tiId, modifiers):
+        """Updates the trackItem selection. Does nothing in the base
+        simulation class."""
+        pass
 
     def loadRoutes(self, conn):
         """Creates the instances of routes from the data of the database."""

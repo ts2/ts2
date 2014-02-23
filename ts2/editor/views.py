@@ -29,7 +29,7 @@ class RoutesEditorView(QtGui.QTableView):
     def __init__(self, parent):
         """Constructor for the RoutesEditorView class"""
         super().__init__(parent)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
                                        QtGui.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setSizePolicy(sizePolicy)
@@ -54,7 +54,7 @@ class TrainTypesEditorView(QtGui.QTableView):
     def __init__(self, parent):
         """Constructor for the TrainTypesEditorView class"""
         super().__init__(parent)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
                                        QtGui.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setSizePolicy(sizePolicy)
@@ -68,12 +68,14 @@ class PropertiesView(QtGui.QTableView):
     def __init__(self, parent):
         """Constructor for the PropertiesView class"""
         super().__init__(parent)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
                                        QtGui.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setSizePolicy(sizePolicy)
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.setItemDelegateForColumn(1,
+                                      delegates.PropertyValuesDelegate(self))
 
 
 class ServicesEditorView(QtGui.QTableView):
@@ -82,7 +84,7 @@ class ServicesEditorView(QtGui.QTableView):
     def __init__(self, parent):
         """Constructor for the ServicesEditorView class"""
         super().__init__(parent)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
                                        QtGui.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setSizePolicy(sizePolicy)
@@ -106,7 +108,7 @@ class TrainsEditorView(QtGui.QTableView):
     def __init__(self, parent):
         """Constructor for the TrainsEditorView class"""
         super().__init__(parent)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
                                        QtGui.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setSizePolicy(sizePolicy)

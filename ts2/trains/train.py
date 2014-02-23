@@ -551,7 +551,10 @@ class Train(QtCore.QObject):
     def trainTypeCode(self, value):
         """Setter function for the trainTypeCode property"""
         if self.simulation.context == utils.Context.EDITOR_TRAINS:
-            self._trainType = self.simulation.trainTypes[value]
+            try:
+                self._trainType = self.simulation.trainTypes[value]
+            except KeyError:
+                return None
 
     @property
     def speed(self):

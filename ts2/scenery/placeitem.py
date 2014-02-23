@@ -117,7 +117,7 @@ class Place(abstract.TrackItem):
         gi.setPos(self._origin)
         gi.setCursor(Qt.PointingHandCursor)
         gi.setToolTip(self.toolTipText)
-        gi.setZValue(0)
+        gi.setZValue(self.defaultZValue)
         self._gi[0] = gi
         self.simulation.registerGraphicsItem(gi)
         self._timetable = []
@@ -138,13 +138,6 @@ class Place(abstract.TrackItem):
         return parameters
 
     ### Properties ###################################################
-
-    def _setOrigin(self, value):
-        """Setter function for the origin property"""
-        if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            self._origin = value
-
-    origin = property(abstract.TrackItem._getOrigin, _setOrigin)
 
     def _setName(self, value):
         """Setter function for the name property"""
@@ -214,6 +207,7 @@ class Place(abstract.TrackItem):
     def graphicsPaint(self, p, options, itemId, widget = 0):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter."""
+        super().graphicsPaint(p, options, itemId, widget)
         pen = self.getPen()
         pen.setWidth(0)
         pen.setColor(Qt.white)

@@ -49,6 +49,7 @@ class LineItem(abstract.ResizableItem):
         if realLength is None or realLength == 0:
             realLength = 1.0
         self._realLength = realLength
+        self.defaultZValue = 1
         self.updateGeometry()
         gli = helper.TrackGraphicsItem(self)
         if simulation.context in utils.Context.EDITORS:
@@ -56,6 +57,7 @@ class LineItem(abstract.ResizableItem):
         else:
             gli.setCursor(Qt.ArrowCursor)
         gli.setPos(self._origin)
+        gli.setZValue(self.defaultZValue)
         self._gi[0] = gli
         simulation.registerGraphicsItem(gli)
 
@@ -189,22 +191,18 @@ class LineItem(abstract.ResizableItem):
         x2 = self._line.p2().x()
         y1 = self._line.p1().y()
         y2 = self._line.p2().y()
-        lx = min(x1, x2) - 2.0
-        rx = max(x1, x2) + 2.0
-        ty = min(y1, y2) - 2.0
-        by = max(y1, y2) + 2.0
-        if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            lx -= 3.0
-            rx += 3.0
-            ty -= 3.0
-            by += 3.0
+        lx = min(x1, x2) - 5.0
+        rx = max(x1, x2) + 5.0
+        ty = min(y1, y2) - 5.0
+        by = max(y1, y2) + 5.0
         self._boundingRect = QtCore.QRectF(lx, ty, rx - lx, by - ty)
 
     @QtCore.pyqtSlot()
     def updateGraphics(self):
         """Updates the TrackGraphicsItem owned by this LineItem"""
         super().updateGraphics()
-        self.updateTrain()
+        if self.simulation.context == utils.Context.GAME:
+            self.updateTrain()
 
     def updateTrain(self):
         """Updates the graphics for trains movements only"""
@@ -256,10 +254,12 @@ class LineItem(abstract.ResizableItem):
     def graphicsPaint(self, p, options, itemId, widget):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws the line."""
+        super().graphicsPaint(p, options, itemId, widget)
         if self.highlighted:
+            # To have the activated line overlap crossing lines if any
             self.graphicsItem.setZValue(6)
         else:
-            self.graphicsItem.setZValue(1)
+            self.graphicsItem.setZValue(0)
         pen = self.getPen()
         p.setPen(pen)
         p.drawLine(self.line)
@@ -297,11 +297,11 @@ class LineItem(abstract.ResizableItem):
         its mousePressEvent. Reimplemented to send the positionSelected
         signal."""
         super().graphicsMousePressEvent(event, itemId)
-        pos = event.buttonDownPos(Qt.LeftButton)
-        if event.button() == Qt.LeftButton and \
-           self.graphicsItem.shape().contains(pos):
-            if self.simulation.context == utils.Context.EDITOR_TRAINS and \
-               self.tiId > 0:
+        #pos = event.buttonDownPos(Qt.LeftButton)
+        if event.button() == Qt.LeftButton:
+           #and self.graphicsItem.shape().contains(pos):
+            if (self.simulation.context == utils.Context.EDITOR_TRAINS and
+               self.tiId > 0):
                 x = event.buttonDownPos(Qt.LeftButton).x()
                 ratio = (x - self.line.x1())/(self.line.x2() - self.line.x1())
                 self.positionSelected.emit(routing.Position(
