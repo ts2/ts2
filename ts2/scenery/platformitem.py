@@ -47,7 +47,7 @@ class PlatformItem(abstract.ResizableItem):
         else:
             self._trackCode = ""
         pgi = helper.TrackGraphicsItem(self)
-        pgi.setPos(self.realOrigin)
+        pgi.setPos(self.origin)
         pgi.setCursor(Qt.PointingHandCursor)
         pgi.setToolTip(self.toolTipText)
         pgi.setZValue(0)
@@ -94,6 +94,8 @@ class PlatformItem(abstract.ResizableItem):
         if self._place is not None:
             return self.tr("%s\nPlatform %s") % \
                                   (self._place.placeName, self.trackCode)
+        elif self.tiId < 0:
+            return "Platform"
         else:
             return ""
 

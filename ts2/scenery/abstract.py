@@ -579,8 +579,15 @@ class ResizableItem(TrackItem):
 
     def _setOrigin(self, pos):
         """Setter function for the origin property"""
-        self.graphicsItem.prepareGeometryChange()
-        super()._setOrigin(pos)
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            grid = self.simulation.grid
+            x = round((pos.x()) / grid) * grid
+            y = round((pos.y()) / grid) * grid
+            vector = QtCore.QPointF(x, y) - self._origin
+            self._origin += vector
+            self._end += vector
+            self.graphicsItem.setPos(self.origin)
+            self.updateGraphics()
 
     origin = property(TrackItem._getOrigin, _setOrigin)
 
@@ -598,26 +605,18 @@ class ResizableItem(TrackItem):
     endStr = property(TrackItem.qPointFStrizer("end"),
                       TrackItem.qPointFDestrizer("end"))
 
-    def _getRealOrigin(self):
-        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is
-        a point that is in the same place than origin, but does not resize
-        the item when moved."""
+    def _getStart(self):
+        """Returns the start QPointF of the TrackItem. The start is
+        a point that is in the same place than origin, but resizes
+        the item when moved instead of moving the item."""
         return self.origin
 
-    def _setRealOrigin(self, pos):
-        """Setter function for the realOrigin property."""
-        if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            grid = self.simulation.grid
-            x = round((pos.x() + 5.0) / grid) * grid
-            y = round((pos.y() + 5.0) / grid) * grid
-            vector = QtCore.QPointF(x, y) - self._origin
-            self.graphicsItem.prepareGeometryChange()
-            self._origin += vector
-            self._end += vector
-            self.graphicsItem.setPos(self.realOrigin)
-            self.updateGraphics()
+    def _setStart(self, pos):
+        """Setter function for the start property."""
+        self.graphicsItem.prepareGeometryChange()
+        super()._setOrigin(pos)
 
-    realOrigin = property(_getRealOrigin, _setRealOrigin)
+    start = property(_getStart, _setStart)
 
     ### Graphics Methods #################################################
 
@@ -646,14 +645,15 @@ class ResizableItem(TrackItem):
             mime = QtCore.QMimeData()
             pos = event.buttonDownScenePos(Qt.LeftButton) - self.origin
             if QtCore.QRectF(-5,-5,9,9).contains(pos):
-                movedEnd = "origin"
+                movedEnd = "start"
             elif QtCore.QRectF(self.end.x() - self.origin.x() - 5,
                                self.end.y() - self.origin.y() - 5,
                                9, 9).contains(pos):
                 movedEnd = "end"
                 pos -= self.end - self.origin
-            elif self._gi[itemId].shape().contains(pos):
-                movedEnd = "realOrigin"
+            #elif self._gi[itemId].shape().contains(pos):
+            else:
+                movedEnd = "origin"
             if movedEnd is not None:
                 mime.setText(self.tiType + "#" +
                             str(self.tiId)+ "#" +

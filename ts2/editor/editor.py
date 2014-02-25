@@ -833,17 +833,23 @@ class Editor(simulation.Simulation):
                 ti.reverseItem = None
 
     def moveTrackItem(self, tiId, pos, clickPos, point):
-        """Moves the TrackItem with id tiId to position pos.
+        """Moves the TrackItem with id tiId to position pos. Also moves the
+        other trackItems that are currently selected.
         @param clickPos is the position in the item's coordinates on which the
-        mouse was clicked. it is used only if point equals "origin".
+        mouse was clicked. it is used only if point has "origin" in its name.
         point is the property of the TrackItem that will be modified."""
-        ti = self.trackItem(int(tiId))
+        if len(self.selectedItems) > 1:
+            point = "origin"
+        trackItem = self.trackItem(int(tiId))
         if point.endswith("rigin"):
             pos -= clickPos
         pos = QtCore.QPointF(round(pos.x() / self.grid) * self.grid,
                              round(pos.y() / self.grid) * self.grid)
-        setattr(ti, point, pos)
-        self.expandBackgroundTo(ti)
+        translation = pos - getattr(trackItem, point)
+        for ti in self.selectedItems:
+            currentPos = getattr(ti, point)
+            setattr(ti, point, currentPos + translation)
+            self.expandBackgroundTo(ti)
         #ti.trackItemClicked.emit(int(tiId))
 
     def expandBackgroundTo(self, trackItem):
@@ -1154,7 +1160,7 @@ class Editor(simulation.Simulation):
         to the selection if modifiers is Shift or Ctrl. Replace the selection
         otherwise."""
         ti = self.trackItem(tiId)
-        if modifiers == Qt.NoModifier:
+        if (modifiers == Qt.NoModifier) and (ti not in self._selectedItems):
             for t in self._selectedItems:
                 t.selected = False
             self._selectedItems = []

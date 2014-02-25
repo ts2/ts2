@@ -120,13 +120,13 @@ class LineItem(abstract.ResizableItem):
 
     end = property(abstract.ResizableItem._getEnd, _setEnd)
 
-    def _setRealOrigin(self, pos):
-        """Setter function for the realOrigin property"""
-        super()._setRealOrigin(pos)
+    def _setStart(self, pos):
+        """Setter function for the start property"""
+        super()._setStart(pos)
         self.updateGeometry()
 
-    realOrigin = property(abstract.ResizableItem._getRealOrigin,
-                          _setRealOrigin)
+    start = property(abstract.ResizableItem._getStart,
+                          _setStart)
 
     def _setRealLength(self, value):
         """Setter function for the realLength property"""

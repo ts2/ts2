@@ -115,7 +115,7 @@ class PointsItem(abstract.TrackItem):
         return self.center + self.commonEnd
 
     def _setOrigin(self, pos):
-        """Setter function for the realOrigin property"""
+        """Setter function for the origin property"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             grid = self.simulation.grid
             x = round((pos.x() - self.commonEnd.x()) / grid) * grid
