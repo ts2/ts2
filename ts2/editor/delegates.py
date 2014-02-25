@@ -111,7 +111,7 @@ class PropertyValuesDelegate(QtGui.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         """Creates the editor, i.e. a combo box for selecting an end
         direction."""
-        ti = index.model().trackItem
+        ti = index.model().trackItems[0]
         if ti.properties[index.row()].propType == "pointsEnd":
             comboBox = QtGui.QComboBox(parent)
             comboBox.insertItems(0, pointsitem.PointsItem.endNames)
@@ -123,7 +123,7 @@ class PropertyValuesDelegate(QtGui.QStyledItemDelegate):
         """Sets the values from the model in the combo box"""
         #pointsItem = index.model().simulation.trackItem(
                                                 #index.model().trackItem.tiId)
-        ti = index.model().trackItem
+        ti = index.model().trackItems[0]
         if ti.properties[index.row()].propType == "pointsEnd":
             endDirName = index.data(Qt.EditRole)
             editor.setCurrentIndex(
@@ -133,7 +133,7 @@ class PropertyValuesDelegate(QtGui.QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         """Sets the values from the combo box to the model after editing"""
-        ti = index.model().trackItem
+        ti = index.model().trackItems[0]
         if ti.properties[index.row()].propType == "pointsEnd":
             name = editor.currentText()
             listIndex = pointsitem.PointsItem.endNames.index(name)
@@ -145,7 +145,7 @@ class PropertyValuesDelegate(QtGui.QStyledItemDelegate):
 
     def updateEditorGeometry(self, editor, option, index):
         """Sets the editor geometry."""
-        ti = index.model().trackItem
+        ti = index.model().trackItems[0]
         if ti.properties[index.row()].propType == "pointsEnd":
             editor.setGeometry(option.rect)
         else:

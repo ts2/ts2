@@ -195,6 +195,12 @@ class LineItem(abstract.ResizableItem):
         rx = max(x1, x2) + 5.0
         ty = min(y1, y2) - 5.0
         by = max(y1, y2) + 5.0
+        if self.tiId < 0:
+            # Library item in editor
+            lx -= 15
+            rx += 15
+            ty -= 20
+            by += 20
         self._boundingRect = QtCore.QRectF(lx, ty, rx - lx, by - ty)
 
     @QtCore.pyqtSlot()
@@ -220,7 +226,11 @@ class LineItem(abstract.ResizableItem):
         """
         path = QtGui.QPainterPath(self._boundingRect.topLeft())
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            d = 5
+            if self.tiId < 0:
+                # Tool box item
+                d = 20
+            else:
+                d = 5
         else:
             d = 2
         if self._line.p1().x() < self._line.p2().x():

@@ -84,6 +84,12 @@ class TrackItem(QtCore.QObject):
                                     translate("TrackItem",
                                               "Conflict item ID"))]
 
+    multiProperties = [helper.TIProperty("tiId",
+                                    translate("TrackItem", "id"), True),
+                  helper.TIProperty("maxSpeed",
+                                    translate("TrackItem",
+                                              "Maximum speed (m/s)"))]
+
     fieldTypes = {
                     "tiid":"INTEGER PRIMARY KEY",
                     "titype":"VARCHAR(5)",
@@ -102,8 +108,8 @@ class TrackItem(QtCore.QObject):
                     "maxspeed":"DOUBLE",
                     "placecode":"VARCHAR(10)",
                     "trackcode":"VARCHAR(10)",
-                    "timersw":"DOUBLE",
-                    "timerwc":"DOUBLE",
+                    #"timersw":"DOUBLE",
+                    #"timerwc":"DOUBLE",
                     "ptiid":"INTEGER",
                     "ntiid":"INTEGER",
                     "rtiid":"INTEGER",

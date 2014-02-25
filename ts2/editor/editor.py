@@ -175,46 +175,35 @@ class Editor(simulation.Simulation):
         WhiteLineItem(0, 350, 200, 350, None, self._libraryScene)
         # Items
         self.librarySignalItem = signalitem.SignalItem(self,
-                {"tiid":-1, "name":"Signal", "x":60, "y":30, "reverse":0,
-                 "xf":0, "yf":0, "xn":20, "yn":35,
+                {"tiid":-1, "name":"Signal", "x":65, "y":25, "reverse":0,
+                 "xf":0, "yf":0, "xn":20, "yn":30,
                  "signaltype":"UK_3_ASPECTS", "routesset":{},
                  "trainpresent":{}, "maxspeed":0.0})
-        #self.librarySignalTimerItem = signaltimeritem.SignalTimerItem(self,
-                #{"tiid":-2, "name":"Timer Signal", "x":120, "y":30,
-                 #"xf":0, "yf":0, "reverse":0, "maxspeed":0.0, "timersw":1.0,
-                 #"timerwc":1.0})
+        self.libraryLineItem = lineitem.LineItem(self,
+                {"tiid":-5, "name":"Line", "x":120, "y":25, "xf":180,
+                 "yf":25, "maxspeed":0.0, "reallength":1.0,
+                 "placecode":None, "trackcode":None})
         self.libraryPointsItem = pointsitem.PointsItem(self,
                 {"tiid":-3, "name":"Points", "maxspeed":0.0, "x":50, "y":75,
                  "xf":-5, "yf":0, "xn":5, "yn":0, "xr":5, "yr":-5})
-        #self.libraryBumperItem = signalitem.SignalItem(self,
-                #{"tiid":-4, "name":"Bumper",  "x":120, "y":75, "reverse":0,
-                 #"xf":0, "yf":0, "signaltype":"BUFFER", "routesset":{},
-                 #"trainpresent":{}, "maxspeed":0.0})
-        self.libraryLineItem = lineitem.LineItem(self,
-                {"tiid":-5, "name":"Line", "x":20, "y":125, "xf":80,
-                 "yf":125, "maxspeed":0.0, "reallength":1.0,
-                 "placecode":None, "trackcode":None})
         self.libraryPlatformItem = platformitem.PlatformItem(self,
-                {"tiid":-6, "name":"Platform", "x":120, "y":135, "xf":180,
-                 "yf":135,  "xn":125, "yn":120, "xr":175, "yr":130,
-                 "maxspeed":0.0, "reallength":1.0,
+                {"tiid":-6, "name":"Platform", "x":120, "y":65, "xf":180,
+                 "yf":85, "maxspeed":0.0, "reallength":1.0,
                  "placecode":None, "trackcode":None})
-        self.libraryEndItem = enditem.EndItem(self,
-                {"tiid":-7, "name":"End", "maxspeed":0.0, "x":50, "y":175,
-                 "xf":0, "yf":0})
         self.libraryPlaceItem = placeitem.Place(self,
                 {"tiid":-8, "name":"PLACE", "placecode":"", "maxspeed":0.0,
-                 "x":132, "y":180, "xf":0, "yf":0})
-        #self.libraryNonReturnItem = nonreturnitem.NonReturnItem(self,
-                #{"tiid":-9, "name":"Non-return", "maxspeed":0.0, "x":20,
-                 #"y":225, "xf":0, "yf":0, "reverse":0})
-        self.libraryInvisibleLinkItem = invisiblelinkitem.InvisibleLinkItem(self,
-                {"tiid":-10, "name":"Invisible link", "x":120, "y":225,
-                 "xf":180, "yf":225, "maxspeed":0.0, "reallength":1.0,
-                 "placecode":None, "trackcode":None})
+                 "x":132, "y":115, "xf":0, "yf":0})
+        self.libraryEndItem = enditem.EndItem(self,
+                {"tiid":-7, "name":"End", "maxspeed":0.0, "x":50, "y":125,
+                 "xf":0, "yf":0})
         self.libraryTextItem = textitem.TextItem(self,
-                {"tiid":-11, "name":"TEXT", "x":36, "y":280, "xf":0, "yf":0,
+                {"tiid":-11, "name":"TEXT", "x":36, "y":165, "xf":0, "yf":0,
                  "maxspeed":0.0, "reallength":1.0, })
+        self.libraryInvisibleLinkItem = invisiblelinkitem.InvisibleLinkItem(
+                self,
+                {"tiid":-10, "name":"Invisible link", "x":120, "y":175,
+                 "xf":180, "yf":175, "maxspeed":0.0, "reallength":1.0,
+                 "placecode":None, "trackcode":None})
         self.libraryBinItem = TrashBinItem(self,
                                            self._libraryScene,
                                            QtCore.QPointF(86, 310))
@@ -277,6 +266,11 @@ class Editor(simulation.Simulation):
         self._selectedRoute = value
         if self._selectedRoute is not None:
             self._selectedRoute.activate()
+
+    @property
+    def selectedItems(self):
+        """Returns the list of the selected items on the scene."""
+        return self._selectedItems
 
     @property
     def displayedPosition(self):
@@ -763,6 +757,8 @@ class Editor(simulation.Simulation):
                 posEnd = QtCore.QPointF(-5, 0)
             elif tiType.startswith("L"):
                 posEnd = pos + QtCore.QPointF(60, 0)
+            elif tiType.startswith("ZP"):
+                posEnd = pos + QtCore.QPointF(60, 20)
             else:
                 posEnd = QtCore.QPointF(0, 0)
         parameters = {
@@ -795,7 +791,7 @@ class Editor(simulation.Simulation):
         elif tiType == "LI":
             ti = invisiblelinkitem.InvisibleLinkItem(self, parameters)
         elif tiType == "S":
-            parameters.update({"xn":pos.x() - 40, "yn":pos.y() + 5})
+            parameters.update({"xn":pos.x() - 45, "yn":pos.y() + 5})
             ti = signalitem.SignalItem(self, parameters)
         elif tiType == "P":
             ti = pointsitem.PointsItem(self, parameters)
@@ -1162,7 +1158,23 @@ class Editor(simulation.Simulation):
             for t in self._selectedItems:
                 t.selected = False
             self._selectedItems = []
-        ti.selected = True
-        self._selectedItems.append(ti)
-        self.selectionChanged.emit(tiId)
+            ti.selected = True
+            self._selectedItems.append(ti)
+        elif modifiers == Qt.ShiftModifier or modifiers == Qt.ControlModifier:
+            if ti in self._selectedItems:
+                ti.selected = False
+                self._selectedItems.remove(ti)
+            else:
+                ti.selected = True
+                self._selectedItems.append(ti)
+        self.selectionChanged.emit()
 
+    @QtCore.pyqtSlot()
+    def clearSelection(self):
+        """Clears the trackItem selection. Add the trackItem defined by tiId
+        to the selection if modifiers is Shift or Ctrl. Replace the selection
+        otherwise."""
+        for t in self._selectedItems:
+            t.selected = False
+        self._selectedItems = []
+        self.selectionChanged.emit()

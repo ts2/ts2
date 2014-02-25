@@ -36,7 +36,7 @@ class TextItem(abstract.TrackItem):
         self._name = parameters["name"]
         self.updateBoundingRect()
         gi = helper.TrackGraphicsItem(self)
-        gi.setPos(self.realOrigin)
+        gi.setPos(self.origin)
         gi.setToolTip(self.toolTipText)
         gi.setZValue(0)
         if simulation.context in utils.Context.EDITORS:
@@ -51,31 +51,6 @@ class TextItem(abstract.TrackItem):
                   helper.TIProperty("tiId", tr("id"), True),
                   helper.TIProperty("text", tr("Text")),
                   helper.TIProperty("originStr", tr("Point 1"))]
-
-    def _setOrigin(self, value):
-        """Setter function for the origin property"""
-        if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            self.realOrigin = value - self._rect.bottomLeft()
-
-    origin = property(abstract.TrackItem._getOrigin, _setOrigin)
-
-    @property
-    def realOrigin(self):
-        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is
-        the position of the top left corner of the bounding rectangle of the
-        TrackItem. Reimplemented in Place"""
-        return self.origin - self._rect.bottomLeft()
-
-    @realOrigin.setter
-    def realOrigin(self, pos):
-        """Setter function for the realOrigin property"""
-        if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            grid = self.simulation.grid
-            x = round((pos.x() + self._rect.bottomLeft().x()) / grid) * grid
-            y = round((pos.y() + self._rect.bottomLeft().y()) / grid) * grid
-            self._origin = QtCore.QPointF(x, y)
-            self.graphicsItem.setPos(self.realOrigin)
-            self.updateGraphics()
 
     @property
     def text(self):
@@ -106,11 +81,16 @@ class TextItem(abstract.TrackItem):
         if self.text is None or self.text == "":
             return super().boundingRect()
         else:
-            return self._rect
+            if self.tiId < 0:
+                # Toolbox item
+                return QtCore.QRectF(-36, -15, 100, 50)
+            else:
+                return self._rect
 
     def graphicsPaint(self, p, options, itemId, widget = 0):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter."""
+        super().graphicsPaint(p, options, itemId, widget)
         pen = self.getPen()
         pen.setWidth(0)
         pen.setColor(Qt.white)

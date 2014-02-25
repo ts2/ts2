@@ -300,7 +300,11 @@ class PointsItem(abstract.TrackItem):
         """This function is called by the owned TrackGraphicsItem to return
         its bounding rectangle. Reimplemented from TrackItem"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            return QtCore.QRectF(-10, -10, 20, 20)
+            if self.tiId < 0:
+                # Toolbox item
+                return QtCore.QRectF(-50, -25, 100, 50)
+            else:
+                return QtCore.QRectF(-10, -10, 20, 20)
         else:
             return QtCore.QRectF(-5, -5, 10, 10)
 

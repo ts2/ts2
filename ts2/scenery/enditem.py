@@ -37,7 +37,7 @@ class EndItem(abstract.TrackItem):
         self.tiType = "E"
         self._realLength = BIG
         egi = helper.TrackGraphicsItem(self)
-        egi.setPos(self.realOrigin)
+        egi.setPos(self.origin)
         if self.simulation.context in utils.Context.EDITORS:
             egi.setCursor(Qt.PointingHandCursor)
         self._gi[0] = egi
@@ -48,21 +48,6 @@ class EndItem(abstract.TrackItem):
         return QtCore.QPointF(-BIG, -BIG)
 
     end = property(_getEnd)
-
-    @property
-    def realOrigin(self):
-        return self._origin
-
-    @realOrigin.setter
-    def realOrigin(self, pos):
-        """Setter function for the realOrigin property"""
-        if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            grid = self.simulation.grid
-            x = round((pos.x() + 3.0) / grid) * grid
-            y = round((pos.y() + 3.0) / grid) * grid
-            self._origin = QtCore.QPointF(x, y)
-            self.graphicsItem.setPos(self.realOrigin)
-            self.updateGraphics()
 
     def getFollowingItem(self, precedingItem, direction = -1):
         """Reimplemented from TrackItem to return None if going to the free
@@ -76,7 +61,11 @@ class EndItem(abstract.TrackItem):
         """Reimplemented from TrackItem.graphicsBoundingRect to return the
         bounding rectangle of the owned TrackGraphicsItem."""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            return QtCore.QRectF(-5, -5, 10, 10)
+            if self.tiId < 0:
+                # Toolbox itemId
+                return QtCore.QRectF(-50, -25, 100, 50)
+            else:
+                return QtCore.QRectF(-5, -5, 10, 10)
         else:
             return super().graphicsBoundingRect(itemId)
 

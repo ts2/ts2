@@ -30,7 +30,7 @@ class EditorSceneBackground(QtGui.QGraphicsRectItem):
         super().__init__(x, y, width, height)
         self.setZValue(-100)
         self.setAcceptDrops(True)
-        self._editor = editor
+        self.editor = editor
         #pen = QtGui.QPen(Qt.cyan)
         #self.setPen(pen)
 
@@ -47,7 +47,7 @@ class EditorSceneBackground(QtGui.QGraphicsRectItem):
             tiType, tiId, ox, oy, point = event.mimeData().text().split("#")
             if int(tiId) > 0:
                 clickPos = QtCore.QPointF(float(ox), float(oy))
-                self._editor.moveTrackItem(tiId, event.scenePos(),
+                self.editor.moveTrackItem(tiId, event.scenePos(),
                                                             clickPos, point)
 
     def dropEvent(self, event):
@@ -60,13 +60,19 @@ class EditorSceneBackground(QtGui.QGraphicsRectItem):
             if int(tiId) < 0:
                 event.setDropAction(Qt.CopyAction)
                 event.accept()
-                self._editor.createTrackItem(tiType, event.scenePos())
+                self.editor.createTrackItem(tiType, event.scenePos())
             else:
                 event.setDropAction(Qt.MoveAction)
                 event.accept()
                 clickPos = QtCore.QPointF(float(ox), float(oy))
-                self._editor.moveTrackItem(tiId, event.scenePos(), 
+                self.editor.moveTrackItem(tiId, event.scenePos(),
                                                             clickPos, point)
         else:
             event.ignore()
 
+    def mousePressEvent(self, event):
+        """Event handler for the mousePressEvent. Empties the current item
+        selection if right button clicked."""
+        if event.buttons() == Qt.RightButton:
+            self.editor.clearSelection()
+        super().mousePressEvent(event)

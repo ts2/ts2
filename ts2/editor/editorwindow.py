@@ -416,11 +416,15 @@ class EditorWindow(QtGui.QMainWindow):
                 closeEvent.ignore()
 
     @QtCore.pyqtSlot(int)
-    def setPropertiesModel(self, tiId):
-        """Sets the TrackPropertiesModel related to trackItem on the
+    def setPropertiesModel(self):
+        """Sets the TrackPropertiesModel related to the selection on the
         properties view"""
-        ti = self.editor.trackItem(tiId)
-        self.propertiesView.setModel(scenery.helper.TrackPropertiesModel(ti))
+        if len(self.editor.selectedItems) > 0:
+            self.propertiesView.setModel(
+                                  scenery.helper.TrackPropertiesModel(
+                                                 self.editor.selectedItems))
+        else:
+            self.propertiesView.setModel(None)
 
     @QtCore.pyqtSlot()
     def loadSimulation(self):

@@ -18,10 +18,11 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtSql, QtGui
-from PyQt4.QtCore import Qt
 from math import sqrt
 import sqlite3
+
+from PyQt4 import QtCore, QtSql, QtGui
+from PyQt4.QtCore import Qt
 
 from ts2 import utils, routing, trains
 from ts2.game import logger, scorer
@@ -285,7 +286,7 @@ class Simulation(QtCore.QObject):
         return self._trains
 
     def trackItem(self, id):
-        return self._trackItems[id]
+        return self._trackItems.get(id, None)
 
     def place(self, placeCode):
         """Returns the place defined by placeCode."""
@@ -314,7 +315,7 @@ class Simulation(QtCore.QObject):
     trainSelected = QtCore.pyqtSignal(int)
     trainStatusChanged = QtCore.pyqtSignal(int)
     servicesLoaded = QtCore.pyqtSignal()
-    selectionChanged = QtCore.pyqtSignal(int)
+    selectionChanged = QtCore.pyqtSignal()
 
     @QtCore.pyqtSlot(int, bool, bool)
     def activateRoute(self, siId, persistent=False, force=False):

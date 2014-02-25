@@ -202,7 +202,11 @@ class Place(abstract.TrackItem):
         if self.name is None or self.name == "":
             return super().boundingRect()
         else:
-            return self._rect
+            if self.tiId < 0:
+                # Toolbox item
+                return QtCore.QRectF(-32, -15, 100, 50)
+            else:
+                return self._rect
 
     def graphicsPaint(self, p, options, itemId, widget = 0):
         """This function is called by the owned TrackGraphicsItem to paint its

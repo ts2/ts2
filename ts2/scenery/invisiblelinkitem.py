@@ -21,7 +21,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from ts2 import utils
-from ts2.scenery import lineitem
+from ts2.scenery import lineitem, abstract
 
 
 class InvisibleLinkItem(lineitem.LineItem):
@@ -46,6 +46,8 @@ class InvisibleLinkItem(lineitem.LineItem):
     def graphicsPaint(self, p, options, itemId, widget):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws nothing during the game."""
+        super(lineitem.LineItem, self).graphicsPaint(p, options,
+                                                      itemId, widget)
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             if self.selected:
                 p.setPen(Qt.magenta)

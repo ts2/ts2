@@ -95,33 +95,49 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
 class TrackPropertiesModel(QtCore.QAbstractTableModel):
     """This class is a model for accessing TrackItem properties in the editor
     """
-    def __init__(self, trackItem):
+    def __init__(self, trackItems):
         """Constructor for the TrackPropertiesModel class"""
         super().__init__()
-        self.trackItem = trackItem
-        self.simulation = trackItem.simulation
+        self.trackItems = trackItems
+        self.simulation = trackItems[0].simulation
+        self.multiType = False
+        tiType = self.trackItems[0].tiType
+        for ti in self.trackItems:
+            if ti.tiType != tiType:
+                self.multiType = True
+                break
 
     def rowCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of rows of the model, corresponding to the
         number of properties."""
-        return len(self.trackItem.properties)
+        if self.multiType:
+            return len(self.trackItems[0].multiProperties)
+        else:
+            return len(self.trackItems[0].properties)
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=QtCore.QModelIndex()):
         """Returns the number of columns of the model, i.e. 2, one for the
         property name, and one for the property value."""
         return 2
 
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            prop = self.trackItem.properties[index.row()]
+            if self.multiType:
+                prop = self.trackItems[0].multiProperties[index.row()]
+            else:
+                prop = self.trackItems[0].properties[index.row()]
             if index.column() == 0:
                 return prop.display
             elif index.column() == 1:
-                value = getattr(self.trackItem, prop.name)
-                endValues = ts2.scenery.pointsitem.PointsItem.endValues
-                endNames = ts2.scenery.pointsitem.PointsItem.endNames
+                value = getattr(self.trackItems[0], prop.name)
+                for ti in self.trackItems:
+                    if getattr(ti, prop.name) != value:
+                        value = ""
+                        break
                 if prop.propType == "pointsEnd":
+                    endValues = ts2.scenery.pointsitem.PointsItem.endValues
+                    endNames = ts2.scenery.pointsitem.PointsItem.endNames
                     index = endValues.index(value)
                     return endNames[index]
                 else:
@@ -132,9 +148,13 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
         """Sets the data to the model"""
         if role == Qt.EditRole:
             if index.column() == 1:
-                setattr(self.trackItem,
-                        self.trackItem.properties[index.row()].name,
-                        value)
+                for ti in self.trackItems:
+                    if self.multiType:
+                        setattr(ti,
+                                ti.multiProperties[index.row()].name,
+                                value)
+                    else:
+                        setattr(ti, ti.properties[index.row()].name, value)
                 self.dataChanged.emit(index, index)
                 return True
         return False
@@ -151,8 +171,8 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
     def flags(self, index):
         """Returns the flags of the model"""
         retFlag = Qt.ItemIsEnabled
-        if not self.trackItem.properties[index.row()].readOnly and \
-            index.column() == 1:
+        if (not self.trackItems[0].properties[index.row()].readOnly and 
+            index.column() == 1):
                 retFlag |= Qt.ItemIsEditable | Qt.ItemIsSelectable
         return retFlag
 
