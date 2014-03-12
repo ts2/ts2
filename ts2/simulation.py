@@ -285,6 +285,11 @@ class Simulation(QtCore.QObject):
     def trains(self):
         return self._trains
 
+    @property
+    def trackItems(self):
+        """Returns the trackItem dictionary of this simulation."""
+        return self._trackItems
+
     def trackItem(self, id):
         return self._trackItems.get(id, None)
 

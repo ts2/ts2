@@ -51,7 +51,7 @@ class PointsItem(abstract.TrackItem):
         self._center = QtCore.QPointF(x,y)
         self._pointsReversed = False
         self._reverseItem = None
-        self.defaultZValue = 10
+        self.defaultZValue = 60
         pgi = helper.TrackGraphicsItem(self)
         pgi.setPos(self._center)
         pgi.setZValue(self.defaultZValue)

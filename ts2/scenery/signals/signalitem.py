@@ -466,9 +466,10 @@ class SignalItem(abstract.TrackItem):
                 self.signalUnselected.emit(self.tiId)
             elif itemId == SignalItem.BERTH_GRAPHIC_ITEM:
                 # The train code is right-clicked
-                train = self.simulation.trains[self._trainId]
-                if train is not None:
-                    train.showTrainActionsMenu(
+                if self._trainId is not None:
+                    train = self.simulation.trains[self._trainId]
+                    if train is not None:
+                        train.showTrainActionsMenu(
                                     self.simulation.simulationWindow.view,
                                     e.screenPos())
         self.updateGraphics()

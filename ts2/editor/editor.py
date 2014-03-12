@@ -18,9 +18,11 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-import sqlite3
+import sqlite3, copy
+
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
+
 from ts2 import simulation
 from ts2 import utils, trains, routing
 from ts2.scenery import abstract, placeitem, lineitem, platformitem, \
@@ -147,6 +149,7 @@ class Editor(simulation.Simulation):
         self._selectedRoute = None
         self._selectedTrain = None
         self._selectedItems = []
+        self._clipbooard = []
         self._displayedPositionGI = routing.PositionGraphicsItem(self)
         self.registerGraphicsItem(self._displayedPositionGI)
         self.trainsChanged.connect(self.unselectTrains)
@@ -774,8 +777,6 @@ class Editor(simulation.Simulation):
                     "xr": 5,
                     "yr": -5,
                     "reverse": 0,
-                    "timersw": 1.0,
-                    "timerwc": 1.0,
                     "maxspeed": 0.0,
                     "reallength": 0.0,
                     "placecode":None,
@@ -808,6 +809,7 @@ class Editor(simulation.Simulation):
         self._trackItems[self._nextId] = ti
         ti.trackItemClicked.emit(int(self._nextId), Qt.NoModifier)
         self._nextId += 1
+        return ti
 
     def makeTrackItemSignalSlotConnections(self, ti):
         """Makes all signal-slot connections for TrackItem ti"""
@@ -1184,3 +1186,42 @@ class Editor(simulation.Simulation):
             t.selected = False
         self._selectedItems = []
         self.selectionChanged.emit()
+
+    @QtCore.pyqtSlot()
+    def copyToClipboard(self):
+        """Copy the current selection to the clipboard"""
+        self._clipbooard = copy.copy(self.selectedItems)
+
+    @QtCore.pyqtSlot()
+    def pasteFromClipboard(self):
+        """Paste the items of the clipboard on the scene."""
+        if len(self._clipbooard) == 0:
+            return
+        if len(self.selectedItems) > 0:
+            refPos = self._selectedItems[0].end
+        else:
+            refPos = QtCore.QPointF(0, 0)
+        translation = refPos + QtCore.QPointF(100, 100) - \
+                                                self._clipbooard[0].origin
+        for ti in self._clipbooard:
+            newTi = self.createTrackItem(ti.tiType,
+                                         ti.origin + translation,
+                                         ti.end + translation)
+            newTi.maxSpeed = ti.maxSpeed
+            newTi._realLength = ti.realLength
+            if newTi.tiType.startswith("S"):
+                newTi.signalTypeStr = ti.signalTypeStr
+                newTi.reverse = ti.reverse
+                newTi.origin = ti.origin + translation
+            elif ti.tiType.startswith("P"):
+                newTi.commonEnd = ti.commonEnd
+                newTi.normalEnd = ti.normalEnd
+                newTi.reverseEnd = ti.reverseEnd
+                newTi.origin = ti.origin + translation
+
+    @QtCore.pyqtSlot()
+    def deleteSelection(self):
+        """Delete all the items of the current selection."""
+        for tiId in self.selectedItems:
+            self.deleteTrackItem(tiId)
+

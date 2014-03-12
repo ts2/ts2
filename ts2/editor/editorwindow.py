@@ -80,6 +80,34 @@ class EditorWindow(QtGui.QMainWindow):
         self.closeAction.setStatusTip(closeActionTip)
         self.closeAction.triggered.connect(self.close)
 
+        self.copyAction = QtGui.QAction(self.tr("&Copy"), self)
+        self.copyAction.setShortcut(QtGui.QKeySequence.Copy)
+        copyActionTip = self.tr("Copy the current selection to the clipboard")
+        self.copyAction.setToolTip(copyActionTip)
+        self.copyAction.setStatusTip(copyActionTip)
+        self.copyAction.triggered.connect(self.copyItems)
+
+        self.pasteAction = QtGui.QAction(self.tr("&Paste"), self)
+        self.pasteAction.setShortcut(QtGui.QKeySequence.Paste)
+        pasteActionTip = self.tr("Paste the items of the clipboard")
+        self.pasteAction.setToolTip(pasteActionTip)
+        self.pasteAction.setStatusTip(pasteActionTip)
+        self.pasteAction.triggered.connect(self.pasteItems)
+
+        self.deleteAction = QtGui.QAction(self.tr("&Delete"), self)
+        self.deleteAction.setShortcut(QtGui.QKeySequence.Delete)
+        deleteActionTip = self.tr("Delete the selected items")
+        self.deleteAction.setToolTip(deleteActionTip)
+        self.deleteAction.setStatusTip(deleteActionTip)
+        self.deleteAction.triggered.connect(self.deleteItems)
+
+        self.selectAllAction = QtGui.QAction(self.tr("&Select All"), self)
+        self.selectAllAction.setShortcut(QtGui.QKeySequence.SelectAll)
+        selectAllActionTip = self.tr("Select all the items")
+        self.selectAllAction.setToolTip(selectAllActionTip)
+        self.selectAllAction.setStatusTip(selectAllActionTip)
+        self.selectAllAction.triggered.connect(self.selectAll)
+
         self.aboutAction = QtGui.QAction(self.tr("&About TS2..."), self)
         aboutActionTip = self.tr("About TS2")
         self.aboutAction.setToolTip(aboutActionTip)
@@ -100,10 +128,17 @@ class EditorWindow(QtGui.QMainWindow):
         self.fileMenu.addAction(self.saveAsAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.closeAction)
+        self.editMenu = self.menuBar().addMenu(self.tr("&Edit"))
+        self.editMenu.addAction(self.copyAction)
+        self.editMenu.addAction(self.pasteAction)
+        self.editMenu.addAction(self.deleteAction)
+        self.editMenu.addSeparator()
+        self.editMenu.addAction(self.selectAllAction)
         self.helpMenu = self.menuBar().addMenu(self.tr("&Help"))
         self.helpMenu.addAction(self.aboutAction)
         self.helpMenu.addAction(self.aboutQtAction)
         self.menuBar().setCursor(Qt.PointingHandCursor)
+        self.updateMenus(0)
 
         # Status bar
         statusBar = QtGui.QStatusBar()
@@ -146,6 +181,7 @@ class EditorWindow(QtGui.QMainWindow):
         # Central tab widget
         self.tabWidget = QtGui.QTabWidget(self)
         self.tabWidget.currentChanged.connect(self.showHideDockWidgets)
+        self.tabWidget.currentChanged.connect(self.updateMenus)
         self.tabWidget.currentChanged.connect(self.editor.updateContext)
 
         # General tab
@@ -485,6 +521,35 @@ class EditorWindow(QtGui.QMainWindow):
                             == QtGui.QMessageBox.Yes:
                 self.editor.initialize()
 
+    @QtCore.pyqtSlot()
+    def copyItems(self):
+        """Copy the current selection to the clipboard."""
+        self.editor.copyToClipboard()
+
+    @QtCore.pyqtSlot()
+    def pasteItems(self):
+        """Paste the items of the clipboard on the scenery."""
+        self.editor.pasteFromClipboard()
+
+    @QtCore.pyqtSlot()
+    def deleteItems(self):
+        """Delete the items of the current selection."""
+        if (QtGui.QMessageBox.warning(
+                            self,
+                            self.tr("Delete items"),
+                            self.tr("Do you really want to delete all "
+                                    "the selected items?"),
+                            QtGui.QMessageBox.Yes|QtGui.QMessageBox.No)
+                == QtGui.QMessageBox.Yes):
+            self.editor.deleteSelection()
+
+    @QtCore.pyqtSlot()
+    def selectAll(self):
+        """Select all the items on the scene."""
+        self.editor.clearSelection()
+        for tiId in self.editor.trackItems:
+            self.editor.updateSelection(tiId, Qt.ShiftModifier)
+
     @QtCore.pyqtSlot(int)
     def showHideDockWidgets(self, index):
         """Hides or Show the dock widgets depending on the selected tab"""
@@ -495,6 +560,21 @@ class EditorWindow(QtGui.QMainWindow):
         else:
             self.toolsPanel.hide()
             self.propertiesPanel.hide()
+
+    @QtCore.pyqtSlot(int)
+    def updateMenus(self, index):
+        """Updates the enabled menu actions depending on the selected tab."""
+        if index == 1:
+            # Scenery panel
+            self.copyAction.setEnabled(True)
+            self.pasteAction.setEnabled(True)
+            self.deleteAction.setEnabled(True)
+            self.selectAllAction.setEnabled(True)
+        else:
+            self.copyAction.setEnabled(False)
+            self.pasteAction.setEnabled(False)
+            self.deleteAction.setEnabled(False)
+            self.selectAllAction.setEnabled(False)
 
     @QtCore.pyqtSlot()
     def updateGeneralTab(self):

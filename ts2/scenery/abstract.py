@@ -253,6 +253,7 @@ class TrackItem(QtCore.QObject):
             return True
 
     def _getRealLength(self):
+        """Length of this track item in real life."""
         return self._realLength
 
     realLength = property(_getRealLength)
