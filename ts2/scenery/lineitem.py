@@ -206,13 +206,16 @@ class LineItem(abstract.ResizableItem):
     @QtCore.pyqtSlot()
     def updateGraphics(self):
         """Updates the TrackGraphicsItem owned by this LineItem"""
-        super().updateGraphics()
         if self.simulation.context == utils.Context.GAME:
             self.updateTrain()
+        else:
+            super().updateGraphics()
 
     def updateTrain(self):
         """Updates the graphics for trains movements only"""
         self.drawTrain()
+        super().updateGraphics()
+
 
     ### Graphics Methods ###############################################
 
