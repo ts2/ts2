@@ -30,31 +30,6 @@ from ts2.scenery import abstract, placeitem, lineitem, platformitem, \
 from ts2.scenery.signals import signalitem
 from ts2.editor import editorscenebackground
 
-class TrashBinItem(QtGui.QGraphicsPixmapItem):
-    """The TrashBinItem is the graphics item on which to drag TrackItems to be
-    deleted
-    """
-    def __init__(self, editor, scene, pos):
-        """Constructor for the TrashBinItem class"""
-        super().__init__(None, scene)
-        self.setPos(pos)
-        self.setPixmap(QtGui.QPixmap(":/bin.png"))
-        self.setAcceptDrops(True)
-        self._editor = editor
-
-    def dropEvent(self, event):
-        """Handler for the drop event. Deletes the TrackItem that has been
-        dropped on the TrashBinItem"""
-        if event.mimeData().hasText():
-            tiType, tiId, ox, oy, point = event.mimeData().text().split("#")
-            if int(tiId) < 0:
-                event.ignore()
-            else:
-                event.accept()
-                self._editor.deleteTrackItem(tiId)
-        else:
-            event.ignore()
-
 
 class WhiteLineItem(QtGui.QGraphicsLineItem):
     """Shortcut class to make white line items"""
@@ -166,9 +141,9 @@ class Editor(simulation.Simulation):
     def drawToolBox(self):
         """Construct the library tool box"""
         # Lines
-        WhiteLineItem(0, 0, 0, 350, None, self._libraryScene)
+        WhiteLineItem(0, 0, 0, 300, None, self._libraryScene)
         WhiteLineItem(100, 0, 100, 300, None, self._libraryScene)
-        WhiteLineItem(200, 0, 200, 350, None, self._libraryScene)
+        WhiteLineItem(200, 0, 200, 300, None, self._libraryScene)
         WhiteLineItem(0, 0, 200, 0, None, self._libraryScene)
         WhiteLineItem(0, 50, 200, 50, None, self._libraryScene)
         WhiteLineItem(0, 100, 200, 100, None, self._libraryScene)
@@ -176,7 +151,6 @@ class Editor(simulation.Simulation):
         WhiteLineItem(0, 200, 200, 200, None, self._libraryScene)
         WhiteLineItem(0, 250, 200, 250, None, self._libraryScene)
         WhiteLineItem(0, 300, 200, 300, None, self._libraryScene)
-        WhiteLineItem(0, 350, 200, 350, None, self._libraryScene)
         # Items
         self.librarySignalItem = signalitem.SignalItem(self,
                 {"tiid":-1, "name":"Signal", "x":65, "y":25, "reverse":0,
@@ -208,9 +182,6 @@ class Editor(simulation.Simulation):
                 {"tiid":-10, "name":"Invisible link", "x":120, "y":175,
                  "xf":180, "yf":175, "maxspeed":0.0, "reallength":1.0,
                  "placecode":None, "trackcode":None})
-        self.libraryBinItem = TrashBinItem(self,
-                                           self._libraryScene,
-                                           QtCore.QPointF(86, 310))
 
     @property
     def libraryScene(self):
@@ -1234,7 +1205,7 @@ class Editor(simulation.Simulation):
     @QtCore.pyqtSlot()
     def deleteSelection(self):
         """Delete all the items of the current selection."""
-        for ti in self.selectedItems:
+        for ti in self.selectedItems.copy():
             self.removeItemFromSelection(ti)
             self.deleteTrackItem(ti.tiId)
 
