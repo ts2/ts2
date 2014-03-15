@@ -1169,16 +1169,8 @@ class Editor(simulation.Simulation):
     def updateSelection(self):
         """Updates the trackItem selection."""
         selectedItems = self.selectedItems.copy()
-        if QtGui.QApplication.keyboardModifiers() == Qt.ShiftModifier:
-            # Reselect all graphics items of the (previous) trackItem
-            # selection if shift key is pressed, unless toBeDeselected is True
-            for ti in selectedItems:
-                for tgi in ti._gi.values():
-                    tgi.setSelected(not ti.toBeDeselected)
-        else:
-            # Remove all the trackitems of the selection
-            for ti in selectedItems:
-                self.removeItemFromSelection(ti)
+        for ti in selectedItems:
+            self.removeItemFromSelection(ti)
 
         # Synchronise trackItem selection with graphicsItem selection
         for gi in self.scene.selectedItems():

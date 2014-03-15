@@ -503,19 +503,7 @@ class TrackItem(QtCore.QObject):
         """This function is called by the owned TrackGraphicsItem to handle
         its mousePressEvent. The default implementation in the base class
         trackItem does nothing."""
-        if self.tiId > 0:
-            if (event.button() == Qt.LeftButton and
-                event.modifiers() == Qt.ShiftModifier):
-                # Toggle selection if item is already selected
-                if self.selected:
-                    self.toBeDeselected = True
-
-    def graphicsMouseReleaseEvent(self, event, itemId):
-        """This function is called by the owned TrackGraphicsItem to handle
-        its mouseReleaseEvent."""
-        if self.toBeDeselected:
-            self.simulation.removeItemFromSelection(self)
-        self.toBeDeselected = False
+        pass
 
     def graphicsMouseMoveEvent(self, event, itemId=0):
         """This function is called by the owned TrackGraphicsItem to handle

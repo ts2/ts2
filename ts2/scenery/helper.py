@@ -68,13 +68,6 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
         self.trackItem.graphicsMousePressEvent(event, self.itemId)
         super().mousePressEvent(event)
 
-    def mouseReleaseEvent(self, event):
-        """Event handler for mouse release.
-        This function calls the graphicsMouseReleaseEvent function of the
-        owning TrackItem to handle the event"""
-        super().mouseReleaseEvent(event)
-        self.trackItem.graphicsMouseReleaseEvent(event, self.itemId)
-
     def mouseMoveEvent(self, event):
         """Event handler for mouse pressed.
         This function calls the graphicsMousePressEvent function of the owning
@@ -99,13 +92,6 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
         TrackItem to handle the event"""
         self.trackItem.graphicsDropEvent(event, self.itemId)
 
-    #def itemChange(self, change, value):
-        #"""Handler function when the item is changed."""
-        #if change == QtGui.QGraphicsItem.ItemSelectedChange:
-            #return True
-            #return self.trackItem.graphicsItemSelectedChange(value)
-        #else:
-            #return super().itemChange(change, value)
 
 
 class TrackPropertiesModel(QtCore.QAbstractTableModel):
