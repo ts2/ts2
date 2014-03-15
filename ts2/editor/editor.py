@@ -153,6 +153,7 @@ class Editor(simulation.Simulation):
         self._displayedPositionGI = routing.PositionGraphicsItem(self)
         self.registerGraphicsItem(self._displayedPositionGI)
         self.trainsChanged.connect(self.unselectTrains)
+        self.scene.selectionChanged.connect(self.updateSelection)
 
     sceneryIsValidated = QtCore.pyqtSignal(bool)
     routesChanged = QtCore.pyqtSignal()
@@ -807,8 +808,8 @@ class Editor(simulation.Simulation):
         self.makeTrackItemSignalSlotConnections(ti)
         self.expandBackgroundTo(ti)
         self._trackItems[self._nextId] = ti
-        ti.trackItemClicked.emit(int(self._nextId), Qt.NoModifier)
         self._nextId += 1
+        self.updateSelection()
         return ti
 
     def makeTrackItemSignalSlotConnections(self, ti):
@@ -820,7 +821,7 @@ class Editor(simulation.Simulation):
             ti.positionSelected.connect(self.setSelectedTrainHead)
 
     def deleteTrackItem(self, tiId):
-        """Delete the TrackItem given by tiId"""
+        """Delete the TrackItem given by tiId."""
         tiId = int(tiId)
         for gi in self._trackItems[tiId]._gi.values():
             self._scene.removeItem(gi)
@@ -1156,36 +1157,55 @@ class Editor(simulation.Simulation):
         elif tabNum == 5:
             self._context = utils.Context.EDITOR_TRAINS
 
-    @QtCore.pyqtSlot(int, int)
-    def updateSelection(self, tiId, modifiers):
-        """Updates the trackItem selection. Add the trackItem defined by tiId
-        to the selection if modifiers is Shift or Ctrl. Replace the selection
-        otherwise."""
-        ti = self.trackItem(tiId)
-        if (modifiers == Qt.NoModifier) and (ti not in self._selectedItems):
-            for t in self._selectedItems:
-                t.selected = False
-            self._selectedItems = []
+        #QtCore.qDebug(">> List of selected TI")
+        #for ti in self.selectedItems:
+            #QtCore.qDebug("TI selected: %i" %ti.tiId )
+        #QtCore.qDebug("> List of selected GI")
+        #for gi in self.scene.selectedItems():
+            #QtCore.qDebug("GI selected: %i:%i" % (gi.trackItem.tiId, gi.itemId ))
+        #QtCore.qDebug("---------")
+
+    @QtCore.pyqtSlot()
+    def updateSelection(self):
+        """Updates the trackItem selection."""
+        selectedItems = self.selectedItems.copy()
+        if QtGui.QApplication.keyboardModifiers() == Qt.ShiftModifier:
+            # Reselect all graphics items of the (previous) trackItem
+            # selection if shift key is pressed, unless toBeDeselected is True
+            for ti in selectedItems:
+                for tgi in ti._gi.values():
+                    tgi.setSelected(not ti.toBeDeselected)
+        else:
+            # Remove all the trackitems of the selection
+            for ti in selectedItems:
+                self.removeItemFromSelection(ti)
+
+        # Synchronise trackItem selection with graphicsItem selection
+        for gi in self.scene.selectedItems():
+            self.addItemToSelection(gi.trackItem)
+
+    def addItemToSelection(self, ti, selected=True):
+        """Add the trackItem ti to the selection if selected is True and
+        remove it if it is False."""
+        if selected:
             ti.selected = True
-            self._selectedItems.append(ti)
-        elif modifiers == Qt.ShiftModifier or modifiers == Qt.ControlModifier:
-            if ti in self._selectedItems:
-                ti.selected = False
-                self._selectedItems.remove(ti)
-            else:
-                ti.selected = True
-                self._selectedItems.append(ti)
+            if ti not in self.selectedItems:
+                self.selectedItems.append(ti)
+        else:
+            ti.selected = False
+            if ti in self.selectedItems:
+                self.selectedItems.remove(ti)
         self.selectionChanged.emit()
+
+    def removeItemFromSelection(self, ti):
+        """Remove the trackItem ti from the selection."""
+        self.addItemToSelection(ti, False)
 
     @QtCore.pyqtSlot()
     def clearSelection(self):
-        """Clears the trackItem selection. Add the trackItem defined by tiId
-        to the selection if modifiers is Shift or Ctrl. Replace the selection
-        otherwise."""
-        for t in self._selectedItems:
-            t.selected = False
-        self._selectedItems = []
-        self.selectionChanged.emit()
+        """Clears the graphicsItem selection so that the trackItem selection
+        will get updated."""
+        self.scene.clearSelection()
 
     @QtCore.pyqtSlot()
     def copyToClipboard(self):
@@ -1222,6 +1242,7 @@ class Editor(simulation.Simulation):
     @QtCore.pyqtSlot()
     def deleteSelection(self):
         """Delete all the items of the current selection."""
-        for tiId in self.selectedItems:
-            self.deleteTrackItem(tiId)
+        for ti in self.selectedItems:
+            self.removeItemFromSelection(ti)
+            self.deleteTrackItem(ti.tiId)
 

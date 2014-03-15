@@ -418,8 +418,7 @@ class Simulation(QtCore.QObject):
         secs = self._timer.interval() * timeFactor / 1000
         self.timeElapsed.emit(secs)
 
-    @QtCore.pyqtSlot(int, int)
-    def updateSelection(self, tiId, modifiers):
+    def updateSelection(self):
         """Updates the trackItem selection. Does nothing in the base
         simulation class."""
         pass

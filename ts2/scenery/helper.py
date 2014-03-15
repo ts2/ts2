@@ -37,6 +37,7 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
         self.trackItem = trackItem
         self.itemId = itemId
         self.setZValue(0)
+        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
 
     def boundingRect(self):
         """Returns the bounding rectangle of the TrackGraphicsItem.
@@ -55,16 +56,24 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
         """Painting function for the SignalGraphicsItem.
         This function calls the graphicsPaint function of the owning TrackItem
         to paint its painter."""
+        self.trackItem.graphicsPaint(painter, option, self.itemId, widget)
         #pen = QtGui.QPen(Qt.red)
         #painter.setPen(pen)
         #painter.drawPath(self.shape())
-        self.trackItem.graphicsPaint(painter, option, self.itemId, widget)
 
     def mousePressEvent(self, event):
         """Event handler for mouse pressed.
         This function calls the graphicsMousePressEvent function of the owning
         TrackItem to handle the event"""
         self.trackItem.graphicsMousePressEvent(event, self.itemId)
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """Event handler for mouse release.
+        This function calls the graphicsMouseReleaseEvent function of the
+        owning TrackItem to handle the event"""
+        super().mouseReleaseEvent(event)
+        self.trackItem.graphicsMouseReleaseEvent(event, self.itemId)
 
     def mouseMoveEvent(self, event):
         """Event handler for mouse pressed.
@@ -90,6 +99,13 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
         TrackItem to handle the event"""
         self.trackItem.graphicsDropEvent(event, self.itemId)
 
+    #def itemChange(self, change, value):
+        #"""Handler function when the item is changed."""
+        #if change == QtGui.QGraphicsItem.ItemSelectedChange:
+            #return True
+            #return self.trackItem.graphicsItemSelectedChange(value)
+        #else:
+            #return super().itemChange(change, value)
 
 
 class TrackPropertiesModel(QtCore.QAbstractTableModel):
@@ -171,7 +187,7 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
     def flags(self, index):
         """Returns the flags of the model"""
         retFlag = Qt.ItemIsEnabled
-        if (not self.trackItems[0].properties[index.row()].readOnly and 
+        if (not self.trackItems[0].properties[index.row()].readOnly and
             index.column() == 1):
                 retFlag |= Qt.ItemIsEditable | Qt.ItemIsSelectable
         return retFlag

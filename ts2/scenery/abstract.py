@@ -61,7 +61,7 @@ class TrackItem(QtCore.QObject):
         self._place = None
         self._conflictTrackItem = None
         self._gi = {}
-        self.trackItemClicked.connect(self.simulation.updateSelection)
+        self.toBeDeselected = False
 
     def __del__(self):
         """Destructor for the TrackItem class"""
@@ -118,7 +118,6 @@ class TrackItem(QtCore.QObject):
                     "trainpresent":"VARCHAR(255)"
                  }
 
-    trackItemClicked = QtCore.pyqtSignal(int, int)
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
@@ -500,13 +499,23 @@ class TrackItem(QtCore.QObject):
                 painter.drawPath(self._gi[itemId].shape())
                 #painter.drawRect(self._gi[itemId].boundingRect())
 
-
     def graphicsMousePressEvent(self, event, itemId):
         """This function is called by the owned TrackGraphicsItem to handle
-        its mousePressEvent. In the base TrackItem class, this function only
-        emits the trackItemClicked signal."""
-        if event.button() == Qt.LeftButton and self.tiId > 0:
-            self.trackItemClicked.emit(self.tiId, event.modifiers())
+        its mousePressEvent. The default implementation in the base class
+        trackItem does nothing."""
+        if self.tiId > 0:
+            if (event.button() == Qt.LeftButton and
+                event.modifiers() == Qt.ShiftModifier):
+                # Toggle selection if item is already selected
+                if self.selected:
+                    self.toBeDeselected = True
+
+    def graphicsMouseReleaseEvent(self, event, itemId):
+        """This function is called by the owned TrackGraphicsItem to handle
+        its mouseReleaseEvent."""
+        if self.toBeDeselected:
+            self.simulation.removeItemFromSelection(self)
+        self.toBeDeselected = False
 
     def graphicsMouseMoveEvent(self, event, itemId=0):
         """This function is called by the owned TrackGraphicsItem to handle
@@ -546,6 +555,19 @@ class TrackItem(QtCore.QObject):
         its dropEvent. The implementation in the base class TrackItem
         does nothing."""
         pass
+
+    #def graphicsItemSelectedChange(self, value):
+        #"""This function is called by the owned TrackGraphicsItem to handle
+        #its itemSelectedChange event. The implementation in the base TrackItem
+        #class handles item selection in the editor. Return True if the item is
+        #finally selected False otherwise."""
+        #retVal = value
+        #if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            #if QtGui.QApplication.keyboardModifiers() == Qt.ShiftModifier:
+                #retVal = 1
+            #QtCore.qDebug("TiId:%i, value:%s, gi.selected:%s" % (self.tiId, str(retVal), str(self.graphicsItem.isSelected())))
+            #self.simulation.updateSelection(self.tiId, retVal)
+        #return retVal
 
 
 class ResizableItem(TrackItem):

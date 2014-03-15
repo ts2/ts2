@@ -80,6 +80,26 @@ class EditorWindow(QtGui.QMainWindow):
         self.closeAction.setStatusTip(closeActionTip)
         self.closeAction.triggered.connect(self.close)
 
+        self.panToolAction = QtGui.QAction(self.tr("&Pan tool"), self)
+        panToolActionTip = self.tr("Set the pan tool")
+        self.panToolAction.setToolTip(panToolActionTip)
+        self.panToolAction.setStatusTip(panToolActionTip)
+        self.panToolAction.setCheckable(True)
+        self.panToolAction.triggered.connect(self.setPanTool)
+
+        self.selectionToolAction = QtGui.QAction(self.tr("&Selection tool"),
+                                                 self)
+        selectionToolActionTip = self.tr("Set the selection tool")
+        self.selectionToolAction.setToolTip(selectionToolActionTip)
+        self.selectionToolAction.setStatusTip(selectionToolActionTip)
+        self.selectionToolAction.setCheckable(True)
+        self.selectionToolAction.triggered.connect(self.setSelectionTool)
+
+        self.toolActions = QtGui.QActionGroup(self)
+        self.toolActions.addAction(self.panToolAction)
+        self.toolActions.addAction(self.selectionToolAction)
+        self.panToolAction.setChecked(True)
+
         self.copyAction = QtGui.QAction(self.tr("&Copy"), self)
         self.copyAction.setShortcut(QtGui.QKeySequence.Copy)
         copyActionTip = self.tr("Copy the current selection to the clipboard")
@@ -129,6 +149,9 @@ class EditorWindow(QtGui.QMainWindow):
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.closeAction)
         self.editMenu = self.menuBar().addMenu(self.tr("&Edit"))
+        self.editMenu.addAction(self.panToolAction)
+        self.editMenu.addAction(self.selectionToolAction)
+        self.editMenu.addSeparator()
         self.editMenu.addAction(self.copyAction)
         self.editMenu.addAction(self.pasteAction)
         self.editMenu.addAction(self.deleteAction)
@@ -522,6 +545,16 @@ class EditorWindow(QtGui.QMainWindow):
                 self.editor.initialize()
 
     @QtCore.pyqtSlot()
+    def setPanTool(self):
+        """Sets the pan tool."""
+        self.sceneryView.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+
+    @QtCore.pyqtSlot()
+    def setSelectionTool(self):
+        """Sets the selection tool."""
+        self.sceneryView.setDragMode(QtGui.QGraphicsView.RubberBandDrag)
+
+    @QtCore.pyqtSlot()
     def copyItems(self):
         """Copy the current selection to the clipboard."""
         self.editor.copyToClipboard()
@@ -548,7 +581,7 @@ class EditorWindow(QtGui.QMainWindow):
         """Select all the items on the scene."""
         self.editor.clearSelection()
         for tiId in self.editor.trackItems:
-            self.editor.updateSelection(tiId, Qt.ShiftModifier)
+            self.editor.updateSelection(tiId, True)
 
     @QtCore.pyqtSlot(int)
     def showHideDockWidgets(self, index):
@@ -566,11 +599,14 @@ class EditorWindow(QtGui.QMainWindow):
         """Updates the enabled menu actions depending on the selected tab."""
         if index == 1:
             # Scenery panel
+            self.selectionToolAction.setEnabled(True)
             self.copyAction.setEnabled(True)
             self.pasteAction.setEnabled(True)
             self.deleteAction.setEnabled(True)
             self.selectAllAction.setEnabled(True)
         else:
+            self.panToolAction.setChecked(True)
+            self.selectionToolAction.setEnabled(False)
             self.copyAction.setEnabled(False)
             self.pasteAction.setEnabled(False)
             self.deleteAction.setEnabled(False)
