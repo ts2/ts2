@@ -14,9 +14,6 @@
 #
 #   You should have received a copy of the GNU General Public License
 #   along with this program; if not, write to the
-        #if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            #x, y = eval(value.strip('()'))
-            #self.origin = QtCore.QPointF(x, y)
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
@@ -26,7 +23,42 @@ from PyQt4.QtCore import Qt
 from ts2 import utils
 from ts2.scenery import helper
 
-translate = QtCore.QCoreApplication.translate
+translate = QtGui.qApp.translate
+
+
+def qPointFStrizer(attr):
+    """Returns a function giving the str representation of attr, the
+    latter being a QPointF property."""
+    def getter(self):
+        return "(%i, %i)" % (getattr(self, attr).x(),
+                             getattr(self, attr).y())
+    return getter
+
+def qPointFDestrizer(attr):
+    """Returns a function which updates a QPointF property from a string
+    representation of a QPointF."""
+    def setter(self, value):
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            x, y = eval(value.strip('()'))
+            setattr(self, attr, QtCore.QPointF(x, y))
+    return setter
+
+def qPointFTupler(attr):
+    """Returns a function giving the tuple representation of attr, the
+    latter being a QPointF property."""
+    def getter(self):
+        return getattr(self, attr).x(), getattr(self, attr).y()
+    return getter
+
+def qPointFDetupler(attr):
+    """Returns a function which updates a QPointF property from a tuple
+    representation of a QPointF."""
+    def setter(self, value):
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            x, y = value
+            setattr(self, attr, QtCore.QPointF(x, y))
+    return setter
+
 
 class TrackItem(QtCore.QObject):
     """A TrackItem is a piece of scenery. Each item has defined coordinates in
@@ -62,15 +94,17 @@ class TrackItem(QtCore.QObject):
         self._conflictTrackItem = None
         self._gi = {}
         self.toBeDeselected = False
+        self.properties = self.getProperties()
 
     def __del__(self):
         """Destructor for the TrackItem class"""
-        for gi in self._gi.values():
-            self.simulation.scene.removeItem(gi)
+        self.removeAllGraphicsItems()
         super().__del__()
 
-    properties = [helper.TIProperty("tiTypeStr",
-                                    translate("TrackItem", "Type"), True),
+    @staticmethod
+    def getProperties():
+        return [helper.TIProperty("tiTypeStr",
+                                  translate("TrackItem", "Type"), True),
                   helper.TIProperty("tiId",
                                     translate("TrackItem", "id"), True),
                   helper.TIProperty("name",
@@ -84,10 +118,10 @@ class TrackItem(QtCore.QObject):
                                     translate("TrackItem",
                                               "Conflict item ID"))]
 
-    multiProperties = [helper.TIProperty("tiId",
-                                    translate("TrackItem", "id"), True),
-                  helper.TIProperty("maxSpeed",
-                                    translate("TrackItem",
+    @staticmethod
+    def getMultiProperties():
+        return [helper.TIProperty("tiId", translate("TrackItem", "id"), True),
+                helper.TIProperty("maxSpeed", translate("TrackItem",
                                               "Maximum speed (m/s)"))]
 
     fieldTypes = {
@@ -118,7 +152,6 @@ class TrackItem(QtCore.QObject):
                     "trainpresent":"VARCHAR(255)"
                  }
 
-
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
         database"""
@@ -141,41 +174,6 @@ class TrackItem(QtCore.QObject):
                     "ptiid":previousTiId,
                     "ntiid":nextTiId
                 }
-
-    ### Function factories #################################################
-
-    def qPointFStrizer(attr):
-        """Returns a function giving the str representation of attr, the
-        latter being a QPointF property."""
-        def getter(self):
-            return "(%i, %i)" % (getattr(self, attr).x(),
-                                 getattr(self, attr).y())
-        return getter
-
-    def qPointFDestrizer(attr):
-        """Returns a function which updates a QPointF property from a string
-        representation of a QPointF."""
-        def setter(self, value):
-            if self.simulation.context == utils.Context.EDITOR_SCENERY:
-                x, y = eval(value.strip('()'))
-                setattr(self, attr, QtCore.QPointF(x, y))
-        return setter
-
-    def qPointFTupler(attr):
-        """Returns a function giving the tuple representation of attr, the
-        latter being a QPointF property."""
-        def getter(self):
-            return (getattr(self, attr).x(), getattr(self, attr).y())
-        return getter
-
-    def qPointFDetupler(attr):
-        """Returns a function which updates a QPointF property from a tuple
-        representation of a QPointF."""
-        def setter(self, value):
-            if self.simulation.context == utils.Context.EDITOR_SCENERY:
-                x, y = value
-                setattr(self, attr, QtCore.QPointF(x, y))
-        return setter
 
     ### Properties #########################################################
 
@@ -443,6 +441,12 @@ class TrackItem(QtCore.QObject):
         for gi in self._gi.values():
             gi.update()
 
+    def removeAllGraphicsItems(self):
+        """Removes all the graphics items associated with this TrackItem
+        from the scene."""
+        for gi in self._gi.values():
+            self.simulation.scene.removeItem(gi)
+
     @QtCore.pyqtSlot()
     def updateGraphics(self):
         self.__updateGraphics()
@@ -510,9 +514,9 @@ class TrackItem(QtCore.QObject):
         its mouseMoveEvent. The implementation in the base class TrackItem
         begins a drag operation."""
         if itemId == 0:
-            if event.buttons() == Qt.LeftButton and \
-            self.simulation.context == utils.Context.EDITOR_SCENERY:
-                if QtCore.QLineF(event.scenePos(), \
+            if (event.buttons() == Qt.LeftButton and
+                    self.simulation.context == utils.Context.EDITOR_SCENERY):
+                if QtCore.QLineF(event.scenePos(),
                       event.buttonDownScenePos(Qt.LeftButton)).length() < 3.0:
                     return
                 drag = QtGui.QDrag(event.widget())
@@ -569,7 +573,9 @@ class ResizableItem(TrackItem):
         yf = float(parameters["yf"])
         self._end = QtCore.QPointF(xf, yf)
 
-    properties = [helper.TIProperty("tiTypeStr",
+    @staticmethod
+    def getProperties():
+        return [helper.TIProperty("tiTypeStr",
                                     translate("LineItem", "Type"), True),
                   helper.TIProperty("tiId",
                                     translate("LineItem", "id"), True),
@@ -613,8 +619,8 @@ class ResizableItem(TrackItem):
             self.updateGraphics()
 
     end = property(TrackItem._getEnd, _setEnd)
-    endStr = property(TrackItem.qPointFStrizer("end"),
-                      TrackItem.qPointFDestrizer("end"))
+    endStr = property(qPointFStrizer("end"),
+                      qPointFDestrizer("end"))
 
     def _getStart(self):
         """Returns the start QPointF of the TrackItem. The start is
@@ -642,7 +648,7 @@ class ResizableItem(TrackItem):
         else:
             return QtCore.QRectF(0, 0, x2 - x1, y2 - y1)
 
-    def graphicsMouseMoveEvent(self, event, itemId):
+    def graphicsMouseMoveEvent(self, event, itemId=0):
         """This function is called by the owned TrackGraphicsItem to handle
         its mouseMoveEvent. Reimplemented in the ResizableItem class to begin
         a drag operation on corners."""

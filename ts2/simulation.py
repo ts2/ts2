@@ -21,12 +21,11 @@
 from math import sqrt
 import sqlite3
 
-from PyQt4 import QtCore, QtSql, QtGui
-from PyQt4.QtCore import Qt
+from PyQt4 import QtCore, QtGui
 
 from ts2 import utils, routing, trains
 from ts2.game import logger, scorer
-from ts2.scenery import abstract, placeitem, lineitem, platformitem, \
+from ts2.scenery import placeitem, lineitem, platformitem, \
                         invisiblelinkitem, enditem, pointsitem, \
                         textitem
 from ts2.scenery.signals import signaltype, signalitem
@@ -38,7 +37,7 @@ class Simulation(QtCore.QObject):
     def __init__(self, simulationWindow):
         """ Constructor for the Simulation class. """
         super().__init__()
-        self._database = None
+        self._database = ""
         self.simulationWindow = simulationWindow
         self._scene = QtGui.QGraphicsScene()
         self._timer = QtCore.QTimer(self)
@@ -334,11 +333,11 @@ class Simulation(QtCore.QObject):
         _selectedSignal and this signal. If it is the case, and that no other
         active route conflicts with this route, it is activated.
 
-        The following signals are emited depending of the situation:
+        The following signals are emitted depending of the situation:
         - routeActivated
         - noRouteBetweenSignals
         - conflictingRoute
-        @param si Pointer to the signalItem owner of the signalGraphicsItem
+        @param siId ID of the signalItem owner of the signalGraphicsItem
         that has been left-clicked."""
         si = self._trackItems[siId]
         if self._selectedSignal is None or self._selectedSignal == si:
@@ -377,7 +376,7 @@ class Simulation(QtCore.QObject):
         SignalItem.signalUnselected(SignalItem), which itself is emitted when
         a signal is right-clicked. It is in charge of deactivating the routes
         starting from this signal.
-        @param si Pointer to the signalItem owner of the signalGraphicsItem
+        @param siId ID of the signalItem owner of the signalGraphicsItem
         that has been right-clicked."""
         si = self._trackItems[siId]
         if self._selectedSignal is not None:
@@ -561,7 +560,8 @@ class Simulation(QtCore.QObject):
             elif tiType == "ZT":
                 ti = textitem.TextItem(self, parameters)
             else:
-                ti = abstract.TrackItem(self, parameters)
+                self.messageLogger.addMessage(self.tr("File error. Unknown tiType %s") % tiType)
+                continue
             self.makeTrackItemSignalSlotConnections(ti)
             self._trackItems[tiId] = ti
 
@@ -603,8 +603,8 @@ class Simulation(QtCore.QObject):
         otherwise"""
         for r in self._routes.values():
             if r.links(si1, si2):
-                return r;
-        return None;
+                return r
+        return None
 
     def linkTrackItems(self, conn):
         """Link trackItems using the data from the database connection."""
@@ -676,7 +676,7 @@ class Simulation(QtCore.QObject):
 
     def checkTrackItemsLinks(self):
         """Checks that all TrackItems are linked together"""
-        result = True;
+        result = True
         self.messageLogger.addMessage(self.tr("Checking TrackItem links"),
                                       logger.Message.SOFTWARE_MSG)
         for ti in self._trackItems.values():

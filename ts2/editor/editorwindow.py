@@ -18,7 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtGui, QtCore, QtSql
+from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
 
 from ts2 import scenery
@@ -35,7 +35,7 @@ class EditorWindow(QtGui.QMainWindow):
         """Constructor for the EditorWindow class"""
         super().__init__(mainWindow)
         self.setGeometry(100, 100, 1024, 768)
-        self.setWindowTitle( \
+        self.setWindowTitle(
                         self.tr("ts2 - Train Signalling Simulation - Editor"))
         self._mainWindow = mainWindow
 
@@ -170,16 +170,16 @@ class EditorWindow(QtGui.QMainWindow):
         # Dock Widgets
         # >> TrackItems panel: TI Library
         self.toolsPanel = QtGui.QDockWidget(self.tr("Tools"), self)
-        self.toolsPanel.setFeatures( \
-                                QtGui.QDockWidget.DockWidgetMovable| \
+        self.toolsPanel.setFeatures(
+                                QtGui.QDockWidget.DockWidgetMovable|
                                 QtGui.QDockWidget.DockWidgetFloatable)
         self.trackItemsLibraryView = \
                                 QtGui.QGraphicsView(self.editor.libraryScene)
         self.trackItemsLibraryView.setBackgroundBrush(QtGui.QBrush(Qt.black))
         self.trackItemsLibraryView.setInteractive(True)
-        self.trackItemsLibraryView.setRenderHint( \
+        self.trackItemsLibraryView.setRenderHint(
                                 QtGui.QPainter.Antialiasing, False)
-        self.trackItemsLibraryView.setDragMode( \
+        self.trackItemsLibraryView.setDragMode(
                                 QtGui.QGraphicsView.ScrollHandDrag)
         self.trackItemsLibraryView.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         # >> TrackItems panel: layout
@@ -235,20 +235,20 @@ class EditorWindow(QtGui.QMainWindow):
         self.sceneryView.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
         self.sceneryView.setAcceptDrops(True)
         self.sceneryView.setBackgroundBrush(QtGui.QBrush(Qt.black))
-        self.editor.sceneryIsValidated.connect(\
+        self.editor.sceneryIsValidated.connect(
                                     self.sceneryView.setDisabled)
-        self.unlockSceneryBtn = QtGui.QPushButton(\
+        self.unlockSceneryBtn = QtGui.QPushButton(
                                     self.tr("Unlock Scenery"), sceneryTab)
         self.unlockSceneryBtn.setEnabled(False)
-        self.unlockSceneryBtn.clicked.connect(\
+        self.unlockSceneryBtn.clicked.connect(
                                     self.editor.invalidateScenery)
-        self.editor.sceneryIsValidated.connect(\
+        self.editor.sceneryIsValidated.connect(
                                     self.unlockSceneryBtn.setEnabled)
-        self.validateSceneryBtn = QtGui.QPushButton(\
+        self.validateSceneryBtn = QtGui.QPushButton(
                                     self.tr("Validate Scenery"), sceneryTab)
-        self.validateSceneryBtn.clicked.connect(\
+        self.validateSceneryBtn.clicked.connect(
                                     self.validateSceneryBtnClicked)
-        self.editor.sceneryIsValidated.connect(\
+        self.editor.sceneryIsValidated.connect(
                                     self.validateSceneryBtn.setDisabled)
         self.zoomWidget = widgets.ZoomWidget(sceneryTab)
         self.zoomWidget.valueChanged.connect(self.zoom)
@@ -309,14 +309,14 @@ class EditorWindow(QtGui.QMainWindow):
         self.trainTypesView = ts2.editor.views.TrainTypesEditorView(
                                                                 trainTypesTab)
         self.trainTypesView.setModel(self.editor.trainTypesModel)
-        self.editor.trainTypesChanged.connect( \
+        self.editor.trainTypesChanged.connect(
                                 self.trainTypesView.model().reset)
-        self.editor.trainTypesChanged.connect( \
+        self.editor.trainTypesChanged.connect(
                                 self.trainTypesView.resizeColumnsToContents)
-        self.addTrainTypeBtn = QtGui.QPushButton( \
+        self.addTrainTypeBtn = QtGui.QPushButton(
                                 self.tr("Add new train type"), trainTypesTab)
         self.addTrainTypeBtn.clicked.connect(self.addTrainTypeBtnClicked)
-        self.delTrainTypeBtn = QtGui.QPushButton( \
+        self.delTrainTypeBtn = QtGui.QPushButton(
                                 self.tr("Remove train type"), trainTypesTab)
         self.delTrainTypeBtn.clicked.connect(self.delTrainTypeBtnClicked)
         hgrid = QtGui.QHBoxLayout()
@@ -497,24 +497,24 @@ class EditorWindow(QtGui.QMainWindow):
                            QtCore.QDir.currentPath(),
                            self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
-            QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+            QtGui.qApp.setOverrideCursor(Qt.WaitCursor)
             self.editor.load(fileName)
             self.setWindowTitle(
                     self.tr("ts2 - Train Signalling Simulation - Editor - %s")
                     % fileName)
-            QtGui.QApplication.restoreOverrideCursor()
+            QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def saveSimulation(self):
         """Saves the simulation to the database"""
         if self.editor.database is None:
             self.saveAsSimulation()
-        QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+        QtGui.qApp.setOverrideCursor(Qt.WaitCursor)
         try:
             self.editor.save()
         except:
             ts2.gui.dialogs.ExceptionDialog.popupException(self)
-        QtGui.QApplication.restoreOverrideCursor()
+        QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def saveAsSimulation(self):
@@ -621,9 +621,9 @@ class EditorWindow(QtGui.QMainWindow):
     @QtCore.pyqtSlot()
     def validateSceneryBtnClicked(self):
         """Validates the scenery by calling the editor to perform the task."""
-        QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+        QtGui.qApp.setOverrideCursor(Qt.WaitCursor)
         self.editor.validateScenery()
-        QtGui.QApplication.restoreOverrideCursor()
+        QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def delRouteBtnClicked(self):
@@ -775,9 +775,9 @@ class EditorWindow(QtGui.QMainWindow):
                                     "Are you sure you want to continue?"),
                             QtGui.QMessageBox.Yes|QtGui.QMessageBox.No
                                          ) == QtGui.QMessageBox.Yes:
-                QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+                QtGui.qApp.setOverrideCursor(Qt.WaitCursor)
                 self.editor.importServicesFromFile(fileName)
-                QtGui.QApplication.restoreOverrideCursor()
+                QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def exportServicesBtnClicked(self):
@@ -805,9 +805,9 @@ class EditorWindow(QtGui.QMainWindow):
                                 "Are you sure you want to continue?"),
                         QtGui.QMessageBox.Yes|QtGui.QMessageBox.No
                                         ) == QtGui.QMessageBox.Yes:
-            QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+            QtGui.qApp.setOverrideCursor(Qt.WaitCursor)
             self.editor.setupTrainsFromServices()
-            QtGui.QApplication.restoreOverrideCursor()
+            QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def reverseTrainBtnClicked(self):

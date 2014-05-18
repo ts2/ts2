@@ -24,7 +24,7 @@ from ts2.scenery import helper, abstract
 from ts2 import utils, routing
 from math import sqrt
 
-translate = QtCore.QCoreApplication.translate
+translate = QtGui.qApp.translate
 
 
 class LineItem(abstract.ResizableItem):
@@ -80,8 +80,9 @@ class LineItem(abstract.ResizableItem):
         self.simulation.scene.removeItem(self._tli)
         super().__del__()
 
-
-    properties = abstract.ResizableItem.properties + [
+    @staticmethod
+    def getProperties():
+        return abstract.ResizableItem.getProperties() + [
                   helper.TIProperty("placeCode",
                                     translate("LineItem", "Place code")),
                   helper.TIProperty("trackCode",

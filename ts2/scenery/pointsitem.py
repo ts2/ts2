@@ -23,7 +23,22 @@ from PyQt4.QtCore import Qt
 from ts2 import utils
 from ts2.scenery import helper, abstract
 
-translate = QtCore.QCoreApplication.translate
+translate = QtGui.qApp.translate
+
+def getEndNames():
+    return [translate("PointsItem", "N"),
+            translate("PointsItem", "NE"),
+            translate("PointsItem", "E"),
+            translate("PointsItem", "SE"),
+            translate("PointsItem", "S"),
+            translate("PointsItem", "SW"),
+            translate("PointsItem", "W"),
+            translate("PointsItem", "NW")]
+
+def getEndValues():
+    return [(0, -5), (5, -5), (5, 0), (5, 5),
+            (0, 5), (-5, 5), (-5, 0), (-5, -5)]
+
 
 class PointsItem(abstract.TrackItem):
     """A points item is a three-way junction.
@@ -52,6 +67,8 @@ class PointsItem(abstract.TrackItem):
         self._pointsReversed = False
         self._reverseItem = None
         self.defaultZValue = 60
+        self.endNames = getEndNames()
+        self.endValues = getEndValues()
         pgi = helper.TrackGraphicsItem(self)
         pgi.setPos(self._center)
         pgi.setZValue(self.defaultZValue)
@@ -61,18 +78,9 @@ class PointsItem(abstract.TrackItem):
         self.simulation.registerGraphicsItem(pgi)
         self.updateGraphics()
 
-    endNames = [translate("PointsItem", "N"),
-                translate("PointsItem","NE"),
-                translate("PointsItem","E"),
-                translate("PointsItem","SE"),
-                translate("PointsItem","S"),
-                translate("PointsItem","SW"),
-                translate("PointsItem","W"),
-                translate("PointsItem","NW")]
-    endValues = [(0, -5), (5, -5), (5, 0), (5, 5),
-                 (0, 5), (-5, 5), (-5, 0), (-5, -5)]
-
-    properties = abstract.TrackItem.properties + [
+    @staticmethod
+    def getProperties():
+        return abstract.TrackItem.getProperties() + [
                             helper.TIProperty("commonEndTuple",
                                               translate("PointsItem",
                                                         "Common End"),
@@ -188,12 +196,12 @@ class PointsItem(abstract.TrackItem):
     reverseEnd = property(_getReverseEnd, _setReverseEnd)
     middle = property(_getMiddle)
 
-    commonEndTuple = property(abstract.TrackItem.qPointFTupler("commonEnd"),
-                            abstract.TrackItem.qPointFDetupler("commonEnd"))
-    normalEndTuple = property(abstract.TrackItem.qPointFTupler("normalEnd"),
-                            abstract.TrackItem.qPointFDetupler("normalEnd"))
-    reverseEndTuple = property(abstract.TrackItem.qPointFTupler("reverseEnd"),
-                            abstract.TrackItem.qPointFDetupler("reverseEnd"))
+    commonEndTuple = property(abstract.qPointFTupler("commonEnd"),
+                            abstract.qPointFDetupler("commonEnd"))
+    normalEndTuple = property(abstract.qPointFTupler("normalEnd"),
+                            abstract.qPointFDetupler("normalEnd"))
+    reverseEndTuple = property(abstract.qPointFTupler("reverseEnd"),
+                            abstract.qPointFDetupler("reverseEnd"))
 
     # Other properties
 

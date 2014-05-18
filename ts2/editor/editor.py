@@ -116,7 +116,7 @@ class Editor(simulation.Simulation):
         self._serviceLinesModel = trains.ServiceLinesModel(self)
         self._trainsModel = trains.TrainsModel(self)
         self._optionsModel = OptionsModel(self)
-        self._database = None
+        self._database = ""
         self._nextId = 1
         self._nextRouteId = 1
         self._grid = 5.0
@@ -435,12 +435,11 @@ class Editor(simulation.Simulation):
         """Saves the TrackItem instances of this editor in the database"""
         conn.execute("DROP TABLE IF EXISTS trackitems")
         fieldString = "("
-        for name, type in abstract.TrackItem.fieldTypes.items():
-            fieldString += "%s %s," % (name, type)
+        for name, fieldType in abstract.TrackItem.fieldTypes.items():
+            fieldString += "%s %s," % (name, fieldType)
         fieldString = fieldString[:-1] + ")"
         conn.execute("CREATE TABLE trackitems %s" % fieldString)
         for ti in self._trackItems.values():
-            keysCodes = map(lambda a:":%s" % a, ti.getSaveParameters().keys())
             query = "INSERT INTO trackitems %s VALUES (" % \
                                     str(tuple(ti.getSaveParameters().keys()))
             for k in ti.getSaveParameters().keys():
@@ -474,10 +473,10 @@ class Editor(simulation.Simulation):
 
         # Save the directions
         conn.execute("DROP TABLE IF EXISTS directions")
-        conn.execute("CREATE TABLE directions (\n" \
-                        "routenum INTEGER,\n" \
-                        "tiid INTEGER,\n" \
-                        "direction INTEGER)\n" \
+        conn.execute("CREATE TABLE directions (\n"
+                        "routenum INTEGER,\n"
+                        "tiid INTEGER,\n"
+                        "direction INTEGER)\n"
                     )
         for route in self._routes.values():
             for tiId, direction in route.directions.items():
@@ -485,10 +484,10 @@ class Editor(simulation.Simulation):
                         "(routenum, tiid, direction) " \
                         "VALUES " \
                         "(:routenum, :tiid, :direction)"
-                parameters = { \
-                        "routenum":route.routeNum, \
-                        "tiid":tiId, \
-                        "direction":direction \
+                parameters = {
+                        "routenum":route.routeNum,
+                        "tiid":tiId,
+                        "direction":direction
                              }
                 conn.execute(query, parameters)
         conn.commit()
@@ -496,13 +495,13 @@ class Editor(simulation.Simulation):
     def saveTrainTypes(self, conn):
         """Saves the TrainType instances of this editor in the database"""
         conn.execute("DROP TABLE IF EXISTS traintypes")
-        conn.execute("CREATE TABLE traintypes (\n" \
-                            "code VARCHAR(10),\n" \
-                            "description VARCHAR(200),\n" \
-                            "maxspeed DOUBLE,\n" \
-                            "stdaccel DOUBLE,\n" \
-                            "stdbraking DOUBLE,\n" \
-                            "emergbraking DOUBLE,\n" \
+        conn.execute("CREATE TABLE traintypes (\n"
+                            "code VARCHAR(10),\n"
+                            "description VARCHAR(200),\n"
+                            "maxspeed DOUBLE,\n"
+                            "stdaccel DOUBLE,\n"
+                            "stdbraking DOUBLE,\n"
+                            "emergbraking DOUBLE,\n"
                             "tlength DOUBLE)")
 
         for trainType in self._trainTypes.values():
@@ -512,13 +511,13 @@ class Editor(simulation.Simulation):
                     "VALUES " \
                     "(:code, :description, :maxspeed, :stdaccel, "\
                     ":stdbraking, :emergbraking, :tlength)"
-            parameters = { \
-                    "code":trainType.code, \
-                    "description":trainType.description, \
-                    "maxspeed":trainType.maxSpeed, \
-                    "stdaccel":trainType.stdAccel, \
-                    "stdbraking":trainType.stdBraking, \
-                    "emergbraking":trainType.emergBraking, \
+            parameters = {
+                    "code":trainType.code,
+                    "description":trainType.description,
+                    "maxspeed":trainType.maxSpeed,
+                    "stdaccel":trainType.stdAccel,
+                    "stdbraking":trainType.stdBraking,
+                    "emergbraking":trainType.emergBraking,
                     "tlength":trainType.length}
             conn.execute(query, parameters)
         conn.commit()
@@ -539,7 +538,7 @@ class Editor(simulation.Simulation):
                     "plannedtraintype) VALUES " \
                     "(:servicecode, :description, :nextservice, "\
                     ":autoreverse, :plannedtraintype)"
-            parameters = { \
+            parameters = {
                     "servicecode":service.serviceCode,
                     "description":service.description,
                     "nextservice":service.nextServiceCode,
@@ -794,8 +793,7 @@ class Editor(simulation.Simulation):
     def deleteTrackItem(self, tiId):
         """Delete the TrackItem given by tiId."""
         tiId = int(tiId)
-        for gi in self._trackItems[tiId]._gi.values():
-            self._scene.removeItem(gi)
+        self._trackItems[tiId].removeAllGraphicsItems()
         del self._trackItems[tiId]
 
     def deleteTrackItemLinks(self):
@@ -916,7 +914,7 @@ class Editor(simulation.Simulation):
                                 routing.Route(self, self._nextRouteId, si, ti)
                         self._nextRouteId += 1
                         for tiId, direction in directions.items():
-                            self._preparedRoute.appendDirection(tiId, \
+                            self._preparedRoute.appendDirection(tiId,
                                                                 direction)
                         self._preparedRoute.createPositionsList()
                         self.selectedRoute = self._preparedRoute
@@ -974,13 +972,13 @@ class Editor(simulation.Simulation):
     def addTrainType(self, code):
         """Adds an empty TrainType to the trainTypes list."""
         if self.context == utils.Context.EDITOR_TRAINTYPES:
-            parameters = { \
-                    "code":code, \
-                    "description":"<Stock type description>", \
-                    "maxspeed":"25.0", \
-                    "stdaccel":"0.5", \
-                    "stdbraking":"0.5", \
-                    "emergbraking":"1.5", \
+            parameters = {
+                    "code":code,
+                    "description":"<Stock type description>",
+                    "maxspeed":"25.0",
+                    "stdaccel":"0.5",
+                    "stdbraking":"0.5",
+                    "emergbraking":"1.5",
                     "tlength":"100"}
             self._trainTypes[code] = trains.TrainType(self, parameters)
             self.trainTypesChanged.emit()
@@ -996,10 +994,10 @@ class Editor(simulation.Simulation):
     def addService(self, code):
         """Adds an empty Service to the services list."""
         if self.context == utils.Context.EDITOR_SERVICES:
-            parameters = { \
-                    "servicecode":code, \
-                    "description":"<Service description>", \
-                    "nextservice":"", \
+            parameters = {
+                    "servicecode":code,
+                    "description":"<Service description>",
+                    "nextservice":"",
                     "autoreverse":0}
             self._services[code] = trains.Service(self, parameters)
             self.servicesChanged.emit()

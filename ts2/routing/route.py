@@ -92,7 +92,7 @@ class Route(QtCore.QObject):
     are static and defined in the game file. The player can only activate or
     deactivate them.
     """
-    def __init__(self, simulation, routeNum, beginSignal, endSignal, \
+    def __init__(self, simulation, routeNum, beginSignal, endSignal,
                                                             initialState = 0):
         """Constructor of the Route class. After construction, the directions
         dictionary must be filled and then the _positions list must be
@@ -251,7 +251,7 @@ class Route(QtCore.QObject):
                     if pos.previousTI!=pos.trackItem.activeRoutePreviousItem:
                         # The direction of this route is different from that
                         # of the active route of the TI
-                        return False;
+                        return False
                     if pos.trackItem.activeRoute == self:
                         # Always allow to setup the same route again
                         return True
@@ -262,10 +262,10 @@ class Route(QtCore.QObject):
                         # signal when it is cleared by a train still
                         # on the route
                         flag = True
-                elif flag == True:
+                elif flag:
                     # We had a route with same direction but does not end with
                     # the same signal
-                    return False;
+                    return False
         return True
 
 
@@ -282,9 +282,9 @@ class Route(QtCore.QObject):
     def __eq__(self, other):
         """Two routes are equal if they have the save routeNum or if both
         beginSignal and endSignal are equal"""
-        if self.routeNum == other.routeNum or \
-          (self.beginSignal == other.beginSignal and \
-           self.endSignal == other.endSignal):
+        if (self.routeNum == other.routeNum or
+            (self.beginSignal == other.beginSignal and
+             self.endSignal == other.endSignal)):
             return True
         else:
             return False
@@ -292,18 +292,18 @@ class Route(QtCore.QObject):
     def __ne__(self, other):
         """Two routes are not equal if they have different routeNum and if
         at least one of beginSignal or endSignal is different"""
-        if self.routeNum != other.routeNum and \
-          (self.beginSignal != other.beginSignal or \
-           self.endSignal != other.endSignal):
+        if (self.routeNum != other.routeNum and
+            (self.beginSignal != other.beginSignal or
+             self.endSignal != other.endSignal)):
             return True
         else:
             return False
 
     def __lt__(self, other):
         """Route is lower than other when its routeNum is lower"""
-        return (self.routeNum < other.routeNum)
+        return self.routeNum < other.routeNum
 
     def __gt__(self, other):
         """Route is greater than other when its routeNum is greater"""
-        return (self.routeNum > other.routeNum)
+        return self.routeNum > other.routeNum
 

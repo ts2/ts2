@@ -22,10 +22,10 @@ from math import sqrt
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 
-from ts2 import scenery, routing, utils
+from ts2 import routing, utils
 from ts2.scenery.signals import signalaspect
 
-translate = QtGui.QApplication.translate
+translate = QtGui.qApp.translate
 
 class TrainStatus(QtCore.QObject):
     """This class holds the enum describing the status of a train"""
@@ -65,12 +65,12 @@ class TrainListModel(QtCore.QAbstractTableModel):
         super().__init__()
         self.simulation = simulation
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=QtCore.QModelIndex(), *args):
         """Returns the number of rows of the model, corresponding to the
         number of trains of the simulation"""
         return len(self.simulation.trains)
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=QtCore.QModelIndex(), *args):
         """Returns the number of columns of the model"""
         return 8
 
@@ -156,12 +156,12 @@ class TrainsModel(QtCore.QAbstractTableModel):
         super().__init__()
         self._editor = editor
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args):
         """Returns the number of rows of the model, corresponding to the
         number of trains of the editor"""
         return len(self._editor.trains)
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args):
         """Returns the number of columns of the model"""
         return 7
 
@@ -208,7 +208,7 @@ class TrainsModel(QtCore.QAbstractTableModel):
                 return ""
         return None
 
-    def setData(self, index, value, role):
+    def setData(self, index, value, role=None):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
             if index.column() == 1:
@@ -252,14 +252,14 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
         self.simulation = simulation
         self._train = None
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent = QtCore.QModelIndex(), *args):
         """Returns the number of rows in the model"""
         if self._train is not None:
             return 12
         else:
             return 0
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent = QtCore.QModelIndex(), *args):
         """Returns the number of columns of the model"""
         if self._train is not None:
             return 2
@@ -498,7 +498,7 @@ class Train(QtCore.QObject):
         """Setter function for the status property."""
         oldStatus = self._status
         if self._status == TrainStatus.INACTIVE:
-            if (value == TrainStatus.RUNNING or value == TrainStatus.STOPPED):
+            if value == TrainStatus.RUNNING or value == TrainStatus.STOPPED:
                 self._status = value
                 self.updateStatus(0)
         elif self._status == TrainStatus.RUNNING:
@@ -524,7 +524,8 @@ class Train(QtCore.QObject):
     def nextPlaceIndex(self):
         """Returns the index of the next place, that is the index of the
         ServiceLine of the current service pointing to the next place the
-        train is scheduled to."""
+        train is scheduled to.
+        :rtype : int"""
         return self._nextPlaceIndex
 
     @nextPlaceIndex.setter
@@ -554,7 +555,7 @@ class Train(QtCore.QObject):
             try:
                 self._trainType = self.simulation.trainTypes[value]
             except KeyError:
-                return None
+                pass
 
     @property
     def speed(self):
@@ -695,8 +696,7 @@ class Train(QtCore.QObject):
         """Activate this Train if time is after this Train appearTime."""
         if self.status == TrainStatus.INACTIVE:
             realAppearTime = self._appearTime.addSecs(self.initialDelay)
-            if realAppearTime < time and \
-               realAppearTime >= self.simulation.startTime.addSecs(-3600):
+            if self.simulation.startTime.addSecs(-3600) <= realAppearTime < time:
                 self._speed = self._initialSpeed
                 # Signals update
                 signalAhead = self.findNextSignal()
@@ -897,7 +897,6 @@ class Train(QtCore.QObject):
         @param advanceLength : The length that the train has advanced since
         the last call to this function."""
         trainTail = self._trainHead - self._trainType.length
-        oldTrainHead = self._trainHead - advanceLength
         oldTrainTail = trainTail - advanceLength
         # Draw the train in its new position
         self._trainHead.trackItem.setTrainHead(self._trainHead.positionOnTI,
@@ -1052,7 +1051,6 @@ class Train(QtCore.QObject):
             self._speed = 0
             return
 
-        warningSpeed = float(self.simulation.option("warningSpeed"))
         maxSpeed = self.getMaximumSpeed()
         # k is the gain factor to set acceleration from the difference
         # between current speed and target speed

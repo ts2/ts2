@@ -72,7 +72,7 @@ class DurationProba(QtCore.QObject):
 
     def isNull(self):
         """Returns true if the DurationProba instance has no data."""
-        return (self._probaList is None)
+        return self._probaList is None
 
     def yieldValue(self):
         """Returns a random value in the bounds and probabilities given by
@@ -88,7 +88,7 @@ class DurationProba(QtCore.QObject):
         r0 = 100 * random.random()
         seg = 0
         for i in range(len(probas) - 1):
-            if r0 > probas[i] and r0 < probas[i+1]:
+            if probas[i] < r0 < probas[i+1]:
                 break
             seg += 1
         else:

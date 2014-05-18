@@ -18,10 +18,9 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from ts2 import utils
-from ts2.scenery import lineitem, abstract
+from ts2.scenery import lineitem
 
 
 class InvisibleLinkItem(lineitem.LineItem):

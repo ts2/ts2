@@ -21,9 +21,6 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 
-import ts2
-from ts2 import utils
-
 translate = QtCore.QCoreApplication.translate
 
 class TrackGraphicsItem(QtGui.QGraphicsItem):
@@ -109,7 +106,7 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
                 self.multiType = True
                 break
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args):
         """Returns the number of rows of the model, corresponding to the
         number of properties."""
         if self.multiType:
@@ -117,7 +114,7 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
         else:
             return len(self.trackItems[0].properties)
 
-    def columnCount(self, parent=QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args):
         """Returns the number of columns of the model, i.e. 2, one for the
         property name, and one for the property value."""
         return 2
@@ -138,8 +135,8 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
                         value = ""
                         break
                 if prop.propType == "pointsEnd":
-                    endValues = ts2.scenery.pointsitem.PointsItem.endValues
-                    endNames = ts2.scenery.pointsitem.PointsItem.endNames
+                    endValues = self.trackItems[0].endValues
+                    endNames = self.trackItems[0].endNames
                     index = endValues.index(value)
                     return endNames[index]
                 else:

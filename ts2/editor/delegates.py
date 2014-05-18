@@ -114,7 +114,7 @@ class PropertyValuesDelegate(QtGui.QStyledItemDelegate):
         ti = index.model().trackItems[0]
         if ti.properties[index.row()].propType == "pointsEnd":
             comboBox = QtGui.QComboBox(parent)
-            comboBox.insertItems(0, pointsitem.PointsItem.endNames)
+            comboBox.insertItems(0, ti.endNames)
             return comboBox
         else:
             return super().createEditor(parent, option, index)
@@ -126,8 +126,7 @@ class PropertyValuesDelegate(QtGui.QStyledItemDelegate):
         ti = index.model().trackItems[0]
         if ti.properties[index.row()].propType == "pointsEnd":
             endDirName = index.data(Qt.EditRole)
-            editor.setCurrentIndex(
-                        pointsitem.PointsItem.endNames.index(endDirName))
+            editor.setCurrentIndex(ti.endNames.index(endDirName))
         else:
             super().setEditorData(editor, index)
 
@@ -136,10 +135,10 @@ class PropertyValuesDelegate(QtGui.QStyledItemDelegate):
         ti = index.model().trackItems[0]
         if ti.properties[index.row()].propType == "pointsEnd":
             name = editor.currentText()
-            listIndex = pointsitem.PointsItem.endNames.index(name)
+            listIndex = ti.endNames.index(name)
             model.setData(index,
-                        pointsitem.PointsItem.endValues[listIndex],
-                        Qt.EditRole)
+                          ti.endValues[listIndex],
+                          Qt.EditRole)
         else:
             super().setModelData(editor, model, index)
 

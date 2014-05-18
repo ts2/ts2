@@ -139,7 +139,7 @@ class TrainsGraphicsView(QtGui.QGraphicsView):
     def __init__(self, scene, parent):
         """Constructor for the TrainsGraphicsView class"""
         super().__init__(scene, parent)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
                                        QtGui.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setInteractive(True)

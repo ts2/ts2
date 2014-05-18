@@ -27,7 +27,7 @@ from ts2 import utils
 from ts2.scenery import abstract, helper
 from ts2.scenery.signals import signaltype
 
-translate = QtCore.QCoreApplication.translate
+translate = QtGui.qApp.translate
 
 
 class SignalItem(abstract.TrackItem):
@@ -80,7 +80,9 @@ class SignalItem(abstract.TrackItem):
     SIGNAL_GRAPHIC_ITEM = 0
     BERTH_GRAPHIC_ITEM = 1
 
-    properties = abstract.TrackItem.properties + [
+    @staticmethod
+    def getProperties():
+        return abstract.TrackItem.getProperties() + [
                         helper.TIProperty("reverse", translate("SignalItem",
                                                                "Reverse")),
                         helper.TIProperty("signalTypeStr",
@@ -223,8 +225,8 @@ class SignalItem(abstract.TrackItem):
 
     berthOrigin = property(_getBerthOrigin, _setBerthOrigin)
     berthOriginStr = property(
-                           abstract.TrackItem.qPointFStrizer("berthOrigin"),
-                           abstract.TrackItem.qPointFDestrizer("berthOrigin"))
+                           abstract.qPointFStrizer("berthOrigin"),
+                           abstract.qPointFDestrizer("berthOrigin"))
 
     @property
     def berthRect(self):

@@ -24,7 +24,7 @@ from PyQt4.QtCore import Qt
 from ts2 import simulation, utils
 from ts2.gui import dialogs, trainlistview, servicelistview, widgets
 from ts2.scenery import placeitem
-from ts2.editor import editorwindow, editor
+from ts2.editor import editorwindow
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -174,7 +174,7 @@ class MainWindow(QtGui.QMainWindow):
 
         # Panel
         # Loaded with simulation
-        self.panel = widgets.Panel(self.board, self);
+        self.panel = widgets.Panel(self.board, self)
         self.panel.zoomChanged.connect(self.zoom)
 
         # Display

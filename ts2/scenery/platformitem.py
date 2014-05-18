@@ -23,7 +23,7 @@ from PyQt4.Qt import Qt
 from ts2 import utils
 from ts2.scenery import placeitem, helper, abstract
 
-translate = QtGui.QApplication.translate
+translate = QtGui.qApp.translate
 
 class PlatformItem(abstract.ResizableItem):
     """Platform items are represented as a colored rectangle on the scene to
@@ -57,20 +57,22 @@ class PlatformItem(abstract.ResizableItem):
                                 placeitem.Place.selectedPlaceModel.setPlace)
 
 
-    properties = [helper.TIProperty("tiTypeStr", translate("PlatformItem",
-                                                            "Type"), True),
+    @staticmethod
+    def getProperties():
+        return [helper.TIProperty("tiTypeStr", translate("PlatformItem",
+                                                         "Type"), True),
                   helper.TIProperty("tiId", translate("PlatformItem",
-                                                       "id"), True),
+                                                      "id"), True),
                   helper.TIProperty("name", translate("PlatformItem",
-                                                       "Name")),
+                                                      "Name")),
                   helper.TIProperty("originStr", translate("PlatformItem",
-                                                            "Point 1")),
+                                                           "Point 1")),
                   helper.TIProperty("endStr", translate("PlatformItem",
-                                                         "Point 2")),
+                                                        "Point 2")),
                   helper.TIProperty("placeCode", translate("PlatformItem",
-                                                            "Place code")),
+                                                           "Place code")),
                   helper.TIProperty("trackCode", translate("PlatformItem",
-                                                            "Track code"))]
+                                                           "Track code"))]
 
     platformSelected = QtCore.pyqtSignal(placeitem.Place)
 

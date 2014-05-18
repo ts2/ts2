@@ -23,7 +23,7 @@ from PyQt4.QtCore import Qt
 from ts2.scenery import abstract, helper
 from ts2 import utils
 
-translate = QtCore.QCoreApplication.translate
+translate = QtGui.qApp.translate
 
 class PlaceInfoModel(QtCore.QAbstractTableModel):
     def __init__(self):
@@ -124,7 +124,9 @@ class Place(abstract.TrackItem):
         self._tracks = {}
         self.updateGraphics()
 
-    properties = abstract.TrackItem.properties + [
+    @staticmethod
+    def getProperties():
+        return abstract.TrackItem.getProperties() + [
                     helper.TIProperty("placeCode",
                                       translate("Place", "Place code"))]
 

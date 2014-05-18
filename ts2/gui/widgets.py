@@ -133,9 +133,9 @@ class Panel(QtGui.QWidget):
         self.simulationWindow.simulationLoaded.connect(self.activate)
 
     @QtCore.pyqtSlot(simulation.Simulation)
-    def activate(self, simulation):
+    def activate(self, sim):
         """Activates the panel with the given simulation."""
-        self.simulation = simulation
+        self.simulation = sim
         self.pauseButton.toggled.connect(self.simulation.pause)
         self.pauseButton.toggled.connect(self.changePauseButtonText)
         self.timeFactorSpinBox.valueChanged.connect(
@@ -158,9 +158,9 @@ class Panel(QtGui.QWidget):
     @QtCore.pyqtSlot(bool)
     def changePauseButtonText(self, paused):
         if paused:
-            self.pauseButton.setText(self.tr("Continue"));
+            self.pauseButton.setText(self.tr("Continue"))
         else:
-            self.pauseButton.setText(self.tr("Pause"));
+            self.pauseButton.setText(self.tr("Pause"))
 
     @QtCore.pyqtSlot(int)
     def zoomWidgetChanged(self, percent):

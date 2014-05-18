@@ -69,7 +69,7 @@ class EndItem(abstract.TrackItem):
         else:
             return super().graphicsBoundingRect(itemId)
 
-    def graphicsPaint(self, p, options, itemId, widget):
+    def graphicsPaint(self, p, options, itemId, widget=0):
         """ Reimplemented from TrackItem.graphicsPaint"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             pen = self.getPen()

@@ -477,7 +477,7 @@ class Service:
     def getEntryPlaceData(self):
         """Returns the placeCode and trackCode of the entry point of the train
         """
-        return (self._lines[0].place.placeCode, self._lines[0].trackCode)
+        return self._lines[0].place.placeCode, self._lines[0].trackCode
 
     @property
     def exitPlaceName(self):

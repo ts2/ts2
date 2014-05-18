@@ -47,10 +47,12 @@ class TextItem(abstract.TrackItem):
         self.simulation.registerGraphicsItem(gi)
         self.updateGraphics()
 
-    properties = [helper.TIProperty("tiTypeStr", tr("Type"), True),
-                  helper.TIProperty("tiId", tr("id"), True),
-                  helper.TIProperty("text", tr("Text")),
-                  helper.TIProperty("originStr", tr("Point 1"))]
+    @staticmethod
+    def getProperties():
+        return [helper.TIProperty("tiTypeStr", tr("Type"), True),
+                helper.TIProperty("tiId", tr("id"), True),
+                helper.TIProperty("text", tr("Text")),
+                helper.TIProperty("originStr", tr("Point 1"))]
 
     @property
     def text(self):
