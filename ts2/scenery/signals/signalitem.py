@@ -82,21 +82,25 @@ class SignalItem(abstract.TrackItem):
 
     @staticmethod
     def getProperties():
+        # TODO: Remove builtin reference below to allow custom signal types
+        signalTypeNames = [x["name"] for x in signaltype.builtin_signal_types]
         return abstract.TrackItem.getProperties() + [
-                        helper.TIProperty("reverse", translate("SignalItem",
-                                                               "Reverse")),
-                        helper.TIProperty("signalTypeStr",
-                                          translate("SignalItem",
-                                                    "Signal Type")),
-                        helper.TIProperty("routesSetParamsStr",
-                                          translate("SignalItem",
-                                                    "Route set params")),
-                        helper.TIProperty("trainPresentParamsStr",
-                                          translate("SignalItem",
-                                                    "Train presence params")),
-                        helper.TIProperty("berthOriginStr",
-                                          translate("SignalItem",
-                                                    "Berth Origin"))]
+                helper.TIProperty("reverse",
+                                  translate("SignalItem", "Reverse")),
+                helper.TIProperty("signalTypeStr",
+                                  translate("SignalItem", "Signal Type"),
+                                  False,
+                                  "enum",
+                                  signalTypeNames,
+                                  signalTypeNames),
+                helper.TIProperty("routesSetParamsStr",
+                                  translate("SignalItem",
+                                            "Route set params")),
+                helper.TIProperty("trainPresentParamsStr",
+                                  translate("SignalItem",
+                                            "Train presence params")),
+                helper.TIProperty("berthOriginStr",
+                                  translate("SignalItem", "Berth Origin"))]
 
     signalSelected = QtCore.pyqtSignal(int, bool, bool)
     signalUnselected = QtCore.pyqtSignal(int)

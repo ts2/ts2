@@ -134,11 +134,9 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
                     if getattr(ti, prop.name) != value:
                         value = ""
                         break
-                if prop.propType == "pointsEnd":
-                    endValues = self.trackItems[0].endValues
-                    endNames = self.trackItems[0].endNames
-                    index = endValues.index(value)
-                    return endNames[index]
+                if prop.propType == "enum":
+                    index = prop.enumValues.index(value)
+                    return prop.enumNames[index]
                 else:
                     return value
         return None
@@ -170,8 +168,11 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
     def flags(self, index):
         """Returns the flags of the model"""
         retFlag = Qt.ItemIsEnabled
-        if (not self.trackItems[0].properties[index.row()].readOnly and
-            index.column() == 1):
+        if self.multiType:
+            prop = self.trackItems[0].multiProperties[index.row()]
+        else:
+            prop = self.trackItems[0].properties[index.row()]
+        if not prop.readOnly and index.column() == 1:
                 retFlag |= Qt.ItemIsEditable | Qt.ItemIsSelectable
         return retFlag
 
@@ -179,32 +180,12 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
 class TIProperty():
     """This class holds a TrackItem property that can be edited in the editor
     """
-    def __init__(self, name, display, readOnly=False, propType="str"):
+    def __init__(self, name, display, readOnly=False, propType="str",
+                 enumNames=None, enumValues=None):
         """Constructor for the TIProperty class"""
-        self._name = name
-        self._display = display
-        self._readOnly = readOnly
-        self._propType = propType
-
-    @property
-    def name(self):
-        """The name of the property. This name must be the name of a python
-        property of the TrackItem"""
-        return self._name
-
-    @property
-    def display(self):
-        """The property name to display in the editor"""
-        return self._display
-
-    @property
-    def readOnly(self):
-        """Returns True if the property can not be modified in the editor"""
-        return bool(self._readOnly)
-
-    @property
-    def propType(self):
-        """Returns the type of the property value as a String."""
-        return self._propType
-
-
+        self.name = name
+        self.display = display
+        self.readOnly = readOnly
+        self.propType = propType
+        self.enumNames = enumNames
+        self.enumValues = enumValues

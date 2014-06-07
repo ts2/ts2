@@ -95,6 +95,7 @@ class TrackItem(QtCore.QObject):
         self._gi = {}
         self.toBeDeselected = False
         self.properties = self.getProperties()
+        self.multiProperties = self.getMultiProperties()
 
     def __del__(self):
         """Destructor for the TrackItem class"""
@@ -121,8 +122,9 @@ class TrackItem(QtCore.QObject):
     @staticmethod
     def getMultiProperties():
         return [helper.TIProperty("tiId", translate("TrackItem", "id"), True),
-                helper.TIProperty("maxSpeed", translate("TrackItem",
-                                              "Maximum speed (m/s)"))]
+                helper.TIProperty("maxSpeed",
+                                  translate("TrackItem",
+                                            "Maximum speed (m/s)"))]
 
     fieldTypes = {
                     "tiid":"INTEGER PRIMARY KEY",

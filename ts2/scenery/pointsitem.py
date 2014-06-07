@@ -67,8 +67,6 @@ class PointsItem(abstract.TrackItem):
         self._pointsReversed = False
         self._reverseItem = None
         self.defaultZValue = 60
-        self.endNames = getEndNames()
-        self.endValues = getEndValues()
         pgi = helper.TrackGraphicsItem(self)
         pgi.setPos(self._center)
         pgi.setZValue(self.defaultZValue)
@@ -81,18 +79,24 @@ class PointsItem(abstract.TrackItem):
     @staticmethod
     def getProperties():
         return abstract.TrackItem.getProperties() + [
-                            helper.TIProperty("commonEndTuple",
-                                              translate("PointsItem",
-                                                        "Common End"),
-                                              False, "pointsEnd"),
-                            helper.TIProperty("normalEndTuple",
-                                              translate("PointsItem",
-                                                        "Normal End"),
-                                              False, "pointsEnd"),
-                            helper.TIProperty("reverseEndTuple",
-                                              translate("PointsItem",
-                                                        "Reverse End"),
-                                              False, "pointsEnd")]
+                helper.TIProperty("commonEndTuple",
+                                  translate("PointsItem", "Common End"),
+                                  False,
+                                  "enum",
+                                  getEndNames(),
+                                  getEndValues()),
+                helper.TIProperty("normalEndTuple",
+                                  translate("PointsItem", "Normal End"),
+                                  False,
+                                  "enum",
+                                  getEndNames(),
+                                  getEndValues()),
+                helper.TIProperty("reverseEndTuple",
+                                  translate("PointsItem", "Reverse End"),
+                                  False,
+                                  "enum",
+                                  getEndNames(),
+                                  getEndValues())]
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the

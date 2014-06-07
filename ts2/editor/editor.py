@@ -591,7 +591,7 @@ class Editor(simulation.Simulation):
                             "initialdelay VARCHAR(255),\n"
                             "nextplaceindex INTEGER,\n"
                             "stoppedtime INTEGER)\n")
-
+        # TODO: Add check to see if train Head position exists
         for train in self._trains:
             query = "INSERT INTO trains " \
                     "(trainid, servicecode, traintype, speed, tiid, " \

@@ -111,42 +111,39 @@ class PropertyValuesDelegate(QtGui.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         """Creates the editor, i.e. a combo box for selecting an end
         direction."""
-        ti = index.model().trackItems[0]
-        if ti.properties[index.row()].propType == "pointsEnd":
+        prop = index.model().trackItems[0].properties[index.row()]
+        if prop.propType == "enum":
             comboBox = QtGui.QComboBox(parent)
-            comboBox.insertItems(0, ti.endNames)
+            comboBox.insertItems(0, prop.enumNames)
             return comboBox
         else:
             return super().createEditor(parent, option, index)
 
     def setEditorData(self, editor, index):
         """Sets the values from the model in the combo box"""
-        #pointsItem = index.model().simulation.trackItem(
-                                                #index.model().trackItem.tiId)
-        ti = index.model().trackItems[0]
-        if ti.properties[index.row()].propType == "pointsEnd":
+        prop = index.model().trackItems[0].properties[index.row()]
+        if prop.propType == "enum":
             endDirName = index.data(Qt.EditRole)
-            editor.setCurrentIndex(ti.endNames.index(endDirName))
+            editor.setCurrentIndex(prop.enumNames.index(endDirName))
         else:
             super().setEditorData(editor, index)
 
     def setModelData(self, editor, model, index):
         """Sets the values from the combo box to the model after editing"""
-        ti = index.model().trackItems[0]
-        if ti.properties[index.row()].propType == "pointsEnd":
+        prop = index.model().trackItems[0].properties[index.row()]
+        if prop.propType == "enum":
             name = editor.currentText()
-            listIndex = ti.endNames.index(name)
+            listIndex = prop.enumNames.index(name)
             model.setData(index,
-                          ti.endValues[listIndex],
+                          prop.enumValues[listIndex],
                           Qt.EditRole)
         else:
             super().setModelData(editor, model, index)
 
     def updateEditorGeometry(self, editor, option, index):
         """Sets the editor geometry."""
-        ti = index.model().trackItems[0]
-        if ti.properties[index.row()].propType == "pointsEnd":
+        prop = index.model().trackItems[0].properties[index.row()]
+        if prop.propType == "enum":
             editor.setGeometry(option.rect)
         else:
             super().updateEditorGeometry(editor, option, index)
-
