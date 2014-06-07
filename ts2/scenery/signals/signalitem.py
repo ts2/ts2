@@ -26,7 +26,7 @@ from PyQt4.Qt import Qt
 from ts2 import utils
 from ts2.scenery import abstract, helper
 from ts2.scenery.signals import signaltype
-
+from ts2.scenery.signals.signaltype import ConditionCode as stCode
 translate = QtGui.qApp.translate
 
 
@@ -406,32 +406,28 @@ class SignalItem(abstract.TrackItem):
         for sc in self.signalType.conditions:
             currentSituation = 0
             if self.nextActiveRoute is not None:
-                currentSituation |= signaltype.ConditionCode.NEXT_ROUTE_ACTIVE
+                currentSituation |= stCode.NEXT_ROUTE_ACTIVE
             if self.previousActiveRoute is not None:
-                currentSituation |= signaltype.ConditionCode\
-                                                        .PREVIOUS_ROUTE_ACTIVE
+                currentSituation |= stCode.PREVIOUS_ROUTE_ACTIVE
             if not self.trainsAhead():
-                currentSituation |= signaltype.ConditionCode\
-                                              .TRAIN_NOT_PRESENT_ON_NEXT_ROUTE
+                currentSituation |= stCode.TRAIN_NOT_PRESENT_ON_NEXT_ROUTE
             if self.nextActiveRoute is not None:
-                for sa in sc.nextSignalParams.get(4096,[]):
+                for sa in sc.params.get(stCode.NEXT_SIGNAL_ASPECTS,[]):
                     if self.nextActiveRoute.endSignal.activeAspect.name == sa:
-                        currentSituation |= signaltype.ConditionCode\
-                                                          .NEXT_SIGNAL_ASPECTS
+                        currentSituation |= stCode.NEXT_SIGNAL_ASPECTS
+                        break
             aspectName = sc.aspect.name
             if aspectName in self.routesSetParams:
                 routesSet = self.routesSetParams[aspectName]
                 for rnum in routesSet:
                     if self.simulation.routes[rnum].getRouteState() != 0:
-                        currentSituation |= signaltype.ConditionCode\
-                                                                   .ROUTES_SET
+                        currentSituation |= stCode.ROUTES_SET
                         break
             if aspectName in self.trainPresentParams:
                 trainPresent = self.trainPresentParams[aspectName]
                 for tiId in trainPresent:
                     if self.simulation.trackItems[tiId].trainPresent():
-                        currentSituation |= signaltype.ConditionCode\
-                                                       .TRAIN_PRESENT_ON_ITEMS
+                        currentSituation |= stCode.TRAIN_PRESENT_ON_ITEMS
                     break
 
             if currentSituation & sc.conditionCode == sc.conditionCode:

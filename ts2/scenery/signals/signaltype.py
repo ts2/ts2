@@ -127,7 +127,7 @@ class SignalCondition:
         """Constructor for the SignalCondition class."""
         self.aspect = aspect
         self.conditionCode = code
-        self.nextSignalParams = params
+        self.params = params
 
 class SignalType(QtCore.QObject):
     """A SignalType describes a type of signals which can have different

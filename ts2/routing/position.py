@@ -102,33 +102,60 @@ class PositionGraphicsItem(QtGui.QGraphicsPolygonItem):
 
 
 class Position:
-    """Class Position
-    TODO Document Position class"""
+    """A Position object is a point on a TrackItem.
+
+    A Position is defined as being positionOnTI meters away from the end of
+    the TrackItem that is connected to TrackItem previousTI. Note that a
+    Position has a direction, so that for any point on a TrackItem, there are
+    two Positions that can be defined: one starting from one end of the
+    TrackItem, the other starting from the other end. You can get the
+    other Position by calling reversed()."""
 
     def __init__(self, trackItem=None, previousTI=None, positionOnTI=0.0):
+        """Constructor for the Position class"""
         self._trackItem = trackItem
         self._previousTI = previousTI
         self._positionOnTI = positionOnTI
+        if not self.isValid():
+            raise Exception("Invalid Position")
 
     @property
     def trackItem(self):
+        """The TrackItem on which this Position is"""
         return self._trackItem
 
     @property
     def previousTI(self):
+        """The TrackItem connected to this one from which to measure the
+        distance of the Position"""
         return self._previousTI
 
     @property
     def positionOnTI(self):
+        """Distance of the Position from the end of the TrackItem connected to
+        previousTI"""
         return float(self._positionOnTI)
 
     def next(self, pos=0, direction=-1):
+        """Returns a Position on the next TrackItem.
+
+        Returns a Position on the next TrackItem (i.e. the TrackItem
+        connected to this one which is not previousTI) at pos meters from
+        the connection of the next TrackItem to this one. By default,
+        pos is 0."""
         return Position(self._trackItem.getFollowingItem(self._previousTI,
                                                          direction),
                         self._trackItem,
                         pos)
 
     def previous(self, pos=None):
+        """Returns a Position on the previous TrackItem.
+
+        Returns a Position on the previous TrackItem (i.e. previousTI),
+        running backwards, at pos meters from the end behind (i.e. the end
+        not connected to this TrackItem). By default, pos is equal to the
+        length of the previous Item, so that the position is on the
+        connection point with this TrackItem."""
         if pos is None:
             pos = self._previousTI.realLength
         return Position(self._previousTI,
@@ -172,6 +199,27 @@ class Position:
         else:
             return False
 
+    def isValid(self):
+        """Returns True if this Position is valid."""
+        if (self.trackItem is None and
+            self.previousTI is None and
+            self.positionOnTI == 0):
+            # A null position is valid
+            return True
+        if (self.positionOnTI > self.trackItem.realLength or
+            self.positionOnTI < 0):
+            return False
+        if (self.trackItem.nextItem != self.previousTI and
+            self.trackItem.previousItem != self.previousTI):
+            if (self.trackItem.tiType.startswith("P") and
+                self.trackItem.reverseItem == self.previousTI):
+                    return True
+            if (self.trackItem.tiType.startswith("E") and
+                self.previousTI is None):
+                    return True
+            return False
+        return True
+
     def reversed(self):
         """Returns a position that is physically on the exact same place, but
         coming from the opposite direction"""
@@ -180,11 +228,13 @@ class Position:
         return Position(self._trackItem, previousTI, positionOnTI)
 
     def __eq__(self, p):
+        """Returns True if p is the same Position as this one."""
         return (self._trackItem == p.trackItem
             and self._previousTI == p.previousTI
             and self._positionOnTI == p.positionOnTI)
 
     def __ne__(self, p):
+        """Returns True if p is not the same Position as this one."""
         return not (self == p)
 
     def __add__(self, length):
@@ -220,7 +270,6 @@ class Position:
 
     def __iadd__(self, length):
         """Implements Position += length operator.
-
         :rtype : Position
         """
         self = self + length
@@ -228,7 +277,6 @@ class Position:
 
     def __isub__(self, length):
         """Implements Position -= length operator.
-
         :rtype : Position
         """
         self = self - length

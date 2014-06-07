@@ -695,6 +695,7 @@ class Simulation(QtCore.QObject):
                     result = False
         return result
 
+    @staticmethod
     def distanceBetween(self, p1, p2):
         """Calculates the distance between both points p1 and p2 in pixels
         @param p1

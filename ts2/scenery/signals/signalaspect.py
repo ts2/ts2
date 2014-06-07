@@ -76,7 +76,7 @@ class SignalAspect(QtCore.QObject):
     def meansProceed(self):
         """Returns true if this aspect is a proceed aspect, returns false if
         this aspect requires to stop."""
-        return (self.actions[0] != (0, 0) and self.actions[0] != (1, 0))
+        return self.actions[0] != (0, 0) and self.actions[0] != (1, 0)
 
     def drawAspect(self, p, linePen, shapePen, persistent=False):
         """Draws the aspect on the given painter p. Draws the line with

@@ -29,6 +29,7 @@ from ts2.scenery import abstract, placeitem, lineitem, platformitem, \
                         invisiblelinkitem, enditem, pointsitem, textitem
 from ts2.scenery.signals import signalitem
 from ts2.editor import editorscenebackground
+from ts2.game import logger
 
 
 class WhiteLineItem(QtGui.QGraphicsLineItem):
@@ -591,7 +592,6 @@ class Editor(simulation.Simulation):
                             "initialdelay VARCHAR(255),\n"
                             "nextplaceindex INTEGER,\n"
                             "stoppedtime INTEGER)\n")
-        # TODO: Add check to see if train Head position exists
         for train in self._trains:
             query = "INSERT INTO trains " \
                     "(trainid, servicecode, traintype, speed, tiid, " \
@@ -614,6 +614,13 @@ class Editor(simulation.Simulation):
                     "nextplaceindex":0,
                     "stoppedtime":0
                     }
+            if not train.trainHead.isValid():
+                self.messageLogger.addMessage("Train %s discarded: invalid "
+                                              "train head" %
+                                              str(train.trainId)+"/"+
+                                              train.serviceCode,
+                                              logger.Message.SOFTWARE_MSG)
+                continue
             conn.execute(query, parameters)
         conn.commit()
 
