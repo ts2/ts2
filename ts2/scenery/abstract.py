@@ -100,7 +100,6 @@ class TrackItem(QtCore.QObject):
     def __del__(self):
         """Destructor for the TrackItem class"""
         self.removeAllGraphicsItems()
-        super().__del__()
 
     @staticmethod
     def getProperties():

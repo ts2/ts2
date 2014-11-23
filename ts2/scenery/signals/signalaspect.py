@@ -127,6 +127,24 @@ class SignalAspect(QtCore.QObject):
             p.drawEllipse(rect)
         elif shape == SignalShape.SQUARE:
             p.drawRect(rect)
+        elif shape == SignalShape.QUARTER_SW:
+            points = {rect.topLeft(), rect.topRight(), rect.bottomLeft()}
+            p.drawPolygon(points)
+        elif shape == SignalShape.QUARTER_NW:
+            points = {rect.topRight(), rect.bottomRight(), rect.topLeft()}
+            p.drawPolygon(points)
+        elif shape == SignalShape.QUARTER_NE:
+            points = {rect.bottomRight(), rect.bottomLeft(), rect.topRight()}
+            p.drawPolygon(points)
+        elif shape == SignalShape.QUARTER_SE:
+            points = {rect.bottomLeft(), rect.topLeft(), rect.bottomRight()}
+            p.drawPolygon(points)
+        elif shape == SignalShape.BAR_N_S:
+            tl = rect.topLeft() + QtCore.QPointF(1, 3)
+            p.drawRect(QtCore.QRectF(tl, QtCore.QSizeF(6, 2)))
+        elif shape == SignalShape.BAR_E_W:
+            tl = rect.topLeft() + QtCore.QPointF(3, 1)
+            p.drawRect(QtCore.QRectF(tl, QtCore.QSizeF(2, 6)))
         elif (shape == SignalShape.POLE_NE or
               shape == SignalShape.POLE_NS or
               shape == SignalShape.POLE_NSE or

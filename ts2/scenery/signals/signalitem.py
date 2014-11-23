@@ -43,7 +43,7 @@ class SignalItem(abstract.TrackItem):
         signalTypeName = parameters["signaltype"]
         self._signalType = simulation.signalTypes[signalTypeName]
         self._routesSetParams = eval(str(parameters["routesset"]))
-        self._trainPresentParams = eval(str(parameters["trainpresent"]))
+        self._trainNotPresentParams = eval(str(parameters["trainpresent"]))
         try:
             xb = float(parameters["xn"])
         except TypeError:
@@ -53,6 +53,7 @@ class SignalItem(abstract.TrackItem):
         except TypeError:
             yb = self.origin.y() + 5
         self._berthOrigin = QtCore.QPointF(xb, yb)
+        self._berthRect = None
         self.setBerthRect()
         self._activeAspect = self._signalType.getDefaultAspect()
         self._reverse = reverse
@@ -96,9 +97,9 @@ class SignalItem(abstract.TrackItem):
                 helper.TIProperty("routesSetParamsStr",
                                   translate("SignalItem",
                                             "Route set params")),
-                helper.TIProperty("trainPresentParamsStr",
+                helper.TIProperty("trainNotPresentParamsStr",
                                   translate("SignalItem",
-                                            "Train presence params")),
+                                            "No train params")),
                 helper.TIProperty("berthOriginStr",
                                   translate("SignalItem", "Berth Origin"))]
 
@@ -113,7 +114,7 @@ class SignalItem(abstract.TrackItem):
         parameters.update({"reverse":int(self.reverse),
                            "signaltype":self.signalTypeStr,
                            "routesset":str(self.routesSetParamsStr),
-                           "trainpresent":str(self.trainPresentParamsStr),
+                           "trainpresent":str(self.trainNotPresentParamsStr),
                            "xn":self.berthOrigin.x(),
                            "yn":self.berthOrigin.y()})
         return parameters
@@ -169,6 +170,7 @@ class SignalItem(abstract.TrackItem):
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self._signalType = self.simulation.signalTypes.get(value,
                                   self.simulation.signalTypes["UK_3_ASPECTS"])
+            self.updateSignalParams()
             self.updateSignalState()
 
     signalTypeStr = property(_getSignalTypeStr, _setSignalTypeStr)
@@ -195,27 +197,27 @@ class SignalItem(abstract.TrackItem):
     routesSetParamsStr = property(_getRouteSetParamsStr,
                                   _setRouteSetParamsStr)
 
-    def _getTrainPresentParams(self):
+    def _getTrainNotPresentParams(self):
         """Returns the train present parameters, which is a dictionary with
         the aspect names as keys, and lists of track items as values."""
-        return self._trainPresentParams
+        return self._trainNotPresentParams
 
-    trainPresentParams = property(_getTrainPresentParams)
+    trainNotPresentParams = property(_getTrainNotPresentParams)
 
-    def _getTrainPresentParamsStr(self):
+    def _getTrainNotPresentParamsStr(self):
         """Returns the train present parameters as a string."""
-        return str(self._trainPresentParams)
+        return str(self._trainNotPresentParams)
 
-    def _setTrainPresentParamsStr(self, value):
+    def _setTrainNotPresentParamsStr(self, value):
         """Setter function for the trainPresentParamsStr."""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             if value == "":
-                self._trainPresentParams = {}
+                self._trainNotPresentParams = {}
             else:
-                self._trainPresentParams = eval(str(value))
+                self._trainNotPresentParams = eval(str(value))
 
-    trainPresentParamsStr = property(_getTrainPresentParamsStr,
-                                     _setTrainPresentParamsStr)
+    trainNotPresentParamsStr = property(_getTrainNotPresentParamsStr,
+                                     _setTrainNotPresentParamsStr)
 
     def _getBerthOrigin(self):
         """Returns the origin of the berth graphics item as a QPointF."""
@@ -250,7 +252,7 @@ class SignalItem(abstract.TrackItem):
 
     @property
     def signalHighlighted(self):
-        return (self.nextActiveRoute is not None)
+        return self.nextActiveRoute is not None
 
     def _getNextActiveRoute(self):
         """Returns the active route starting from this signal if it exists.
@@ -334,7 +336,6 @@ class SignalItem(abstract.TrackItem):
         font.setPixelSize(11)
         tl.setFont(font)
         tl.beginLayout()
-        line = tl.createLine()
         tl.endLayout()
         rect = tl.boundingRect()
         rect.moveTop(-rect.height())
@@ -400,6 +401,23 @@ class SignalItem(abstract.TrackItem):
         self.selected = False
         self.updateGraphics()
 
+    def updateSignalParams(self):
+        """Updates routeSetParams and trainNotPresentParams according to the
+        SignalType."""
+        tnp = {}
+        for sc in self.signalType.conditions:
+            if sc.conditionCode & stCode.TRAIN_NOT_PRESENT_ON_ITEMS:
+                tnp[sc.aspect.name] = self.trainNotPresentParams.get(
+                                                        sc.aspect.name, [])
+        self.trainNotPresentParamsStr = str(tnp)
+        rs = {}
+        for sc in self.signalType.conditions:
+            if sc.conditionCode & stCode.ROUTES_SET:
+                rs[sc.aspect.name] = self.routesSetParams.get(
+                                                        sc.aspect.name, [])
+        self.routesSetParamsStr = str(rs)
+
+
     @QtCore.pyqtSlot()
     def updateSignalState(self):
         """Update the signal current aspect."""
@@ -423,12 +441,16 @@ class SignalItem(abstract.TrackItem):
                     if self.simulation.routes[rnum].getRouteState() != 0:
                         currentSituation |= stCode.ROUTES_SET
                         break
-            if aspectName in self.trainPresentParams:
-                trainPresent = self.trainPresentParams[aspectName]
+            if aspectName in self.trainNotPresentParams:
+                # FIXME: Need triggering to update signal state when the trains enter or leave looked TIs
+                trainPresent = self.trainNotPresentParams[aspectName]
+                tnp = True
                 for tiId in trainPresent:
                     if self.simulation.trackItems[tiId].trainPresent():
-                        currentSituation |= stCode.TRAIN_PRESENT_ON_ITEMS
-                    break
+                        tnp = False
+                        break
+                if tnp:
+                    currentSituation |= stCode.TRAIN_NOT_PRESENT_ON_ITEMS
 
             if currentSituation & sc.conditionCode == sc.conditionCode:
                 self._activeAspect = sc.aspect
@@ -455,7 +477,7 @@ class SignalItem(abstract.TrackItem):
                     self.selected = True
                 persistent = (e.modifiers() == Qt.ShiftModifier)
                 force = (e.modifiers() == Qt.AltModifier|Qt.ControlModifier)
-                self.signalSelected.emit(self.tiId, persistent, force);
+                self.signalSelected.emit(self.tiId, persistent, force)
             elif itemId == SignalItem.BERTH_GRAPHIC_ITEM:
                 self.trainSelected.emit(self.trainId)
         elif e.button() == Qt.RightButton:

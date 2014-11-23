@@ -786,6 +786,11 @@ class Train(QtCore.QObject):
         """Updates the applicable signal actions list based on the position
         of the train and the visible signal."""
         nsp, nsd = self.getNextSignalInfo()
+        if nsp.isNull():
+            # No more signal ahead
+            self._signalActions = [(0,999)]
+            self._applicableActionIndex = 0
+            return
         signalVisibility = float(self.simulation.option(
                                                 "defaultSignalVisibility"))
         if nsd < signalVisibility:
@@ -1012,7 +1017,7 @@ class Train(QtCore.QObject):
         pos = self.trainHead
         distance = pos.trackItem.realLength - self.trainHead.positionOnTI
         pos = pos.next()
-        while ((pos.trackItem is not None) and
+        while (pos.isValid() and
                (not pos.trackItem.tiType.startswith("E")) and
                (distance < maxDistance)):
             ti = pos.trackItem

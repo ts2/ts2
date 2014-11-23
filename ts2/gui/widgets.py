@@ -45,8 +45,7 @@ class ZoomWidget(QtGui.QWidget):
     def __init__(self, parent=None):
         """Constructor for the ZoomWidget class."""
         super().__init__(parent)
-        label = QtGui.QLabel(self.tr("Zoom:"), self)
-
+        self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.Fixed)
         self.button = QtGui.QPushButton(self.tr("100%"), self)
 
         self.slider = QtGui.QSlider(Qt.Horizontal, self)
@@ -68,11 +67,10 @@ class ZoomWidget(QtGui.QWidget):
         self.spinBox.valueChanged.connect(self.valueChanged)
 
         hlayout = QtGui.QHBoxLayout()
-        hlayout.addWidget(label)
         hlayout.addWidget(self.button)
         hlayout.addWidget(self.slider)
         hlayout.addWidget(self.spinBox)
-
+        hlayout.setMargin(0)
         self.setLayout(hlayout)
 
     valueChanged = QtCore.pyqtSignal(int)
@@ -82,6 +80,11 @@ class ZoomWidget(QtGui.QWidget):
         """Sets the zoom to 100%."""
         self.spinBox.setValue(100)
 
+    def sizeHint(self):
+        return QtCore.QSize(300,50)
+
+    def minimumSizeHint(self):
+        return QtCore.QSize(300,50)
 
 
 class Panel(QtGui.QWidget):
@@ -93,6 +96,8 @@ class Panel(QtGui.QWidget):
         super().__init__(parent)
         self.simulation = None
         self.simulationWindow = simulationWindow
+        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
+                           QtGui.QSizePolicy.Fixed)
         # Clock
         self.clock = Clock(self)
         # Pause button
@@ -124,6 +129,7 @@ class Panel(QtGui.QWidget):
         layout.addWidget(QtGui.QLabel(self.tr("Simulation speed: ")))
         layout.addWidget(self.timeFactorSpinBox)
         layout.addSpacing(5)
+        # layout.addWidget(QtGui.QLabel(self.tr("Zoom: ")))
         layout.addWidget(self.zoomWidget)
         layout.addStretch()
         layout.addWidget(QtGui.QLabel(self.tr("Penalty points: ")))
@@ -151,9 +157,6 @@ class Panel(QtGui.QWidget):
     def minimumSizeHint(self):
         return QtCore.QSize(200,40)
 
-    def sizePolicy(self):
-        return QtCore.QSizePolicy(QtGui.QSizePolicy.Expanding,
-                                  QtGui.QSizePolicy.Fixed)
 
     @QtCore.pyqtSlot(bool)
     def changePauseButtonText(self, paused):

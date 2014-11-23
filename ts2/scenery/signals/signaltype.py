@@ -62,13 +62,33 @@ builtin_signal_aspects = [
      "shapes":[1,0,0,0,0,0],
      "shapescolors":["#00FF00",0,0,0,0,0],
      "targets":[0],
-     "speedlimits":[999]}
+     "speedlimits":[999]},
+    {"name":"FR_TRAM_CLEAR",
+     "linestyle":signalaspect.SignalLineStyle.LINE,
+     "outershapes":[1,0,0,0,0,0],
+     "outercolors":[0,0,0,0,0,0],
+     "shapes":[20,0,0,0,0,0],
+     "shapescolors":["#FFFFFF",0,0,0,0,0],
+     "targets":[0],
+     "speedlimits":[999]},
+    {"name":"FR_TRAM_STOP",
+     "linestyle":signalaspect.SignalLineStyle.LINE,
+     "outershapes":[1,0,0,0,0,0],
+     "outercolors":[0,0,0,0,0,0],
+     "shapes":[21,0,0,0,0,0],
+     "shapescolors":["#FFFFFF",0,0,0,0,0],
+     "targets":[1],
+     "speedlimits":[0]}
+
 ]
 
 builtin_signal_types = [
     {"name":"UK_3_ASPECTS"},
     {"name":"UK_4_ASPECTS"},
-    {"name":"BUFFER"}
+    {"name":"UK_3_ASPECTS_TP"},
+    {"name":"UK_4_ASPECTS_TP"},
+    {"name":"BUFFER"},
+    {"name":"FR_TRAM"}
 ]
 
 builtin_signal_conditions = [
@@ -102,10 +122,52 @@ builtin_signal_conditions = [
      "conditions":0,
      "params":{4096:[]}},
 
+    {"signaltype":"UK_3_ASPECTS_TP",
+     "aspectname":"UK_CLEAR",
+     "conditions":1024,
+     "params":{4096:[]}},
+    {"signaltype":"UK_3_ASPECTS_TP",
+     "aspectname":"UK_CAUTION",
+     "conditions":1024,
+     "params":{4096:[]}},
+    {"signaltype":"UK_3_ASPECTS_TP",
+     "aspectname":"UK_DANGER",
+     "conditions":0,
+     "params":{4096:[]}},
+
+    {"signaltype":"UK_4_ASPECTS_TP",
+     "aspectname":"UK_CLEAR",
+     "conditions":1024,
+     "params":{4096:[]}},
+    {"signaltype":"UK_4_ASPECTS_TP",
+     "aspectname":"UK_PRE_CAUTION",
+     "conditions":1024,
+     "params":{4096:[]}},
+    {"signaltype":"UK_4_ASPECTS_TP",
+     "aspectname":"UK_CAUTION",
+     "conditions":1024,
+     "params":{4096:[]}},
+    {"signaltype":"UK_4_ASPECTS_TP",
+     "aspectname":"UK_DANGER",
+     "conditions":0,
+     "params":{4096:[]}},
+
     {"signaltype":"BUFFER",
      "aspectname":"BUFFER",
      "conditions":0,
-     "params":{4096:[]}}
+     "params":{4096:[]}},
+
+    {"signaltype":"FR_TRAM",
+     "aspectname":"FR_TRAM_CLEAR",
+     "conditions":5,
+     "params":{4096:[]}
+    },
+    {"signaltype":"FR_TRAM",
+     "aspectname":"FR_TRAM_STOP",
+     "conditions":0,
+     "params":{4096:[]}
+    }
+
 ]
 
 class ConditionCode:
@@ -115,9 +177,9 @@ class ConditionCode:
     PREVIOUS_ROUTE_ACTIVE = 2
     TRAIN_NOT_PRESENT_ON_NEXT_ROUTE = 4
     # With parameters
-    TRAIN_PRESENT_ON_ITEMS = 1024
-    ROUTES_SET = 2048
-    NEXT_SIGNAL_ASPECTS = 4096
+    TRAIN_NOT_PRESENT_ON_ITEMS = 1024   # No train on any item in list
+    ROUTES_SET = 2048                   # At least one route set in list
+    NEXT_SIGNAL_ASPECTS = 4096          # Aspect in list
 
 class SignalCondition:
     """A SignalCondition is the concatenation of an aspect with set of

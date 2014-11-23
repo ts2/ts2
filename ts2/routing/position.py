@@ -116,8 +116,6 @@ class Position:
         self._trackItem = trackItem
         self._previousTI = previousTI
         self._positionOnTI = positionOnTI
-        if not self.isValid():
-            raise Exception("Invalid Position")
 
     @property
     def trackItem(self):
@@ -201,11 +199,11 @@ class Position:
 
     def isValid(self):
         """Returns True if this Position is valid."""
-        if (self.trackItem is None and
-            self.previousTI is None and
-            self.positionOnTI == 0):
+        if self.isNull():
             # A null position is valid
             return True
+        if self.trackItem is None:
+            return False
         if (self.positionOnTI > self.trackItem.realLength or
             self.positionOnTI < 0):
             return False
@@ -219,6 +217,12 @@ class Position:
                     return True
             return False
         return True
+
+    def isNull(self):
+        """Returns True if this Position is Null."""
+        return (self.trackItem is None and
+                self.previousTI is None and
+                self.positionOnTI == 0)
 
     def reversed(self):
         """Returns a position that is physically on the exact same place, but

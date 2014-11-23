@@ -501,8 +501,8 @@ class Simulation(QtCore.QObject):
                 "warningSpeed":8.3,
                 "currentScore":0,
                 "defaultMaxSpeed":44.44,
-                "defaultMinimumStopTime":[(45,75,70),(75,90,30)],
-                "defaultDelayAtEntry":[(-60,0,50),(0,60,50)],
+                "defaultMinimumStopTime":"[(45,75,70),(75,90,30)]",
+                "defaultDelayAtEntry":"[(-60,0,50),(0,60,50)]",
                 "trackCircuitBased":0,
                 "defaultSignalVisibility":100
             }
@@ -696,7 +696,7 @@ class Simulation(QtCore.QObject):
         return result
 
     @staticmethod
-    def distanceBetween(self, p1, p2):
+    def distanceBetween(p1, p2):
         """Calculates the distance between both points p1 and p2 in pixels
         @param p1
         @param p2
