@@ -1,0 +1,30 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0" is_locked="false">
+    <option name="myName" value="Project Default" />
+    <option name="myLocal" value="false" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="16">
+            <item index="0" class="java.lang.String" itemvalue="simplejson" />
+            <item index="1" class="java.lang.String" itemvalue="pyserial" />
+            <item index="2" class="java.lang.String" itemvalue="vatnumber" />
+            <item index="3" class="java.lang.String" itemvalue="docutils" />
+            <item index="4" class="java.lang.String" itemvalue="python-stdnum" />
+            <item index="5" class="java.lang.String" itemvalue="six" />
+            <item index="6" class="java.lang.String" itemvalue="pyparsing" />
+            <item index="7" class="java.lang.String" itemvalue="greenlet" />
+            <item index="8" class="java.lang.String" itemvalue="pyusb" />
+            <item index="9" class="java.lang.String" itemvalue="PyChart" />
+            <item index="10" class="java.lang.String" itemvalue="gevent" />
+            <item index="11" class="java.lang.String" itemvalue="qrcode" />
+            <item index="12" class="java.lang.String" itemvalue="Pillow" />
+            <item index="13" class="java.lang.String" itemvalue="argparse" />
+            <item index="14" class="java.lang.String" itemvalue="psycogreen" />
+            <item index="15" class="java.lang.String" itemvalue="wsgiref" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

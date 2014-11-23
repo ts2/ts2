@@ -377,7 +377,7 @@ class Editor(simulation.Simulation):
         conn.execute("CREATE TABLE options (\n"
                      "optionkey VARCHAR(30),\n"
                      "optionvalue VARCHAR(50))")
-        for key, value in self._options.items():
+        for key, value in [(k, str(v)) for k,v in self._options.items()]:
             query = "INSERT INTO options " \
                     "(optionkey, optionvalue) " \
                     "VALUES " \
@@ -1048,7 +1048,8 @@ class Editor(simulation.Simulation):
                 "tiid": position.trackItem.tiId,
                 "previoustiid": position.previousTI.tiId,
                 "posonti": position.positionOnTI,
-                "appeartime": "00:00:00"
+                "appeartime": "00:00:00",
+                "initialdelay": self.option("defaultDelayAtEntry")
                }
             train = trains.Train(self, parameters)
             self._trains.append(train)
