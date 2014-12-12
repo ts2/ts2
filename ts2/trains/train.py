@@ -1041,8 +1041,8 @@ class Train(QtCore.QObject):
         distance of maxDistance."""
         pos = self._trainHead
         distance = pos.trackItem.realLength - self._trainHead.positionOnTI
-        while (not pos.trackItem.tiType.startswith("E")) and \
-              (distance < maxDistance):
+        while (not pos.trackItem.tiType.startswith("E") and
+               distance < maxDistance):
             pos = pos.next()
             ti = pos.trackItem
             if ti.maxSpeed < self.getMaximumSpeed()-self.trainType.stdBraking:

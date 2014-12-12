@@ -173,6 +173,11 @@ class ServicesModel(QtCore.QAbstractTableModel):
         super().__init__(editor)
         self._editor = editor
 
+    @property
+    def simulation(self):
+        """Returns the simulation this model belongs to."""
+        return self._editor
+
     def rowCount(self, parent = QtCore.QModelIndex()):
         """Returns the number of rows of the model, corresponding to the
         number of services of the editor"""

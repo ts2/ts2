@@ -30,18 +30,18 @@ class ServicesDelegate(QtGui.QStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
         """Creates the editor, i.e. a combo box for selecting a service."""
-        simulation = index.model().simulation
+        simulation = index.model().sourceModel().simulation
         comboBox = QtGui.QComboBox(parent)
-        comboBox.setModel(simulation.serviceListModel)
+        comboBox.setModel(simulation.servicesModel)
         comboBox.setModelColumn(0)
         return comboBox
 
     def setEditorData(self, editor, index):
         """Sets the values from the model in the combo box"""
-        simulation = index.model().simulation
+        simulation = index.model().sourceModel().simulation
         serviceCode = index.model().data(index, Qt.EditRole)
-        startSearchIndex = simulation.serviceListModel.index(0, 0)
-        serviceIndexes = simulation.serviceListModel.match(
+        startSearchIndex = simulation.servicesModel.index(0, 0)
+        serviceIndexes = simulation.servicesModel.match(
                                                 startSearchIndex,
                                                 Qt.DisplayRole,
                                                 serviceCode,
@@ -71,7 +71,7 @@ class TrainTypesDelegate(QtGui.QStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
         """Creates the editor, i.e. a combo box for selecting a train type."""
-        simulation = index.model().simulation
+        simulation = index.model().sourceModel().simulation
         comboBox = QtGui.QComboBox(parent)
         comboBox.setModel(simulation.trainTypesModel)
         comboBox.setModelColumn(0)
@@ -79,7 +79,7 @@ class TrainTypesDelegate(QtGui.QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         """Sets the values from the model in the combo box"""
-        simulation = index.model().simulation
+        simulation = index.model().sourceModel().simulation
         code = index.data(Qt.EditRole)
         startSearchIndex = simulation.trainTypesModel.index(0, 0)
         trainTypeIndexes = simulation.trainTypesModel.match(

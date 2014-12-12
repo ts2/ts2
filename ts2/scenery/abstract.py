@@ -92,6 +92,7 @@ class TrackItem(QtCore.QObject):
         self._trainTail = -1
         self._place = None
         self._conflictTrackItem = None
+        self._trainPresentPreviousInfo = False
         self._gi = {}
         self.toBeDeselected = False
         self.properties = self.getProperties()
@@ -100,6 +101,9 @@ class TrackItem(QtCore.QObject):
     def __del__(self):
         """Destructor for the TrackItem class"""
         self.removeAllGraphicsItems()
+
+    trainEntersItem = QtCore.pyqtSignal()
+    trainLeavesItem = QtCore.pyqtSignal()
 
     @staticmethod
     def getProperties():
@@ -324,6 +328,25 @@ class TrackItem(QtCore.QObject):
             else:
                 self._conflictTrackItem = None
 
+    def _getTrainPresentPreviousInfo(self):
+        """Returns True if a train has last been seen present on this TI,
+        False otherwise."""
+        return self._trainPresentPreviousInfo
+
+    def _setTrainPresentPreviousInfo(self, value):
+        """Setter function for the trainPresentPreviousInfo property. Emits
+        trainEntersItem and trainLeavesItem signals, when applicable."""
+        if value == self._trainPresentPreviousInfo:
+            return
+        if value:
+            self.trainEntersItem.emit()
+        else:
+            self.trainLeavesItem.emit()
+        self._trainPresentPreviousInfo = value
+
+    trainPresentPreviousInfo = property(_getTrainPresentPreviousInfo,
+                                        _setTrainPresentPreviousInfo)
+
     ### Methods #########################################################
 
     def getFollowingItem(self, precedingItem, direction = -1):
@@ -386,10 +409,7 @@ class TrackItem(QtCore.QObject):
 
     def trainPresent(self):
         """Returns True if a train is present on this TrackItem"""
-        if self._trainHead != -1 or self._trainTail != -1:
-            return True
-        else:
-            return False
+        return self._trainHead != -1 or self._trainTail != -1
 
     def distanceToTrainEnd(self, previousTI):
         """Returns the distance to the closest end (either trainHead or
@@ -409,7 +429,7 @@ class TrackItem(QtCore.QObject):
     def trainHeadActions(self, trainId):
         """Performs the actions to be done when a train head reaches this
         TrackItem"""
-        pass
+        self.trainPresentPreviousInfo = self.trainPresent()
 
     def trainTailActions(self, trainId):
         """Performs the actions to be done when a train tail reaches this
@@ -425,6 +445,12 @@ class TrackItem(QtCore.QObject):
                                         == self.activeRoute):
                         self.activeRoutePreviousItem.resetActiveRoute()
                         self.updateGraphics()
+        self.trainPresentPreviousInfo = self.trainPresent()
+
+    def setupTriggers(self):
+        """Creates the triggers necessary for this trackItem.
+        Base implementation does nothing."""
+        pass
 
     def __eq__(self, ti):
         if ti is not None and self.tiId == ti.tiId:

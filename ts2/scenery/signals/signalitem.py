@@ -331,14 +331,9 @@ class SignalItem(abstract.TrackItem):
 
     def setBerthRect(self):
         """Sets the berth graphics item boundingRect."""
-        tl = QtGui.QTextLayout("XXXXX")
         font = QtGui.QFont("Courier New")
         font.setPixelSize(11)
-        tl.setFont(font)
-        tl.beginLayout()
-        tl.endLayout()
-        rect = tl.boundingRect()
-        rect.moveTop(-rect.height())
+        rect = QtGui.QFontMetricsF(font).boundingRect("XXXXX")
         self._berthRect = rect
 
     def isOnPosition(self, p):
@@ -442,7 +437,6 @@ class SignalItem(abstract.TrackItem):
                         currentSituation |= stCode.ROUTES_SET
                         break
             if aspectName in self.trainNotPresentParams:
-                # FIXME: Need triggering to update signal state when the trains enter or leave looked TIs
                 trainPresent = self.trainNotPresentParams[aspectName]
                 tnp = True
                 for tiId in trainPresent:
@@ -461,6 +455,24 @@ class SignalItem(abstract.TrackItem):
         if self.previousActiveRoute is not None:
             self.previousActiveRoute.beginSignal.updateSignalState()
         self.updateGraphics()
+
+    def setupTriggers(self):
+        """Create the triggers necessary for this Item."""
+        # Add triggers to trackItems defined in trainNotPresentParams
+        tiIds = []
+        for tnp in self.trainNotPresentParams.values():
+            tiIds.extend(tnp)
+        for tiId in tiIds:
+            self.simulation.trackItem(tiId).trainEntersItem.connect(self.updateSignalState)
+            self.simulation.trackItem(tiId).trainLeavesItem.connect(self.updateSignalState)
+
+        # Add triggers to routes defined in routeSetParams
+        tiIds = []
+        for rs in self.routesSetParams.values():
+            tiIds.extend(rs)
+        for tiId in tiIds:
+            self.simulation.routes[tiId].routeSelected.connect(self.updateSignalState)
+            self.simulation.routes[tiId].routeUnselected.connect(self.updateSignalState)
 
     ### Graphics Methods ################################################
 

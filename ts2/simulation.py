@@ -312,8 +312,8 @@ class Simulation(QtCore.QObject):
     conflictingRoute = QtCore.pyqtSignal(routing.Route)
     noRouteBetweenSignals = QtCore.pyqtSignal(signalitem.SignalItem,
                                               signalitem.SignalItem)
-    routeSelected = QtCore.pyqtSignal(routing.Route)
-    routeDeleted = QtCore.pyqtSignal(routing.Route)
+    #routeSelected = QtCore.pyqtSignal(routing.Route)
+    #routeDeleted = QtCore.pyqtSignal(routing.Route)
     timeChanged = QtCore.pyqtSignal(QtCore.QTime)
     timeElapsed = QtCore.pyqtSignal(float)
     trainSelected = QtCore.pyqtSignal(int)
@@ -386,7 +386,6 @@ class Simulation(QtCore.QObject):
         r = si.nextActiveRoute
         if r is not None:
             r.desactivate()
-            self.routeDeleted.emit(r)
 
     @QtCore.pyqtSlot(bool)
     def pause(self, paused=True):
@@ -565,14 +564,12 @@ class Simulation(QtCore.QObject):
             self.makeTrackItemSignalSlotConnections(ti)
             self._trackItems[tiId] = ti
 
-
     def makeTrackItemSignalSlotConnections(self, ti):
         """Makes all signal-slot connections for TrackItem ti"""
         if ti.tiType.startswith("S"):
             ti.signalSelected.connect(self.activateRoute)
             ti.signalUnselected.connect(self.desactivateRoute)
             ti.trainSelected.connect(self.trainSelected)
-
 
     def loadServices(self, conn):
         """Creates the instances of Service from the data of the database."""
@@ -593,6 +590,9 @@ class Simulation(QtCore.QObject):
     def setupConnections(self):
         """Sets up the connections which need a simulation loaded"""
         #self.timeChanged.connect(self.selectedTrainModel.reset)
+        for ti in self.trackItems.values():
+            ti.setupTriggers()
+
 
     def findRoute(self, si1, si2):
         """Checks whether a route exists between two signals, and return this

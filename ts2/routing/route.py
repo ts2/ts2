@@ -110,6 +110,9 @@ class Route(QtCore.QObject):
         self._initialState = initialState
         self._persistent = False
 
+    routeSelected = QtCore.pyqtSignal()
+    routeUnselected = QtCore.pyqtSignal()
+
     @property
     def positions(self):
         """Returns the positions list of this route."""
@@ -197,8 +200,8 @@ class Route(QtCore.QObject):
                      and cur.trackItem.tiId not in self._directions:
                     self._directions[cur.trackItem.tiId] = 0
             cur = cur.next(0, self._directions.get(cur.trackItem.tiId, -1))
-        QtCore.qCritical(self.tr("Invalid route %i. " \
-                            "Impossible to link beginSignal with endSignal" \
+        QtCore.qCritical(self.tr("Invalid route %i. "
+                            "Impossible to link beginSignal with endSignal"
                             % self.routeNum))
         return False
 
@@ -219,6 +222,7 @@ class Route(QtCore.QObject):
         self.endSignal.previousActiveRoute = self
         self.beginSignal.nextActiveRoute = self
         self.persistent = persistent
+        self.routeSelected.emit()
 
     def desactivate(self):
         """This function is called by the simulation when the route is
@@ -229,6 +233,7 @@ class Route(QtCore.QObject):
             if pos.trackItem.activeRoute is None or \
                pos.trackItem.activeRoute == self:
                 pos.trackItem.resetActiveRoute()
+        self.routeUnselected.emit()
 
     def isActivable(self):
         """Returns true if this route can be activated, i.e. that no other

@@ -91,7 +91,7 @@ class ServicesEditorView(QtGui.QTableView):
         self.setSortingEnabled(True)
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        # TODO Add delegate for train type selection
+        self.setItemDelegateForColumn(4, delegates.TrainTypesDelegate(self))
 
     serviceSelected = QtCore.pyqtSignal(str)
 
