@@ -23,6 +23,7 @@ from PyQt4.QtCore import Qt
 
 from ts2.scenery import pointsitem
 
+
 class ServicesDelegate(QtGui.QStyledItemDelegate):
     """ServicesDelegate is a delegate that provides a combo box for
     selecting a Service.
