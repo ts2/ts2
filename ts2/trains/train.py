@@ -19,7 +19,7 @@
 #
 from math import sqrt
 
-from Qt import QtCore, QtWidgets, Qt
+from Qt import QtCore, QtGui, QtWidgets, Qt
 
 from ts2 import scenery, routing, utils
 
@@ -430,13 +430,13 @@ class Train(QtCore.QObject):
         self._simulation.timeElapsed.connect(self.advance)
         self._simulation.timeChanged.connect(self.activate)
         # FIXME Throw back all these actions to MainWindow
-        self.assignAction = QtGui.QAction(self.tr("Reassign service..."),
+        self.assignAction = QtWidgets.QAction(self.tr("Reassign service..."),
                                             self)
         self.assignAction.triggered.connect(self.reassignService)
-        self.resetServiceAction = QtGui.QAction(self.tr("Reset service"),
+        self.resetServiceAction = QtWidgets.QAction(self.tr("Reset service"),
                                                   self)
         self.resetServiceAction.triggered.connect(self.resetService)
-        self.reverseAction = QtGui.QAction(self.tr("Reverse"), self)
+        self.reverseAction = QtWidgets.QAction(self.tr("Reverse"), self)
         self.reverseAction.triggered.connect(self.reverse)
 
     def isOut(self):

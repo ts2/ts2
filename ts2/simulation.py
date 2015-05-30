@@ -67,8 +67,10 @@ class Simulation(QtCore.QObject):
         self.messageLogger.addMessage(self.tr("Simulation loading"),
                                     logger.Message.SOFTWARE_MSG)
         self.initialize()
-        self._database = fileName
-        conn = sqlite3.connect(fileName)
+        
+        self._database = str(fileName)
+        print("DB=", self._database)
+        conn = sqlite3.connect(self._database)
         conn.row_factory = sqlite3.Row
         self.loadOptions(conn)
         version = float(self.option("version"))

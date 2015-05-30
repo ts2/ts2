@@ -18,7 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from Qt import QtCore, QtWidgets, Qt
+from Qt import QtCore, QtWidgets, QtGui, Qt
 
 
 from ts2.editor import delegates
@@ -141,8 +141,8 @@ class TrainsGraphicsView(QtWidgets.QGraphicsView):
                                        QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setInteractive(True)
-        self.setRenderHint(QtWidgets.QPainter.Antialiasing, False)
+        self.setRenderHint(QtGui.QPainter.Antialiasing, False)
         self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.setAcceptDrops(True)
-        self.setBackgroundBrush(QtWidgets.QBrush(Qt.black))
+        self.setBackgroundBrush(QtGui.QBrush(Qt.black))
         self.setSizePolicy(sizePolicy)

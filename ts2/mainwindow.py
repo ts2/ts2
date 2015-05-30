@@ -187,7 +187,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.editorOpened = False
 
         # DEBUG
-        #self.loadSimulation()
+        self.loadSimulation()
         #self.openEditor()
 
     simulationLoaded = QtCore.pyqtSignal(simulation.Simulation)
@@ -200,16 +200,20 @@ class MainWindow(QtWidgets.QMainWindow):
     def loadSimulation(self):
         ### DEBUG
         #fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain.ts2";
-
-        fileName = QtGui.QFileDialog.getOpenFileName(
+        
+        ## FIXME this is wierd at qt5 returns a tuple of "filename/filters)
+        fileNameReply = QtWidgets.QFileDialog.getOpenFileName(
                            self,
                            self.tr("Open a simulation"),
                            QtCore.QDir.currentPath(),
                            self.tr("TS2 files (*.ts2 *.tsg);;"
                                    "TS2 simulation files (*.ts2);;"
                                    "TS2 saved game files (*.tsg)"))
+        print("---", fileNameReply)
+        fileName = fileNameReply[0]
+        
         if fileName != "":
-            QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+            QtWidgets.QApplication.setOverrideCursor(Qt.WaitCursor)
             if self.simulation is not None:
                 self.simulationDisconnect()
                 self.simulation = None
@@ -217,20 +221,21 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.simulation = simulation.Simulation(self)
                 self.simulation.load(fileName)
             except utils.FormatException as err:
-                QtGui.QMessageBox.critical(self,
+                QtWidgets.QMessageBox.critical(self,
                              self.tr("Bad version of TS2 simulation file"),
                              str(err),
-                             QtGui.QMessageBox.Ok)
+                             QtWidgets.QMessageBox.Ok)
                 self.simulation = None
             except:
                 dialogs.ExceptionDialog.popupException(self)
+
                 self.simulation = None
             else:
                 self.setWindowTitle(self.tr(
                         "ts2 - Train Signalling Simulation - %s") % fileName)
                 self.simulationConnect()
                 self.simulationLoaded.emit(self.simulation)
-            QtGui.QApplication.restoreOverrideCursor()
+            QtWidgets.QApplication.restoreOverrideCursor()
 
     def simulationConnect(self):
         """Connects the signals and slots to the simulation."""
@@ -321,7 +326,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def zoom(self, percent):
-        self.view.setMatrix(QtGui.QMatrix(percent/100, 0, 0,
+        self.view.setTransform(QtGui.QMatrix(percent/100, 0, 0,
                                            percent/100, 0, 0))
 
     @QtCore.pyqtSlot()

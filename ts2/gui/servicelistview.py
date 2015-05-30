@@ -46,8 +46,8 @@ class ServiceListView(QtWidgets.QTreeView):
                 if self.model().data(index) == serviceCode:
                     self.selectionModel().select(
                                     index,
-                                    QtGui.QItemSelectionModel.Rows|
-                                    QtGui.QItemSelectionModel.ClearAndSelect)
+                                    QtCore.QItemSelectionModel.Rows|
+                                    QtCore.QItemSelectionModel.ClearAndSelect)
 
     @QtCore.pyqtSlot(simulation.Simulation)
     def setupServiceList(self, simulation):
