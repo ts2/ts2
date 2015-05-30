@@ -18,8 +18,8 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4.QtCore import Qt
-from PyQt4 import QtGui, QtCore
+
+from Qt import QtGui, QtCore, Qt
 from ts2.scenery import SignalItem
 from ts2 import utils
 

@@ -18,8 +18,8 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtGui, QtWidgets, Qt
+
 from ts2.scenery import TrackItem, TrackGraphicsItem, TIProperty
 from ts2 import utils, routing
 from math import sqrt
@@ -68,7 +68,7 @@ class LineItem(TrackItem):
         p.setJoinStyle(Qt.RoundJoin)
         p.setCapStyle(Qt.RoundCap)
         p.setColor(Qt.red)
-        self._tli = QtGui.QGraphicsLineItem()
+        self._tli = QtWidgets.QGraphicsLineItem()
         self._tli.setCursor(Qt.ArrowCursor)
         self._tli.setPen(p)
         self._tli.setZValue(10)

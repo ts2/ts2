@@ -19,19 +19,23 @@
 #
 
 import sqlite3
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtGui, QtWidgets, QtCore, Qt
+
 from ts2 import simulation
 from ts2 import scenery, utils, trains, routing
 import ts2.editor
 
-class TrashBinItem(QtGui.QGraphicsPixmapItem):
+class TrashBinItem(QtWidgets.QGraphicsPixmapItem):
     """The TrashBinItem is the graphics item on which to drag TrackItems to be
     deleted
     """
     def __init__(self, editor, scene, pos):
         """Constructor for the TrashBinItem class"""
-        super().__init__(None, scene)
+
+        ## FIXME pedro gets qt5it working
+        #super().__init__(None, scene)
+        super().__init__()
+
         self.setPos(pos)
         self.setPixmap(QtGui.QPixmap(":/bin.png"))
         self.setAcceptDrops(True)
@@ -51,11 +55,15 @@ class TrashBinItem(QtGui.QGraphicsPixmapItem):
             event.ignore()
 
 
-class WhiteLineItem(QtGui.QGraphicsLineItem):
+class WhiteLineItem(QtWidgets.QGraphicsLineItem):
     """Shortcut class to make white line items"""
     def __init__(self, x1, y1, x2, y2, parent, scene):
         """Constructor for the WhiteLineItem class"""
-        super().__init__(x1, y1, x2, y2, parent, scene)
+
+        ##FIXME dont port to qt5 said pedro
+        #super().__init__(x1, y1, x2, y2, parent, scene)
+
+        super().__init__(x1, y1, x2, y2, parent)
         self.setPen(Qt.white)
         self.update()
 
@@ -123,7 +131,7 @@ class Editor(simulation.Simulation):
         """Constructor for the Editor class"""
         super().__init__(editorWindow)
         self._context = utils.Context.EDITOR_GENERAL
-        self._libraryScene = QtGui.QGraphicsScene(0, 0, 200, 250, self)
+        self._libraryScene = QtWidgets.QGraphicsScene(0, 0, 200, 250, self)
         self._sceneBackground = ts2.editor.EditorSceneBackground(
                                                         self, 0, 0, 800, 600)
         self._sceneBackground.setZValue(-100)

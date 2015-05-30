@@ -18,8 +18,8 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtGui, Qt
+
 
 class Message(QtCore.QObject):
     """A Message instance holds all the data regarding one message emitted to

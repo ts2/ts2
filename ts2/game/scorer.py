@@ -18,8 +18,8 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore
-from PyQt4.Qt import Qt
+from Qt import QtCore, Qt
+
 
 class Scorer(QtCore.QObject):
     """A scorer calculates the score of the player during the simulation."""

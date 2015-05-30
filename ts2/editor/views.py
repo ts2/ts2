@@ -18,23 +18,23 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtWidgets, Qt
+
 
 from ts2.editor import delegates
 
-class RoutesEditorView(QtGui.QTableView):
+class RoutesEditorView(QtWidgets.QTableView):
     """Table view with specific options for editing routes in the editor
     """
     def __init__(self, parent):
         """Constructor for the RoutesEditorView class"""
         super().__init__(parent)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
-                                       QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, \
+                                       QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setSizePolicy(sizePolicy)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
 
     routeSelected = QtCore.pyqtSignal(int)
 
@@ -48,47 +48,47 @@ class RoutesEditorView(QtGui.QTableView):
 
 
 
-class TrainTypesEditorView(QtGui.QTableView):
+class TrainTypesEditorView(QtWidgets.QTableView):
     """Table view with specific options for editing trainTypes in the editor
     """
     def __init__(self, parent):
         """Constructor for the TrainTypesEditorView class"""
         super().__init__(parent)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
-                                       QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, \
+                                       QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setSizePolicy(sizePolicy)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
 
-class PropertiesView(QtGui.QTableView):
+class PropertiesView(QtWidgets.QTableView):
     """Table view with specific options for editing track items properties in
     the editor
     """
     def __init__(self, parent):
         """Constructor for the PropertiesView class"""
         super().__init__(parent)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
-                                       QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, \
+                                       QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setSizePolicy(sizePolicy)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
 
 
-class ServicesEditorView(QtGui.QTableView):
+class ServicesEditorView(QtWidgets.QTableView):
     """Table view with specific options for editing services in the editor
     """
     def __init__(self, parent):
         """Constructor for the ServicesEditorView class"""
         super().__init__(parent)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
-                                       QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, \
+                                       QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setSizePolicy(sizePolicy)
         self.setSortingEnabled(True)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
 
     serviceSelected = QtCore.pyqtSignal(str)
 
@@ -100,19 +100,19 @@ class ServicesEditorView(QtGui.QTableView):
         if index.isValid():
             self.serviceSelected.emit(index.data())
 
-class TrainsEditorView(QtGui.QTableView):
+class TrainsEditorView(QtWidgets.QTableView):
     """Table view with specific options for editing trains in the editor
     """
     def __init__(self, parent):
         """Constructor for the TrainsEditorView class"""
         super().__init__(parent)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
-                                       QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, \
+                                       QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setSizePolicy(sizePolicy)
         self.setSortingEnabled(True)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         servicesDelegate = delegates.ServicesDelegate(self)
         trainTypesDelegate = delegates.TrainTypesDelegate(self)
         self.setItemDelegateForColumn(1, servicesDelegate)
@@ -130,19 +130,19 @@ class TrainsEditorView(QtGui.QTableView):
             self.trainSelected.emit(self.model().index(index.row(), 0).data())
 
 
-class TrainsGraphicsView(QtGui.QGraphicsView):
+class TrainsGraphicsView(QtWidgets.QGraphicsView):
     """Graphics view with specific options for editing train positions in the
     editor
     """
     def __init__(self, scene, parent):
         """Constructor for the TrainsGraphicsView class"""
         super().__init__(scene, parent)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, \
-                                       QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, \
+                                       QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
         self.setInteractive(True)
-        self.setRenderHint(QtGui.QPainter.Antialiasing, False)
-        self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+        self.setRenderHint(QtWidgets.QPainter.Antialiasing, False)
+        self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.setAcceptDrops(True)
-        self.setBackgroundBrush(QtGui.QBrush(Qt.black))
+        self.setBackgroundBrush(QtWidgets.QBrush(Qt.black))
         self.setSizePolicy(sizePolicy)

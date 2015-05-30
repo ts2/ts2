@@ -20,7 +20,7 @@
 
 import random
 
-from PyQt4 import QtCore
+from Qt import QtCore
 
 TS2_VERSION = "0.4.1"
 TS2_FILE_FORMAT = 0.4

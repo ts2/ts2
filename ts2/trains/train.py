@@ -19,12 +19,11 @@
 #
 from math import sqrt
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtWidgets, Qt
 
 from ts2 import scenery, routing, utils
 
-translate = QtGui.QApplication.translate
+translate = QtWidgets.QApplication.translate
 
 class TrainStatus(QtCore.QObject):
     """This class holds the enum describing the status of a train"""

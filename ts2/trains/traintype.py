@@ -19,8 +19,8 @@
 #
 
 import copy
-from PyQt4 import QtCore
-from PyQt4.Qt import Qt
+from Qt import QtCore, Qt
+
 from ts2 import utils
 
 class TrainTypesModel(QtCore.QAbstractTableModel):

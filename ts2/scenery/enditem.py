@@ -20,8 +20,8 @@
 
 from ts2.scenery import TrackItem, TrackGraphicsItem, TIProperty
 from ts2 import utils
-from PyQt4 import QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtCore, Qt
+
 
 BIG = 1000000000
 

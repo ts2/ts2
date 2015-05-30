@@ -18,8 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtSql, QtGui
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtSql, QtGui, QtWidgets, Qt
 from math import sqrt
 import sqlite3
 from ts2 import utils, routing, scenery, trains
@@ -34,7 +33,7 @@ class Simulation(QtCore.QObject):
         super().__init__()
         self._database = None
         self._simulationWindow = simulationWindow
-        self._scene = QtGui.QGraphicsScene()
+        self._scene = QtWidgets.QGraphicsScene()
         self._timer = QtCore.QTimer(self)
         self._messageLogger = logger.MessageLogger(self)
         self._scorer = scorer.Scorer(self)
