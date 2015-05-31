@@ -373,6 +373,9 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
         self._train = self._simulation.trains[trainId]
         self.reset()
 
+    def reset(self):
+        print("FIXME RESET")
+        
     @QtCore.pyqtSlot()
     def update(self):
         """Emits the dataChanged signal for the lines that may change."""
@@ -556,7 +559,7 @@ class Train(QtCore.QObject):
 
     def showTrainActionsMenu(self, widget, pos):
         """Pops-up the train actions menu on the given QWidget"""
-        contextMenu = QtGui.QMenu(widget)
+        contextMenu = QtWidgets.QMenu(widget)
         contextMenu.addAction(self.assignAction)
         contextMenu.addAction(self.resetServiceAction)
         contextMenu.addAction(self.reverseAction)
@@ -732,14 +735,14 @@ class Train(QtCore.QObject):
     @QtCore.pyqtSlot()
     def resetService(self):
         """Resets the service, i.e. sets the pointer to the first station."""
-        if QtGui.QMessageBox.question(
+        if QtWidgets.QMessageBox.question(
                     self.simulation.simulationWindow,
                     self.tr("Reset a service"),
                     self.tr("Are you sure you really "\
                             "want to reset service %s?"
                             % self.serviceCode),
-                    QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel
-                    ) == QtGui.QMessageBox.Ok:
+                    QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel
+                    ) == QtWidgets.QMessageBox.Ok:
             self.nextPlaceIndex = 0
 
     def jumpToNextPlace(self):

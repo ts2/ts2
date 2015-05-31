@@ -130,7 +130,7 @@ class ServiceAssignDialog(QtWidgets.QDialog):
         """Reassigns a service to the train given by trainId by poping-up a
         reassignServiceDialog."""
         sad = ServiceAssignDialog(simulation.simulationWindow, simulation)
-        if sad.exec_() == QtGui.QDialog.Accepted:
+        if sad.exec_() == QtWidgets.QDialog.Accepted:
             newServiceCode = sad.getServiceCode()
             if newServiceCode != "":
                 train = simulation.trains[trainId]

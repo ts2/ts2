@@ -101,6 +101,8 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
         self._service = self._simulation.service(serviceCode)
         self.reset()
 
+    def reset(self):
+        print("FIXME REST")
 
 class ServiceListModel(QtCore.QAbstractTableModel):
     """Model for displaying services during the game. This model makes a

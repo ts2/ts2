@@ -39,8 +39,8 @@ class TrainListView(QtWidgets.QTreeView):
     def updateTrainSelection(self, trainId):
         index = self.model().index(trainId, 0)
         self.selectionModel().select(index,
-                                     QtWidgets.QItemSelectionModel.Rows|
-                                     QtWidgets.QItemSelectionModel.ClearAndSelect)
+                                     QtCore.QItemSelectionModel.Rows|
+                                     QtCore.QItemSelectionModel.ClearAndSelect)
 
     @QtCore.pyqtSlot(simulation.Simulation)
     def setupTrainList(self, simulation):

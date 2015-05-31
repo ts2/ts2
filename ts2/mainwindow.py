@@ -332,7 +332,7 @@ class MainWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def showAboutBox(self):
         """Shows the about box"""
-        QtGui.QMessageBox.about(self, self.tr("About TS2"), self.tr(
+        QtWidgets.QMessageBox.about(self, self.tr("About TS2"), self.tr(
             "TS2 is a train signalling simulation.\n\n"
             "Version %s\n\n"
             "Copyright 2008-2013, NPi (npi@users.sourceforge.net)\n"
