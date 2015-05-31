@@ -120,7 +120,9 @@ class OptionsModel(QtCore.QAbstractTableModel):
         if index.column() == 1:
             retFlag |= Qt.ItemIsEditable | Qt.ItemIsSelectable
         return retFlag
-
+    
+    def reset(self):
+        print("FIXME reset()", self)
 
 
 class Editor(simulation.Simulation):

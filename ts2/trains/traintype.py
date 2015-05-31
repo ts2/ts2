@@ -111,7 +111,8 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
         """Returns the flags of the model"""
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
 
-
+    def reset(self):
+        print("FIXME reset()", self)
 
 class TrainType:
     """The TrainType class holds information relating to rolling stock types.

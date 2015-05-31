@@ -158,8 +158,9 @@ class EditorWindow(QtWidgets.QMainWindow):
         optionsLabel = QtWidgets.QLabel(self.tr("Options: "))
         self.optionsView = QtWidgets.QTableView(generalTab)
         self.optionsView.setModel(self.editor.optionsModel)
-        ## FIXME - rest not excists in qt5
-        #self.editor.optionsChanged.connect(self.optionsView.model().reset)
+        
+        ## FIXME - reset not exists in qt5
+        self.editor.optionsChanged.connect(self.optionsView.model().reset)
 
         fgrid = QtWidgets.QFormLayout()
         fgrid.addRow(titleLabel, self.titleTxt)
@@ -239,7 +240,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.routesView.setModel(self.editor.routesModel)
         self.routesView.routeSelected.connect(self.editor.selectRoute)
         ## FIXME reset is missing qt5
-        #self.editor.routesChanged.connect(self.routesView.model().reset)
+        self.editor.routesChanged.connect(self.routesView.model().reset)
         grid = QtWidgets.QVBoxLayout()
         grid.addWidget(self.routesGraphicView)
         grid.addLayout(hgrid)
@@ -255,8 +256,7 @@ class EditorWindow(QtWidgets.QMainWindow):
                                                                 trainTypesTab)
         self.trainTypesView.setModel(self.editor.trainTypesModel)
         ## FIXME reset is missing qt5
-        #self.editor.trainTypesChanged.connect( \
-        #                        self.trainTypesView.model().reset)
+        self.editor.trainTypesChanged.connect(self.trainTypesView.model().reset)
         self.editor.trainTypesChanged.connect( \
                                 self.trainTypesView.resizeColumnsToContents)
         self.addTrainTypeBtn = QtWidgets.QPushButton( \

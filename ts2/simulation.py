@@ -28,6 +28,19 @@ from ts2.game import logger, scorer
 class Simulation(QtCore.QObject):
     """The Simulation class holds all the game logic."""
 
+    conflictingRoute = QtCore.pyqtSignal(routing.Route)
+    noRouteBetweenSignals = QtCore.pyqtSignal(scenery.SignalItem, \
+                                              scenery.SignalItem)
+    routeSelected = QtCore.pyqtSignal(routing.Route)
+    routeDeleted = QtCore.pyqtSignal(routing.Route)
+    timeChanged = QtCore.pyqtSignal(QtCore.QTime)
+    timeElapsed = QtCore.pyqtSignal(float)
+    trainSelected = QtCore.pyqtSignal(int)
+    itemSelected = QtCore.pyqtSignal(int)
+    trainStatusChanged = QtCore.pyqtSignal(int)
+    servicesLoaded = QtCore.pyqtSignal()
+    
+    
     def __init__(self, simulationWindow):
         """ Constructor for the Simulation class. """
         super().__init__()
@@ -69,7 +82,6 @@ class Simulation(QtCore.QObject):
         self.initialize()
         
         self._database = str(fileName)
-        print("DB=", self._database)
         conn = sqlite3.connect(self._database)
         conn.row_factory = sqlite3.Row
         self.loadOptions(conn)
@@ -303,17 +315,7 @@ class Simulation(QtCore.QObject):
     def registerGraphicsItem(self, graphicItem):
         self._scene.addItem(graphicItem)
 
-    conflictingRoute = QtCore.pyqtSignal(routing.Route)
-    noRouteBetweenSignals = QtCore.pyqtSignal(scenery.SignalItem, \
-                                              scenery.SignalItem)
-    routeSelected = QtCore.pyqtSignal(routing.Route)
-    routeDeleted = QtCore.pyqtSignal(routing.Route)
-    timeChanged = QtCore.pyqtSignal(QtCore.QTime)
-    timeElapsed = QtCore.pyqtSignal(float)
-    trainSelected = QtCore.pyqtSignal(int)
-    itemSelected = QtCore.pyqtSignal(int)
-    trainStatusChanged = QtCore.pyqtSignal(int)
-    servicesLoaded = QtCore.pyqtSignal()
+
 
     @QtCore.pyqtSlot(int, bool, bool)
     def activateRoute(self, siId, persistent=False, force=False):

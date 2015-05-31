@@ -83,6 +83,8 @@ class RoutesModel(QtCore.QAbstractTableModel):
             retFlag |= Qt.ItemIsEditable
         return retFlag
 
+    def reset(self):
+        print("FIXME reset()", self)
 
 class Route(QtCore.QObject):
     """@brief Path between two signals
