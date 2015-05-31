@@ -326,7 +326,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def zoom(self, percent):
-        self.view.setTransform(QtGui.QMatrix(percent/100, 0, 0,
+        self.view.setTransform(QtGui.QTransform(percent/100, 0, 0,
                                            percent/100, 0, 0))
 
     @QtCore.pyqtSlot()
@@ -344,7 +344,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(QtCore.QPoint)
     def showContextMenu(self, pos):
-        if self.sender() == self._trainInfoView:
+        if self.sender() == self.trainInfoView:
             train = self.trainInfoView.model().train
             if train is not None:
                 train.showTrainActionsMenu(self.trainInfoView,

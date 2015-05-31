@@ -98,6 +98,11 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
         self._place = place
         self.reset()
 
+    def reset(self):
+        print("FIXME reset()", self)
+        self.beginResetModel()
+        self.endResetModel()
+        
     @QtCore.pyqtSlot(str)
     def setPlace(self, place):
         self.place = place
@@ -126,8 +131,7 @@ class Place(TrackItem):
 
     selectedPlaceModel = PlaceInfoModel()
 
-    properties = TrackItem.properties + [\
-                                    TIProperty("placeCode", tr("Place code"))]
+    properties = TrackItem.properties + [TIProperty("placeCode", tr("Place code"))]
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the

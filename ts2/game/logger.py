@@ -72,10 +72,13 @@ class MessageLogger(QtCore.QAbstractTableModel):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole:
             return str(self._messages[index.row()])
+        
         elif role == Qt.FontRole:
             return QtGui.QFont("Courier new")
+        
         elif role == Qt.BackgroundRole:
             return QtGui.QBrush(Qt.black)
+        
         elif role == Qt.ForegroundRole:
             msgType = self._messages[index.row()].msgType
             if msgType == Message.SOFTWARE_MSG:

@@ -374,7 +374,9 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
         self.reset()
 
     def reset(self):
-        print("FIXME RESET")
+        print("FIXME missing qt5 rest()", self)
+        self.beginResetModel()
+        self.endResetModel()
         
     @QtCore.pyqtSlot()
     def update(self):

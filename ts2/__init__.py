@@ -21,11 +21,11 @@
 import os
 import sys
 
+# append the parent to the diretory
 HERE_PATH =  os.path.abspath( os.path.dirname( __file__ ))
 if sys.path.count(HERE_PATH) == 0:
 	sys.path.insert(0, HERE_PATH)
 
-#print("YES", HERE_PATH)
 
 
 #__all__ = ['bumperitem','clock','enditem','lineitem','mainwindow','panel', \

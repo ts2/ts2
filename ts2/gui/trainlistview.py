@@ -24,6 +24,7 @@ from ts2 import simulation, trains
 
 class TrainListView(QtWidgets.QTreeView):
     """ TODO Document TrainListView class"""
+    trainSelected = QtCore.pyqtSignal(int)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -33,7 +34,7 @@ class TrainListView(QtWidgets.QTreeView):
         self.setHeaderHidden(False)
         self.setSortingEnabled(True)
 
-    trainSelected = QtCore.pyqtSignal(int)
+    
 
     @QtCore.pyqtSlot(int)
     def updateTrainSelection(self, trainId):

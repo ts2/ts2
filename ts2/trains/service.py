@@ -102,7 +102,9 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
         self.reset()
 
     def reset(self):
-        print("FIXME REST")
+        print("FIXME missing qt5 reset()", self)
+        self.beginResetModel()
+        self.endResetModel()
 
 class ServiceListModel(QtCore.QAbstractTableModel):
     """Model for displaying services during the game. This model makes a
