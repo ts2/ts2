@@ -32,8 +32,6 @@ class TrashBinItem(QtWidgets.QGraphicsPixmapItem):
     def __init__(self, editor, scene, pos):
         """Constructor for the TrashBinItem class"""
 
-        ## FIXME pedro gets qt5it working
-        #super().__init__(None, scene)
         super().__init__()
 
         self.setPos(pos)
@@ -60,8 +58,6 @@ class WhiteLineItem(QtWidgets.QGraphicsLineItem):
     def __init__(self, x1, y1, x2, y2, parent, scene):
         """Constructor for the WhiteLineItem class"""
 
-        ##FIXME dont port to qt5 said pedro
-        #super().__init__(x1, y1, x2, y2, parent, scene)
 
         super().__init__(x1, y1, x2, y2, parent)
         self.setPen(Qt.white)

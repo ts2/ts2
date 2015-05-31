@@ -159,7 +159,6 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.optionsView = QtWidgets.QTableView(generalTab)
         self.optionsView.setModel(self.editor.optionsModel)
         
-        ## FIXME - reset not exists in qt5
         self.editor.optionsChanged.connect(self.optionsView.model().reset)
 
         fgrid = QtWidgets.QFormLayout()
@@ -239,7 +238,6 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.routesView = ts2.editor.views.RoutesEditorView(routesTab)
         self.routesView.setModel(self.editor.routesModel)
         self.routesView.routeSelected.connect(self.editor.selectRoute)
-        ## FIXME reset is missing qt5
         self.editor.routesChanged.connect(self.routesView.model().reset)
         grid = QtWidgets.QVBoxLayout()
         grid.addWidget(self.routesGraphicView)
@@ -255,7 +253,6 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.trainTypesView = ts2.editor.views.TrainTypesEditorView(
                                                                 trainTypesTab)
         self.trainTypesView.setModel(self.editor.trainTypesModel)
-        ## FIXME reset is missing qt5
         self.editor.trainTypesChanged.connect(self.trainTypesView.model().reset)
         self.editor.trainTypesChanged.connect( \
                                 self.trainTypesView.resizeColumnsToContents)
@@ -295,7 +292,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         servicesSortedModel = QtCore.QSortFilterProxyModel()
         servicesSortedModel.setSourceModel(self.editor.servicesModel)
         self.servicesView.setModel(servicesSortedModel)
-        ## FIXME reset is missing qt5
+        # FIXME - no reset() in qt5
         #self.editor.servicesChanged.connect(self.servicesView.model().reset)
         self.editor.servicesChanged.connect(
                                 self.servicesView.resizeColumnsToContents)
@@ -319,9 +316,8 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.serviceLinesView.setModel(self.editor.serviceLinesModel)
         self.servicesView.serviceSelected.connect(
                                 self.editor.serviceLinesModel.setServiceCode)
-        ## FIXME reset is missing qt5
-        # self.editor.serviceLinesChanged.connect(
-        #                        self.serviceLinesView.model().reset)
+        # FIXME - no reset() in qt5
+        #self.editor.serviceLinesChanged.connect(self.serviceLinesView.model().reset)
         self.editor.serviceLinesChanged.connect(
                                 self.serviceLinesView.resizeColumnsToContents)
         self.appendServiceLineBtn = QtWidgets.QPushButton(
@@ -376,7 +372,8 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.trainsView.setModel(trainsSortedModel)
         self.trainsView.trainSelected.connect(self.editor.selectTrain)
         self.trainsView.trainsUnselected.connect(self.editor.unselectTrains)
-        # FIXME self.editor.trainsChanged.connect(self.trainsView.model().reset)
+        # FIXME no reset() in qt5
+        #self.editor.trainsChanged.connect(self.trainsView.model().reset)
         self.editor.trainsChanged.connect(
                                 self.trainsView.resizeColumnsToContents)
         self.addTrainBtn = QtWidgets.QPushButton(self.tr("Add new train"),

@@ -240,6 +240,8 @@ class TrainsModel(QtCore.QAbstractTableModel):
         """Returns the simulation this model is attached to."""
         return self._editor
 
+    def reset(self):
+        print("FIXME reset()", self)
 
 class TrainInfoModel(QtCore.QAbstractTableModel):
     """Model for displaying a single service information in a view

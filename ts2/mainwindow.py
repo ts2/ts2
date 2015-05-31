@@ -187,7 +187,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.editorOpened = False
 
         # DEBUG
-        self.loadSimulation()
+        #self.loadSimulation()
         #self.openEditor()
 
     simulationLoaded = QtCore.pyqtSignal(simulation.Simulation)
