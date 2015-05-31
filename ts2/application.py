@@ -40,10 +40,7 @@ def Main():
     app.installTranslator(ts2Translator)
     QtCore.qDebug(QtCore.QLocale.system().name())
 
-    mw = mainwindow.MainWindow()
-    mw.show()
-    return app.exec_()
-    """try:
+    try:
         mw = mainwindow.MainWindow()
         mw.show()
         return app.exec_();
@@ -56,6 +53,6 @@ def Main():
         return 1
     else:
         return 0
-    """
+    
 if __name__ == "__main__":
     Main()
