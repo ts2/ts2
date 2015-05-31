@@ -18,11 +18,10 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtWidgets, QtGui, QtCore, Qt
 from ts2 import utils
 
-class PositionGraphicsItem(QtGui.QGraphicsPolygonItem):
+class PositionGraphicsItem(QtWidgets.QGraphicsPolygonItem):
     """This class is a graphics representation of a position to be put on a
     scene.
     """

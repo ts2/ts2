@@ -18,8 +18,17 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
+import os
+import sys
+
+# append the parent to the diretory
+HERE_PATH =  os.path.abspath( os.path.dirname( __file__ ))
+if sys.path.count(HERE_PATH) == 0:
+	sys.path.insert(0, HERE_PATH)
+
+
+
 #__all__ = ['bumperitem','clock','enditem','lineitem','mainwindow','panel', \
            #'place','platformitem','pointsitem','position','route','service', \
            #'serviceassigndialog','servicelistview','signalitem','signaltimeritem', \
            #'simulation','trackitem','train','trainlistview','traintype','utils']
-       

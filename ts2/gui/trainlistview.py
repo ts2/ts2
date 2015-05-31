@@ -18,12 +18,13 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
+from Qt import QtCore, QtWidgets
 
 from ts2 import simulation, trains
 
-class TrainListView(QtGui.QTreeView):
+class TrainListView(QtWidgets.QTreeView):
     """ TODO Document TrainListView class"""
+    trainSelected = QtCore.pyqtSignal(int)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -33,14 +34,14 @@ class TrainListView(QtGui.QTreeView):
         self.setHeaderHidden(False)
         self.setSortingEnabled(True)
 
-    trainSelected = QtCore.pyqtSignal(int)
+    
 
     @QtCore.pyqtSlot(int)
     def updateTrainSelection(self, trainId):
         index = self.model().index(trainId, 0)
         self.selectionModel().select(index,
-                                     QtGui.QItemSelectionModel.Rows|
-                                     QtGui.QItemSelectionModel.ClearAndSelect)
+                                     QtCore.QItemSelectionModel.Rows|
+                                     QtCore.QItemSelectionModel.ClearAndSelect)
 
     @QtCore.pyqtSlot(simulation.Simulation)
     def setupTrainList(self, simulation):
@@ -51,7 +52,7 @@ class TrainListView(QtGui.QTreeView):
         self.setModel(self.simulation.trainListModel)
         self.header().setStretchLastSection(False)
         self.header().setSortIndicatorShown(False)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.simulation.trainStatusChanged.connect(self.model().update)
         #self._simulation.timeChanged.connect(self.model().update)
         #self.trainSelected.connect(self._simulation.selectedTrainModel.setTrainByServiceCode)
@@ -63,7 +64,7 @@ class TrainListView(QtGui.QTreeView):
             train = self.simulation.trains[index.row()]
             train.showTrainActionsMenu(self, event.globalPos())
 
-    @QtCore.pyqtSlot(QtGui.QItemSelection, QtGui.QItemSelection)
+    @QtCore.pyqtSlot(QtCore.QItemSelection, QtCore.QItemSelection)
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)
         if len(selected.indexes()) > 0:

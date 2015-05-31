@@ -19,8 +19,8 @@
 #
 
 import copy
-from PyQt4 import QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtCore, Qt
+
 from ts2 import utils
 
 
@@ -101,6 +101,10 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
         self._service = self._simulation.service(serviceCode)
         self.reset()
 
+    def reset(self):
+        print("FIXME missing qt5 reset()", self)
+        self.beginResetModel()
+        self.endResetModel()
 
 class ServiceListModel(QtCore.QAbstractTableModel):
     """Model for displaying services during the game. This model makes a

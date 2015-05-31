@@ -18,18 +18,18 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
+from Qt import QtCore, QtWidgets
 
 from ts2 import simulation
 
 
-class Clock(QtGui.QLCDNumber):
+class Clock(QtWidgets.QLCDNumber):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.setFrameShape(QtGui.QFrame.NoFrame)
-        self.setFrameShadow(QtGui.QFrame.Plain)
-        self.setSegmentStyle(QtGui.QLCDNumber.Flat)
+        self.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
         self.setNumDigits(8)
         self.display("--:--:--")
         self.resize(100,20)
@@ -39,7 +39,7 @@ class Clock(QtGui.QLCDNumber):
         self.display(t.toString("hh:mm:ss"))
 
 
-class Panel(QtGui.QWidget):
+class Panel(QtWidgets.QWidget):
     """The panel is the display rectangle below the scene holding the widgets
     necessary to play the simulation (e.g. clock)."""
 
@@ -51,41 +51,41 @@ class Panel(QtGui.QWidget):
         # Clock
         self.clock = Clock(self)
         # Pause button
-        self.pauseButton = QtGui.QPushButton(self.tr("Pause"), self)
+        self.pauseButton = QtWidgets.QPushButton(self.tr("Pause"), self)
         self.pauseButton.setCheckable(True)
         # Time factor spinBox
-        self.timeFactorSpinBox = QtGui.QSpinBox(self)
+        self.timeFactorSpinBox = QtWidgets.QSpinBox(self)
         self.timeFactorSpinBox.setRange(0, 10)
         self.timeFactorSpinBox.setSingleStep(1)
         self.timeFactorSpinBox.setValue(1)
         self.timeFactorSpinBox.setSuffix("x")
         # Zoom spinBox
-        self.zoomSpinBox = QtGui.QSpinBox(self)
+        self.zoomSpinBox = QtWidgets.QSpinBox(self)
         self.zoomSpinBox.setRange(10,200)
         self.zoomSpinBox.setSingleStep(10)
         self.zoomSpinBox.setValue(100)
         self.zoomSpinBox.valueChanged.connect(self.zoomSpinBoxChanged)
         # score display
-        self.scoreDisplay = QtGui.QLCDNumber(self)
-        self.scoreDisplay.setFrameShape(QtGui.QFrame.NoFrame)
-        self.scoreDisplay.setFrameShadow(QtGui.QFrame.Plain)
-        self.scoreDisplay.setSegmentStyle(QtGui.QLCDNumber.Flat)
+        self.scoreDisplay = QtWidgets.QLCDNumber(self)
+        self.scoreDisplay.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.scoreDisplay.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.scoreDisplay.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
         self.scoreDisplay.setNumDigits(5)
         self.scoreDisplay.resize(70, 25)
 
-        layout = QtGui.QHBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
         layout.addSpacing(5)
         layout.addWidget(self.clock)
         layout.addSpacing(5)
         layout.addWidget(self.pauseButton)
         layout.addSpacing(5)
-        layout.addWidget(QtGui.QLabel(self.tr("Simulation speed: ")))
+        layout.addWidget(QtWidgets.QLabel(self.tr("Simulation speed: ")))
         layout.addWidget(self.timeFactorSpinBox)
         layout.addSpacing(5)
-        layout.addWidget(QtGui.QLabel(self.tr("Zoom: ")))
+        layout.addWidget(QtWidgets.QLabel(self.tr("Zoom: ")))
         layout.addWidget(self.zoomSpinBox)
         layout.addStretch()
-        layout.addWidget(QtGui.QLabel(self.tr("Penalty points: ")))
+        layout.addWidget(QtWidgets.QLabel(self.tr("Penalty points: ")))
         layout.addWidget(self.scoreDisplay)
         self.setLayout(layout)
 
@@ -111,8 +111,8 @@ class Panel(QtGui.QWidget):
         return QtCore.QSize(200,40)
 
     def sizePolicy(self):
-        return QtCore.QSizePolicy(QtGui.QSizePolicy.Expanding,
-                                  QtGui.QSizePolicy.Fixed)
+        return QtCore.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                  QtWidgets.QSizePolicy.Fixed)
 
     @QtCore.pyqtSlot(bool)
     def changePauseButtonText(self, paused):

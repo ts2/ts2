@@ -18,14 +18,13 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.Qt import Qt
+from Qt import QtCore, QtGui, QtWidgets, Qt
 from ts2.utils import Context
 from ts2.scenery import LineItem, Place, TIProperty
 
 tr = QtCore.QObject().tr
 
-class PFGraphicsItem(QtGui.QGraphicsRectItem):
+class PFGraphicsItem(QtWidgets.QGraphicsRectItem):
     """@brief Graphical item for platforms
     This class is the graphics of a PlatformItem on the scene.
     Each instance belongs to a PlatformItem which is defined in the

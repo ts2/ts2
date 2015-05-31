@@ -18,13 +18,12 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtGui, QtWidgets, Qt
 from ts2 import utils
 
 tr = QtCore.QObject().tr
 
-class TrackGraphicsItem(QtGui.QGraphicsItem):
+class TrackGraphicsItem(QtWidgets.QGraphicsItem):
     """@brief Graphical item of a trackItem
     This class is the graphics of a TrackItem on the scene. Each instance
     belongs to a trackItem which is defined in the constructor and which
