@@ -18,8 +18,8 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtCore, Qt
+
 import ts2.routing
 
 class RoutesModel(QtCore.QAbstractTableModel):
@@ -83,6 +83,8 @@ class RoutesModel(QtCore.QAbstractTableModel):
             retFlag |= Qt.ItemIsEditable
         return retFlag
 
+    def reset(self):
+        print("FIXME reset()", self)
 
 class Route(QtCore.QObject):
     """@brief Path between two signals

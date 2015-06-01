@@ -18,7 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore
+from Qt import QtCore
 from ts2.scenery import SignalItem, SignalState, TIProperty
 from ts2 import utils
 

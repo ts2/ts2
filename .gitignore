@@ -1,5 +1,6 @@
 .idea/
 .kdev4/
+.settings/
 
 /.directory
 /.eric5project/ts2.e4t

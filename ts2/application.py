@@ -18,14 +18,17 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
 import sys
+
+
+from Qt import QtCore, QtWidgets, QtGui
+
 from ts2 import mainwindow
 from ts2 import ressources_rc
 from ts2 import gui
 
 def Main():
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     app.setWindowIcon(QtGui.QIcon(QtGui.QPixmap(":/ts2.png")))
     qtTranslator = QtCore.QTranslator()
     qtTranslator.load("qt_" + QtCore.QLocale.system().name(),
@@ -36,6 +39,7 @@ def Main():
     ts2Translator.load(QtCore.QLocale.system(), "ts2", "_", "i18n", ".qm")
     app.installTranslator(ts2Translator)
     QtCore.qDebug(QtCore.QLocale.system().name())
+
     try:
         mw = mainwindow.MainWindow()
         mw.show()
@@ -49,6 +53,6 @@ def Main():
         return 1
     else:
         return 0
-
+    
 if __name__ == "__main__":
     Main()

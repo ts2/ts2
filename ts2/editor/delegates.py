@@ -18,10 +18,9 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtWidgets, QtCore, Qt
 
-class ServicesDelegate(QtGui.QStyledItemDelegate):
+class ServicesDelegate(QtWidgets.QStyledItemDelegate):
     """ServicesDelegate is a delegate that provides a combo box for 
     selecting a Service.
     """
@@ -29,7 +28,7 @@ class ServicesDelegate(QtGui.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         """Creates the editor, i.e. a combo box for selecting a service."""
         simulation = index.model().simulation
-        comboBox = QtGui.QComboBox(parent)
+        comboBox = QtWidgets.QComboBox(parent)
         comboBox.setModel(simulation.serviceListModel)
         comboBox.setModelColumn(0)
         return comboBox
@@ -62,7 +61,7 @@ class ServicesDelegate(QtGui.QStyledItemDelegate):
 
 
         
-class TrainTypesDelegate(QtGui.QStyledItemDelegate):
+class TrainTypesDelegate(QtWidgets.QStyledItemDelegate):
     """TrainTypesDelegate is a delegate that provides a combo box for 
     selecting a TrainType.
     """
@@ -70,7 +69,7 @@ class TrainTypesDelegate(QtGui.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         """Creates the editor, i.e. a combo box for selecting a train type."""
         simulation = index.model().simulation
-        comboBox = QtGui.QComboBox(parent)
+        comboBox = QtWidgets.QComboBox(parent)
         comboBox.setModel(simulation.trainTypesModel)
         comboBox.setModelColumn(0)
         return comboBox
@@ -102,4 +101,3 @@ class TrainTypesDelegate(QtGui.QStyledItemDelegate):
         editor.setGeometry(option.rect)
         
         
-    
