@@ -24,6 +24,12 @@ from Qt import QtCore
 
 TS2_VERSION = "0.4.1"
 TS2_FILE_FORMAT = 0.4
+TS2_APP_NAME = "ts2"
+TS2_DESCRIPTION = "Train Signalling Simulation"
+TS2_ORG_NAME = "ts2 team"
+TS2_ORG_CONTACT = "todo@example.com"
+TS2_ORG_DOMAIN = "ts2.sf.net"
+
 
 class Context():
     """This class holds the different contexts for ts2."""

@@ -26,18 +26,28 @@ from Qt import QtCore, QtWidgets, QtGui
 from ts2 import mainwindow
 from ts2 import ressources_rc
 from ts2 import gui
+from ts2 import utils
 
 def Main():
+    
     app = QtWidgets.QApplication(sys.argv)
     app.setWindowIcon(QtGui.QIcon(QtGui.QPixmap(":/ts2.png")))
+    
+    QtCore.QCoreApplication.setOrganizationName(utils.TS2_ORG_NAME)
+    QtCore.QCoreApplication.setOrganizationDomain(utils.TS2_ORG_DOMAIN)
+    QtCore.QCoreApplication.setApplicationName(utils.TS2_APP_NAME)
+    QtCore.QCoreApplication.setApplicationVersion(utils.TS2_VERSION)
+    
     qtTranslator = QtCore.QTranslator()
     qtTranslator.load("qt_" + QtCore.QLocale.system().name(),
                       QtCore.QLibraryInfo.location(
                                       QtCore.QLibraryInfo.TranslationsPath))
     app.installTranslator(qtTranslator)
+    
     ts2Translator = QtCore.QTranslator()
     ts2Translator.load(QtCore.QLocale.system(), "ts2", "_", "i18n", ".qm")
     app.installTranslator(ts2Translator)
+    
     QtCore.qDebug(QtCore.QLocale.system().name())
 
     try:
@@ -53,6 +63,7 @@ def Main():
         return 1
     else:
         return 0
+
     
 if __name__ == "__main__":
     Main()

@@ -27,9 +27,12 @@ from ts2.gui import dialogs, trainlistview, servicelistview, widgets
 class MainWindow(QtWidgets.QMainWindow):
     """ TODO Document MainWindow Class"""
 
+    simulationLoaded = QtCore.pyqtSignal(simulation.Simulation)
+
     def __init__(self):
         super().__init__()
         MainWindow._self = self
+        
         self.setWindowState(Qt.WindowMaximized)
         self.setGeometry(100, 100, 800, 600)
         self.setWindowTitle(self.tr("ts2 - Train Signalling Simulation"))
@@ -37,13 +40,22 @@ class MainWindow(QtWidgets.QMainWindow):
         # Simulation
         self.simulation = None
 
+        #=======================================
         # Actions
+        #=======================================
+        
+        ## Open
         self.openAction = QtWidgets.QAction(self.tr("&Open..."), self)
         self.openAction.setShortcut(QtGui.QKeySequence.Open)
         self.openAction.setToolTip(self.tr("Open a simulation or a "
                                            "previously saved game"))
         self.openAction.triggered.connect(self.loadSimulation)
 
+        self.openRecentAction = QtWidgets.QAction(self.tr("Recent"), self)
+        menu = QtWidgets.QMenu()
+        self.openRecentAction.setMenu(menu)
+        
+        
         self.saveGameAsAction = QtWidgets.QAction(self.tr("&Save game as..."),
                                               self)
         self.saveGameAsAction.setShortcut(QtGui.QKeySequence.SaveAs)
@@ -82,6 +94,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Menu
         self.fileMenu = self.menuBar().addMenu(self.tr("&File"))
         self.fileMenu.addAction(self.openAction)
+        self.fileMenu.addAction(self.openRecentAction)
+        self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.saveGameAsAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.propertiesAction)
@@ -190,7 +204,7 @@ class MainWindow(QtWidgets.QMainWindow):
         #self.loadSimulation()
         #self.openEditor()
 
-    simulationLoaded = QtCore.pyqtSignal(simulation.Simulation)
+    
 
     @staticmethod
     def instance():
