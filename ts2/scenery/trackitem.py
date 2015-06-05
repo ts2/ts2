@@ -208,7 +208,9 @@ class TrackItem(QtCore.QObject):
     def __del__(self):
         """Destructor for the TrackItem class"""
         self._simulation.scene.removeItem(self._gi)
-        super().__del__()
+        
+        # FIXME AttributeError: 'super' object has no attribute '__del__'
+        #super().__del__()
 
     properties = [TIProperty("tiTypeStr", tr("Type"), True),
                   TIProperty("tiId", tr("id"), True),

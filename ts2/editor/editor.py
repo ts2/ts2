@@ -19,8 +19,9 @@
 #
 
 import sqlite3
-from Qt import QtGui, QtWidgets, QtCore, Qt
+from ts2.Qt import QtGui, QtWidgets, QtCore, Qt
 
+from ts2 import __FILE_FORMAT__
 from ts2 import simulation
 from ts2 import scenery, utils, trains, routing
 import ts2.editor
@@ -353,21 +354,21 @@ class Editor(simulation.Simulation):
         conn.row_factory = sqlite3.Row
         self.loadOptions(conn)
         version = float(self.option("version"))
-        if version < utils.TS2_FILE_FORMAT:
+        if version < __FILE_FORMAT__:
             if version <= 0.3:
                 conn.execute("ALTER TABLE trackitems ADD COLUMN ptiid")
                 conn.execute("ALTER TABLE trackitems ADD COLUMN ntiid")
                 conn.execute("ALTER TABLE trackitems ADD COLUMN rtiid")
                 conn.execute("ALTER TABLE trains ADD COLUMN initialdelay")
                 conn.commit()
-            self.setOption("version", utils.TS2_FILE_FORMAT)
+            self.setOption("version", __FILE_FORMAT__)
             self.saveOptions(conn)
         conn.close()
 
     def save(self):
         """Saves the data of the simulation to the database"""
         # Set up database
-        self.setOption("version", utils.TS2_FILE_FORMAT)
+        self.setOption("version", __FILE_FORMAT__)
         conn = sqlite3.connect(self._database)
         self.saveOptions(conn)
         self.saveTrackItems(conn)

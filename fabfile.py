@@ -4,6 +4,8 @@ import os
 
 from fabric.api import env, local, run, cd, lcd, sudo, warn_only, prompt
 
+os.environ["__GEN_DOCS__"] = "1"
+
 import ts2
 
 HERE_PATH =  os.path.abspath( os.path.dirname( __file__ ))
@@ -13,6 +15,7 @@ TEMP_LOCAL = HERE_PATH + "/temp"
 DOCS_WWW_GIT = "ssh://5570e9ce5973ca4a1a000006@docs-ts2.rhcloud.com/~/git/docs.git/" 
 DOCS_WWW_DIR =  "docs-ts2.rhcloud.comz"
 DOCS_TEMP_DIR = TEMP_LOCAL + "/" + DOCS_WWW_DIR
+
 
 def clean():
 	local("rm ./docs/_static/favicon.*")

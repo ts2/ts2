@@ -21,8 +21,11 @@
 from Qt import QtCore, QtSql, QtGui, QtWidgets, Qt
 from math import sqrt
 import sqlite3
+
+from ts2 import __FILE_FORMAT__
 from ts2 import utils, routing, scenery, trains
 from ts2.game import logger, scorer
+from ts2.utils import settings
 
 
 class Simulation(QtCore.QObject):
@@ -75,6 +78,9 @@ class Simulation(QtCore.QObject):
         self._trainListModel = trains.TrainListModel(self)
         self._selectedTrainModel = trains.TrainInfoModel(self)
 
+    
+
+
     def load(self, fileName):
         """Loads the simulation from fileName."""
         self.messageLogger.addMessage(self.tr("Simulation loading"),
@@ -86,14 +92,14 @@ class Simulation(QtCore.QObject):
         conn.row_factory = sqlite3.Row
         self.loadOptions(conn)
         version = float(self.option("version"))
-        if version > utils.TS2_FILE_FORMAT:
+        if version > __FILE_FORMAT__:
             conn.close()
             self.messageLogger.addMessage(self.tr(
                         "The simulation is from a newer version of TS2.\n"
                         "Please upgrade TS2 to version %s.") % version,
                         logger.Message.SOFTWARE_MSG)
             return
-        if version < utils.TS2_FILE_FORMAT:
+        if version < __FILE_FORMAT__:
             conn.close()
             self.messageLogger.addMessage(self.tr(
                     "The simulation is from an older version of TS2.\n"
@@ -101,11 +107,13 @@ class Simulation(QtCore.QObject):
                     "with this version of TS2."),
                     logger.Message.SOFTWARE_MSG)
             return
-        self.loadTrackItems(conn)
+        data = {}
+        data['track_items'] = self.loadTrackItems(conn)
         self.loadRoutes(conn)
         self.loadTrainTypes(conn)
         self.loadServices(conn)
         self.loadTrains(conn)
+        print ("DATA=", data)
         conn.close()
         self.setupConnections()
         self._scene.update()
@@ -121,12 +129,24 @@ class Simulation(QtCore.QObject):
         self.messageLogger.addMessage(self.tr("Simulation loaded"),
                                         logger.Message.SOFTWARE_MSG)
 
+        ## Add to Recent
+        settings.add_recent(self._database)
+
     def saveGame(self, fileName):
         """Saves the game to the given fileName."""
+        
+        data = self.get_data()
+        fileName = str(fileName)
+        
+        print("====", fileName, data)
+        f = open("test.json", "w")
+        f.write( utils.to_json(data))
+        f.close()
+        
         self.pause()
         self.messageLogger.addMessage(self.tr("Saving simulation"),
                                         logger.Message.SOFTWARE_MSG)
-        connFile = sqlite3.connect(fileName)
+        connFile = sqlite3.connect( fileName )
         if fileName != self._database:
             # Copy the current database to the saved file
             connSimulation = sqlite3.connect(self._database)
@@ -223,6 +243,132 @@ class Simulation(QtCore.QObject):
         connFile.close()
         self.messageLogger.addMessage(self.tr("Simulation saved"),
                                         logger.Message.SOFTWARE_MSG)
+
+    def get_data(self):
+        
+        
+        #fileName = str(fileName)
+        #self.pause()
+        #self.messageLogger.addMessage(self.tr("Saving simulation"),
+        #                                logger.Message.SOFTWARE_MSG)
+        #connFile = sqlite3.connect( fileName )
+        #if fileName != self._database:
+        #    # Copy the current database to the saved file
+        #    connSimulation = sqlite3.connect(self._database)
+        #    connFile.execute("DROP TABLE IF EXISTS options")
+        #    connFile.execute("DROP TABLE IF EXISTS trackitems")
+        #    connFile.execute("DROP TABLE IF EXISTS routes")
+        #    connFile.execute("DROP TABLE IF EXISTS directions")
+        #    connFile.execute("DROP TABLE IF EXISTS traintypes")
+        #    connFile.execute("DROP TABLE IF EXISTS services")
+        #    connFile.execute("DROP TABLE IF EXISTS servicelines")
+        #    connFile.execute("DROP TABLE IF EXISTS trains")
+        #    connFile.execute("DROP TABLE IF EXISTS messages")
+        #    for line in connSimulation.iterdump():
+        #        if line != "BEGIN TRANSACTION;" and line != "COMMIT;":
+        #            connFile.execute(line)
+        #    connFile.commit()
+        #    connSimulation.close()
+        # Options
+        dopts = [
+            {"currentTime": self.currentTime.toString("hh:mm:ss") },
+            {"timeFactor": self.option("timeFactor")},
+            {"currentScore": self.scorer.score},
+            {"trackCircuitBased": self.option("trackCircuitBased")}
+        ]
+                    
+        """            
+        connFile.execute("UPDATE options SET optionvalue=:currentTime "
+                         "WHERE optionkey='currentTime'",
+                         {"currentTime":self.currentTime.toString("hh:mm:ss")}
+                         )
+        connFile.execute("UPDATE options SET optionvalue=:timeFactor "
+                         "WHERE optionkey='timeFactor'",
+                         {"timeFactor":self.option("timeFactor")}
+                         )
+        connFile.execute("UPDATE options SET optionvalue=:currentScore "
+                         "WHERE optionkey='currentScore'",
+                         {"currentScore":self.scorer.score}
+                         )
+        connFile.execute("UPDATE options SET optionvalue=:trackCircuitBased "
+                         "WHERE optionkey='trackCircuitBased'",
+                         {"trackCircuitBased":
+                                            self.option("trackCircuitBased")}
+                         )
+        connFile.commit()
+        """
+        
+        # Routes
+        droutes = []
+        for route in self.routes.values():
+            routeState = route.getRouteState()
+            d = {"routeNum":route.routeNum,
+                "routeState":routeState}
+            droutes.append(d)
+            """
+            connFile.execute("UPDATE routes SET initialstate=:routeState "
+                             "WHERE routenum=:routeNum",
+                             {"routeNum":route.routeNum,
+                              "routeState":routeState})
+            """
+        #connFile.commit()
+        
+        # Trains
+        dtrains = []
+        #connFile.execute("DROP TABLE IF EXISTS trains")
+        """connFile.execute("CREATE TABLE trains (\n"
+                            "trainid INTEGER,\n"
+                            "servicecode VARCHAR(10),\n"
+                            "traintype VARCHAR(10),\n"
+                            "speed DOUBLE,\n"
+                            "tiid INTEGER,\n"
+                            "previoustiid INTEGER,\n"
+                            "posonti DOUBLE,\n"
+                            "appeartime TIME,\n"
+                            "initialdelay VARCHAR(255),\n"
+                            "nextplaceindex INTEGER,\n"
+                            "stoppedtime INTEGER)\n")
+        """
+        for train in self.trains:
+            if train.status == trains.TrainStatus.INACTIVE:
+                speed = train.initialSpeed
+                appearTime = train.appearTimeStr
+                initialDelay = train.initialDelayStr
+            elif train.status == trains.TrainStatus.OUT:
+                continue
+            else:
+                speed = train.speed
+                appearTime = self.currentTime.toString("hh:mm:ss")
+                initialDelay = 0
+            #query = "INSERT INTO trains " \
+            #        "(trainid, servicecode, traintype, speed, tiid, " \
+            #        "previoustiid, posonti, appeartime, initialdelay, " \
+            #        "nextplaceindex, stoppedtime) " \
+            #        "VALUES " \
+            #        "(:trainid, :servicecode, :traintype, :speed, :tiid, "\
+            #        ":previoustiid, :posonti, :appeartime, :initialdelay, "\
+            #        ":nextplaceindex, :stoppedtime)"
+            dtrains.append({
+                    "trainid":train.trainId,
+                    "servicecode":train.serviceCode,
+                    "traintype":train.trainTypeCode,
+                    "speed":speed,
+                    "tiid":train.trainHead.trackItem.tiId,
+                    "previoustiid":train.trainHead.previousTI.tiId,
+                    "posonti":train.trainHead.positionOnTI,
+                    "appeartime":appearTime,
+                    "initialdelay":initialDelay,
+                    "nextplaceindex":train.nextPlaceIndex,
+                    "stoppedtime":train.stoppedTime
+                    })
+            #connFile.execute(query, parameters)
+        #connFile.commit()
+
+        #connFile.close()
+        #self.messageLogger.addMessage(self.tr("Simulation saved"),
+        #                                logger.Message.SOFTWARE_MSG)
+        return {"trains": dtrains, "options": dopts, "routes": droutes}
+
 
     @property
     def scene(self):
@@ -486,7 +632,7 @@ class Simulation(QtCore.QObject):
         self._options = {
                 "title":"",
                 "description":"",
-                "version":utils.TS2_FILE_FORMAT,
+                "version": __FILE_FORMAT__,
                 "timeFactor":5,
                 "currentTime":"06:00:00",
                 "warningSpeed":8.3,
@@ -509,8 +655,9 @@ class Simulation(QtCore.QObject):
         data of the database, and make all the necessary links"""
         self.messageLogger.addMessage(self.tr("Loading TrackItems"),
                                       logger.Message.SOFTWARE_MSG)
-        self.createAllTrackItems(conn)
-        self.linkTrackItems(conn)
+        data = {}
+        data['track_items'] = self.createAllTrackItems(conn)
+        data['link_items'] = self.linkTrackItems(conn)
         #self.createTrackItemsLinks()
         self.createTrackItemConflicts(conn)
         # Check that all the items are linked
@@ -522,17 +669,33 @@ class Simulation(QtCore.QObject):
     def createAllTrackItems(self, conn):
         """Creates the instances of TrackItem and its subclasses (including
         Places) from the database."""
+        ditems = []
         for p in conn.execute("SELECT * FROM trackitems WHERE titype='A'"):
             parameters = dict(p)
+            #print (parameters)
+            ditems.append(parameters)
             tiId = parameters["tiid"]
             place = scenery.Place(self, parameters)
             self.servicesLoaded.connect(place.sortTimetable)
             self._trackItems[tiId] = place
             self._places[place.placeCode] = place
 
+        class TI:
+            place = "A" #?
+            line = "L"
+            platform = "LP"
+            invisible_link = "LI"
+            signal = "S"
+            signal_bumper = "SB"
+            signal_timer = "ST"
+            non_return = "SN"
+            test = "ZT"
+            
+
         for trackItem in \
                    conn.execute("SELECT * FROM trackitems WHERE titype<>'A'"):
             parameters = dict(trackItem)
+            ditems.append(parameters)
             tiId = parameters["tiid"]
             tiType = parameters["titype"]
             if tiType == "L":
@@ -560,7 +723,8 @@ class Simulation(QtCore.QObject):
             self.makeTrackItemSignalSlotConnections(ti)
             self._trackItems[tiId] = ti
 
-
+        return ditems
+    
     def makeTrackItemSignalSlotConnections(self, ti):
         """Makes all signal-slot connections for TrackItem ti"""
         if ti.tiType.startswith("S"):
@@ -623,6 +787,7 @@ class Simulation(QtCore.QObject):
         """Create the trackitems' conflicts from the data in database."""
         self.messageLogger.addMessage(self.tr("Creating TrackItem conflicts"),
                                       logger.Message.SOFTWARE_MSG)
+        data = []
         for trackItem in conn.execute("SELECT * FROM trackitems"):
             conflictTiId = trackItem["conflicttiid"]
             if conflictTiId is not None and conflictTiId != 0:
@@ -631,7 +796,7 @@ class Simulation(QtCore.QObject):
                                 self._trackItems[conflictTiId]
                 self._trackItems[conflictTiId].conflictTI = \
                                 self._trackItems[tiId]
-
+                                
     def createTrackItemsLinks(self):
         """Find the items that are linked together through their coordinates
         and populate the _nextItem and _previousItem variables of each items.

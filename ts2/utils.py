@@ -17,10 +17,20 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-
+import os
 import random
+import json
+import sqlite3
 
-from Qt import QtCore
+from posix import lstat
+from ts2.Qt import QtCore
+
+
+import ts2.xobjects.xsettings
+
+
+
+settings = ts2.xobjects.xsettings.XSettings()
 
 
 
@@ -99,3 +109,54 @@ class DurationProba(QtCore.QObject):
         return r1 * (high - low) + low
 
 
+
+##==============================================
+def to_json(data):
+    """Serialize data to a json string
+    
+    .. important:: Its advised to use this function as its is indented and sorted. This 
+                   is for git and versionsing reasons, where there is a consistent format.
+    """
+    return json.dumps(data, indent=4, sort_keys=True)
+    
+def from_json(json_str):
+    """Load data from a json string"""
+    return json.loads(json_str)
+
+
+def write_file(file_path, contents):
+    with open(file_path, "w") as f:
+        f.write(contents)
+        f.close()
+        
+
+def sqlite_to_json(file_path):
+    """Dump an sqlite3 database to json"""
+    
+    file_path = str(file_path)
+    file_no_ext = os.path.splitext( os.path.basename(file_path) )[0]
+    
+    conn = sqlite3.connect( file_path )
+    conn.row_factory = sqlite3.Row
+    
+    ## list of tables
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = []
+    for row in cursor.fetchall():
+        r = dict(row)
+        tables.append(r['name'])
+
+    ## loop tables and add to data
+    data = {"_ts2": {"name": file_no_ext}}
+    for table in tables:
+        lst = []
+        for row in conn.execute("SELECT * FROM %s" % table):
+            lst.append( dict(row) )
+        data[table] = lst
+            
+    write_file("%s.json" % file_no_ext, to_json(data) )
+
+    
+    
+    

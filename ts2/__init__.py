@@ -17,14 +17,16 @@
 #   Free Software Foundation, Inc.,                                       
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
-
+"""
 import os
-import sys
 
-# append the parent to the diretory
-HERE_PATH =  os.path.abspath( os.path.dirname( __file__ ))
-if sys.path.count(HERE_PATH) == 0:
-	sys.path.insert(0, HERE_PATH)
+print(os.environ.get("__GEN_DOCS__"))
+
+if os.environ.get("__GEN_DOCS__"):
+	pass
+else:
+	## Global settings instance
+"""
 
 __VERSION__ = "0.4.1"
 __FILE_FORMAT__ = 0.4
@@ -41,7 +43,7 @@ __PROJECT_HOME__ = "https://github.com/npiganeau/ts2"
 
 
 def get_info():
-	return dict(
+    return dict(
 		version = __VERSION__,
 		
 		app_short = __APP_SHORT__,
@@ -52,11 +54,3 @@ def get_info():
 		project_www = __PROJECT_WWW__,
 		project_home = __PROJECT_HOME__
 	)
-
-
-
-
-#__all__ = ['bumperitem','clock','enditem','lineitem','mainwindow','panel', \
-           #'place','platformitem','pointsitem','position','route','service', \
-           #'serviceassigndialog','servicelistview','signalitem','signaltimeritem', \
-           #'simulation','trackitem','train','trainlistview','traintype','utils']
