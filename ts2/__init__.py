@@ -26,6 +26,32 @@ HERE_PATH =  os.path.abspath( os.path.dirname( __file__ ))
 if sys.path.count(HERE_PATH) == 0:
 	sys.path.insert(0, HERE_PATH)
 
+__VERSION__ = "0.4.1"
+__FILE_FORMAT__ = 0.4
+__APP_SHORT__ = "ts2"
+__APP_LONG__ = "Train Signalling Simulation #2"
+__APP_DESCRIPTION__ = "A railway simulation game where you have to dispatch trains across an area and keep them on schedule"
+
+__ORG_NAME__ = "ts2 team"
+__ORG_CONTACT__ = "npiganeau"
+
+__PROJECT_DOMAIN__ = "ts2.sourceforge.net"
+__PROJECT_WWW__ = "http://ts2.sourceforge.net/"
+__PROJECT_HOME__ = "https://github.com/npiganeau/ts2"
+
+
+def get_info():
+	return dict(
+		version = __VERSION__,
+		
+		app_short = __APP_SHORT__,
+		app_long = __APP_LONG__,
+		app_description = __APP_DESCRIPTION__,
+		
+		project_domain = __PROJECT_DOMAIN__,
+		project_www = __PROJECT_WWW__,
+		project_home = __PROJECT_HOME__
+	)
 
 
 
