@@ -2,7 +2,7 @@
 
 
 {% block header %}
-<link href='http://fonts.googleapis.com/css?family=Patua+One' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fira+Mono:400,700' rel='stylesheet' type='text/css'>
     <style>
     body {
 		background-color: black;
@@ -15,6 +15,7 @@
             font-size: 14pt;
             vertical-align: top;
             color: #999999;
+            font-family: 'Fira Mono', cursive;
         }
         
         
@@ -112,7 +113,7 @@
         font-size: 20pt;
         background-color: #444444 !important;
         color: #dddddd;
-        font-family: 'Patua One', cursive;
+       font-family: 'Fira Mono', cursive;
     }
 
     div.body h2{
@@ -134,9 +135,10 @@
   
   
    <ul class="externals_nav">
-    <li><a href="http://www.piface.org.uk/guides/"  >Guides</a></li>
-    <li><a href="http://pifacedigital.wordpress.com/">Blog</a></li>
-    <li><a href="http://www.piface.org.uk/" >Home</a></li>
+    
+    <li><a href="{{INFO.project_home}}" target="github">Project</a></li>
+    <li><a href="{{INFO.project_home}}/issues" target="issues">Issues</a></li>
+    <li><a href="http://ts2.sf.net" target="sourceforge">SourceForge</a></li>
   </ul>
   
 	{{foo}}
@@ -146,4 +148,5 @@
   </div>
   {{ super() }}
 {% endblock %}
+
 

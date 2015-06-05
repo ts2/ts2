@@ -24,10 +24,32 @@ def build_docs():
 	# copy some stuff
 	local("cp ./images/favicon.* ./docs/_static/")
 	local("cp ./images/banner.jpeg ./docs/_static/")
+	local("cp ./images/screenshot.jpeg ./docs/_static/")
 	
 	## run build
 	local("/usr/bin/python3 /usr/local/bin/sphinx-build -b html ./docs/ ./temp/docs_build")
 	
+def update_www():
+	"""Copies build over to openshioft scheckout and push online"""
+	
+	# nuke all stuff in openshift dir as its olde eg dead files et all
+	with lcd(DOCS_TEMP_DIR):
+		## nuke dirs
+		for d in ["_static", "_sources", "_modules", "api"]:
+			local("rm -f -r %s" % d)
+		local("rm -f -r *.html")
+		local("rm -f -r *.js")
+	
+	## copy the compiled docs across
+	with lcd(TEMP_LOCAL):
+		local("cp -r docs_build/* %s" % (DOCS_WWW_DIR) )
+	
+	## push to openshift
+	with lcd(DOCS_TEMP_DIR):
+		local( "git add ." )
+		local( 'git commit -a -m "Update" ' )
+		local( "git push origin master" )
+		
 	
 def init():
 	"""Initialize the local env"""
