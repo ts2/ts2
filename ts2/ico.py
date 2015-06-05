@@ -16,6 +16,8 @@ class Ico:
     file_open = "page_go.png"
     file_save = "page_save.png"
     
+    editor = "block--plus.png"
+    
     @staticmethod
     def icon(icon):
         icon_file = "%s/%s" % (ICONS_PATH, icon)

@@ -39,10 +39,13 @@ class ToolBarGroup(QtWidgets.QWidget):
         self.lblTitle.setAlignment(Qt.AlignCenter)
         lay.addWidget(self.lblTitle)
         
-        self._lay = QtWidgets.QHBoxLayout()
-        self._lay.setContentsMargins(0,0,0,0)
-        self._lay.setSpacing(0)
-        lay.addLayout(self._lay)
+        self.toolbar = QtWidgets.QToolBar()
+        self.toolbar.setFloatable(False)
+        self.toolbar.setMovable(False)
+        self.toolbar.setContentsMargins(0,0,0,0)
+        self.toolbar.setToolButtonStyle( Qt.ToolButtonTextBesideIcon )
+        #self.toolbar.setFixedHeight( 30 )
+        lay.addWidget(self.toolbar)
         
         if title:
             self.setTitle(title)
@@ -51,7 +54,10 @@ class ToolBarGroup(QtWidgets.QWidget):
         self.lblTitle.setText(txt)
         
     def addWidget(self, widget):
-        self._lay.addWidget(widget)
+        self.toolbar.addWidget(widget)
+        
+    def addAction(self, act):
+        self.toolbar.addAction(act)
 
 class Clock(QtWidgets.QLCDNumber):
 
@@ -69,9 +75,8 @@ class Clock(QtWidgets.QLCDNumber):
         self.display(t.toString("hh:mm:ss"))
 
 
-class ControlPanel(QtWidgets.QToolBar):
-    """The panel is the display rectangle below the scene holding the widgets
-    necessary to play the simulation (e.g. clock)."""
+class ToolBarControl(QtWidgets.QToolBar):
+    """TContains the zoom, speed and score"""
 
     zoomChanged = QtCore.pyqtSignal(int)
     
@@ -130,9 +135,8 @@ class ControlPanel(QtWidgets.QToolBar):
     def zoomSpinBoxChanged(self, percent):
         self.zoomChanged.emit(percent)
 
-class ClockPanel(QtWidgets.QToolBar):
-    """The panel is the display rectangle below the scene holding the widgets
-    necessary to play the simulation (e.g. clock)."""
+class ToolBarClock(QtWidgets.QToolBar):
+    """The hold the clock and sim pause."""
     
     def __init__(self, parent, simulationWindow):
         """Constructor for the Panel class."""

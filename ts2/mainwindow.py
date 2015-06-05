@@ -36,12 +36,12 @@ class MainWindow(QtWidgets.QMainWindow):
         MainWindow._self = self
         
         
-        self.W_NAME = "main_window"
+        self.setObjectName("main_window2")
         self.setWindowState(Qt.WindowMaximized)
         self.setGeometry(100, 100, 800, 600)
         
         
-        self.setWindowTitle(self.tr("ts2 - Train Signalling Simulation"))
+        self.setWindowTitle("%s - %s" % (ts2.__APP_SHORT__, ts2.__APP_LONG__))
 
         # Simulation
         self.simulation = None
@@ -51,7 +51,7 @@ class MainWindow(QtWidgets.QMainWindow):
         #=======================================
         
         ## Open
-
+        
         self.openAction = QtWidgets.QAction(Ico.icon(Ico.file_open), self.tr("&Open..."), self)
         self.openAction.setShortcut(QtGui.QKeySequence.Open)
         self.openAction.setToolTip(self.tr("Open a simulation or a "
@@ -64,7 +64,7 @@ class MainWindow(QtWidgets.QMainWindow):
         menu.triggered.connect(self.on_recent)
         
         
-        self.saveGameAsAction = QtWidgets.QAction(Ico.icon(Ico.file_save), self.tr("&Save game as..."),
+        self.saveGameAsAction = QtWidgets.QAction(Ico.icon(Ico.file_save), self.tr("&Save game"),
                                               self)
         self.saveGameAsAction.setShortcut(QtGui.QKeySequence.SaveAs)
         self.saveGameAsAction.setToolTip(self.tr("Save the current game"))
@@ -86,7 +86,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.quitAction.setToolTip(self.tr("Quit TS2"))
         self.quitAction.triggered.connect(self.close)
 
-        self.editorAction = QtWidgets.QAction(self.tr("&Editor"), self)
+        self.editorAction = QtWidgets.QAction(Ico.icon(Ico.editor), self.tr("&Editor"), self)
         self.editorAction.setShortcut(QtGui.QKeySequence(self.tr("Ctrl+E")))
         self.editorAction.setToolTip(self.tr("Open the simulation editor"))
         self.editorAction.triggered.connect(self.openEditor)
@@ -123,9 +123,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tbActions.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.addToolBar(self.tbActions)
         
-       
-        self.tbActions.addAction(self.openAction)
-        self.tbActions.addAction(self.saveGameAsAction)
+        tbrAct = widgets.ToolBarGroup(title="Actions")
+        self.tbActions.addWidget(tbrAct)
+        
+        tbrAct.addAction(self.openAction)
+        tbrAct.addAction(self.saveGameAsAction)
+        tbrAct.addAction(self.editorAction)
 
         ##================================================================
         # Dock Widgets
@@ -219,13 +222,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # ClockPanel
         # Loaded with simulation
-        self.tbClock = widgets.ClockPanel(self.board, self);
+        self.tbClock = widgets.ToolBarClock(self.board, self);
         self.tbClock.setObjectName("toolbar_clock")
         #self.tbClock.zoomChanged.connect(self.zoom)
         self.addToolBar( self.tbClock )
 
         # Control
-        self.tbControl = widgets.ControlPanel(self.board, self);
+        self.tbControl = widgets.ToolBarControl(self.board, self);
         self.tbControl.setObjectName("toolbar_control")
         self.tbControl.zoomChanged.connect(self.zoom)
         self.addToolBar( self.tbControl )
@@ -464,6 +467,10 @@ class MainWindow(QtWidgets.QMainWindow):
                                                     self.simulation, trainId)
     
     def closeEvent( self, event ):
+       
         settings.save_window( self )
+        settings.sync()
+        print("SETTINGS SAVED")
+        super().closeEvent(event)
         
         

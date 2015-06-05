@@ -41,25 +41,25 @@ class XSettings(QtCore.QSettings):
         #   settings.setValue("geometry", saveGeometry());
         #   settings.setValue("windowState", saveState());
      
-        self.setValue( "window/%s/geometry" % window.W_NAME, window.saveGeometry()  )
-        self.setValue( "window/%s/state" % window.W_NAME, window.saveState()  )
+        self.setValue( "window/%s/geometry" % window.objectName(), window.saveGeometry()  )
+        self.setValue( "window/%s/state" % window.objectName(), window.saveState()  )
         
     def restore_window( self, window ):
-        v = self.value( "window/%s/geometry" % window.W_NAME )
+        v = self.value( "window/%s/geometry" % window.objectName() )
         if v == None:
             return
         window.restoreGeometry(  v )
         
-        v = self.value( "window/%s/state" % window.W_NAME )
+        v = self.value( "window/%s/state" % window.objectName() )
         if v == None:
             return
         window.restoreState(  v )
 
     def save_splitter( self, window, splitter ):
-        self.settings.setValue( "window/%s/splitter" % window.W_NAME,  splitter.saveState()  )
+        self.settings.setValue( "window/%s/splitter" % window.objectName(),  splitter.saveState()  )
         
     def restore_splitter( self, window, splitter ):
-        splitter.restoreState( self.settings.value( "window/%s/splitter" % window.W_NAME ).toByteArray() )
+        splitter.restoreState( self.settings.value( "window/%s/splitter" % window.objectName() ).toByteArray() )
 
     def save_tree( self, tree ):
         self.settings.setValue( "tree/%s" % tree._settings_ki,  tree.header().saveState()  )
