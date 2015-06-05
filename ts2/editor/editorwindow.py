@@ -18,7 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from Qt import QtWidgets, QtGui, QtCore, QtSql, Qt
+from ts2.Qt import QtWidgets, QtGui, QtCore, QtSql, Qt
 
 
 from ts2 import scenery

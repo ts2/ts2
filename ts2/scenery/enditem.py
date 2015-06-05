@@ -18,9 +18,12 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
+from ts2.Qt import QtCore, Qt
+
+
 from ts2.scenery import TrackItem, TrackGraphicsItem, TIProperty
 from ts2 import utils
-from Qt import QtCore, Qt
+
 
 
 BIG = 1000000000

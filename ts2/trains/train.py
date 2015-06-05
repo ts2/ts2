@@ -19,7 +19,7 @@
 #
 from math import sqrt
 
-from Qt import QtCore, QtGui, QtWidgets, Qt
+from ts2.Qt import QtCore, QtGui, QtWidgets, Qt
 
 from ts2 import scenery, routing, utils
 

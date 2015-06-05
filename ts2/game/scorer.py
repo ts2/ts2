@@ -18,7 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from Qt import QtCore, Qt
+from ts2.Qt import QtCore, Qt
 
 
 class Scorer(QtCore.QObject):

@@ -21,7 +21,7 @@
 import sys
 
 
-from Qt import QtCore, QtWidgets, QtGui
+from ts2.Qt import QtCore, QtWidgets, QtGui
 
 from ts2 import mainwindow
 from ts2 import ressources_rc

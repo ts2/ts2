@@ -18,7 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from Qt import QtGui, QtCore, Qt
+from ts2.Qt import QtGui, QtCore, Qt
 
 from ts2.scenery import TrackItem, TIProperty, TrackGraphicsItem
 from ts2 import utils

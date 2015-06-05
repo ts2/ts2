@@ -23,13 +23,11 @@ import json
 import sqlite3
 
 from posix import lstat
+
 from ts2.Qt import QtCore
 
-
+## TODO mayb this be somewhere else
 import ts2.xobjects.xsettings
-
-
-
 settings = ts2.xobjects.xsettings.XSettings()
 
 
@@ -114,8 +112,8 @@ class DurationProba(QtCore.QObject):
 def to_json(data):
     """Serialize data to a json string
     
-    .. important:: Its advised to use this function as its is indented and sorted. This 
-                   is for git and versionsing reasons, where there is a consistent format.
+    .. important:: Its advised to use this function as its is indented and sorted and therefore
+                   a consistent output. This is for git and versioning reasons, ie less deltas.
     """
     return json.dumps(data, indent=4, sort_keys=True)
     

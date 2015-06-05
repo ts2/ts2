@@ -21,8 +21,7 @@
 import sys
 import traceback
 
-from Qt import QtWidgets, QtCore, Qt
-
+from ts2.Qt import QtWidgets, QtCore, Qt
 
 from ts2.gui import servicelistview
 

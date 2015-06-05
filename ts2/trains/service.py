@@ -19,7 +19,7 @@
 #
 
 import copy
-from Qt import QtCore, Qt
+from ts2.Qt import QtCore, Qt
 
 from ts2 import utils
 

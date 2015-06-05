@@ -18,13 +18,13 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from Qt import QtCore, QtWidgets, QtGui, Qt
+from ts2.Qt import QtCore, QtWidgets, QtGui, Qt
 
 import ts2
 from ts2 import simulation, scenery, utils, editor
 from ts2.gui import dialogs, trainlistview, servicelistview, widgets
 from ts2.utils import settings
-
+from ts2.ico import Ico 
 
 class MainWindow(QtWidgets.QMainWindow):
     """ TODO Document MainWindow Class"""
@@ -51,7 +51,8 @@ class MainWindow(QtWidgets.QMainWindow):
         #=======================================
         
         ## Open
-        self.openAction = QtWidgets.QAction(self.tr("&Open..."), self)
+
+        self.openAction = QtWidgets.QAction(Ico.icon(Ico.file_open), self.tr("&Open..."), self)
         self.openAction.setShortcut(QtGui.QKeySequence.Open)
         self.openAction.setToolTip(self.tr("Open a simulation or a "
                                            "previously saved game"))
@@ -63,7 +64,7 @@ class MainWindow(QtWidgets.QMainWindow):
         menu.triggered.connect(self.on_recent)
         
         
-        self.saveGameAsAction = QtWidgets.QAction(self.tr("&Save game as..."),
+        self.saveGameAsAction = QtWidgets.QAction(Ico.icon(Ico.file_save), self.tr("&Save game as..."),
                                               self)
         self.saveGameAsAction.setShortcut(QtGui.QKeySequence.SaveAs)
         self.saveGameAsAction.setToolTip(self.tr("Save the current game"))
@@ -114,12 +115,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.helpMenu.addAction(self.aboutQtAction)
         self.menuBar().setCursor(Qt.PointingHandCursor)
 
-
-        self.topBar = QtWidgets.QToolBar()
-        self.topBar.setFloatable(False)
-        self.addToolBar(self.topBar)
+        ##=====================================
+        ## ToolBar
+        self.tbActions = QtWidgets.QToolBar()
+        self.tbActions.setObjectName("toolbar_actions")
+        self.tbActions.setFloatable(False)
+        self.tbActions.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        self.addToolBar(self.tbActions)
         
-        self.topBar.addAction("foo")
+       
+        self.tbActions.addAction(self.openAction)
+        self.tbActions.addAction(self.saveGameAsAction)
 
         ##================================================================
         # Dock Widgets
@@ -211,15 +217,23 @@ class MainWindow(QtWidgets.QMainWindow):
         self.view.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.view.setPalette(QtGui.QPalette(Qt.black))
 
-        # Panel
+        # ClockPanel
         # Loaded with simulation
-        self.panel = widgets.Panel(self.board, self);
-        self.panel.zoomChanged.connect(self.zoom)
+        self.tbClock = widgets.ClockPanel(self.board, self);
+        self.tbClock.setObjectName("toolbar_clock")
+        #self.tbClock.zoomChanged.connect(self.zoom)
+        self.addToolBar( self.tbClock )
 
+        # Control
+        self.tbControl = widgets.ControlPanel(self.board, self);
+        self.tbControl.setObjectName("toolbar_control")
+        self.tbControl.zoomChanged.connect(self.zoom)
+        self.addToolBar( self.tbControl )
+        
         # Display
         self.grid = QtWidgets.QVBoxLayout()
         self.grid.addWidget(self.view)
-        self.grid.addWidget(self.panel)
+        #self.grid.addWidget(self.panel)
         self.grid.setContentsMargins(0, 0, 0, 0)
         self.grid.setSpacing(0)
         self.board.setLayout(self.grid)
@@ -240,8 +254,12 @@ class MainWindow(QtWidgets.QMainWindow):
         """Reload the recent menu"""
         menu = self.openRecentAction.menu()
         menu.clear()
+        act = None
         for file_name in settings.get_recent():
-            menu.addAction(file_name)
+            act = menu.addAction(file_name)
+        ## TODO - add a oopen last option
+        if act:
+            self.on_recent(act)
             
     def on_recent(self, act):
         """Open a  recent item"""
@@ -320,11 +338,13 @@ class MainWindow(QtWidgets.QMainWindow):
         # MessageLogger
         self.simulation.messageLogger.rowsInserted.connect(
                                     self.loggerView.scrollToBottom)
-        # Panel
-        self.simulation.timeChanged.connect(self.panel.clock.setTime)
+       
+        # Contorl Panel
+        self.simulation.timeChanged.connect(self.tbClock.clock.setTime)
         self.simulation.scorer.scoreChanged.connect(
-                                    self.panel.scoreDisplay.display)
-        self.panel.scoreDisplay.display(self.simulation.scorer.score)
+                                    self.tbControl.scoreDisplay.display)
+        self.tbControl.scoreDisplay.display(self.simulation.scorer.score)
+        
         # Menus
         self.saveGameAsAction.setEnabled(True)
         self.propertiesAction.setEnabled(True)
@@ -427,13 +447,13 @@ class MainWindow(QtWidgets.QMainWindow):
     def openPropertiesDialog(self):
         """Pops-up the simulation properties dialog."""
         if self.simulation is not None:
-            paused = self.panel.pauseButton.isChecked()
+            paused = self.tbControl.pauseButton.isChecked()
             if not paused:
-                self.panel.pauseButton.click()
+                self.tbControl.pauseButton.click()
             propertiesDialog = dialogs.PropertiesDialog(self, self.simulation)
             propertiesDialog.exec_()
             if not paused:
-                self.panel.pauseButton.click()
+                self.tbControl.pauseButton.click()
 
     @QtCore.pyqtSlot(int)
     def openReassignServiceWindow(self, trainId):

@@ -19,7 +19,7 @@
 #
 
 
-from Qt import QtGui, QtCore, Qt
+from ts2.Qt import QtGui, QtCore, Qt
 from ts2.scenery import SignalItem
 from ts2 import utils
 

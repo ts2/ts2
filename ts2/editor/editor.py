@@ -19,6 +19,7 @@
 #
 
 import sqlite3
+
 from ts2.Qt import QtGui, QtWidgets, QtCore, Qt
 
 from ts2 import __FILE_FORMAT__
