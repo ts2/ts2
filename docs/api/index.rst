@@ -15,3 +15,4 @@ API
    game.rst
    gui.rst
    editor.rst
+   scenery.rst

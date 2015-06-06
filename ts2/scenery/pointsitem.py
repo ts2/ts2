@@ -25,7 +25,12 @@ from ts2.scenery import TrackItem, TrackGraphicsItem, TIProperty
 
 class PointsItem(TrackItem):
     """A points item is a three-way junction.
-    We call the three ends: common end, normal end and reverse end.
+    
+    We call the three ends: 
+        - common end
+        - normal end 
+        - and reverse end.
+        
     Trains can go from common end to normal or reverse ends depending on the
     state of the points. They cannot go from normal end to reverse end.
     Usually, the normal end is aligned with the common end and the reverse end
@@ -146,7 +151,10 @@ class PointsItem(TrackItem):
 
     @commonEndStr.setter
     def commonEndStr(self, value):
-        """Setter for the commonEndStr property"""
+        """Setter for the `commonEndStr` property
+        
+        :param value: prop value
+        """
         if self._simulation.context == utils.Context.EDITOR_SCENERY:
             x, y = eval(value.strip('()'))
             self._gi.prepareGeometryChange()
@@ -156,7 +164,9 @@ class PointsItem(TrackItem):
     @property
     def normalEndStr(self):
         """Returns a string representation of the connecting point situated at
-        the normal end of this PointsItem, in the items centered coordinates
+        the normal end of this `PointsItem`, in the items centered coordinates
+        
+        :rtype: :ref:`str`
         """
         nep = self._normalEnd - self.middle
         return "(%i,%i)" % (nep.x(), nep.y())

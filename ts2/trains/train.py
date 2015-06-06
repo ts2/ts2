@@ -41,18 +41,23 @@ class TrainStatus(QtCore.QObject):
         application."""
         if status == cls.INACTIVE:
             return translate("TrainStatus", "Inactive")
+        
         elif status == cls.RUNNING:
             return translate("TrainStatus", "Running")
+        
         elif status == cls.STOPPED:
             return translate("TrainStatus", "Stopped at station")
+        
         elif status== cls.WAITING:
             return translate("TrainStatus", "Waiting at red signal")
+        
         elif status == cls.OUT:
             return translate("TrainStatus", "Exited the area")
+        
         elif status == cls.END_OF_SERVICE:
             return translate("TrainStatus", "End of service")
-        else:
-            return ""
+        
+        return ""
 
 
 class TrainListModel(QtCore.QAbstractTableModel):
@@ -132,7 +137,7 @@ class TrainListModel(QtCore.QAbstractTableModel):
             elif column == 7:
                 return self.tr("Departure time")
             else:
-                return ""
+                return "?"
         return None
 
     def flags(self, index):

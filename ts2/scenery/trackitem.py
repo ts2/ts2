@@ -23,6 +23,31 @@ from ts2 import utils
 
 tr = QtCore.QObject().tr
 
+
+
+class TI:
+    """@brief Definitive trackitem constants
+    
+    ...note:: 
+       - "LI" because InvisibleLinkItem is a subclass of LineItem "L"
+       - Place are "A" simply because "P" was taken by points before...
+       - Items starting with "Z" are props that are not needed for the simulation to work, but just to have pleasant graphics for the user.
+       - Old "SB", "SN" and "ST" are now implemented as "S" with special parameters.
+    
+    """
+    line_item = "L"
+    line_invis = "LI"
+    
+    signal = "S"
+    points = "P"
+    end = "E"
+    place = "A"
+    
+    platform = "ZP"
+    text = "ZT"
+    
+    
+
 class TrackGraphicsItem(QtWidgets.QGraphicsItem):
     """@brief Graphical item of a trackItem
     This class is the graphics of a TrackItem on the scene. Each instance

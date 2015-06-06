@@ -51,7 +51,6 @@ class MainWindow(QtWidgets.QMainWindow):
         #=======================================
         
         ## Open
-        
         self.openAction = QtWidgets.QAction(Ico.icon(Ico.file_open), self.tr("&Open..."), self)
         self.openAction.setShortcut(QtGui.QKeySequence.Open)
         self.openAction.setToolTip(self.tr("Open a simulation or a "
@@ -134,27 +133,23 @@ class MainWindow(QtWidgets.QMainWindow):
         # Dock Widgets
         ##================================================================
         dock_opts = QtWidgets.QDockWidget.DockWidgetMovable|QtWidgets.QDockWidget.DockWidgetFloatable
+        
         ## Train Info
-        self.trainInfoDock = QtWidgets.QDockWidget(self.tr("Train Information"),
-                                                self)
+        self.trainInfoDock = QtWidgets.QDockWidget(self.tr("Train Information"), self)
         self.trainInfoDock.setObjectName("train_information")
         self.trainInfoDock.setFeatures( dock_opts )
         self.trainInfoView = QtWidgets.QTreeView(self)
         self.trainInfoView.setItemsExpandable(False)
         self.trainInfoView.setRootIsDecorated(False)
         self.trainInfoView.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.trainInfoView.customContextMenuRequested.connect(
-                                            self.showContextMenu)
+        self.trainInfoView.customContextMenuRequested.connect(self.showContextMenu)
         self.trainInfoDock.setWidget(self.trainInfoView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.trainInfoDock)
 
         ## Service Into
-        self.serviceInfoDock = QtWidgets.QDockWidget(
-                                            self.tr("Service Information"),
-                                            self)
+        self.serviceInfoDock = QtWidgets.QDockWidget(self.tr("Service Information"), self)
         self.serviceInfoDock.setObjectName("service_information")
-        self.serviceInfoDock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable|
-                                        QtWidgets.QDockWidget.DockWidgetFloatable)
+        self.serviceInfoDock.setFeatures(dock_opts)
         self.serviceInfoView = QtWidgets.QTreeView(self)
         self.serviceInfoView.setItemsExpandable(False)
         self.serviceInfoView.setRootIsDecorated(False)
@@ -162,10 +157,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.addDockWidget(Qt.RightDockWidgetArea, self.serviceInfoDock)
 
         ## Stations Info
-        self.placeInfoDock = QtWidgets.QDockWidget(
-                                        self.tr("Station Information"), self)
-        self.placeInfoDock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable|
-                                        QtWidgets.QDockWidget.DockWidgetFloatable)
+        self.placeInfoDock = QtWidgets.QDockWidget(self.tr("Station Information"), self)
+        self.placeInfoDock.setFeatures(dock_opts)
         self.placeInfoDock.setObjectName("station_information")
         self.placeInfoView = QtWidgets.QTreeView(self)
         self.placeInfoView.setItemsExpandable(False)
@@ -177,8 +170,7 @@ class MainWindow(QtWidgets.QMainWindow):
         ## Trains 
         self.trainListDock = QtWidgets.QDockWidget(self.tr("Trains"), self)
         self.trainListDock.setObjectName("trains_panel")
-        self.trainListDock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable|
-                                        QtWidgets.QDockWidget.DockWidgetFloatable)
+        self.trainListDock.setFeatures(dock_opts)
         self.trainListView = trainlistview.TrainListView(self)
         self.simulationLoaded.connect(self.trainListView.setupTrainList)
         self.trainListDock.setWidget(self.trainListView)
@@ -187,8 +179,7 @@ class MainWindow(QtWidgets.QMainWindow):
         ## Services
         self.serviceListDock = QtWidgets.QDockWidget(self.tr("Services"), self)
         self.serviceListDock.setObjectName("services_panel")
-        self.serviceListDock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable|
-                                        QtWidgets.QDockWidget.DockWidgetFloatable)
+        self.serviceListDock.setFeatures(dock_opts)
         self.serviceListView = servicelistview.ServiceListView(self)
         self.simulationLoaded.connect(self.serviceListView.setupServiceList)
         self.serviceListDock.setWidget(self.serviceListView)
@@ -198,8 +189,7 @@ class MainWindow(QtWidgets.QMainWindow):
         ## Message Logger
         self.loggerDock = QtWidgets.QDockWidget(self.tr("Messages"), self)
         self.loggerDock.setObjectName("logger_panel")
-        self.loggerDock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable|
-                                        QtWidgets.QDockWidget.DockWidgetFloatable)
+        self.loggerDock.setFeatures(dock_opts)
         self.loggerView = QtWidgets.QTreeView(self)
         self.loggerView.setItemsExpandable(False)
         self.loggerView.setRootIsDecorated(False)
@@ -220,14 +210,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.view.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.view.setPalette(QtGui.QPalette(Qt.black))
 
-        # ClockPanel
-        # Loaded with simulation
+        ## ClockBar
         self.tbClock = widgets.ToolBarClock(self.board, self);
         self.tbClock.setObjectName("toolbar_clock")
-        #self.tbClock.zoomChanged.connect(self.zoom)
         self.addToolBar( self.tbClock )
 
-        # Control
+        # ControlBar
         self.tbControl = widgets.ToolBarControl(self.board, self);
         self.tbControl.setObjectName("toolbar_control")
         self.tbControl.zoomChanged.connect(self.zoom)
