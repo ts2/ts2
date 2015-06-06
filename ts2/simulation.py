@@ -411,6 +411,10 @@ class Simulation(QtCore.QObject):
 
     @property
     def currentTime(self):
+        """Current Clock time
+        
+        :return: QtCore.QTime
+        """
         return self._time
 
     @property
@@ -468,21 +472,25 @@ class Simulation(QtCore.QObject):
     @QtCore.pyqtSlot(int, bool, bool)
     def activateRoute(self, siId, persistent=False, force=False):
         """This slot is normally connected to the signal
-        SignalItem.signalSelected(SignalItem), which itself is emitted when a
+        SignalItem.signalSelected(SignalItem), :func:`~ts2.scenery.signalitem.SignalItem.signalSelected`,  which itself is emitted when a
         signal is left-clicked.
+        
         It is in charge of:
-        - Checking whether this is the first signal to be selected, if it the
-        case, selectedSignal is set to this signal and the function returns;
-        - Otherwise, it checks whether there exists a possible route between
-        _selectedSignal and this signal. If it is the case, and that no other
-        active route conflicts with this route, it is activated.
+          - Checking whether this is the first signal to be selected, if it the
+            case, selectedSignal is set to this signal and the function returns;
+          - Otherwise, it checks whether there exists a possible route between
+            _selectedSignal and this signal. If it is the case, and that no other active 
+            route conflicts with this route, it is activated.
 
         The following signals are emited depending of the situation:
-        - routeActivated
-        - noRouteBetweenSignals
-        - conflictingRoute
-        @param si Pointer to the signalItem owner of the signalGraphicsItem
-        that has been left-clicked."""
+          - :func:`~ts2.simulation.Simulation.routeActivated` routeActivated ??
+          - :func:`~ts2.simulation.Simulation.noRouteBetweenSignals`
+          - :func:`~ts2.simulation.Simulation.conflictingRoute` 
+        
+        :param siId: Pointer to the signalItem owner of the signalGraphicsItem that has been left-clicked.
+        :param persistent: 
+        :param force: 
+        """
         si = self._trackItems[siId]
         if self._selectedSignal is None or self._selectedSignal == si:
             # First signal selected
@@ -516,7 +524,7 @@ class Simulation(QtCore.QObject):
 
     @QtCore.pyqtSlot(int)
     def desactivateRoute(self, siId):
-        """ This slot is normally connected to the signal
+        """ This slot is normally connected to the signal  :func:`~ts2.scenery.signalitem.SignalItem.signalUnselected`
         SignalItem.signalUnselected(SignalItem), which itself is emitted when
         a signal is right-clicked. It is in charge of deactivating the routes
         starting from this signal.
@@ -756,12 +764,11 @@ class Simulation(QtCore.QObject):
         #self.timeChanged.connect(self.selectedTrainModel.reset)
 
     def findRoute(self, si1, si2):
-        """Checks whether a route exists between two signals, and return this
-        route or None.
-        @param si1 The signalItem of the first signal
-        @param si2 The signalItem of the second signal
-        @return The route between signal si1 and si2 if it exists, None
-        otherwise"""
+        """Checks and return a route between two signals
+        
+        :param si1: The signalItem of the first signal
+        :param si2: The signalItem of the second signal
+        :return: The route between signal `si1` and `si2` if it exists, otherwise `None` """
         for r in self._routes.values():
             if r.links(si1, si2):
                 return r;

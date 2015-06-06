@@ -28,8 +28,9 @@ tr = QtCore.QObject().tr
 
 
 class LineItem(TrackItem):
-    """A line is a simple track used to connect other items together. The
-    important parameter of a line is its real length, i.e. the length it would
+    """A line is a simple track used to connect other items together. 
+    
+    The  important parameter of a line is its :func:`~ts2.scenery.lineitem.LineItem.realLength`, i.e. the length it would
     have in real life, since this will determine the time the train takes to
     travel on it.
     """
@@ -147,7 +148,9 @@ class LineItem(TrackItem):
 
     @property
     def realLength(self):
-        """Returns the length in metres that the line would have in real life
+        """length in metres that the line would have in real life
+        
+        :rtype: :func:`float` metres length
         """
         return self._realLength
 

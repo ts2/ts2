@@ -41,7 +41,8 @@ autodoc_member_order = "alphabetical"
 
 ## Flags for the stuff to document..
 autodoc_default_flags = [
-	'members', 'undoc-members', 
+	'members', 
+	'undoc-members', 
 	'private-members', 
 	#'special-members', 
 	#'inherited-members', 

@@ -24,19 +24,22 @@ from ts2.scenery import SignalItem
 from ts2 import utils
 
 class NonReturnItem(SignalItem):
-    """The NonReturnItem is an invisible item used to prevent trains from
+    """The `NonReturnItem` is an invisible item used to prevent trains from
     taking a track in an non authorized direction, and making a mess of the
     simulation. It behaves like a signal that is always set to STOP."""
+
+    TI_Type = "SN"
 
     def __init__(self, simulation, parameters):
         """Constructor for the NonReturnItem class"""
         super().__init__(simulation, parameters)
+        
         self._tiType = "SN"
 
 
     def graphicsPaint(self, p, options, widget):
-        """ Reimplemented from TrackItem.graphicsPaint to
-        draw the non return item on the owned TrackGraphicsItem"""
+        """ Reimplemented from :func:`~ts2.scenery.trackitem.TrackItem.graphicsPaint` to
+        draw the non return item on the owned :class:`~ts2.scenery.trackitem.TrackGraphicsItem`"""
         # Draw the berth
         linePen = self.getPen()
         textPen = self.getPen()

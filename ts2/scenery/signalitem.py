@@ -33,12 +33,25 @@ class SignalState:
 
 
 class SignalItem(TrackItem):
-    """ @brief Logical item for signals
-    This class holds the logics of a basic signal (CLEAR, WARNING, STOP).
-    A signal is the item from and to which routes are created.
-    Each instance owns a SignalGraphicsItem which is the graphical item drawn
-    on the scene."""
+    """Logical item for signals
+    
+        - This class holds the logics of a basic signal (CLEAR, WARNING, STOP).
+        -  A signal is the item from and to which routes are created.
+        - Each instance owns a :class:`~ts2.scenery.signalitem.SignalGraphicsItem` which is the 
+          graphical item drawn on the scene.
+    """
 
+    properties = TrackItem.properties + [TIProperty("reverse", tr("Reverse"))]
+
+    signalSelected = QtCore.pyqtSignal(int, bool, bool)
+    """QtCore.pyqtSignal(int, bool, bool)"""
+    
+    signalUnselected = QtCore.pyqtSignal(int)
+    """QtCore.pyqtSignal(int)"""
+    
+    trainSelected = QtCore.pyqtSignal(int)
+    """QtCore.pyqtSignal(int)"""
+    
     def __init__(self, simulation, parameters):
         """ Constructor for the SignalItem class."""
         super().__init__(simulation, parameters)
@@ -60,11 +73,7 @@ class SignalItem(TrackItem):
         self._simulation.registerGraphicsItem(self._gi)
         self.updateGraphics()
 
-    properties = TrackItem.properties + [TIProperty("reverse", tr("Reverse"))]
 
-    signalSelected = QtCore.pyqtSignal(int, bool, bool)
-    signalUnselected = QtCore.pyqtSignal(int)
-    trainSelected = QtCore.pyqtSignal(int)
 
     @property
     def origin(self):

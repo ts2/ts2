@@ -28,8 +28,8 @@ tr = QtCore.QObject().tr
 class TI:
     """@brief Definitive trackitem constants
     
-    ...note:: 
-       - "LI" because InvisibleLinkItem is a subclass of LineItem "L"
+    .. note:: 
+       - "LI" because :class:`~ts2.scenery.invisiblelinkitem.InvisibleLinkItem` is a subclass of :class:`~ts2.scenery.lineitem.LineItem` "L"
        - Place are "A" simply because "P" was taken by points before...
        - Items starting with "Z" are props that are not needed for the simulation to work, but just to have pleasant graphics for the user.
        - Old "SB", "SN" and "ST" are now implemented as "S" with special parameters.
@@ -172,10 +172,10 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
 
 
 class TIProperty():
-    """This class holds a TrackItem property that can be edited by the editor
+    """This class holds a :class:`~ts2.scenery.trackitem.TrackItem` property that can be edited by the editor
     """
     def __init__(self, name, display, readOnly = False):
-        """Constructor for the TIProperty class"""
+        """Constructor for the class:`~ts2.scenery.trackitem.TIProperty` class"""
         self._name = name
         self._display = display
         self._readOnly = readOnly
@@ -193,19 +193,25 @@ class TIProperty():
 
     @property
     def readOnly(self):
-        """Returns True if the property can not be modified in the editor"""
+        """The property can not be modified in the editor
+
+        :rtype: bool 
+        """
         return bool(self._readOnly)
 
 
 class TrackItem(QtCore.QObject):
-    """A TrackItem is a piece of scenery. Each item has defined coordinates in
-    the scenery layout and is connected to other items so that the trains can
-    travel from one to another. The coordinates are expressed in pixels.
-    The origin is the top left most corner of the scene.
-    The X-axis is from left to right and the Y-axis is from top to bottom.
+    """A :class:`~ts2.scenery.trackitem.TrackItem` is a piece of scenery. 
+    
+        - Each item has defined coordinates in the scenery layout and is connected to other items so that the trains can
+          travel from one to another. 
+        - The coordinates are expressed in pixels.
+        - The :func:`~ts2.scenery.trackitem.TrackItem.origin` is the top left most corner of the scene.
+        - The X-axis is from left to right and 
+        - The Y-axis is from top to bottom.
     """
     def __init__(self, simulation, parameters):
-        """ Constructor for the TrackItem class"""
+        """ Constructor for the :class:`~ts2.scenery.trackitem.TrackItem` class"""
         super().__init__()
         self._simulation = simulation
         self._tiId = parameters["tiid"]
@@ -231,7 +237,7 @@ class TrackItem(QtCore.QObject):
         self.trackItemClicked.connect(self._simulation.itemSelected)
 
     def __del__(self):
-        """Destructor for the TrackItem class"""
+        """Destructor for the :class:`~ts2.scenery.trackitem.TrackItem` class"""
         self._simulation.scene.removeItem(self._gi)
         
         # FIXME AttributeError: 'super' object has no attribute '__del__'
@@ -273,8 +279,9 @@ class TrackItem(QtCore.QObject):
 
     @property
     def origin(self):
-        """Returns the origin QPointF of the TrackItem. The origin is
-        generally the left end of the track represented on the TrackItem"""
+        """Returns the origin QPointF of the :class:`~ts2.scenery.trackitem.TrackItem`.
+        
+        The origin is generally the left end of the track represented on the TrackItem"""
         return self._origin
 
     @origin.setter

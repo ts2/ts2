@@ -25,11 +25,11 @@ from ts2.scenery import LineItem, Place, TIProperty
 tr = QtCore.QObject().tr
 
 class PFGraphicsItem(QtWidgets.QGraphicsRectItem):
-    """@brief Graphical item for platforms
-    This class is the graphics of a PlatformItem on the scene.
-    Each instance belongs to a PlatformItem which is defined in the
-    constructor. Only the clickable part of the platform is represented by
-    this class.
+    """Graphical item for platforms
+    
+      - This class is the graphics of a :class:`~ts2.scenery.platformitem.PlatformItem` on the scene.
+      - Each instance belongs to a :class:`~ts2.scenery.platformitem.PlatformItem` which is defined in the constructor. 
+      - Only the clickable part of the platform is represented by this class.
     """
     def __init__(self, rect, platformItem):
         """Constructor for the PlatformGraphicsItem class.

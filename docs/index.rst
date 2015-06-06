@@ -4,10 +4,7 @@ TS2
 
 Train Signalling Simulation (TS2) is an open source railway simulation game where you have to dispatch trains across an area and keep them on schedule.
 
-.. image:: _static/screenshot.jpeg
-    :align: center
-    :height: 200px
-    :alt: ts2
+This is the developers website and information about code
     
 - The application simulates at present block signalling.. 
 - Real-time simulation of a train signalling control centre
@@ -18,8 +15,9 @@ Train Signalling Simulation (TS2) is an open source railway simulation game wher
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
+   dev_guide.rst
    api/index.rst
 
 

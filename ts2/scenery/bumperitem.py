@@ -24,8 +24,10 @@ from ts2.scenery import SignalItem
 from ts2 import utils
 
 class BumperItem(SignalItem):
-    """The BumperItem is the item placed at the end of a dead end line.
-    It behaves like a signal that is always set to STOP"""
+    """A BumperItem is the item placed at the end of a dead end line.
+    
+      - It behaves like a signal that is always set to STOP
+    """
 
     def __init__(self, simulation, parameters):
         """Constructor for the BumperItem class"""
