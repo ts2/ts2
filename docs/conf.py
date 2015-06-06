@@ -48,6 +48,7 @@ autodoc_default_flags = [
 	#'inherited-members', 
 	'show-inheritance'
 ]
+autoclass_content = "both"
 
 ## assign template var {{INFO.foo}} 
 ## variables/Constants,  version. www etc, git.repos  from ts2 

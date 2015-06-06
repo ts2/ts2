@@ -28,15 +28,22 @@ tr = QtCore.QObject().tr
 class SignalState:
     """This class holds the different possible states of a signal"""
     CLEAR = 0
+    """Green - Clear to proceed"""
+    
     WARNING = 50
+    """Yellow - Proceed with caution"""
+    
     STOP = 100
-
+    """Red - Signal at danger"""
 
 class SignalItem(TrackItem):
     """Logical item for signals
     
-        - This class holds the logics of a basic signal (CLEAR, WARNING, STOP).
-        -  A signal is the item from and to which routes are created.
+        - This class holds the logics of a basic signal (
+          :class:`~ts2.scenery.signalitem.SignalState.CLEAR`, 
+          :class:`~ts2.scenery.signalitem.SignalState.WARNING`, 
+          :class:`~ts2.scenery.signalitem.SignalState.STOP`).
+        -  A signal is the item from and to which :class:`~ts2.routing.route.Route`'s are created.
         - Each instance owns a :class:`~ts2.scenery.signalitem.SignalGraphicsItem` which is the 
           graphical item drawn on the scene.
     """
@@ -53,7 +60,10 @@ class SignalItem(TrackItem):
     """QtCore.pyqtSignal(int)"""
     
     def __init__(self, simulation, parameters):
-        """ Constructor for the SignalItem class."""
+        """
+        :param simulation: the :class:`~ts2.simulation.Simulation` instance
+        :param parameters:
+        """
         super().__init__(simulation, parameters)
         reverse = parameters["reverse"]
         self._tiType = "S"
@@ -77,9 +87,12 @@ class SignalItem(TrackItem):
 
     @property
     def origin(self):
-        """Returns the origin QPointF of the TrackItem. The origin is
-        the right end of the track represented on the SignalItem if the
-        signal is reversed, the left end otherwise"""
+        """
+        The origin is the right end of the track represented on the :class:`~ts2.scenery.signalitem.SignalItem` if the
+        signal is reversed, the left end otherwise
+                 
+        :return: The `QPointF` of the :class:`~ts2.scenery.trackitem.TrackItem`.
+        """
         return self._origin
 
     @origin.setter
@@ -93,8 +106,10 @@ class SignalItem(TrackItem):
 
     @property
     def end(self):
-        """Returns the end QPointF of the TrackItem. The end is
-        generally the right end of the track represented on the TrackItem"""
+        """
+        :return: The end `QPointF` of the :class:`~ts2.scenery.trackitem.TrackItem`. 
+                   - The end is generally the right end of the track represented on the :class:`~ts2.scenery.trackitem.TrackItem`
+        """
         if self.reverse:
             return self._origin + QtCore.QPointF(-60, 0)
         else:
@@ -102,8 +117,9 @@ class SignalItem(TrackItem):
 
     @property
     def reverse(self):
-        """Returns True if the SignalItem is from right to left, false
-        otherwise"""
+        """
+        :return: `True` if the :class:`~ts2.scenery.signalitem.SignalItem` is from right to left, otherwise `False`
+        """
         return bool(self._reverse)
 
     @reverse.setter
@@ -119,7 +135,9 @@ class SignalItem(TrackItem):
 
     @property
     def toolTipText(self):
-        """Returns the string to show on the tool tip"""
+        """
+        :return: `string` to show on the tool tip
+        """
         return self.tr("Signal: %s") % self.name
 
     @property
@@ -135,9 +153,12 @@ class SignalItem(TrackItem):
 
     @property
     def realOrigin(self):
-        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is
-        the position of the top left corner of the bounding rectangle of the
-        TrackItem. Reimplemented in SignalItem"""
+        """
+        The realOrigin is  the position of the top left corner of the bounding rectangle of the
+        :class:`~ts2.scenery.trackitem.TrackItem`. Reimplemented in SignalItem 
+        
+        :return: The `QPointF` of the :class:`~ts2.scenery.trackitem.TrackItem`. 
+        """
         if self.reverse:
             return self.origin + QtCore.QPointF(-60,-2)
         else:
@@ -185,28 +206,33 @@ class SignalItem(TrackItem):
         self.updateSignalState()
 
     def isOnPosition(self, p):
-        """ Checks that the signalItem is on the position p,
-        i.e. the trackItem and direction are the same
-        @param p the position
-        @return Returns true if the signalItem is on position p"""
+        """ Checks that the :class:`~ts2.scenery.signalitem.SignalItem` is on the position p,
+        i.e. the :class:`~ts2.scenery.trackitem.TrackItem` and direction are the same
+        
+        :param p: the position
+        :return: `True` if the signalItem is on position p
+        """
         if p.trackItem == self and p.previousTI == self.previousItem:
             return True
         else:
             return False
 
     def getSaveParameters(self):
-        """Returns the parameters dictionary to save this TrackItem to the
+        """Returns the parameters dictionary to save this :class:`~ts2.scenery.trackitem.TrackItem` to the
         database"""
         parameters = super().getSaveParameters()
         parameters.update({"reverse":int(self.reverse)})
         return parameters
 
     def graphicsMousePressEvent(self, e):
-        """Reimplemented from TrackItem.graphicsMousePressEvent to handle the
-        mousePressEvent of the owned TrackGraphicsItem.
+        """Reimplemented from :class:`~ts2.scenery.trackitem.TrackItem.graphicsMousePressEvent` to handle the
+        `mousePressEvent` of the owned :class:`~ts2.scenery.trackitem.TrackGraphicsItem`.
+        
         It processes mouse clicks on the signal and emits the signals
-        signalSelected, trainSelected, or signalUnselected depending on the
-        case."""
+        :func:`~ts2.scenery.signalitem.SignalItem.signalSelected`,
+        :func:`~ts2.scenery.signalitem.SignalItem.trainSelected`, 
+        or :func:`~ts2.scenery.signalitem.SignalItem.signalUnselected` depending on the  case.
+        """
         super().graphicsMousePressEvent(e)
         if e.button() == Qt.LeftButton:
             if (self._reverse and e.pos().x() <= 20) or \
@@ -239,13 +265,16 @@ class SignalItem(TrackItem):
         self.updateGraphics()
 
     def graphicsBoundingRect(self):
-        """Reimplemented from TrackItem.graphicsBoundingRect to return the
-        bounding rectangle of the owned TrackGraphicsItem."""
+        """Reimplemented from :func:`~ts2.scenery.trackitem.TrackItem.graphicsBoundingRect`
+        
+        :return: `QtCore.QRectF` bounding rectangle of the owned :class:`~ts2.scenery.trackitem.TrackGraphicsItem`.
+        """
         return QtCore.QRectF(0, -2, 60, 25)
 
     def graphicsPaint(self, p, options, widget = 0):
-        """ Reimplemented from TrackItem.graphicsPaint to
-        draw the signal on the owned TrackGraphicsItem"""
+        """ Reimplemented from :func:`~ts2.scenery.trackitem.TrackItem.graphicsPaint` to
+        draw the signal on the owned :class:`~ts2.scenery.trackitem.TrackGraphicsItem`
+        """
         # Draws the berth
         linePen = self.getPen()
         textPen = self.getPen()
@@ -364,12 +393,17 @@ class SignalItem(TrackItem):
 
     @property
     def trainId(self):
-        """Returns the train internal Id."""
+        """
+        :return: The train internal Id
+        """
         return self._trainId
 
     @trainId.setter
     def trainId(self, code):
-        """Sets the trainId of this signal to the given Id."""
+        """Sets the trainId of this signal.
+        
+        :param code: The traincode to show
+        """
         self._trainId = code
         self.updateGraphics()
 
@@ -379,11 +413,11 @@ class SignalItem(TrackItem):
         self.updateGraphics()
 
     def trainsAhead(self):
-        """ True if there is
-            -  a train ahead of this signalItem 
-            - and before the next signalItem
+        """ 
+        :return: `True` if there is
         
-        :rtype bool: 
+                     - a train ahead of this :class:`~ts2.scenery.signalitem.SignalItem` 
+                     - and before the next :class:`~ts2.scenery.signalitem.SignalItem`
         """
         pos = routing.Position(self._nextItem, self, 0)
         while not pos.trackItem.tiType.startswith("E"):

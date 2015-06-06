@@ -34,17 +34,32 @@ class Simulation(QtCore.QObject):
     """The Simulation class holds all the game logic."""
 
     conflictingRoute = QtCore.pyqtSignal(routing.Route)
-    noRouteBetweenSignals = QtCore.pyqtSignal(scenery.SignalItem, \
-                                              scenery.SignalItem)
+    """QtCore.pyqtSignal(:class:`~ts2.routing.route.Route`)"""
+    
+    noRouteBetweenSignals = QtCore.pyqtSignal(scenery.SignalItem, scenery.SignalItem)
+    """QtCore.pyqtSignal(:class:`~ts2.scenery.signalitem.SignalItem`, :class:`~ts2.scenery.signalitem.SignalItem`)"""
+    
     routeSelected = QtCore.pyqtSignal(routing.Route)
     routeDeleted = QtCore.pyqtSignal(routing.Route)
-    timeChanged = QtCore.pyqtSignal(QtCore.QTime)
-    timeElapsed = QtCore.pyqtSignal(float)
-    trainSelected = QtCore.pyqtSignal(int)
-    itemSelected = QtCore.pyqtSignal(int)
-    trainStatusChanged = QtCore.pyqtSignal(int)
-    servicesLoaded = QtCore.pyqtSignal()
     
+    timeChanged = QtCore.pyqtSignal(QtCore.QTime)
+    """QtCore.pyqtSignal(QtCore.QTime)"""
+    
+    timeElapsed = QtCore.pyqtSignal(float)
+    """QtCore.pyqtSignal(float)"""
+    
+    
+    trainSelected = QtCore.pyqtSignal(int)
+    """QtCore.pyqtSignal(int)"""
+    
+    itemSelected = QtCore.pyqtSignal(int)
+    """QtCore.pyqtSignal(int)"""
+    
+    trainStatusChanged = QtCore.pyqtSignal(int)
+    """QtCore.pyqtSignal(int)"""
+    
+    servicesLoaded = QtCore.pyqtSignal()
+    """QtCore.pyqtSignal()"""
     
     def __init__(self, simulationWindow):
         """ Constructor for the Simulation class. """
@@ -394,7 +409,10 @@ class Simulation(QtCore.QObject):
 
     @property
     def context(self):
-        """Returns the context of this Simulation object"""
+        """The context of this Simulation object
+        
+        :return: :class:`~ts2.utils.Context.GAME`
+        """
         return utils.Context.GAME
 
     def option(self, key):
@@ -435,12 +453,16 @@ class Simulation(QtCore.QObject):
 
     @property
     def routes(self):
-        """Returns the routes of the simulation"""
+        """
+        :return: A dict of `routeCode` >  :class:`~ts2.routing.route.Route`'s in the simulation"""
         return self._routes
 
     @property
     def trainTypes(self):
-        """Returns the list of rolling stock types of the simulation"""
+        """List of rolling stock types in the simulation
+        
+        :rtype: `list` of  :class:`~ts2.trains.traintype.TrainType`'s
+        """
         return self._trainTypes
 
     @property
@@ -458,10 +480,17 @@ class Simulation(QtCore.QObject):
             return None
 
     def service(self, serviceCode):
+        """
+        :param serviceCode:
+        :return: :class:`~ts2.trains.service.Service`
+        """
         return self._services[serviceCode]
 
     @property
     def services(self):
+        """
+        :return: A dict of `serviceCode` > :class:`~ts2.trains.service.Service`'s 
+        """
         return self._services
 
     def registerGraphicsItem(self, graphicItem):
@@ -524,12 +553,15 @@ class Simulation(QtCore.QObject):
 
     @QtCore.pyqtSlot(int)
     def desactivateRoute(self, siId):
-        """ This slot is normally connected to the signal  :func:`~ts2.scenery.signalitem.SignalItem.signalUnselected`
-        SignalItem.signalUnselected(SignalItem), which itself is emitted when
-        a signal is right-clicked. It is in charge of deactivating the routes
-        starting from this signal.
-        @param si Pointer to the signalItem owner of the signalGraphicsItem
-        that has been right-clicked."""
+        """
+        This slot is normally connected to the signal  :func:`~ts2.scenery.signalitem.SignalItem.signalUnselected`, 
+        which itself is emitted when a signal is right-clicked. 
+            
+        It is in charge of deactivating the routes starting from this signal.
+            
+        :param siID: Pointer to the :class:`~ts2.scenery.signalitem.SignalItem` owner 
+                     of the signalGraphicsItem that has been right-clicked.
+        """
         si = self._trackItems[siId]
         if self._selectedSignal is not None:
             # Unselect the selected signal if any
@@ -552,7 +584,10 @@ class Simulation(QtCore.QObject):
 
     @QtCore.pyqtSlot(int)
     def setTimeFactor(self, timeFactor):
-        """Sets the time factor to timeFactor."""
+        """Update the time factor
+        
+        :param timeFactor: int in millisecods ?
+        """
         self._timer.stop()
         self.setOption("timeFactor", min(timeFactor, 10))
         if timeFactor != 0:
@@ -560,9 +595,13 @@ class Simulation(QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def timerOut(self):
-        """ Changes the simulation time and emits the timeChanged and the
-        timeElapsed signals
-        This function is normally connected to the timer timeout signal."""
+        """ Update the simulation time 
+        
+        Emits the  :func:`~ts2.simulation.Simulation.timeChanged`  and   timeElapsed signals 
+        
+        This function is normally connected to the timer timeout signal.
+        
+        """
         timeFactor = float(self.option("timeFactor"))
         self._time = self._time.addMSecs((self._timer.interval())*timeFactor)
         self.timeChanged.emit(self._time)
@@ -865,14 +904,20 @@ class Simulation(QtCore.QObject):
         return result
 
     def distanceBetween(self, p1, p2):
-        """Calculates the distance between both points p1 and p2 in pixels
-        @param p1
-        @param p2
-        @return"""
+        """Calculates the distance between points in pixels
+        
+        :param p1:
+        :param p2:
+        :return: `int` pixels
+        """
         return sqrt((p1.x() - p2.x()) ** 2 + (p1.y() - p2.y()) ** 2)
 
     def getLineItem(self, placeCode, trackCode):
-        """Returns the LineItem instance defined by placeCode and trackCode.
+        """Returns a LineItem instance from codes 
+        
+        :param placeCode: instance of :class:`~ts2.scenery.place.Place.placeCode` 
+        :param trackCode: 
+        :rtype: :class:`~ts2.scenery.lineitem.LineItem`
         """
         for ti in self._trackItems.values():
             if ti.tiType.startswith("L"):

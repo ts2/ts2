@@ -172,10 +172,14 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
 
 
 class TIProperty():
-    """This class holds a :class:`~ts2.scenery.trackitem.TrackItem` property that can be edited by the editor
+    """This class holds a :class:`~ts2.scenery.trackitem.TrackItem` property that can be changed by the editor
     """
     def __init__(self, name, display, readOnly = False):
-        """Constructor for the class:`~ts2.scenery.trackitem.TIProperty` class"""
+        """
+        :param name:
+        :param display:
+        :param readOnly:
+        """
         self._name = name
         self._display = display
         self._readOnly = readOnly
@@ -195,7 +199,7 @@ class TIProperty():
     def readOnly(self):
         """The property can not be modified in the editor
 
-        :rtype: bool 
+        :return: `True` is readonly else `False` 
         """
         return bool(self._readOnly)
 
@@ -211,7 +215,10 @@ class TrackItem(QtCore.QObject):
         - The Y-axis is from top to bottom.
     """
     def __init__(self, simulation, parameters):
-        """ Constructor for the :class:`~ts2.scenery.trackitem.TrackItem` class"""
+        """
+        :param simulator: the :class:`~ts2.simulation.Simulation` instance
+        :param parameters:
+        """
         super().__init__()
         self._simulation = simulation
         self._tiId = parameters["tiid"]
