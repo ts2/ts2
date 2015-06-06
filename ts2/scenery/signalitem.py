@@ -379,8 +379,12 @@ class SignalItem(TrackItem):
         self.updateGraphics()
 
     def trainsAhead(self):
-        """ Returns true if there is a train ahead of this signalItem and
-        before the next signalItem"""
+        """ True if there is
+            -  a train ahead of this signalItem 
+            - and before the next signalItem
+        
+        :rtype bool: 
+        """
         pos = routing.Position(self._nextItem, self, 0)
         while not pos.trackItem.tiType.startswith("E"):
             if pos.trackItem.tiType.startswith("S") and \
