@@ -49,12 +49,12 @@ class OptionsModel(QtCore.QAbstractTableModel):
         super().__init__()
         self._editor = editor
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows of the model, corresponding to the
         number of real options."""
         return self._editor.realOptionsLength
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
         return 2
 
@@ -69,7 +69,7 @@ class OptionsModel(QtCore.QAbstractTableModel):
                 return optionValues[index.row()]
         return None
 
-    def setData(self, index, value, role):
+    def setData(self, index, value, role=None):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
             if index.column() == 1:
@@ -109,38 +109,6 @@ class Editor(simulation.Simulation):
                                                         self, 0, 0, 800, 600)
         self._sceneBackground.setZValue(-100)
         self._scene.addItem(self._sceneBackground)
-        self.drawToolBox()
-        self._sceneryValidated = False
-        self._routesModel = routing.RoutesModel(self)
-        self._trainTypesModel = trains.TrainTypesModel(self)
-        self._servicesModel = trains.ServicesModel(self)
-        self._serviceLinesModel = trains.ServiceLinesModel(self)
-        self._trainsModel = trains.TrainsModel(self)
-        self._optionsModel = OptionsModel(self)
-        self._database = ""
-        self._nextId = 1
-        self._nextRouteId = 1
-        self._grid = 5.0
-        self._preparedRoute = None
-        self._selectedRoute = None
-        self._selectedTrain = None
-        self._selectedItems = []
-        self._clipbooard = []
-        self._displayedPositionGI = routing.PositionGraphicsItem(self)
-        self.registerGraphicsItem(self._displayedPositionGI)
-        self.trainsChanged.connect(self.unselectTrains)
-        self.scene.selectionChanged.connect(self.updateSelection)
-
-    sceneryIsValidated = QtCore.pyqtSignal(bool)
-    routesChanged = QtCore.pyqtSignal()
-    trainTypesChanged = QtCore.pyqtSignal()
-    servicesChanged = QtCore.pyqtSignal()
-    serviceLinesChanged = QtCore.pyqtSignal()
-    trainsChanged = QtCore.pyqtSignal()
-    optionsChanged = QtCore.pyqtSignal()
-
-    def drawToolBox(self):
-        """Construct the library tool box"""
         # Lines
         WhiteLineItem(0, 0, 0, 300, None, self._libraryScene)
         WhiteLineItem(100, 0, 100, 300, None, self._libraryScene)
@@ -183,6 +151,36 @@ class Editor(simulation.Simulation):
                 {"tiid":-10, "name":"Invisible link", "x":120, "y":175,
                  "xf":180, "yf":175, "maxspeed":0.0, "reallength":1.0,
                  "placecode":None, "trackcode":None})
+        self._sceneryValidated = False
+        self._services = {}
+        self._trains = []
+        self._routesModel = routing.RoutesModel(self)
+        self._trainTypesModel = trains.TrainTypesModel(self)
+        self._servicesModel = trains.ServicesModel(self)
+        self._serviceLinesModel = trains.ServiceLinesModel(self)
+        self._trainsModel = trains.TrainsModel(self)
+        self._optionsModel = OptionsModel(self)
+        self._database = ""
+        self._nextId = 1
+        self._nextRouteId = 1
+        self._grid = 5.0
+        self._preparedRoute = None
+        self._selectedRoute = None
+        self._selectedTrain = None
+        self._selectedItems = []
+        self._clipbooard = []
+        self._displayedPositionGI = routing.PositionGraphicsItem(self)
+        self.registerGraphicsItem(self._displayedPositionGI)
+        self.trainsChanged.connect(self.unselectTrains)
+        self.scene.selectionChanged.connect(self.updateSelection)
+
+    sceneryIsValidated = QtCore.pyqtSignal(bool)
+    routesChanged = QtCore.pyqtSignal()
+    trainTypesChanged = QtCore.pyqtSignal()
+    servicesChanged = QtCore.pyqtSignal()
+    serviceLinesChanged = QtCore.pyqtSignal()
+    trainsChanged = QtCore.pyqtSignal()
+    optionsChanged = QtCore.pyqtSignal()
 
     @property
     def libraryScene(self):
@@ -308,10 +306,6 @@ class Editor(simulation.Simulation):
                 self._nextRouteId = 1
             self.routesChanged.emit()
         self.loadTrainTypes(conn)
-        try:
-            self._nextTrainTypeId = max(self._trainTypes.keys()) + 1
-        except:
-            self._nextTrainTypeId = 1
         self.trainTypesChanged.emit()
         self.loadServices(conn)
         self.servicesChanged.emit()
@@ -698,8 +692,13 @@ class Editor(simulation.Simulation):
 
 
     def registerGraphicsItem(self, graphicItem):
-        """Reimplemented from Simulation. Adds the graphicItem to the scene
-        or to the libraryScene (if tiId <0)."""
+        """Adds the graphicItem to the scene or to the libraryScene.
+
+        Reimplemented from Simulation.
+        :param graphicItem: The graphic Item to add to the scene or library
+        scene (if tiId < 0)
+        :type graphicItem: QtCore.QGraphicsItem
+        """
         if hasattr(graphicItem, "trackItem") and \
            graphicItem.trackItem.tiId < 0:
             self._libraryScene.addItem(graphicItem)
@@ -812,9 +811,13 @@ class Editor(simulation.Simulation):
                 ti.reverseItem = None
 
     def moveTrackItem(self, tiId, pos, clickPos, point):
-        """Moves the TrackItem with id tiId to position pos. Also moves the
-        other trackItems that are currently selected.
-        @param clickPos is the position in the item's coordinates on which the
+        """Moves the TrackItem with id tiId to position pos.
+
+        Also moves the other trackItems that are currently selected.
+
+        :param pos: position where to move the trackItem
+        :type pos: QtCore.QPointF
+        :param clickPos: is the position in the item's coordinates on which the
         mouse was clicked. it is used only if point has "origin" in its name.
         point is the property of the TrackItem that will be modified."""
         if len(self.selectedItems) > 1:
@@ -1047,7 +1050,7 @@ class Editor(simulation.Simulation):
                s.nextServiceCode != "":
                 try:
                     serviceList.remove(s.nextServiceCode)
-                except:
+                except ValueError:
                     QtCore.qDebug("nextServiceCode: %s does not exist" % s.nextServiceCode)
         for sc in serviceList:
             train = self.addTrain()
@@ -1213,4 +1216,3 @@ class Editor(simulation.Simulation):
         for ti in self.selectedItems.copy():
             self.removeItemFromSelection(ti)
             self.deleteTrackItem(ti.tiId)
-
