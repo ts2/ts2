@@ -97,7 +97,7 @@ builtin_signal_conditions = [
     {"signaltype":"UK_3_ASPECTS",
      "aspectname":"UK_CLEAR",
      "conditions":4101,
-     "params":{4096:["UK_CLEAR","UK_CAUTION"]}},
+     "params":{4096:["UK_CLEAR","UK_CAUTION","UK_PRE_CAUTION"]}},
     {"signaltype":"UK_3_ASPECTS",
      "aspectname":"UK_CAUTION",
      "conditions":4101,
