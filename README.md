@@ -68,34 +68,39 @@ New simulations can be created with the editor provided with ts2.
 
 Simulations can be created/modified using the editor provided with ts2.
 
-## Known bugs
-- Under windows, trains leave display artefacts (red traces) when scrolling the layout. These do not affect the
-    game and finally disappear.
-
-## Roadmap
-Next version (0.5) will focus on train shunting, joining/dividing, etc.
-
 ## Change log
-Version 0.4.1:
+
+###Version 0.5:
+- Improved editor including the following features 
+    - Multi-selection
+    - Copy/Paste
+    - Mass setting of properties
+    - Resizing of platform items with mouse
+- New signals with :
+    - Short length 
+    - Freely positionable berth
+    - New signal types, including UK 4 aspects signals
+
+###Version 0.4.1:
 - Fixed bug in editor: new places are now taken into account immediately
 
-Version 0.4:
+###Version 0.4:
 - Added scoring system,
 - Added statistical delays to trains,
 - Added load/save game support,
 - Added an option for track system based simulation.
 
-Version 0.3.3:
+###Version 0.3.3:
 - Added French translation
 
-Version 0.3.2:
+###Version 0.3.2:
 - Fixed bug of trains "left behind"
 - Fixed bugs on lineItems in editor
 
-Version 0.3.1:
+###Version 0.3.1:
 - Improved installer
 
-Version 0.3:
+###Version 0.3:
 - Added simulation editor
 - Created new full-featured sim "Liverpool Street"
 

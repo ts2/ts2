@@ -24,7 +24,7 @@ ArchitecturesInstallIn64BitMode=x64 ia64
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName=Train Signalling Simulation
 DisableProgramGroupPage=yes
-LicenseFile=C:\Users\Nicolas\Documents\GitHub\ts2\build\exe.win-amd64-3.3\doc\COPYING.txt
+LicenseFile=C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-3.3\doc\COPYING.txt
 ;InfoAfterFile=C:\Users\Nicolas\Documents\GitHub\ts2\build\exe.win-amd64-3.3\doc\README.txt
 OutputDir=dist
 OutputBaseFilename={#MyAppName}-{#MyAppVersion}-x64-setup
@@ -32,15 +32,15 @@ Compression=lzma
 SolidCompression=yes
 
 [Languages]
-Name: "english"; MessagesFile: "compiler:Default.isl"; InfoAfterFile: "C:\Users\Nicolas\Documents\GitHub\ts2\build\exe.win-amd64-3.3\doc\README.txt"
-Name: "french"; MessagesFile: "compiler:Languages\French.isl"; InfoAfterFile: "C:\Users\Nicolas\Documents\GitHub\ts2\build\exe.win-amd64-3.3\doc\README_fr.txt"
+Name: "english"; MessagesFile: "compiler:Default.isl"; InfoAfterFile: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-3.3\doc\README.txt"
+Name: "french"; MessagesFile: "compiler:Languages\French.isl"; InfoAfterFile: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-3.3\doc\README_fr.txt"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\Nicolas\Documents\GitHub\ts2\build\exe.win-amd64-3.3\ts2.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Nicolas\Documents\GitHub\ts2\build\exe.win-amd64-3.3\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-3.3\ts2.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-3.3\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
