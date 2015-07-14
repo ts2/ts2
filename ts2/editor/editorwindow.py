@@ -67,7 +67,7 @@ class EditorWindow(QtGui.QMainWindow):
 
         self.saveAsAction = QtGui.QAction(self.tr("&Save as..."), self)
         self.saveAsAction.setShortcut(QtGui.QKeySequence.SaveAs)
-        saveAsActionTip = self.tr( \
+        saveAsActionTip = self.tr(
                     "Save the current simulation with a different file name")
         self.saveAsAction.setToolTip(saveAsActionTip)
         self.saveAsAction.setStatusTip(saveAsActionTip)

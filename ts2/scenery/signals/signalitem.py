@@ -42,8 +42,9 @@ class SignalItem(abstract.TrackItem):
         self.tiType = "S"
         signalTypeName = parameters["signaltype"]
         self._signalType = simulation.signalTypes[signalTypeName]
-        self._routesSetParams = eval(str(parameters["routesset"]))
-        self._trainNotPresentParams = eval(str(parameters["trainpresent"]))
+        self._routesSetParams = eval(str(parameters["routesset"])) or {}
+        self._trainNotPresentParams = eval(str(parameters["trainpresent"])) \
+                                      or {}
         try:
             xb = float(parameters["xn"])
         except TypeError:
