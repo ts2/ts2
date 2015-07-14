@@ -18,13 +18,12 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
 from ts2 import utils
-from ts2.scenery import LineItem
+from ts2.scenery import lineitem
 
 
-class InvisibleLinkItem(LineItem):
+class InvisibleLinkItem(lineitem.LineItem):
     """InvisibleLinkItem behave like line items, but are not represented at
     all on the scenery. They are used to make links between lines or to
     represent bridges and tunnels.
@@ -32,21 +31,30 @@ class InvisibleLinkItem(LineItem):
     def __init__(self, simulation, parameters):
         """Constructor for the InvisibleLinkItem class"""
         super().__init__(simulation, parameters)
-        self._tiType = "LI"
+        self.tiType = "LI"
         self._tli.hide()
 
-    def graphicsPaint(self, p, options, widget):
+    ### Methods ########################################################
+
+    def updateTrain(self):
+        """Does nothing as this is an invisible link."""
+        pass
+
+    ### Graphics Methods ###############################################
+
+    def graphicsPaint(self, p, options, itemId, widget):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws nothing during the game."""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            p.setPen(Qt.cyan)
+        super(lineitem.LineItem, self).graphicsPaint(p, options,
+                                                      itemId, widget)
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            if self.selected:
+                p.setPen(Qt.magenta)
+            else:
+                p.setPen(Qt.cyan)
             p.drawLine(self.line)
             self.drawConnectionRect(p, self.line.p1())
             self.drawConnectionRect(p, self.line.p2())
-
-    @QtCore.pyqtSlot()
-    def updateGraphics(self):
-        self._gi.update()
 
 
 

@@ -18,14 +18,14 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from ts2.scenery import TrackItem, TrackGraphicsItem, TIProperty
-from ts2 import utils
 from PyQt4 import QtCore
 from PyQt4.QtCore import Qt
+from ts2.scenery import abstract, helper
+from ts2 import utils
 
 BIG = 1000000000
 
-class EndItem(TrackItem):
+class EndItem(abstract.TrackItem):
     """End items are invisible items to which the free ends of other
     trackitems must be connected to prevent the simulation from crashing TS2.
     End items are defined by their titype which is “E” and their position
@@ -34,34 +34,20 @@ class EndItem(TrackItem):
     def __init__(self, simulation, parameters):
         """Constructor for the EndItem class"""
         super().__init__(simulation, parameters)
-        self._tiType = "E"
+        self.tiType = "E"
         self._realLength = BIG
-        egi = TrackGraphicsItem(self)
-        egi.setPos(self.realOrigin)
-        if self._simulation.context in utils.Context.EDITORS:
+        egi = helper.TrackGraphicsItem(self)
+        egi.setPos(self.origin)
+        if self.simulation.context in utils.Context.EDITORS:
             egi.setCursor(Qt.PointingHandCursor)
-        self._gi = egi
-        simulation.registerGraphicsItem(self._gi)
+        self._gi[0] = egi
+        simulation.registerGraphicsItem(egi)
 
-    @property
-    def end(self):
+    def _getEnd(self):
         """Returns a point far away of the scene"""
         return QtCore.QPointF(-BIG, -BIG)
 
-    @property
-    def realOrigin(self):
-        return self._origin
-
-    @realOrigin.setter
-    def realOrigin(self, pos):
-        """Setter function for the realOrigin property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            grid = self._simulation.grid
-            x = round((pos.x() + 3.0) / grid) * grid
-            y = round((pos.y() + 3.0) / grid) * grid
-            self._origin = QtCore.QPointF(x, y)
-            self._gi.setPos(self.realOrigin)
-            self.updateGraphics()
+    end = property(_getEnd)
 
     def getFollowingItem(self, precedingItem, direction = -1):
         """Reimplemented from TrackItem to return None if going to the free
@@ -71,19 +57,26 @@ class EndItem(TrackItem):
         else:
             return self._previousItem
 
-    def graphicsBoundingRect(self):
+    def graphicsBoundingRect(self, itemId):
         """Reimplemented from TrackItem.graphicsBoundingRect to return the
         bounding rectangle of the owned TrackGraphicsItem."""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            return QtCore.QRectF(-5, -5, 10, 10)
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            if self.tiId < 0:
+                # Toolbox itemId
+                return QtCore.QRectF(-50, -25, 100, 50)
+            else:
+                return QtCore.QRectF(-5, -5, 10, 10)
         else:
-            return super().graphicsBoundingRect()
+            return super().graphicsBoundingRect(itemId)
 
-    def graphicsPaint(self, p, options, widget):
+    def graphicsPaint(self, p, options, itemId, widget=0):
         """ Reimplemented from TrackItem.graphicsPaint"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             pen = self.getPen()
-            pen.setColor(Qt.cyan)
+            if self.selected:
+                pen.setColor(Qt.magenta)
+            else:
+                pen.setColor(Qt.cyan)
             p.setPen(pen)
             p.drawEllipse(-1.5, -1.5, 3, 3)
             self.drawConnectionRect(p, QtCore.QPointF(0, 0))

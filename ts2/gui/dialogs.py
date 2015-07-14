@@ -43,7 +43,7 @@ class ExceptionDialog:
             message += message.join(traceback.format_tb(sys.exc_info()[2]))
         else:
             message += message.join(traceback.format_exc())
-            return QtGui.QMessageBox.critical(parent, title, message)
+        return QtGui.QMessageBox.critical(parent, title, message)
 
 
 class PropertiesDialog(QtGui.QDialog):

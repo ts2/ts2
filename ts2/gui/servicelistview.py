@@ -50,9 +50,9 @@ class ServiceListView(QtGui.QTreeView):
                                     QtGui.QItemSelectionModel.ClearAndSelect)
 
     @QtCore.pyqtSlot(simulation.Simulation)
-    def setupServiceList(self, simulation):
+    def setupServiceList(self, sim):
         """Updates the service list view."""
-        self.simulation = simulation
+        self.simulation = sim
         #if self.model() is None:
         model = self.simulation.serviceListModel
         model.updateModel()

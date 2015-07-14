@@ -39,7 +39,7 @@ def Main():
     try:
         mw = mainwindow.MainWindow()
         mw.show()
-        return app.exec_();
+        return app.exec_()
     except:
         gui.dialogs.ExceptionDialog.popupException(None)
         #QMessageBox.critical(None,
@@ -47,8 +47,6 @@ def Main():
                              #str(e),
                              #QMessageBox.StandardButtons(QMessageBox.Ok))
         return 1
-    else:
-        return 0
 
 if __name__ == "__main__":
     Main()

@@ -18,12 +18,14 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtGui, QtCore, QtSql
+from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
 
 from ts2 import scenery
-import ts2.gui.dialogs
+from ts2.editor import editor
+from ts2.gui import dialogs, widgets
 import ts2.editor.views
+
 
 
 class EditorWindow(QtGui.QMainWindow):
@@ -33,13 +35,13 @@ class EditorWindow(QtGui.QMainWindow):
         """Constructor for the EditorWindow class"""
         super().__init__(mainWindow)
         self.setGeometry(100, 100, 1024, 768)
-        self.setWindowTitle( \
+        self.setWindowTitle(
                         self.tr("ts2 - Train Signalling Simulation - Editor"))
         self._mainWindow = mainWindow
 
         # Editor
-        self.editor = ts2.editor.Editor(self)
-        self.editor.itemSelected.connect(self.setPropertiesModel)
+        self.editor = editor.Editor(self)
+        self.editor.selectionChanged.connect(self.setPropertiesModel)
 
         # Actions
         self.newAction = QtGui.QAction(self.tr("&New"), self)
@@ -65,7 +67,7 @@ class EditorWindow(QtGui.QMainWindow):
 
         self.saveAsAction = QtGui.QAction(self.tr("&Save as..."), self)
         self.saveAsAction.setShortcut(QtGui.QKeySequence.SaveAs)
-        saveAsActionTip = self.tr( \
+        saveAsActionTip = self.tr(
                     "Save the current simulation with a different file name")
         self.saveAsAction.setToolTip(saveAsActionTip)
         self.saveAsAction.setStatusTip(saveAsActionTip)
@@ -77,6 +79,54 @@ class EditorWindow(QtGui.QMainWindow):
         self.closeAction.setToolTip(closeActionTip)
         self.closeAction.setStatusTip(closeActionTip)
         self.closeAction.triggered.connect(self.close)
+
+        self.panToolAction = QtGui.QAction(self.tr("&Pan tool"), self)
+        panToolActionTip = self.tr("Set the pan tool")
+        self.panToolAction.setToolTip(panToolActionTip)
+        self.panToolAction.setStatusTip(panToolActionTip)
+        self.panToolAction.setCheckable(True)
+        self.panToolAction.triggered.connect(self.setPanTool)
+
+        self.selectionToolAction = QtGui.QAction(self.tr("&Selection tool"),
+                                                 self)
+        selectionToolActionTip = self.tr("Set the selection tool")
+        self.selectionToolAction.setToolTip(selectionToolActionTip)
+        self.selectionToolAction.setStatusTip(selectionToolActionTip)
+        self.selectionToolAction.setCheckable(True)
+        self.selectionToolAction.triggered.connect(self.setSelectionTool)
+
+        self.toolActions = QtGui.QActionGroup(self)
+        self.toolActions.addAction(self.panToolAction)
+        self.toolActions.addAction(self.selectionToolAction)
+        self.panToolAction.setChecked(True)
+
+        self.copyAction = QtGui.QAction(self.tr("&Copy"), self)
+        self.copyAction.setShortcut(QtGui.QKeySequence.Copy)
+        copyActionTip = self.tr("Copy the current selection to the clipboard")
+        self.copyAction.setToolTip(copyActionTip)
+        self.copyAction.setStatusTip(copyActionTip)
+        self.copyAction.triggered.connect(self.copyItems)
+
+        self.pasteAction = QtGui.QAction(self.tr("&Paste"), self)
+        self.pasteAction.setShortcut(QtGui.QKeySequence.Paste)
+        pasteActionTip = self.tr("Paste the items of the clipboard")
+        self.pasteAction.setToolTip(pasteActionTip)
+        self.pasteAction.setStatusTip(pasteActionTip)
+        self.pasteAction.triggered.connect(self.pasteItems)
+
+        self.deleteAction = QtGui.QAction(self.tr("&Delete"), self)
+        self.deleteAction.setShortcut(QtGui.QKeySequence.Delete)
+        deleteActionTip = self.tr("Delete the selected items")
+        self.deleteAction.setToolTip(deleteActionTip)
+        self.deleteAction.setStatusTip(deleteActionTip)
+        self.deleteAction.triggered.connect(self.deleteItems)
+
+        self.selectAllAction = QtGui.QAction(self.tr("&Select All"), self)
+        self.selectAllAction.setShortcut(QtGui.QKeySequence.SelectAll)
+        selectAllActionTip = self.tr("Select all the items")
+        self.selectAllAction.setToolTip(selectAllActionTip)
+        self.selectAllAction.setStatusTip(selectAllActionTip)
+        self.selectAllAction.triggered.connect(self.selectAll)
 
         self.aboutAction = QtGui.QAction(self.tr("&About TS2..."), self)
         aboutActionTip = self.tr("About TS2")
@@ -98,10 +148,20 @@ class EditorWindow(QtGui.QMainWindow):
         self.fileMenu.addAction(self.saveAsAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.closeAction)
+        self.editMenu = self.menuBar().addMenu(self.tr("&Edit"))
+        self.editMenu.addAction(self.panToolAction)
+        self.editMenu.addAction(self.selectionToolAction)
+        self.editMenu.addSeparator()
+        self.editMenu.addAction(self.copyAction)
+        self.editMenu.addAction(self.pasteAction)
+        self.editMenu.addAction(self.deleteAction)
+        self.editMenu.addSeparator()
+        self.editMenu.addAction(self.selectAllAction)
         self.helpMenu = self.menuBar().addMenu(self.tr("&Help"))
         self.helpMenu.addAction(self.aboutAction)
         self.helpMenu.addAction(self.aboutQtAction)
         self.menuBar().setCursor(Qt.PointingHandCursor)
+        self.updateMenus(0)
 
         # Status bar
         statusBar = QtGui.QStatusBar()
@@ -110,16 +170,16 @@ class EditorWindow(QtGui.QMainWindow):
         # Dock Widgets
         # >> TrackItems panel: TI Library
         self.toolsPanel = QtGui.QDockWidget(self.tr("Tools"), self)
-        self.toolsPanel.setFeatures( \
-                                QtGui.QDockWidget.DockWidgetMovable| \
+        self.toolsPanel.setFeatures(
+                                QtGui.QDockWidget.DockWidgetMovable|
                                 QtGui.QDockWidget.DockWidgetFloatable)
         self.trackItemsLibraryView = \
                                 QtGui.QGraphicsView(self.editor.libraryScene)
         self.trackItemsLibraryView.setBackgroundBrush(QtGui.QBrush(Qt.black))
         self.trackItemsLibraryView.setInteractive(True)
-        self.trackItemsLibraryView.setRenderHint( \
+        self.trackItemsLibraryView.setRenderHint(
                                 QtGui.QPainter.Antialiasing, False)
-        self.trackItemsLibraryView.setDragMode( \
+        self.trackItemsLibraryView.setDragMode(
                                 QtGui.QGraphicsView.ScrollHandDrag)
         self.trackItemsLibraryView.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         # >> TrackItems panel: layout
@@ -144,6 +204,7 @@ class EditorWindow(QtGui.QMainWindow):
         # Central tab widget
         self.tabWidget = QtGui.QTabWidget(self)
         self.tabWidget.currentChanged.connect(self.showHideDockWidgets)
+        self.tabWidget.currentChanged.connect(self.updateMenus)
         self.tabWidget.currentChanged.connect(self.editor.updateContext)
 
         # General tab
@@ -174,32 +235,29 @@ class EditorWindow(QtGui.QMainWindow):
         self.sceneryView.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
         self.sceneryView.setAcceptDrops(True)
         self.sceneryView.setBackgroundBrush(QtGui.QBrush(Qt.black))
-        self.editor.sceneryIsValidated.connect(\
+        self.editor.sceneryIsValidated.connect(
                                     self.sceneryView.setDisabled)
-        self.unlockSceneryBtn = QtGui.QPushButton(\
+        self.unlockSceneryBtn = QtGui.QPushButton(
                                     self.tr("Unlock Scenery"), sceneryTab)
         self.unlockSceneryBtn.setEnabled(False)
-        self.unlockSceneryBtn.clicked.connect(\
+        self.unlockSceneryBtn.clicked.connect(
                                     self.editor.invalidateScenery)
-        self.editor.sceneryIsValidated.connect(\
+        self.editor.sceneryIsValidated.connect(
                                     self.unlockSceneryBtn.setEnabled)
-        self.validateSceneryBtn = QtGui.QPushButton(\
+        self.validateSceneryBtn = QtGui.QPushButton(
                                     self.tr("Validate Scenery"), sceneryTab)
-        self.validateSceneryBtn.clicked.connect(\
+        self.validateSceneryBtn.clicked.connect(
                                     self.validateSceneryBtnClicked)
-        self.editor.sceneryIsValidated.connect(\
+        self.editor.sceneryIsValidated.connect(
                                     self.validateSceneryBtn.setDisabled)
-        self.zoomSlider = QtGui.QSlider(Qt.Horizontal, sceneryTab)
-        self.zoomSlider.setRange(10, 200)
-        self.zoomSlider.setValue(100)
-        self.zoomSlider.valueChanged.connect(self.zoom)
+        self.zoomWidget = widgets.ZoomWidget(sceneryTab)
+        self.zoomWidget.valueChanged.connect(self.zoom)
         hgrid = QtGui.QHBoxLayout()
         hgrid.addWidget(self.unlockSceneryBtn)
         hgrid.addWidget(self.validateSceneryBtn)
         hgrid.addStretch()
         hgrid2 = QtGui.QHBoxLayout()
-        hgrid2.addWidget(QtGui.QLabel(self.tr("Zoom: "), sceneryTab))
-        hgrid2.addWidget(self.zoomSlider)
+        hgrid2.addWidget(self.zoomWidget)
         hgrid2.addStretch()
         vgrid = QtGui.QVBoxLayout()
         vgrid.addLayout(hgrid)
@@ -251,14 +309,14 @@ class EditorWindow(QtGui.QMainWindow):
         self.trainTypesView = ts2.editor.views.TrainTypesEditorView(
                                                                 trainTypesTab)
         self.trainTypesView.setModel(self.editor.trainTypesModel)
-        self.editor.trainTypesChanged.connect( \
+        self.editor.trainTypesChanged.connect(
                                 self.trainTypesView.model().reset)
-        self.editor.trainTypesChanged.connect( \
+        self.editor.trainTypesChanged.connect(
                                 self.trainTypesView.resizeColumnsToContents)
-        self.addTrainTypeBtn = QtGui.QPushButton( \
+        self.addTrainTypeBtn = QtGui.QPushButton(
                                 self.tr("Add new train type"), trainTypesTab)
         self.addTrainTypeBtn.clicked.connect(self.addTrainTypeBtnClicked)
-        self.delTrainTypeBtn = QtGui.QPushButton( \
+        self.delTrainTypeBtn = QtGui.QPushButton(
                                 self.tr("Remove train type"), trainTypesTab)
         self.delTrainTypeBtn.clicked.connect(self.delTrainTypeBtnClicked)
         hgrid = QtGui.QHBoxLayout()
@@ -417,11 +475,15 @@ class EditorWindow(QtGui.QMainWindow):
                 closeEvent.ignore()
 
     @QtCore.pyqtSlot(int)
-    def setPropertiesModel(self, tiId):
-        """Sets the TrackPropertiesModel related to trackItem on the
+    def setPropertiesModel(self):
+        """Sets the TrackPropertiesModel related to the selection on the
         properties view"""
-        ti = self.editor.trackItem(tiId)
-        self.propertiesView.setModel(scenery.TrackPropertiesModel(ti))
+        if len(self.editor.selectedItems) > 0:
+            self.propertiesView.setModel(
+                                  scenery.helper.TrackPropertiesModel(
+                                                 self.editor.selectedItems))
+        else:
+            self.propertiesView.setModel(None)
 
     @QtCore.pyqtSlot()
     def loadSimulation(self):
@@ -435,24 +497,24 @@ class EditorWindow(QtGui.QMainWindow):
                            QtCore.QDir.currentPath(),
                            self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
-            QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+            QtGui.qApp.setOverrideCursor(Qt.WaitCursor)
             self.editor.load(fileName)
             self.setWindowTitle(
                     self.tr("ts2 - Train Signalling Simulation - Editor - %s")
                     % fileName)
-            QtGui.QApplication.restoreOverrideCursor()
+            QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def saveSimulation(self):
         """Saves the simulation to the database"""
         if self.editor.database is None:
             self.saveAsSimulation()
-        QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+        QtGui.qApp.setOverrideCursor(Qt.WaitCursor)
         try:
             self.editor.save()
         except:
             ts2.gui.dialogs.ExceptionDialog.popupException(self)
-        QtGui.QApplication.restoreOverrideCursor()
+        QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def saveAsSimulation(self):
@@ -482,6 +544,45 @@ class EditorWindow(QtGui.QMainWindow):
                             == QtGui.QMessageBox.Yes:
                 self.editor.initialize()
 
+    @QtCore.pyqtSlot()
+    def setPanTool(self):
+        """Sets the pan tool."""
+        self.sceneryView.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+
+    @QtCore.pyqtSlot()
+    def setSelectionTool(self):
+        """Sets the selection tool."""
+        self.sceneryView.setDragMode(QtGui.QGraphicsView.RubberBandDrag)
+
+    @QtCore.pyqtSlot()
+    def copyItems(self):
+        """Copy the current selection to the clipboard."""
+        self.editor.copyToClipboard()
+
+    @QtCore.pyqtSlot()
+    def pasteItems(self):
+        """Paste the items of the clipboard on the scenery."""
+        self.editor.pasteFromClipboard()
+
+    @QtCore.pyqtSlot()
+    def deleteItems(self):
+        """Delete the items of the current selection."""
+        if (QtGui.QMessageBox.warning(
+                            self,
+                            self.tr("Delete items"),
+                            self.tr("Do you really want to delete all "
+                                    "the selected items?"),
+                            QtGui.QMessageBox.Yes|QtGui.QMessageBox.No)
+                == QtGui.QMessageBox.Yes):
+            self.editor.deleteSelection()
+
+    @QtCore.pyqtSlot()
+    def selectAll(self):
+        """Select all the items on the scene."""
+        self.editor.clearSelection()
+        for tiId in self.editor.trackItems:
+            self.editor.updateSelection(tiId, True)
+
     @QtCore.pyqtSlot(int)
     def showHideDockWidgets(self, index):
         """Hides or Show the dock widgets depending on the selected tab"""
@@ -493,6 +594,24 @@ class EditorWindow(QtGui.QMainWindow):
             self.toolsPanel.hide()
             self.propertiesPanel.hide()
 
+    @QtCore.pyqtSlot(int)
+    def updateMenus(self, index):
+        """Updates the enabled menu actions depending on the selected tab."""
+        if index == 1:
+            # Scenery panel
+            self.selectionToolAction.setEnabled(True)
+            self.copyAction.setEnabled(True)
+            self.pasteAction.setEnabled(True)
+            self.deleteAction.setEnabled(True)
+            self.selectAllAction.setEnabled(True)
+        else:
+            self.panToolAction.setChecked(True)
+            self.selectionToolAction.setEnabled(False)
+            self.copyAction.setEnabled(False)
+            self.pasteAction.setEnabled(False)
+            self.deleteAction.setEnabled(False)
+            self.selectAllAction.setEnabled(False)
+
     @QtCore.pyqtSlot()
     def updateGeneralTab(self):
         """Updates the data in the general tab with the simulation options."""
@@ -502,9 +621,9 @@ class EditorWindow(QtGui.QMainWindow):
     @QtCore.pyqtSlot()
     def validateSceneryBtnClicked(self):
         """Validates the scenery by calling the editor to perform the task."""
-        QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+        QtGui.qApp.setOverrideCursor(Qt.WaitCursor)
         self.editor.validateScenery()
-        QtGui.QApplication.restoreOverrideCursor()
+        QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def delRouteBtnClicked(self):
@@ -656,9 +775,9 @@ class EditorWindow(QtGui.QMainWindow):
                                     "Are you sure you want to continue?"),
                             QtGui.QMessageBox.Yes|QtGui.QMessageBox.No
                                          ) == QtGui.QMessageBox.Yes:
-                QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+                QtGui.qApp.setOverrideCursor(Qt.WaitCursor)
                 self.editor.importServicesFromFile(fileName)
-                QtGui.QApplication.restoreOverrideCursor()
+                QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def exportServicesBtnClicked(self):
@@ -686,9 +805,9 @@ class EditorWindow(QtGui.QMainWindow):
                                 "Are you sure you want to continue?"),
                         QtGui.QMessageBox.Yes|QtGui.QMessageBox.No
                                         ) == QtGui.QMessageBox.Yes:
-            QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+            QtGui.qApp.setOverrideCursor(Qt.WaitCursor)
             self.editor.setupTrainsFromServices()
-            QtGui.QApplication.restoreOverrideCursor()
+            QtGui.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def reverseTrainBtnClicked(self):

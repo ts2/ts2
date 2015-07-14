@@ -20,124 +20,144 @@
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.Qt import Qt
-from ts2.utils import Context
-from ts2.scenery import LineItem, Place, TIProperty
+from ts2 import utils
+from ts2.scenery import placeitem, helper, abstract
 
-tr = QtCore.QObject().tr
+translate = QtGui.qApp.translate
 
-class PFGraphicsItem(QtGui.QGraphicsRectItem):
-    """@brief Graphical item for platforms
-    This class is the graphics of a PlatformItem on the scene.
-    Each instance belongs to a PlatformItem which is defined in the
-    constructor. Only the clickable part of the platform is represented by
-    this class.
-    """
-    def __init__(self, rect, platformItem):
-        """Constructor for the PlatformGraphicsItem class.
-        @param platformItem Pointer to the PlatformItem to which this
-        SignalGraphicsItem belongs to."""
-        super().__init__(rect)
-        self.trackItem = platformItem
-        self.setZValue(0)
-
-    def mousePressEvent(self, event):
-        self.trackItem.platformGraphicsItemClicked(event)
-
-
-class PlatformItem(LineItem):
-    """Platform items are a special type of line items but including the
-    drawing of a colored rectangle to symbolise the platform. This colored
-    rectangle also permits user interaction.
+class PlatformItem(abstract.ResizableItem):
+    """Platform items are represented as a colored rectangle on the scene to
+    symbolise the platform. This colored rectangle permits user interaction.
     """
     def __init__(self, simulation, parameters):
         """Constructor for the PlatformItem class"""
         super().__init__(simulation, parameters)
-        self._tiType = "LP"
-        x1 = parameters["xn"]
-        x2 = parameters["xr"]
-        y1 = parameters["yn"]
-        y2 = parameters["yr"]
-        self._rect = QtCore.QRectF(QtCore.QPointF(x1, y1), \
-                                   QtCore.QPointF(x2, y2))
-        self._pfgi = PFGraphicsItem(self._rect, self)
-        self._pfgi.setCursor(Qt.PointingHandCursor)
-        self._pfgi.setPen(QtGui.QPen(QtGui.QColor("#88ffbb")))
-        self._pfgi.setBrush(QtGui.QBrush(QtGui.QColor("#88ffbb")))
-        if self.place is not None:
-            self._pfgi.setToolTip(self.tr("%s\nPlatform %s") % \
-                                  (self.place.placeName, self.trackCode))
-        self._simulation.registerGraphicsItem(self._pfgi)
-        self._pfgi.update()
-        self.platformSelected.connect(Place.selectedPlaceModel.setPlace)
+        self.tiType = "ZP"
+        x1 = parameters["x"]
+        x2 = parameters["xf"]
+        y1 = parameters["y"]
+        y2 = parameters["yf"]
+        self._end = QtCore.QPointF(x2, y2)
+        self._placeCode = parameters["placecode"]
+        trackCode = parameters["trackcode"]
+        self._place = simulation.place(self._placeCode)
+        if self._place is not None:
+            self._trackCode = trackCode
+            self._place.addTrack(self)
+        else:
+            self._trackCode = ""
+        pgi = helper.TrackGraphicsItem(self)
+        pgi.setPos(self.origin)
+        pgi.setCursor(Qt.PointingHandCursor)
+        pgi.setToolTip(self.toolTipText)
+        pgi.setZValue(0)
+        self._gi[0] = pgi
+        self.simulation.registerGraphicsItem(pgi)
+        self.platformSelected.connect(
+                                placeitem.Place.selectedPlaceModel.setPlace)
 
-    def __del__(self):
-        """Destructor for the PlatformItem class"""
-        self._simulation.scene.removeItem(self._pfgi)
-        super().__del__()
 
+    @staticmethod
+    def getProperties():
+        return [helper.TIProperty("tiTypeStr", translate("PlatformItem",
+                                                         "Type"), True),
+                  helper.TIProperty("tiId", translate("PlatformItem",
+                                                      "id"), True),
+                  helper.TIProperty("name", translate("PlatformItem",
+                                                      "Name")),
+                  helper.TIProperty("originStr", translate("PlatformItem",
+                                                           "Point 1")),
+                  helper.TIProperty("endStr", translate("PlatformItem",
+                                                        "Point 2")),
+                  helper.TIProperty("placeCode", translate("PlatformItem",
+                                                           "Place code")),
+                  helper.TIProperty("trackCode", translate("PlatformItem",
+                                                           "Track code"))]
 
-    properties = LineItem.properties + [
-                    TIProperty("topLeftPFStr",
-                                           tr("Platform top left point")),
-                    TIProperty("bottomRightPFStr",
-                                           tr("Platform bottom right point"))]
-
-    platformSelected = QtCore.pyqtSignal(Place)
+    platformSelected = QtCore.pyqtSignal(placeitem.Place)
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
         database"""
         parameters = super().getSaveParameters()
-        parameters.update({ \
-                            "xn":self._rect.topLeft().x(), \
-                            "yn":self._rect.topLeft().y(), \
-                            "xr":self._rect.bottomRight().x(), \
-                            "yr":self._rect.bottomRight().y(), \
+        parameters.update({
+                            "xf": self.end.x(),
+                            "yf": self.end.y(),
+                            "placecode": self.placeCode,
+                            "trackcode": self.trackCode
                           })
         return parameters
 
-    @property
-    def topLeftPFStr(self):
-        """Returns the top left QPointF of the platform in a string format"""
-        return "(%i,%i)" % (self._rect.topLeft().x(), \
-                            self._rect.topLeft().y())
-
-    @topLeftPFStr.setter
-    def topLeftPFStr(self, value):
-        """Setter function for the topLeftPFStr property"""
-        if self._simulation.context == Context.EDITOR_SCENERY:
-            x, y = eval(value.strip('()'))
-            self._rect.setTopLeft(QtCore.QPointF(x, y))
-            self._pfgi.setRect(self._rect)
-            self._pfgi.update()
+    ### Properties #####################################################
 
     @property
-    def bottomRightPFStr(self):
-        """Returns the bottom right QPointF of the platform in a string
-        format"""
-        return "(%i,%i)" % (self._rect.bottomRight().x(), \
-                            self._rect.bottomRight().y())
+    def toolTipText(self):
+        """Returns the string to show on the tool tip"""
+        if self._place is not None:
+            return self.tr("%s\nPlatform %s") % \
+                                  (self._place.placeName, self.trackCode)
+        elif self.tiId < 0:
+            return "Platform"
+        else:
+            return ""
 
-    @bottomRightPFStr.setter
-    def bottomRightPFStr(self, value):
-        """Setter function for the bottomRightPFStr property"""
-        if self._simulation.context == Context.EDITOR_SCENERY:
-            x, y = eval(value.strip('()'))
-            self._rect.setBottomRight(QtCore.QPointF(x, y))
-            self._pfgi.setRect(self._rect)
-            self._pfgi.update()
+    @property
+    def placeCode(self):
+        """Returns the place code corresponding to this LineItem."""
+        return self._placeCode
 
-    def platformGraphicsItemClicked(self, e):
-        """Called by the owned PFGraphicsItem when clicked. Emits the
-        platformSelected and trackItemClicked signals"""
+    @placeCode.setter
+    def placeCode(self, value):
+        """Setter function for the placeCode property"""
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            place = self.simulation.place(value)
+            if place is not None:
+                self._placeCode = value
+                self._place = place
+                self._place.addTrack(self)
+            else:
+                self._placeCode = ""
+
+    @property
+    def trackCode(self):
+        """Returns the track code corresponding to this LineItem. The
+        trackCode enables to identify each line in a place (typically a
+        station)"""
+        return self._trackCode
+
+    @trackCode.setter
+    def trackCode(self, value):
+        """Setter function for the trackCode property"""
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            if self._place is not None:
+                self._trackCode = value
+            else:
+                self._trackCode = ""
+
+    ### Graphics Methods ##############################################
+
+    def graphicsPaint(self, painter, options, itemId, widget):
+        """This function is called by the owned TrackGraphicsItem to paint its
+        painter. Draws the rectangle."""
+        x1 = self.origin.x()
+        y1 = self.origin.y()
+        x2 = self.end.x()
+        y2 = self.end.y()
+        painter.setPen(QtGui.QPen(QtGui.QColor("#88ffbb")))
+        painter.setBrush(QtGui.QBrush(QtGui.QColor("#88ffbb")))
+        painter.drawRect(0, 0, x2 - x1, y2 - y1)
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            self.drawConnectionRect(painter, QtCore.QPointF(0, 0))
+            self.drawConnectionRect(painter, QtCore.QPointF(x2 - x1, y2 - y1))
+
+    def graphicsMousePressEvent(self, e, itemId):
+        """Reimplemented from TrackItem.graphicsMousePressEvent to handle the
+        mousePressEvent of the owned TrackGraphicsItem.
+        It processes mouse clicks on the platform and emits the signal
+        platformSelected."""
+        super().graphicsMousePressEvent(e, itemId)
+        pos = e.buttonDownPos(Qt.LeftButton)
         if e.button() == Qt.LeftButton:
-            self.trackItemClicked.emit(self.tiId)
-            self.platformSelected.emit(self._place)
-
-    @QtCore.pyqtSlot()
-    def updateGraphics(self):
-        self._gi.update()
-        self._pfgi.update()
-        self.updateTrain()
-
-
+            if self.simulation.context == utils.Context.GAME:
+                self.platformSelected.emit(self._place)
+        self.updateGraphics()

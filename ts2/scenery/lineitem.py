@@ -20,14 +20,14 @@
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import Qt
-from ts2.scenery import TrackItem, TrackGraphicsItem, TIProperty
+from ts2.scenery import helper, abstract
 from ts2 import utils, routing
 from math import sqrt
 
-tr = QtCore.QObject().tr
+translate = QtGui.qApp.translate
 
 
-class LineItem(TrackItem):
+class LineItem(abstract.ResizableItem):
     """A line is a simple track used to connect other items together. The
     important parameter of a line is its real length, i.e. the length it would
     have in real life, since this will determine the time the train takes to
@@ -36,10 +36,7 @@ class LineItem(TrackItem):
     def __init__(self, simulation, parameters):
         """Constructor for the LineItem class"""
         super().__init__(simulation, parameters)
-        self._tiType = "L"
-        xf = float(parameters["xf"])
-        yf = float(parameters["yf"])
-        self._end = QtCore.QPointF (xf, yf)
+        self.tiType = "L"
         self._placeCode = parameters["placecode"]
         trackCode = parameters["trackcode"]
         self._place = simulation.place(self._placeCode)
@@ -52,15 +49,17 @@ class LineItem(TrackItem):
         if realLength is None or realLength == 0:
             realLength = 1.0
         self._realLength = realLength
+        self.defaultZValue = 1
         self.updateGeometry()
-        gli = TrackGraphicsItem(self)
+        gli = helper.TrackGraphicsItem(self)
         if simulation.context in utils.Context.EDITORS:
             gli.setCursor(Qt.PointingHandCursor)
         else:
             gli.setCursor(Qt.ArrowCursor)
         gli.setPos(self._origin)
-        self._gi = gli
-        simulation.registerGraphicsItem(self._gi)
+        gli.setZValue(self.defaultZValue)
+        self._gi[0] = gli
+        simulation.registerGraphicsItem(gli)
 
         # draw the "train" graphicLineItem
         p = QtGui.QPen()
@@ -76,121 +75,67 @@ class LineItem(TrackItem):
         simulation.registerGraphicsItem(self._tli)
         self.drawTrain()
 
-    positionSelected = QtCore.pyqtSignal(routing.Position)
-
     def __del__(self):
         """Destructor for the LineItem class"""
-        self._simulation.scene.removeItem(self._tli)
+        self.simulation.scene.removeItem(self._tli)
         super().__del__()
 
+    @staticmethod
+    def getProperties():
+        return abstract.ResizableItem.getProperties() + [
+                  helper.TIProperty("placeCode",
+                                    translate("LineItem", "Place code")),
+                  helper.TIProperty("trackCode",
+                                    translate("LineItem", "Track code")),
+                  helper.TIProperty("realLength",
+                                    translate("LineItem", "Real length (m)"))]
 
-    properties = [TIProperty("tiTypeStr", tr("Type"), True),
-                  TIProperty("tiId", tr("id"), True),
-                  TIProperty("name", tr("Name")),
-                  TIProperty("originStr", tr("Point 1")),
-                  TIProperty("endStr", tr("Point 2")),
-                  TIProperty("placeCode", tr("Place code")),
-                  TIProperty("trackCode", tr("Track code")),
-                  TIProperty("realLength", tr("Real length (m)")),
-                  TIProperty("maxSpeed", tr("Maximum speed (m/s)")),
-                  TIProperty("conflictTiId", tr("Conflict item ID"))]
+    positionSelected = QtCore.pyqtSignal(routing.Position)
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
         database"""
         parameters = super().getSaveParameters()
-        parameters.update({ \
-                            "xf":self._end.x(), \
-                            "yf":self._end.y(), \
-                            "placecode":self.placeCode, \
-                            "trackCode":self.trackCode, \
-                            "reallength":self.realLength, \
+        parameters.update({
+                            "xf":self._end.x(),
+                            "yf":self._end.y(),
+                            "placecode":self.placeCode,
+                            "trackCode":self.trackCode,
+                            "reallength":self.realLength,
                             "maxspeed":self._maxSpeed})
         return parameters
 
-    @property
-    def origin(self):
-        """Returns the origin QPointF of the TrackItem. The origin is
-        one end of the LineItem"""
-        return self._origin
+    ### Properties #####################################################
 
-    @origin.setter
-    def origin(self, pos):
+    def _setOrigin(self, pos):
         """Setter function for the origin property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            grid = self._simulation.grid
-            x = round((pos.x()) / grid) * grid
-            y = round((pos.y()) / grid) * grid
-            self._gi.prepareGeometryChange()
-            self._origin = QtCore.QPointF(x, y)
-            self._gi.setPos(self.realOrigin)
-            self.updateGeometry()
-            self.updateGraphics()
+        super()._setOrigin(pos)
+        self.updateGeometry()
 
-    @property
-    def end(self):
-        """Returns the end QPointF of the TrackItem. The end is
-        the opposite end of the line from origin"""
-        return self._end
+    origin = property(abstract.ResizableItem._getOrigin, _setOrigin)
 
-    @end.setter
-    def end(self, pos):
+    def _setEnd(self, pos):
         """Setter function for the origin property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            grid = self._simulation.grid
-            x = round((pos.x()) / grid) * grid
-            y = round((pos.y()) / grid) * grid
-            self._gi.prepareGeometryChange()
-            self._end = QtCore.QPointF(x, y)
-            self.updateGeometry()
-            self.updateGraphics()
+        super()._setEnd(pos)
+        self.updateGeometry()
 
-    @property
-    def realLength(self):
-        """Returns the length in metres that the line would have in real life
-        """
-        return self._realLength
+    end = property(abstract.ResizableItem._getEnd, _setEnd)
 
-    @realLength.setter
-    def realLength(self, value):
+    def _setStart(self, pos):
+        """Setter function for the start property"""
+        super()._setStart(pos)
+        self.updateGeometry()
+
+    start = property(abstract.ResizableItem._getStart,
+                          _setStart)
+
+    def _setRealLength(self, value):
         """Setter function for the realLength property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             if value == "": value = "0.0"
             self._realLength = float(value)
 
-    @property
-    def endStr(self):
-        """Returns a string representation of the QPointF end"""
-        return "(%i, %i)" % (self.end.x(), self.end.y())
-
-    @endStr.setter
-    def endStr(self, value):
-        """Setter for the endStr property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            x, y = eval(value.strip('()'))
-            self.end = QtCore.QPointF(x, y)
-
-    @property
-    def realOrigin(self):
-        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is
-        the position of the top left corner of the bounding rectangle of the
-        TrackItem."""
-        return self.origin
-
-    @realOrigin.setter
-    def realOrigin(self, pos):
-        """Setter function for the realOrigin property."""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            grid = self._simulation.grid
-            x = round((pos.x() + 5.0) / grid) * grid
-            y = round((pos.y() + 5.0) / grid) * grid
-            vector = QtCore.QPointF(x, y) - self._origin
-            self._gi.prepareGeometryChange()
-            self._origin += vector
-            self._end += vector
-            self._gi.setPos(self.realOrigin)
-            self.updateGeometry()
-            self.updateGraphics()
+    realLength = property(abstract.TrackItem._getRealLength, _setRealLength)
 
     @property
     def placeCode(self):
@@ -230,43 +175,66 @@ class LineItem(TrackItem):
         """Returns the line as a QLineF in the item's coordinates."""
         return self._line
 
+    @property
+    def sceneLine(self):
+        """Returns the line as a QLineF in the scene's coordinates."""
+        return QtCore.QLineF(self.origin, self.end)
+
+    ### Methods ########################################################
+
     def updateGeometry(self):
         """Updates the internal representation of the line and boundingRect
         when it has been modified"""
         orig = QtCore.QPointF(0, 0)
-        end = orig + self._end - self._origin
+        end = orig + self.end - self.origin
         self._line = QtCore.QLineF(orig, end)
         x1 = self._line.p1().x()
         x2 = self._line.p2().x()
         y1 = self._line.p1().y()
         y2 = self._line.p2().y()
-        lx = min(x1, x2) - 2.0
-        rx = max(x1, x2) + 2.0
-        ty = min(y1, y2) - 2.0
-        by = max(y1, y2) + 2.0
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            lx -= 3.0
-            rx += 3.0
-            ty -= 3.0
-            by += 3.0
+        lx = min(x1, x2) - 5.0
+        rx = max(x1, x2) + 5.0
+        ty = min(y1, y2) - 5.0
+        by = max(y1, y2) + 5.0
+        if self.tiId < 0:
+            # Library item in editor
+            lx -= 15
+            rx += 15
+            ty -= 20
+            by += 20
         self._boundingRect = QtCore.QRectF(lx, ty, rx - lx, by - ty)
 
-    @property
-    def sceneLine(self):
-        """Returns the line as a QLineF in the scene's coordinates."""
-        return QtCore.QLineF(self._origin, self._end)
+    @QtCore.pyqtSlot()
+    def updateGraphics(self):
+        """Updates the TrackGraphicsItem owned by this LineItem"""
+        if self.simulation.context == utils.Context.GAME:
+            self.updateTrain()
+        else:
+            super().updateGraphics()
 
-    def graphicsBoundingRect(self):
+    def updateTrain(self):
+        """Updates the graphics for trains movements only"""
+        self.drawTrain()
+        super().updateGraphics()
+
+
+    ### Graphics Methods ###############################################
+
+    def graphicsBoundingRect(self, itemId):
         """Returns the bounding rectangle of the line item"""
         return self._boundingRect
 
-    def graphicsShape(self, shape):
+    def graphicsShape(self, shape, itemId):
         """This function is called by the owned TrackGraphicsItem to return
         its shape. The given argument is the shape given by the parent class.
         """
         path = QtGui.QPainterPath(self._boundingRect.topLeft())
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            d = 5
+            if self.tiId < 0:
+                # Tool box item
+                d = 20
+            else:
+                d = 5
         else:
             d = 2
         if self._line.p1().x() < self._line.p2().x():
@@ -297,20 +265,21 @@ class LineItem(TrackItem):
             path.lineTo(x1 - d, y1 + d)
         return path
 
-    def graphicsPaint(self, p, options, widget):
+    def graphicsPaint(self, p, options, itemId, widget):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws the line."""
+        super().graphicsPaint(p, options, itemId, widget)
         if self.highlighted:
-            self._gi.setZValue(6)
+            # To have the activated line overlap crossing lines if any
+            self.graphicsItem.setZValue(6)
         else:
-            self._gi.setZValue(1)
+            self.graphicsItem.setZValue(0)
         pen = self.getPen()
         p.setPen(pen)
         p.drawLine(self.line)
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self.drawConnectionRect(p, self.line.p1())
             self.drawConnectionRect(p, self.line.p2())
-
 
     def drawTrain(self):
         """Draws the train on the line, if any"""
@@ -337,61 +306,20 @@ class LineItem(TrackItem):
             self._tli.hide()
             self._tli.update()
 
-    def graphicsMouseMoveEvent(self, event):
-        """This function is called by the owned TrackGraphicsItem to handle
-        its mouseMoveEvent. Reimplemented in the LineItem class to begin a
-        drag operation on the origin or the end."""
-        if event.buttons() == Qt.LeftButton and \
-           self._simulation.context == utils.Context.EDITOR_SCENERY:
-            if QtCore.QLineF(event.scenePos(),
-                         event.buttonDownScenePos(Qt.LeftButton)).length() \
-                        < 3.0:
-                return
-            drag = QtGui.QDrag(event.widget())
-            mime = QtCore.QMimeData()
-            pos = event.buttonDownPos(Qt.LeftButton)
-            if QtCore.QRectF(-5,-5,9,9).contains(pos):
-                movedEnd = "origin"
-            elif QtCore.QRectF(self.line.p2().x() - 5,
-                               self.line.p2().y() - 5, 9, 9).contains(pos):
-                movedEnd = "end"
-                pos -= self.line.p2()
-            elif self._gi.shape().contains(pos):
-                movedEnd = "realOrigin"
-            if movedEnd is not None:
-                mime.setText(self.tiType + "#" +
-                            str(self.tiId)+ "#" +
-                            str(pos.x()) + "#" +
-                            str(pos.y()) + "#" +
-                            movedEnd)
-                drag.setMimeData(mime)
-                drag.exec_()
-
-
-    def graphicsMousePressEvent(self, event):
+    def graphicsMousePressEvent(self, event, itemId):
         """This function is called by the owned TrackGraphicsItem to handle
         its mousePressEvent. Reimplemented to send the positionSelected
         signal."""
-        super().graphicsMousePressEvent(event)
-        pos = event.buttonDownPos(Qt.LeftButton)
-        if event.button() == Qt.LeftButton and \
-           self._gi.shape().contains(pos):
-            if self.simulation.context == utils.Context.EDITOR_TRAINS and \
-               self.tiId > 0:
+        super().graphicsMousePressEvent(event, itemId)
+        #pos = event.buttonDownPos(Qt.LeftButton)
+        if event.button() == Qt.LeftButton:
+           #and self.graphicsItem.shape().contains(pos):
+            if (self.simulation.context == utils.Context.EDITOR_TRAINS and
+               self.tiId > 0):
                 x = event.buttonDownPos(Qt.LeftButton).x()
                 ratio = (x - self.line.x1())/(self.line.x2() - self.line.x1())
                 self.positionSelected.emit(routing.Position(
                                                     self,
                                                     self.previousItem,
                                                     self.realLength * ratio))
-
-    @QtCore.pyqtSlot()
-    def updateGraphics(self):
-        """Updates the TrackGraphicsItem owned by this LineItem"""
-        self._gi.update()
-        self.updateTrain()
-
-    def updateTrain(self):
-        """Updates the graphics for trains movements only"""
-        self.drawTrain()
 

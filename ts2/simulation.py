@@ -18,12 +18,17 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtSql, QtGui
-from PyQt4.QtCore import Qt
 from math import sqrt
 import sqlite3
-from ts2 import utils, routing, scenery, trains
+
+from PyQt4 import QtCore, QtGui
+
+from ts2 import utils, routing, trains
 from ts2.game import logger, scorer
+from ts2.scenery import placeitem, lineitem, platformitem, \
+                        invisiblelinkitem, enditem, pointsitem, \
+                        textitem
+from ts2.scenery.signals import signaltype, signalitem
 
 
 class Simulation(QtCore.QObject):
@@ -32,8 +37,8 @@ class Simulation(QtCore.QObject):
     def __init__(self, simulationWindow):
         """ Constructor for the Simulation class. """
         super().__init__()
-        self._database = None
-        self._simulationWindow = simulationWindow
+        self._database = ""
+        self.simulationWindow = simulationWindow
         self._scene = QtGui.QGraphicsScene()
         self._timer = QtCore.QTimer(self)
         self._messageLogger = logger.MessageLogger(self)
@@ -51,11 +56,12 @@ class Simulation(QtCore.QObject):
         self._options = {}
         self._routes = {}
         self._trackItems = {}
-        self._activeRouteNumbers = []
+        self.activeRouteNumbers = []
         self._trainTypes = {}
         self._services = {}
         self._places = {}
         self._trains = []
+        self.signalTypes = signaltype.SignalType.createBuiltinSignalLibrary()
         self._scene.clear()
         self._time = QtCore.QTime()
         self._serviceListModel = trains.ServiceListModel(self)
@@ -228,10 +234,6 @@ class Simulation(QtCore.QObject):
         return self._scorer
 
     @property
-    def simulationWindow(self):
-        return self._simulationWindow
-
-    @property
     def context(self):
         """Returns the context of this Simulation object"""
         return utils.Context.GAME
@@ -282,8 +284,13 @@ class Simulation(QtCore.QObject):
     def trains(self):
         return self._trains
 
+    @property
+    def trackItems(self):
+        """Returns the trackItem dictionary of this simulation."""
+        return self._trackItems
+
     def trackItem(self, id):
-        return self._trackItems[id]
+        return self._trackItems.get(id, None)
 
     def place(self, placeCode):
         """Returns the place defined by placeCode."""
@@ -303,16 +310,16 @@ class Simulation(QtCore.QObject):
         self._scene.addItem(graphicItem)
 
     conflictingRoute = QtCore.pyqtSignal(routing.Route)
-    noRouteBetweenSignals = QtCore.pyqtSignal(scenery.SignalItem, \
-                                              scenery.SignalItem)
-    routeSelected = QtCore.pyqtSignal(routing.Route)
-    routeDeleted = QtCore.pyqtSignal(routing.Route)
+    noRouteBetweenSignals = QtCore.pyqtSignal(signalitem.SignalItem,
+                                              signalitem.SignalItem)
+    #routeSelected = QtCore.pyqtSignal(routing.Route)
+    #routeDeleted = QtCore.pyqtSignal(routing.Route)
     timeChanged = QtCore.pyqtSignal(QtCore.QTime)
     timeElapsed = QtCore.pyqtSignal(float)
     trainSelected = QtCore.pyqtSignal(int)
-    itemSelected = QtCore.pyqtSignal(int)
     trainStatusChanged = QtCore.pyqtSignal(int)
     servicesLoaded = QtCore.pyqtSignal()
+    selectionChanged = QtCore.pyqtSignal()
 
     @QtCore.pyqtSlot(int, bool, bool)
     def activateRoute(self, siId, persistent=False, force=False):
@@ -326,11 +333,11 @@ class Simulation(QtCore.QObject):
         _selectedSignal and this signal. If it is the case, and that no other
         active route conflicts with this route, it is activated.
 
-        The following signals are emited depending of the situation:
+        The following signals are emitted depending of the situation:
         - routeActivated
         - noRouteBetweenSignals
         - conflictingRoute
-        @param si Pointer to the signalItem owner of the signalGraphicsItem
+        @param siId ID of the signalItem owner of the signalGraphicsItem
         that has been left-clicked."""
         si = self._trackItems[siId]
         if self._selectedSignal is None or self._selectedSignal == si:
@@ -369,7 +376,7 @@ class Simulation(QtCore.QObject):
         SignalItem.signalUnselected(SignalItem), which itself is emitted when
         a signal is right-clicked. It is in charge of deactivating the routes
         starting from this signal.
-        @param si Pointer to the signalItem owner of the signalGraphicsItem
+        @param siId ID of the signalItem owner of the signalGraphicsItem
         that has been right-clicked."""
         si = self._trackItems[siId]
         if self._selectedSignal is not None:
@@ -379,7 +386,6 @@ class Simulation(QtCore.QObject):
         r = si.nextActiveRoute
         if r is not None:
             r.desactivate()
-            self.routeDeleted.emit(r)
 
     @QtCore.pyqtSlot(bool)
     def pause(self, paused=True):
@@ -409,6 +415,11 @@ class Simulation(QtCore.QObject):
         self.timeChanged.emit(self._time)
         secs = self._timer.interval() * timeFactor / 1000
         self.timeElapsed.emit(secs)
+
+    def updateSelection(self):
+        """Updates the trackItem selection. Does nothing in the base
+        simulation class."""
+        pass
 
     def loadRoutes(self, conn):
         """Creates the instances of routes from the data of the database."""
@@ -489,9 +500,10 @@ class Simulation(QtCore.QObject):
                 "warningSpeed":8.3,
                 "currentScore":0,
                 "defaultMaxSpeed":44.44,
-                "defaultMinimumStopTime":[(45,75,70),(75,90,30)],
-                "defaultDelayAtEntry":[(-60,0,50),(0,60,50)],
-                "trackCircuitBased":0
+                "defaultMinimumStopTime":"[(45,75,70),(75,90,30)]",
+                "defaultDelayAtEntry":"[(-60,0,50),(0,60,50)]",
+                "trackCircuitBased":0,
+                "defaultSignalVisibility":100
             }
         options = {}
         for option in conn.execute("SELECT * FROM options"):
@@ -512,9 +524,9 @@ class Simulation(QtCore.QObject):
         self.createTrackItemConflicts(conn)
         # Check that all the items are linked
         if not self.checkTrackItemsLinks():
-           self.messageLogger(self.tr("Invalid simulation: "
-                                      "Not all items are linked."),
-                              logger.Message.SOFTWARE_MSG)
+           self.messageLogger.addMessage(self.tr("Invalid simulation: "
+                                                 "Not all items are linked."),
+                                         logger.Message.SOFTWARE_MSG)
 
     def createAllTrackItems(self, conn):
         """Creates the instances of TrackItem and its subclasses (including
@@ -522,7 +534,7 @@ class Simulation(QtCore.QObject):
         for p in conn.execute("SELECT * FROM trackitems WHERE titype='A'"):
             parameters = dict(p)
             tiId = parameters["tiid"]
-            place = scenery.Place(self, parameters)
+            place = placeitem.Place(self, parameters)
             self.servicesLoaded.connect(place.sortTimetable)
             self._trackItems[tiId] = place
             self._places[place.placeCode] = place
@@ -533,30 +545,24 @@ class Simulation(QtCore.QObject):
             tiId = parameters["tiid"]
             tiType = parameters["titype"]
             if tiType == "L":
-                ti = scenery.LineItem(self, parameters)
-            elif tiType == "LP":
-                ti = scenery.PlatformItem(self, parameters)
+                ti = lineitem.LineItem(self, parameters)
+            elif tiType == "ZP":
+                ti = platformitem.PlatformItem(self, parameters)
             elif tiType == "LI":
-                ti = scenery.InvisibleLinkItem(self, parameters)
+                ti = invisiblelinkitem.InvisibleLinkItem(self, parameters)
             elif tiType == "S":
-                ti = scenery.SignalItem(self, parameters)
-            elif tiType == "SB":
-                ti = scenery.BumperItem(self, parameters)
-            elif tiType == "ST":
-                ti = scenery.SignalTimerItem(self, parameters)
-            elif tiType == "SN":
-                ti = scenery.NonReturnItem(self, parameters)
+                ti = signalitem.SignalItem(self, parameters)
             elif tiType == "P":
-                ti = scenery.PointsItem(self, parameters)
+                ti = pointsitem.PointsItem(self, parameters)
             elif tiType == "E":
-                ti = scenery.EndItem(self, parameters)
+                ti = enditem.EndItem(self, parameters)
             elif tiType == "ZT":
-                ti = scenery.TextItem(self, parameters)
+                ti = textitem.TextItem(self, parameters)
             else:
-                ti = scenery.TrackItem(self, parameters)
+                self.messageLogger.addMessage(self.tr("File error. Unknown tiType %s") % tiType)
+                continue
             self.makeTrackItemSignalSlotConnections(ti)
             self._trackItems[tiId] = ti
-
 
     def makeTrackItemSignalSlotConnections(self, ti):
         """Makes all signal-slot connections for TrackItem ti"""
@@ -564,7 +570,6 @@ class Simulation(QtCore.QObject):
             ti.signalSelected.connect(self.activateRoute)
             ti.signalUnselected.connect(self.desactivateRoute)
             ti.trainSelected.connect(self.trainSelected)
-
 
     def loadServices(self, conn):
         """Creates the instances of Service from the data of the database."""
@@ -585,6 +590,9 @@ class Simulation(QtCore.QObject):
     def setupConnections(self):
         """Sets up the connections which need a simulation loaded"""
         #self.timeChanged.connect(self.selectedTrainModel.reset)
+        for ti in self.trackItems.values():
+            ti.setupTriggers()
+
 
     def findRoute(self, si1, si2):
         """Checks whether a route exists between two signals, and return this
@@ -595,8 +603,8 @@ class Simulation(QtCore.QObject):
         otherwise"""
         for r in self._routes.values():
             if r.links(si1, si2):
-                return r;
-        return None;
+                return r
+        return None
 
     def linkTrackItems(self, conn):
         """Link trackItems using the data from the database connection."""
@@ -668,11 +676,11 @@ class Simulation(QtCore.QObject):
 
     def checkTrackItemsLinks(self):
         """Checks that all TrackItems are linked together"""
-        result = True;
+        result = True
         self.messageLogger.addMessage(self.tr("Checking TrackItem links"),
                                       logger.Message.SOFTWARE_MSG)
         for ti in self._trackItems.values():
-            if not ti.tiType.startswith(("A", "ZT")):
+            if not ti.tiType.startswith(("A", "Z")):
                 if ti.nextItem is None:
                     self.messageLogger.addMessage(
                             self.tr("TrackItem %i is unlinked at (%f, %f)" %
@@ -687,7 +695,8 @@ class Simulation(QtCore.QObject):
                     result = False
         return result
 
-    def distanceBetween(self, p1, p2):
+    @staticmethod
+    def distanceBetween(p1, p2):
         """Calculates the distance between both points p1 and p2 in pixels
         @param p1
         @param p2

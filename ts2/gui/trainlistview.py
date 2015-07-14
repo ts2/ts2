@@ -20,7 +20,7 @@
 
 from PyQt4 import QtCore, QtGui
 
-from ts2 import simulation, trains
+from ts2 import simulation
 
 class TrainListView(QtGui.QTreeView):
     """ TODO Document TrainListView class"""
@@ -43,8 +43,8 @@ class TrainListView(QtGui.QTreeView):
                                      QtGui.QItemSelectionModel.ClearAndSelect)
 
     @QtCore.pyqtSlot(simulation.Simulation)
-    def setupTrainList(self, simulation):
-        self.simulation = simulation
+    def setupTrainList(self, sim):
+        self.simulation = sim
         #if self.model() is None:
         #trainsSortedModel = QSortFilterProxyModel()
         #trainsSortedModel.setSourceModel()
@@ -53,8 +53,8 @@ class TrainListView(QtGui.QTreeView):
         self.header().setSortIndicatorShown(False)
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.simulation.trainStatusChanged.connect(self.model().update)
-        #self._simulation.timeChanged.connect(self.model().update)
-        #self.trainSelected.connect(self._simulation.selectedTrainModel.setTrainByServiceCode)
+        #self.simulation.timeChanged.connect(self.model().update)
+        #self.trainSelected.connect(self.simulation.selectedTrainModel.setTrainByServiceCode)
 
 
     def contextMenuEvent(self, event):

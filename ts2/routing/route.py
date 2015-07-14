@@ -92,7 +92,7 @@ class Route(QtCore.QObject):
     are static and defined in the game file. The player can only activate or
     deactivate them.
     """
-    def __init__(self, simulation, routeNum, beginSignal, endSignal, \
+    def __init__(self, simulation, routeNum, beginSignal, endSignal,
                                                             initialState = 0):
         """Constructor of the Route class. After construction, the directions
         dictionary must be filled and then the _positions list must be
@@ -101,7 +101,7 @@ class Route(QtCore.QObject):
         @param beginSignal Pointer to the SignalItem at which the route starts
         @param endSignal Pointer to the SignalItem at which the route ends"""
         super().__init__(simulation)
-        self._simulation = simulation
+        self.simulation = simulation
         self._routeNum = routeNum
         bsp = ts2.routing.Position(beginSignal, beginSignal.previousItem, 0)
         esp = ts2.routing.Position(endSignal, endSignal.previousItem, 0)
@@ -109,6 +109,14 @@ class Route(QtCore.QObject):
         self._directions = {}
         self._initialState = initialState
         self._persistent = False
+
+    routeSelected = QtCore.pyqtSignal()
+    routeUnselected = QtCore.pyqtSignal()
+
+    @property
+    def positions(self):
+        """Returns the positions list of this route."""
+        return self._positions
 
     @property
     def routeNum(self):
@@ -192,8 +200,8 @@ class Route(QtCore.QObject):
                      and cur.trackItem.tiId not in self._directions:
                     self._directions[cur.trackItem.tiId] = 0
             cur = cur.next(0, self._directions.get(cur.trackItem.tiId, -1))
-        QtCore.qCritical(self.tr("Invalid route %i. " \
-                            "Impossible to link beginSignal with endSignal" \
+        QtCore.qCritical(self.tr("Invalid route %i. "
+                            "Impossible to link beginSignal with endSignal"
                             % self.routeNum))
         return False
 
@@ -214,6 +222,7 @@ class Route(QtCore.QObject):
         self.endSignal.previousActiveRoute = self
         self.beginSignal.nextActiveRoute = self
         self.persistent = persistent
+        self.routeSelected.emit()
 
     def desactivate(self):
         """This function is called by the simulation when the route is
@@ -224,6 +233,7 @@ class Route(QtCore.QObject):
             if pos.trackItem.activeRoute is None or \
                pos.trackItem.activeRoute == self:
                 pos.trackItem.resetActiveRoute()
+        self.routeUnselected.emit()
 
     def isActivable(self):
         """Returns true if this route can be activated, i.e. that no other
@@ -246,7 +256,7 @@ class Route(QtCore.QObject):
                     if pos.previousTI!=pos.trackItem.activeRoutePreviousItem:
                         # The direction of this route is different from that
                         # of the active route of the TI
-                        return False;
+                        return False
                     if pos.trackItem.activeRoute == self:
                         # Always allow to setup the same route again
                         return True
@@ -257,10 +267,10 @@ class Route(QtCore.QObject):
                         # signal when it is cleared by a train still
                         # on the route
                         flag = True
-                elif flag == True:
+                elif flag:
                     # We had a route with same direction but does not end with
                     # the same signal
-                    return False;
+                    return False
         return True
 
 
@@ -277,9 +287,9 @@ class Route(QtCore.QObject):
     def __eq__(self, other):
         """Two routes are equal if they have the save routeNum or if both
         beginSignal and endSignal are equal"""
-        if self.routeNum == other.routeNum or \
-          (self.beginSignal == other.beginSignal and \
-           self.endSignal == other.endSignal):
+        if (self.routeNum == other.routeNum or
+            (self.beginSignal == other.beginSignal and
+             self.endSignal == other.endSignal)):
             return True
         else:
             return False
@@ -287,18 +297,18 @@ class Route(QtCore.QObject):
     def __ne__(self, other):
         """Two routes are not equal if they have different routeNum and if
         at least one of beginSignal or endSignal is different"""
-        if self.routeNum != other.routeNum and \
-          (self.beginSignal != other.beginSignal or \
-           self.endSignal != other.endSignal):
+        if (self.routeNum != other.routeNum and
+            (self.beginSignal != other.beginSignal or
+             self.endSignal != other.endSignal)):
             return True
         else:
             return False
 
     def __lt__(self, other):
         """Route is lower than other when its routeNum is lower"""
-        return (self.routeNum < other.routeNum)
+        return self.routeNum < other.routeNum
 
     def __gt__(self, other):
         """Route is greater than other when its routeNum is greater"""
-        return (self.routeNum > other.routeNum)
+        return self.routeNum > other.routeNum
 

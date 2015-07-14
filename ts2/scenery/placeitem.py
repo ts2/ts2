@@ -20,10 +20,10 @@
 
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
-from ts2.scenery import TrackItem, TIProperty, TrackGraphicsItem
+from ts2.scenery import abstract, helper
 from ts2 import utils
 
-tr = QtCore.QObject().tr
+translate = QtGui.qApp.translate
 
 class PlaceInfoModel(QtCore.QAbstractTableModel):
     def __init__(self):
@@ -103,31 +103,34 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
         self.place = place
 
 
-class Place(TrackItem):
+class Place(abstract.TrackItem):
     """A Place is a place where trains will have a schedule (mainly station,
     but can also be a main junction for example)
     """
     def __init__(self, simulation, parameters):
         """Constructor for the Place class"""
         super().__init__(simulation, parameters)
-        self._tiType = "A"
+        self.tiType = "A"
         self._placeCode = parameters["placecode"]
         self.updateBoundingRect()
-        gi = TrackGraphicsItem(self)
-        gi.setPos(self.realOrigin)
+        gi = helper.TrackGraphicsItem(self)
+        gi.setPos(self._origin)
         gi.setCursor(Qt.PointingHandCursor)
         gi.setToolTip(self.toolTipText)
-        gi.setZValue(0)
-        self._gi = gi
-        self._simulation.registerGraphicsItem(self._gi)
+        gi.setZValue(self.defaultZValue)
+        self._gi[0] = gi
+        self.simulation.registerGraphicsItem(gi)
         self._timetable = []
         self._tracks = {}
         self.updateGraphics()
 
-    selectedPlaceModel = PlaceInfoModel()
+    @staticmethod
+    def getProperties():
+        return abstract.TrackItem.getProperties() + [
+                    helper.TIProperty("placeCode",
+                                      translate("Place", "Place code"))]
 
-    properties = TrackItem.properties + [\
-                                    TIProperty("placeCode", tr("Place code"))]
+    selectedPlaceModel = PlaceInfoModel()
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
@@ -136,43 +139,18 @@ class Place(TrackItem):
         parameters.update({"placecode":self.placeCode})
         return parameters
 
-    @property
-    def origin(self):
-        """Returns the origin QPointF of the TrackItem. The origin is
-        the right end of the track represented on the SignalItem if the
-        signal is reversed, the left end otherwise"""
-        return self._origin
+    ### Properties ###################################################
 
-    @origin.setter
-    def origin(self, value):
-        """Setter function for the origin property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            self.realOrigin = value - self._rect.bottomLeft()
-
-    @property
-    def realOrigin(self):
-        """Returns the realOrigin QPointF of the TrackItem. The realOrigin is
-        the position of the top left corner of the bounding rectangle of the
-        TrackItem. Reimplemented in Place"""
-        return self.origin - self._rect.bottomLeft()
-
-    @realOrigin.setter
-    def realOrigin(self, pos):
-        """Setter function for the realOrigin property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            grid = self.simulation.grid
-            x = round((pos.x() + self._rect.bottomLeft().x()) / grid) * grid
-            y = round((pos.y() + self._rect.bottomLeft().y()) / grid) * grid
-            self._origin = QtCore.QPointF(x, y)
-            self._gi.setPos(self.realOrigin)
+    def _setName(self, value):
+        """Setter function for the name property"""
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            self.graphicsItem.prepareGeometryChange()
+            self._name = value
+            self.graphicsItem.setToolTip(self.toolTipText)
+            self.updateBoundingRect()
             self.updateGraphics()
 
-    def addTrack(self, li):
-        self._tracks[li.trackCode] = li
-
-    def addTimetable(self, sl):
-        self._timetable.append(sl)
-        #self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
+    name = property(abstract.TrackItem._getName, _setName)
 
     @property
     def placeName(self):
@@ -190,23 +168,17 @@ class Place(TrackItem):
     @placeCode.setter
     def placeCode(self, value):
         """Setter function for the placeCode property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self._placeCode = value
 
-    @property
-    def name(self):
-        """Returns the name of the Place"""
-        return self._name
+    ### Methods #######################################################
 
-    @name.setter
-    def name(self, value):
-        """Setter function for the name property"""
-        if self._simulation.context == utils.Context.EDITOR_SCENERY:
-            self._gi.prepareGeometryChange()
-            self._name = value
-            self._gi.setToolTip(self.toolTipText)
-            self.updateBoundingRect()
-            self.updateGraphics()
+    def addTrack(self, li):
+        self._tracks[li.trackCode] = li
+
+    def addTimetable(self, sl):
+        self._timetable.append(sl)
+        #self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
 
     def track(self, trackCode):
         return self._tracks[trackCode]
@@ -219,25 +191,32 @@ class Place(TrackItem):
         tl.endLayout()
         self._rect = tl.boundingRect()
 
-    def graphicsBoundingRect(self):
+    @QtCore.pyqtSlot()
+    def sortTimetable(self):
+        """Sorts the timetable of the place."""
+        self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
+
+    ### Graphics Methods ##############################################
+
+    def graphicsBoundingRect(self, itemId):
         """This function is called by the owned TrackGraphicsItem to return
         its bounding rectangle"""
         if self.name is None or self.name == "":
             return super().boundingRect()
         else:
-            return self._rect
+            if self.tiId < 0:
+                # Toolbox item
+                return QtCore.QRectF(-32, -15, 100, 50)
+            else:
+                return self._rect
 
-    def graphicsPaint(self, p, options, widget = 0):
+    def graphicsPaint(self, p, options, itemId, widget = 0):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter."""
+        super().graphicsPaint(p, options, itemId, widget)
         pen = self.getPen()
         pen.setWidth(0)
         pen.setColor(Qt.white)
         p.setPen(pen)
         p.drawText(self._rect.bottomLeft(), self.name)
-
-    @QtCore.pyqtSlot()
-    def sortTimetable(self):
-        """Sorts the timetable of the place."""
-        self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
 

@@ -18,37 +18,18 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-import sqlite3
+import sqlite3, copy
+
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
+
 from ts2 import simulation
-from ts2 import scenery, utils, trains, routing
-import ts2.editor
-
-class TrashBinItem(QtGui.QGraphicsPixmapItem):
-    """The TrashBinItem is the graphics item on which to drag TrackItems to be
-    deleted
-    """
-    def __init__(self, editor, scene, pos):
-        """Constructor for the TrashBinItem class"""
-        super().__init__(None, scene)
-        self.setPos(pos)
-        self.setPixmap(QtGui.QPixmap(":/bin.png"))
-        self.setAcceptDrops(True)
-        self._editor = editor
-
-    def dropEvent(self, event):
-        """Handler for the drop event. Deletes the TrackItem that has been
-        dropped on the TrashBinItem"""
-        if event.mimeData().hasText():
-            tiType, tiId, ox, oy, point = event.mimeData().text().split("#")
-            if int(tiId) < 0:
-                event.ignore()
-            else:
-                event.accept()
-                self._editor.deleteTrackItem(tiId)
-        else:
-            event.ignore()
+from ts2 import utils, trains, routing
+from ts2.scenery import abstract, placeitem, lineitem, platformitem, \
+                        invisiblelinkitem, enditem, pointsitem, textitem
+from ts2.scenery.signals import signalitem
+from ts2.editor import editorscenebackground
+from ts2.game import logger
 
 
 class WhiteLineItem(QtGui.QGraphicsLineItem):
@@ -68,12 +49,12 @@ class OptionsModel(QtCore.QAbstractTableModel):
         super().__init__()
         self._editor = editor
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows of the model, corresponding to the
         number of real options."""
         return self._editor.realOptionsLength
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
         return 2
 
@@ -88,7 +69,7 @@ class OptionsModel(QtCore.QAbstractTableModel):
                 return optionValues[index.row()]
         return None
 
-    def setData(self, index, value, role):
+    def setData(self, index, value, role=None):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
             if index.column() == 1:
@@ -124,28 +105,74 @@ class Editor(simulation.Simulation):
         super().__init__(editorWindow)
         self._context = utils.Context.EDITOR_GENERAL
         self._libraryScene = QtGui.QGraphicsScene(0, 0, 200, 250, self)
-        self._sceneBackground = ts2.editor.EditorSceneBackground(
+        self._sceneBackground = editorscenebackground.EditorSceneBackground(
                                                         self, 0, 0, 800, 600)
         self._sceneBackground.setZValue(-100)
         self._scene.addItem(self._sceneBackground)
-        self.drawToolBox()
+        # Lines
+        WhiteLineItem(0, 0, 0, 300, None, self._libraryScene)
+        WhiteLineItem(100, 0, 100, 300, None, self._libraryScene)
+        WhiteLineItem(200, 0, 200, 300, None, self._libraryScene)
+        WhiteLineItem(0, 0, 200, 0, None, self._libraryScene)
+        WhiteLineItem(0, 50, 200, 50, None, self._libraryScene)
+        WhiteLineItem(0, 100, 200, 100, None, self._libraryScene)
+        WhiteLineItem(0, 150, 200, 150, None, self._libraryScene)
+        WhiteLineItem(0, 200, 200, 200, None, self._libraryScene)
+        WhiteLineItem(0, 250, 200, 250, None, self._libraryScene)
+        WhiteLineItem(0, 300, 200, 300, None, self._libraryScene)
+        # Items
+        self.librarySignalItem = signalitem.SignalItem(self,
+                {"tiid":-1, "name":"Signal", "x":65, "y":25, "reverse":0,
+                 "xf":0, "yf":0, "xn":20, "yn":30,
+                 "signaltype":"UK_3_ASPECTS", "routesset":{},
+                 "trainpresent":{}, "maxspeed":0.0})
+        self.libraryLineItem = lineitem.LineItem(self,
+                {"tiid":-5, "name":"Line", "x":120, "y":25, "xf":180,
+                 "yf":25, "maxspeed":0.0, "reallength":1.0,
+                 "placecode":None, "trackcode":None})
+        self.libraryPointsItem = pointsitem.PointsItem(self,
+                {"tiid":-3, "name":"Points", "maxspeed":0.0, "x":50, "y":75,
+                 "xf":-5, "yf":0, "xn":5, "yn":0, "xr":5, "yr":-5})
+        self.libraryPlatformItem = platformitem.PlatformItem(self,
+                {"tiid":-6, "name":"Platform", "x":120, "y":65, "xf":180,
+                 "yf":85, "maxspeed":0.0, "reallength":1.0,
+                 "placecode":None, "trackcode":None})
+        self.libraryPlaceItem = placeitem.Place(self,
+                {"tiid":-8, "name":"PLACE", "placecode":"", "maxspeed":0.0,
+                 "x":132, "y":115, "xf":0, "yf":0})
+        self.libraryEndItem = enditem.EndItem(self,
+                {"tiid":-7, "name":"End", "maxspeed":0.0, "x":50, "y":125,
+                 "xf":0, "yf":0})
+        self.libraryTextItem = textitem.TextItem(self,
+                {"tiid":-11, "name":"TEXT", "x":36, "y":165, "xf":0, "yf":0,
+                 "maxspeed":0.0, "reallength":1.0, })
+        self.libraryInvisibleLinkItem = invisiblelinkitem.InvisibleLinkItem(
+                self,
+                {"tiid":-10, "name":"Invisible link", "x":120, "y":175,
+                 "xf":180, "yf":175, "maxspeed":0.0, "reallength":1.0,
+                 "placecode":None, "trackcode":None})
         self._sceneryValidated = False
+        self._services = {}
+        self._trains = []
         self._routesModel = routing.RoutesModel(self)
         self._trainTypesModel = trains.TrainTypesModel(self)
         self._servicesModel = trains.ServicesModel(self)
         self._serviceLinesModel = trains.ServiceLinesModel(self)
         self._trainsModel = trains.TrainsModel(self)
         self._optionsModel = OptionsModel(self)
-        self._database = None
+        self._database = ""
         self._nextId = 1
         self._nextRouteId = 1
         self._grid = 5.0
         self._preparedRoute = None
         self._selectedRoute = None
         self._selectedTrain = None
+        self._selectedItems = []
+        self._clipbooard = []
         self._displayedPositionGI = routing.PositionGraphicsItem(self)
         self.registerGraphicsItem(self._displayedPositionGI)
         self.trainsChanged.connect(self.unselectTrains)
+        self.scene.selectionChanged.connect(self.updateSelection)
 
     sceneryIsValidated = QtCore.pyqtSignal(bool)
     routesChanged = QtCore.pyqtSignal()
@@ -154,61 +181,6 @@ class Editor(simulation.Simulation):
     serviceLinesChanged = QtCore.pyqtSignal()
     trainsChanged = QtCore.pyqtSignal()
     optionsChanged = QtCore.pyqtSignal()
-
-    def drawToolBox(self):
-        """Construct the library tool box"""
-        # Lines
-        WhiteLineItem(0, 0, 0, 350, None, self._libraryScene)
-        WhiteLineItem(100, 0, 100, 300, None, self._libraryScene)
-        WhiteLineItem(200, 0, 200, 350, None, self._libraryScene)
-        WhiteLineItem(0, 0, 200, 0, None, self._libraryScene)
-        WhiteLineItem(0, 50, 200, 50, None, self._libraryScene)
-        WhiteLineItem(0, 100, 200, 100, None, self._libraryScene)
-        WhiteLineItem(0, 150, 200, 150, None, self._libraryScene)
-        WhiteLineItem(0, 200, 200, 200, None, self._libraryScene)
-        WhiteLineItem(0, 250, 200, 250, None, self._libraryScene)
-        WhiteLineItem(0, 300, 200, 300, None, self._libraryScene)
-        WhiteLineItem(0, 350, 200, 350, None, self._libraryScene)
-        # Items
-        self.librarySignalItem = scenery.SignalItem(self,
-                {"tiid":-1, "name":"Signal", "x":20, "y":30, "reverse":0,
-                 "maxspeed":0.0})
-        self.librarySignalTimerItem = scenery.SignalTimerItem(self,
-                {"tiid":-2, "name":"Timer Signal", "x":120, "y":30,
-                 "reverse":0, "maxspeed":0.0, "timersw":1.0, "timerwc":1.0})
-        self.libraryPointsItem = scenery.PointsItem(self,
-                {"tiid":-3, "name":"Points", "maxspeed":0.0, "x":50, "y":75,
-                 "xf":-5, "yf":0, "xn":5, "yn":0, "xr":5, "yr":-5})
-        self.libraryBumperItem = scenery.BumperItem(self,
-                {"tiid":-4, "name":"Bumper", "maxspeed":0.0, "x":120, "y":75,
-                 "reverse":0})
-        self.libraryLineItem = scenery.LineItem(self,
-                {"tiid":-5, "name":"Line", "x":20, "y":125, "xf":80,
-                 "yf":125, "maxspeed":0.0, "reallength":1.0,
-                 "placecode":None, "trackcode":None})
-        self.libraryPlatformItem = scenery.PlatformItem(self,
-                {"tiid":-6, "name":"Platform", "x":120, "y":135, "xf":180,
-                 "yf":135,  "xn":125, "yn":120, "xr":175, "yr":130,
-                 "maxspeed":0.0, "reallength":1.0,
-                 "placecode":None, "trackcode":None})
-        self.libraryEndItem = scenery.EndItem(self,
-                {"tiid":-7, "name":"End", "maxspeed":0.0, "x":50, "y":175})
-        self.libraryPlaceItem = scenery.Place(self,
-                {"tiid":-8, "name":"PLACE", "placecode":"", "maxspeed":0.0,
-                 "x":132, "y":180})
-        self.libraryNonReturnItem = scenery.NonReturnItem(self,
-                {"tiid":-9, "name":"Non-return", "maxspeed":0.0, "x":20,
-                 "y":225, "reverse":0})
-        self.libraryInvisibleLinkItem = scenery.InvisibleLinkItem(self,
-                {"tiid":-10, "name":"Invisible link", "x":120, "y":225,
-                 "xf":180, "yf":225, "maxspeed":0.0, "reallength":1.0,
-                 "placecode":None, "trackcode":None})
-        self.libraryTextItem = scenery.TextItem(self,
-                {"tiid":-11, "name":"TEXT", "x":36, "y":280, "maxspeed":0.0,
-                 "reallength":1.0, })
-        self.libraryBinItem = TrashBinItem(self,
-                                           self._libraryScene,
-                                           QtCore.QPointF(86, 310))
 
     @property
     def libraryScene(self):
@@ -270,6 +242,11 @@ class Editor(simulation.Simulation):
             self._selectedRoute.activate()
 
     @property
+    def selectedItems(self):
+        """Returns the list of the selected items on the scene."""
+        return self._selectedItems
+
+    @property
     def displayedPosition(self):
         """Returns the position that is currently selected in this editor"""
         return self._displayedPositionGI.position
@@ -329,10 +306,6 @@ class Editor(simulation.Simulation):
                 self._nextRouteId = 1
             self.routesChanged.emit()
         self.loadTrainTypes(conn)
-        try:
-            self._nextTrainTypeId = max(self._trainTypes.keys()) + 1
-        except:
-            self._nextTrainTypeId = 1
         self.trainTypesChanged.emit()
         self.loadServices(conn)
         self.servicesChanged.emit()
@@ -348,12 +321,75 @@ class Editor(simulation.Simulation):
         self.loadOptions(conn)
         version = float(self.option("version"))
         if version < utils.TS2_FILE_FORMAT:
-            if version <= 0.3:
+            if version < 0.4:
                 conn.execute("ALTER TABLE trackitems ADD COLUMN ptiid")
                 conn.execute("ALTER TABLE trackitems ADD COLUMN ntiid")
                 conn.execute("ALTER TABLE trackitems ADD COLUMN rtiid")
                 conn.execute("ALTER TABLE trains ADD COLUMN initialdelay")
                 conn.commit()
+            if version < 0.5:
+                # PlatformItem change
+                for p in conn.execute(
+                                "SELECT * FROM trackitems WHERE titype='LP'"):
+                    parameters = dict(p)
+                    tiId = int(parameters["tiid"])
+                    conn.execute("UPDATE trackitems "
+                                 "SET xn=NULL, yn=NULL, xr=NULL, yr=NULL, "
+                                 "titype='L' WHERE tiid=?", (tiId,))
+                    parameters.update({"x": parameters["xn"],
+                                       "y": parameters["yn"],
+                                       "xf": parameters["xr"],
+                                       "yf": parameters["yr"],
+                                       "titype": "ZP"})
+                    conn.execute("INSERT INTO trackitems "
+                                 "(x, y, xf, yf, titype, placecode, "
+                                 "trackcode) VALUES "
+                                 "(:x, :y, :xf, :yf, :titype, :placecode,"
+                                 ":trackcode)", parameters)
+                    conn.commit()
+                # SignalItem change
+                conn.execute("ALTER TABLE trackitems ADD COLUMN signaltype")
+                conn.execute("ALTER TABLE trackitems ADD COLUMN routesset")
+                conn.execute("ALTER TABLE trackitems ADD COLUMN trainpresent")
+                conn.commit()
+                conn.execute("UPDATE trackitems SET "
+                             "signaltype='UK_3_ASPECTS' WHERE titype='S'")
+                conn.execute("UPDATE trackitems SET "
+                             "signaltype='BUFFER', titype='S' "
+                             "WHERE titype='SB'")
+                conn.execute("UPDATE trackitems SET "
+                             "signaltype='UK_3_ASPECTS', titype='S' "
+                             "WHERE titype='ST'")
+                conn.execute("UPDATE trackitems SET "
+                             "signaltype='UK_3_ASPECTS', titype='S' "
+                             "WHERE titype='SN'")
+                conn.execute("UPDATE trackitems SET "
+                             "routesset='{}', trainpresent='{}' "
+                             "WHERE titype='S'")
+                conn.commit()
+                for s in conn.execute("SELECT * FROM trackitems "
+                                      "WHERE titype='S'"):
+                    signal = dict(s)
+                    if not bool(signal["reverse"]):
+                        lineParams = {"x":signal["x"],
+                                      "y":signal["y"],
+                                      "xf":signal["x"] + 50,
+                                      "yf":signal["y"],
+                                      "titype":"L"}
+                    else:
+                        lineParams = {"x":signal["x"],
+                                      "y":signal["y"],
+                                      "xf":signal["x"] - 50,
+                                      "yf":signal["y"],
+                                      "titype":"L"}
+                    signal.update({"x":lineParams["xf"]})
+                    conn.execute("UPDATE trackitems SET "
+                                 "x=:x WHERE tiid=:tiid", signal)
+                    conn.execute("INSERT INTO trackitems "
+                                 "(x, y, xf, yf, titype) VALUES "
+                                 "(:x, :y, :xf, :yf, :titype)", lineParams)
+                conn.commit()
+
             self.setOption("version", utils.TS2_FILE_FORMAT)
             self.saveOptions(conn)
         conn.close()
@@ -394,12 +430,11 @@ class Editor(simulation.Simulation):
         """Saves the TrackItem instances of this editor in the database"""
         conn.execute("DROP TABLE IF EXISTS trackitems")
         fieldString = "("
-        for name, type in scenery.TrackItem.fieldTypes.items():
-            fieldString += "%s %s," % (name, type)
+        for name, fieldType in abstract.TrackItem.fieldTypes.items():
+            fieldString += "%s %s," % (name, fieldType)
         fieldString = fieldString[:-1] + ")"
         conn.execute("CREATE TABLE trackitems %s" % fieldString)
         for ti in self._trackItems.values():
-            keysCodes = map(lambda a:":%s" % a, ti.getSaveParameters().keys())
             query = "INSERT INTO trackitems %s VALUES (" % \
                                     str(tuple(ti.getSaveParameters().keys()))
             for k in ti.getSaveParameters().keys():
@@ -433,10 +468,10 @@ class Editor(simulation.Simulation):
 
         # Save the directions
         conn.execute("DROP TABLE IF EXISTS directions")
-        conn.execute("CREATE TABLE directions (\n" \
-                        "routenum INTEGER,\n" \
-                        "tiid INTEGER,\n" \
-                        "direction INTEGER)\n" \
+        conn.execute("CREATE TABLE directions (\n"
+                        "routenum INTEGER,\n"
+                        "tiid INTEGER,\n"
+                        "direction INTEGER)\n"
                     )
         for route in self._routes.values():
             for tiId, direction in route.directions.items():
@@ -444,10 +479,10 @@ class Editor(simulation.Simulation):
                         "(routenum, tiid, direction) " \
                         "VALUES " \
                         "(:routenum, :tiid, :direction)"
-                parameters = { \
-                        "routenum":route.routeNum, \
-                        "tiid":tiId, \
-                        "direction":direction \
+                parameters = {
+                        "routenum":route.routeNum,
+                        "tiid":tiId,
+                        "direction":direction
                              }
                 conn.execute(query, parameters)
         conn.commit()
@@ -455,13 +490,13 @@ class Editor(simulation.Simulation):
     def saveTrainTypes(self, conn):
         """Saves the TrainType instances of this editor in the database"""
         conn.execute("DROP TABLE IF EXISTS traintypes")
-        conn.execute("CREATE TABLE traintypes (\n" \
-                            "code VARCHAR(10),\n" \
-                            "description VARCHAR(200),\n" \
-                            "maxspeed DOUBLE,\n" \
-                            "stdaccel DOUBLE,\n" \
-                            "stdbraking DOUBLE,\n" \
-                            "emergbraking DOUBLE,\n" \
+        conn.execute("CREATE TABLE traintypes (\n"
+                            "code VARCHAR(10),\n"
+                            "description VARCHAR(200),\n"
+                            "maxspeed DOUBLE,\n"
+                            "stdaccel DOUBLE,\n"
+                            "stdbraking DOUBLE,\n"
+                            "emergbraking DOUBLE,\n"
                             "tlength DOUBLE)")
 
         for trainType in self._trainTypes.values():
@@ -471,13 +506,13 @@ class Editor(simulation.Simulation):
                     "VALUES " \
                     "(:code, :description, :maxspeed, :stdaccel, "\
                     ":stdbraking, :emergbraking, :tlength)"
-            parameters = { \
-                    "code":trainType.code, \
-                    "description":trainType.description, \
-                    "maxspeed":trainType.maxSpeed, \
-                    "stdaccel":trainType.stdAccel, \
-                    "stdbraking":trainType.stdBraking, \
-                    "emergbraking":trainType.emergBraking, \
+            parameters = {
+                    "code":trainType.code,
+                    "description":trainType.description,
+                    "maxspeed":trainType.maxSpeed,
+                    "stdaccel":trainType.stdAccel,
+                    "stdbraking":trainType.stdBraking,
+                    "emergbraking":trainType.emergBraking,
                     "tlength":trainType.length}
             conn.execute(query, parameters)
         conn.commit()
@@ -498,7 +533,7 @@ class Editor(simulation.Simulation):
                     "plannedtraintype) VALUES " \
                     "(:servicecode, :description, :nextservice, "\
                     ":autoreverse, :plannedtraintype)"
-            parameters = { \
+            parameters = {
                     "servicecode":service.serviceCode,
                     "description":service.description,
                     "nextservice":service.nextServiceCode,
@@ -551,7 +586,6 @@ class Editor(simulation.Simulation):
                             "initialdelay VARCHAR(255),\n"
                             "nextplaceindex INTEGER,\n"
                             "stoppedtime INTEGER)\n")
-
         for train in self._trains:
             query = "INSERT INTO trains " \
                     "(trainid, servicecode, traintype, speed, tiid, " \
@@ -574,6 +608,13 @@ class Editor(simulation.Simulation):
                     "nextplaceindex":0,
                     "stoppedtime":0
                     }
+            if not train.trainHead.isValid():
+                self.messageLogger.addMessage("Train %s discarded: invalid "
+                                              "train head" %
+                                              str(train.trainId)+"/"+
+                                              train.serviceCode,
+                                              logger.Message.SOFTWARE_MSG)
+                continue
             conn.execute(query, parameters)
         conn.commit()
 
@@ -651,8 +692,13 @@ class Editor(simulation.Simulation):
 
 
     def registerGraphicsItem(self, graphicItem):
-        """Reimplemented from Simulation. Adds the graphicItem to the scene
-        or to the libraryScene (if tiId <0)."""
+        """Adds the graphicItem to the scene or to the libraryScene.
+
+        Reimplemented from Simulation.
+        :param graphicItem: The graphic Item to add to the scene or library
+        scene (if tiId < 0)
+        :type graphicItem: QtCore.QGraphicsItem
+        """
         if hasattr(graphicItem, "trackItem") and \
            graphicItem.trackItem.tiId < 0:
             self._libraryScene.addItem(graphicItem)
@@ -691,6 +737,8 @@ class Editor(simulation.Simulation):
                 posEnd = QtCore.QPointF(-5, 0)
             elif tiType.startswith("L"):
                 posEnd = pos + QtCore.QPointF(60, 0)
+            elif tiType.startswith("ZP"):
+                posEnd = pos + QtCore.QPointF(60, 20)
             else:
                 posEnd = QtCore.QPointF(0, 0)
         parameters = {
@@ -706,42 +754,39 @@ class Editor(simulation.Simulation):
                     "xr": 5,
                     "yr": -5,
                     "reverse": 0,
-                    "timersw": 1.0,
-                    "timerwc": 1.0,
                     "maxspeed": 0.0,
                     "reallength": 0.0,
                     "placecode":None,
-                    "trackcode":None}
+                    "trackcode":None,
+                    "signaltype":"UK_3_ASPECTS",
+                    "routesset":{},
+                    "trainpresent":{}}
 
         if tiType == "L":
-            ti = scenery.LineItem(self, parameters)
-        elif tiType == "LP":
-            ti = scenery.PlatformItem(self, parameters)
+            ti = lineitem.LineItem(self, parameters)
+        elif tiType == "ZP":
+            ti = platformitem.PlatformItem(self, parameters)
         elif tiType == "LI":
-            ti = scenery.InvisibleLinkItem(self, parameters)
+            ti = invisiblelinkitem.InvisibleLinkItem(self, parameters)
         elif tiType == "S":
-            ti = scenery.SignalItem(self, parameters)
-        elif tiType == "SB":
-            ti = scenery.BumperItem(self, parameters)
-        elif tiType == "ST":
-            ti = scenery.SignalTimerItem(self, parameters)
-        elif tiType == "SN":
-            ti = scenery.NonReturnItem(self, parameters)
+            parameters.update({"xn":pos.x() - 45, "yn":pos.y() + 5})
+            ti = signalitem.SignalItem(self, parameters)
         elif tiType == "P":
-            ti = scenery.PointsItem(self, parameters)
+            ti = pointsitem.PointsItem(self, parameters)
         elif tiType == "E":
-            ti = scenery.EndItem(self, parameters)
+            ti = enditem.EndItem(self, parameters)
         elif tiType == "A":
-            ti = scenery.Place(self, parameters)
+            ti = placeitem.Place(self, parameters)
         elif tiType == "ZT":
-            ti = scenery.TextItem(self, parameters)
+            ti = textitem.TextItem(self, parameters)
         else:
-            ti = scenery.TrackItem(self, parameters)
+            ti = abstract.TrackItem(self, parameters)
         self.makeTrackItemSignalSlotConnections(ti)
         self.expandBackgroundTo(ti)
         self._trackItems[self._nextId] = ti
-        ti.trackItemClicked.emit(int(self._nextId))
         self._nextId += 1
+        self.updateSelection()
+        return ti
 
     def makeTrackItemSignalSlotConnections(self, ti):
         """Makes all signal-slot connections for TrackItem ti"""
@@ -752,9 +797,9 @@ class Editor(simulation.Simulation):
             ti.positionSelected.connect(self.setSelectedTrainHead)
 
     def deleteTrackItem(self, tiId):
-        """Delete the TrackItem given by tiId"""
+        """Delete the TrackItem given by tiId."""
         tiId = int(tiId)
-        self._scene.removeItem(self._trackItems[tiId]._gi)
+        self._trackItems[tiId].removeAllGraphicsItems()
         del self._trackItems[tiId]
 
     def deleteTrackItemLinks(self):
@@ -767,17 +812,27 @@ class Editor(simulation.Simulation):
 
     def moveTrackItem(self, tiId, pos, clickPos, point):
         """Moves the TrackItem with id tiId to position pos.
-        @param clickPos is the position in the item's coordinates on which the
-        mouse was clicked. it is used only if point equals "realOrigin".
+
+        Also moves the other trackItems that are currently selected.
+
+        :param pos: position where to move the trackItem
+        :type pos: QtCore.QPointF
+        :param clickPos: is the position in the item's coordinates on which the
+        mouse was clicked. it is used only if point has "origin" in its name.
         point is the property of the TrackItem that will be modified."""
-        ti = self.trackItem(int(tiId))
-        pos = QtCore.QPointF(round(pos.x() / self.grid) * self.grid, \
-                             round(pos.y() / self.grid) * self.grid)
-        if point == "realOrigin":
+        if len(self.selectedItems) > 1:
+            point = "origin"
+        trackItem = self.trackItem(int(tiId))
+        if point.endswith("rigin"):
             pos -= clickPos
-        setattr(ti, point, pos)
-        self.expandBackgroundTo(ti)
-        ti.trackItemClicked.emit(int(tiId))
+        pos = QtCore.QPointF(round(pos.x() / self.grid) * self.grid,
+                             round(pos.y() / self.grid) * self.grid)
+        translation = pos - getattr(trackItem, point)
+        for ti in self.selectedItems:
+            currentPos = getattr(ti, point)
+            setattr(ti, point, currentPos + translation)
+            self.expandBackgroundTo(ti)
+        #ti.trackItemClicked.emit(int(tiId))
 
     def expandBackgroundTo(self, trackItem):
         """Expands the EditorSceneBackground to 300px around the given
@@ -869,7 +924,7 @@ class Editor(simulation.Simulation):
                                 routing.Route(self, self._nextRouteId, si, ti)
                         self._nextRouteId += 1
                         for tiId, direction in directions.items():
-                            self._preparedRoute.appendDirection(tiId, \
+                            self._preparedRoute.appendDirection(tiId,
                                                                 direction)
                         self._preparedRoute.createPositionsList()
                         self.selectedRoute = self._preparedRoute
@@ -927,13 +982,13 @@ class Editor(simulation.Simulation):
     def addTrainType(self, code):
         """Adds an empty TrainType to the trainTypes list."""
         if self.context == utils.Context.EDITOR_TRAINTYPES:
-            parameters = { \
-                    "code":code, \
-                    "description":"<Stock type description>", \
-                    "maxspeed":"25.0", \
-                    "stdaccel":"0.5", \
-                    "stdbraking":"0.5", \
-                    "emergbraking":"1.5", \
+            parameters = {
+                    "code":code,
+                    "description":"<Stock type description>",
+                    "maxspeed":"25.0",
+                    "stdaccel":"0.5",
+                    "stdbraking":"0.5",
+                    "emergbraking":"1.5",
                     "tlength":"100"}
             self._trainTypes[code] = trains.TrainType(self, parameters)
             self.trainTypesChanged.emit()
@@ -949,10 +1004,10 @@ class Editor(simulation.Simulation):
     def addService(self, code):
         """Adds an empty Service to the services list."""
         if self.context == utils.Context.EDITOR_SERVICES:
-            parameters = { \
-                    "servicecode":code, \
-                    "description":"<Service description>", \
-                    "nextservice":"", \
+            parameters = {
+                    "servicecode":code,
+                    "description":"<Service description>",
+                    "nextservice":"",
                     "autoreverse":0}
             self._services[code] = trains.Service(self, parameters)
             self.servicesChanged.emit()
@@ -995,7 +1050,7 @@ class Editor(simulation.Simulation):
                s.nextServiceCode != "":
                 try:
                     serviceList.remove(s.nextServiceCode)
-                except:
+                except ValueError:
                     QtCore.qDebug("nextServiceCode: %s does not exist" % s.nextServiceCode)
         for sc in serviceList:
             train = self.addTrain()
@@ -1050,7 +1105,7 @@ class Editor(simulation.Simulation):
                 "posonti": position.positionOnTI,
                 "appeartime": "00:00:00",
                 "initialdelay": self.option("defaultDelayAtEntry")
-               }
+            }
             train = trains.Train(self, parameters)
             self._trains.append(train)
             self.trainsChanged.emit()
@@ -1081,4 +1136,83 @@ class Editor(simulation.Simulation):
         elif tabNum == 5:
             self._context = utils.Context.EDITOR_TRAINS
 
+        #QtCore.qDebug(">> List of selected TI")
+        #for ti in self.selectedItems:
+            #QtCore.qDebug("TI selected: %i" %ti.tiId )
+        #QtCore.qDebug("> List of selected GI")
+        #for gi in self.scene.selectedItems():
+            #QtCore.qDebug("GI selected: %i:%i" % (gi.trackItem.tiId, gi.itemId ))
+        #QtCore.qDebug("---------")
 
+    @QtCore.pyqtSlot()
+    def updateSelection(self):
+        """Updates the trackItem selection."""
+        selectedItems = self.selectedItems.copy()
+        for ti in selectedItems:
+            self.removeItemFromSelection(ti)
+
+        # Synchronise trackItem selection with graphicsItem selection
+        for gi in self.scene.selectedItems():
+            self.addItemToSelection(gi.trackItem)
+
+    def addItemToSelection(self, ti, selected=True):
+        """Add the trackItem ti to the selection if selected is True and
+        remove it if it is False."""
+        if selected:
+            ti.selected = True
+            if ti not in self.selectedItems:
+                self.selectedItems.append(ti)
+        else:
+            ti.selected = False
+            if ti in self.selectedItems:
+                self.selectedItems.remove(ti)
+        self.selectionChanged.emit()
+
+    def removeItemFromSelection(self, ti):
+        """Remove the trackItem ti from the selection."""
+        self.addItemToSelection(ti, False)
+
+    @QtCore.pyqtSlot()
+    def clearSelection(self):
+        """Clears the graphicsItem selection so that the trackItem selection
+        will get updated."""
+        self.scene.clearSelection()
+
+    @QtCore.pyqtSlot()
+    def copyToClipboard(self):
+        """Copy the current selection to the clipboard"""
+        self._clipbooard = copy.copy(self.selectedItems)
+
+    @QtCore.pyqtSlot()
+    def pasteFromClipboard(self):
+        """Paste the items of the clipboard on the scene."""
+        if len(self._clipbooard) == 0:
+            return
+        if len(self.selectedItems) > 0:
+            refPos = self._selectedItems[0].end
+        else:
+            refPos = QtCore.QPointF(0, 0)
+        translation = refPos + QtCore.QPointF(100, 100) - \
+                                                self._clipbooard[0].origin
+        for ti in self._clipbooard:
+            newTi = self.createTrackItem(ti.tiType,
+                                         ti.origin + translation,
+                                         ti.end + translation)
+            newTi.maxSpeed = ti.maxSpeed
+            newTi._realLength = ti.realLength
+            if newTi.tiType.startswith("S"):
+                newTi.signalTypeStr = ti.signalTypeStr
+                newTi.reverse = ti.reverse
+                newTi.origin = ti.origin + translation
+            elif ti.tiType.startswith("P"):
+                newTi.commonEnd = ti.commonEnd
+                newTi.normalEnd = ti.normalEnd
+                newTi.reverseEnd = ti.reverseEnd
+                newTi.origin = ti.origin + translation
+
+    @QtCore.pyqtSlot()
+    def deleteSelection(self):
+        """Delete all the items of the current selection."""
+        for ti in self.selectedItems.copy():
+            self.removeItemFromSelection(ti)
+            self.deleteTrackItem(ti.tiId)
