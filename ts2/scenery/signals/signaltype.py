@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2014 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,9 +18,10 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore
+from Qt import QtCore
 
 from ts2.scenery.signals import signalaspect
+
 
 builtin_signal_aspects = [
     {"name":"BUFFER",
@@ -202,6 +203,7 @@ builtin_signal_conditions = [
 
 ]
 
+
 class ConditionCode:
     """This class holds the possible conditions to display a Signal aspect."""
     # Without parameters
@@ -213,6 +215,7 @@ class ConditionCode:
     ROUTES_SET = 2048                   # At least one route set in list
     NEXT_SIGNAL_ASPECTS = 4096          # Aspect in list
 
+
 class SignalCondition:
     """A SignalCondition is the concatenation of an aspect with set of
     conditions and parameters to display this aspect."""
@@ -222,6 +225,7 @@ class SignalCondition:
         self.aspect = aspect
         self.conditionCode = code
         self.params = params
+
 
 class SignalType(QtCore.QObject):
     """A SignalType describes a type of signals which can have different
@@ -257,4 +261,3 @@ class SignalType(QtCore.QObject):
                                    sc["params"])
             stLibrary[sc["signaltype"]].addCondition(cond)
         return stLibrary
-

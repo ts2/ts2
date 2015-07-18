@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,12 +18,12 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtGui, QtWidgets, Qt
+
 from ts2 import utils
 from ts2.scenery import helper
 
-translate = QtGui.qApp.translate
+translate = QtWidgets.qApp.translate
 
 
 def qPointFStrizer(attr):
@@ -34,6 +34,7 @@ def qPointFStrizer(attr):
                              getattr(self, attr).y())
     return getter
 
+
 def qPointFDestrizer(attr):
     """Returns a function which updates a QPointF property from a string
     representation of a QPointF."""
@@ -43,12 +44,14 @@ def qPointFDestrizer(attr):
             setattr(self, attr, QtCore.QPointF(x, y))
     return setter
 
+
 def qPointFTupler(attr):
     """Returns a function giving the tuple representation of attr, the
     latter being a QPointF property."""
     def getter(self):
         return getattr(self, attr).x(), getattr(self, attr).y()
     return getter
+
 
 def qPointFDetupler(attr):
     """Returns a function which updates a QPointF property from a tuple
@@ -107,20 +110,16 @@ class TrackItem(QtCore.QObject):
 
     @staticmethod
     def getProperties():
-        return [helper.TIProperty("tiTypeStr",
-                                  translate("TrackItem", "Type"), True),
-                  helper.TIProperty("tiId",
-                                    translate("TrackItem", "id"), True),
-                  helper.TIProperty("name",
-                                    translate("TrackItem", "Name")),
-                  helper.TIProperty("originStr",
-                                    translate("TrackItem", "Position")),
-                  helper.TIProperty("maxSpeed",
-                                    translate("TrackItem",
-                                              "Maximum speed (m/s)")),
-                  helper.TIProperty("conflictTiId",
-                                    translate("TrackItem",
-                                              "Conflict item ID"))]
+        return [
+            helper.TIProperty("tiTypeStr",
+                              translate("TrackItem", "Type"), True),
+            helper.TIProperty("tiId", translate("TrackItem", "id"), True),
+            helper.TIProperty("name", translate("TrackItem", "Name")),
+            helper.TIProperty("originStr", translate("TrackItem", "Position")),
+            helper.TIProperty("maxSpeed", translate("TrackItem",
+                              "Maximum speed (m/s)")),
+            helper.TIProperty("conflictTiId", translate("TrackItem",
+                              "Conflict item ID"))]
 
     @staticmethod
     def getMultiProperties():
@@ -130,32 +129,32 @@ class TrackItem(QtCore.QObject):
                                             "Maximum speed (m/s)"))]
 
     fieldTypes = {
-                    "tiid":"INTEGER PRIMARY KEY",
-                    "titype":"VARCHAR(5)",
-                    "name":"VARCHAR(100)",
-                    "conflicttiid":"INTEGER",
-                    "x":"DOUBLE",
-                    "y":"DOUBLE",
-                    "xf":"DOUBLE",
-                    "yf":"DOUBLE",
-                    "xr":"DOUBLE",
-                    "yr":"DOUBLE",
-                    "xn":"DOUBLE",
-                    "yn":"DOUBLE",
-                    "reverse":"BOOLEAN",
-                    "reallength":"DOUBLE",
-                    "maxspeed":"DOUBLE",
-                    "placecode":"VARCHAR(10)",
-                    "trackcode":"VARCHAR(10)",
-                    #"timersw":"DOUBLE",
-                    #"timerwc":"DOUBLE",
-                    "ptiid":"INTEGER",
-                    "ntiid":"INTEGER",
-                    "rtiid":"INTEGER",
-                    "signaltype":"VARCHAR(50)",
-                    "routesset":"VARCHAR(255)",
-                    "trainpresent":"VARCHAR(255)"
-                 }
+        "tiid": "INTEGER PRIMARY KEY",
+        "titype": "VARCHAR(5)",
+        "name": "VARCHAR(100)",
+        "conflicttiid": "INTEGER",
+        "x": "DOUBLE",
+        "y": "DOUBLE",
+        "xf": "DOUBLE",
+        "yf": "DOUBLE",
+        "xr": "DOUBLE",
+        "yr": "DOUBLE",
+        "xn": "DOUBLE",
+        "yn": "DOUBLE",
+        "reverse": "BOOLEAN",
+        "reallength": "DOUBLE",
+        "maxspeed": "DOUBLE",
+        "placecode": "VARCHAR(10)",
+        "trackcode": "VARCHAR(10)",
+        # "timersw": "DOUBLE",
+        # "timerwc": "DOUBLE",
+        "ptiid": "INTEGER",
+        "ntiid": "INTEGER",
+        "rtiid": "INTEGER",
+        "signaltype": "VARCHAR(50)",
+        "routesset": "VARCHAR(255)",
+        "trainpresent": "VARCHAR(255)"
+    }
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
@@ -168,19 +167,19 @@ class TrackItem(QtCore.QObject):
             nextTiId = self.nextItem.tiId
         else:
             nextTiId = None
-        return  {
-                    "tiid":self.tiId,
-                    "titype":self.tiType,
-                    "name":self.name,
-                    "conflicttiid":self.conflictTiId,
-                    "x":self.origin.x(),
-                    "y":self.origin.y(),
-                    "maxspeed":self.maxSpeed,
-                    "ptiid":previousTiId,
-                    "ntiid":nextTiId
-                }
+        return {
+            "tiid": self.tiId,
+            "titype": self.tiType,
+            "name": self.name,
+            "conflicttiid": self.conflictTiId,
+            "x": self.origin.x(),
+            "y": self.origin.y(),
+            "maxspeed": self.maxSpeed,
+            "ptiid": previousTiId,
+            "ntiid": nextTiId
+        }
 
-    ### Properties #########################################################
+    # ## Properties #########################################################
 
     def _getOrigin(self):
         """Returns the origin QPointF of the TrackItem. The origin is
@@ -234,7 +233,8 @@ class TrackItem(QtCore.QObject):
     def maxSpeed(self, value):
         """Setter function for the maxSpeed property"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            if value == "": value = "0.0"
+            if value == "":
+                value = "0.0"
             self._maxSpeed = float(value)
 
     @property
@@ -323,8 +323,7 @@ class TrackItem(QtCore.QObject):
         """Setter function for the conflictTiId property."""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             if value is not None and value != "":
-                self._conflictTrackItem = \
-                                        self.simulation.trackItem(int(value))
+                self._conflictTrackItem = self.simulation.trackItem(int(value))
             else:
                 self._conflictTrackItem = None
 
@@ -347,9 +346,9 @@ class TrackItem(QtCore.QObject):
     trainPresentPreviousInfo = property(_getTrainPresentPreviousInfo,
                                         _setTrainPresentPreviousInfo)
 
-    ### Methods #########################################################
+    # ## Methods #########################################################
 
-    def getFollowingItem(self, precedingItem, direction = -1):
+    def getFollowingItem(self, precedingItem, direction=-1):
         """Returns the following TrackItem linked to this one, knowing we come
         from precedingItem
         @param precedingItem TrackItem where we come from (along a route)
@@ -380,7 +379,7 @@ class TrackItem(QtCore.QObject):
         self.activeRoutePreviousItem = None
         self.updateGraphics()
 
-    def setTrainHead(self, pos, prevTI = None):
+    def setTrainHead(self, pos, prevTI=None):
         """Sets the trainHead indication on this TrackItem. The trainHead
         indication enables the drawing of a Train on this TrackItem.
         @param pos is the position of the trainHead in metres. Set to -1 if no
@@ -396,7 +395,7 @@ class TrackItem(QtCore.QObject):
                 self._trainHead = self._realLength - pos
         self.updateTrain()
 
-    def setTrainTail(self, pos, prevTI = None):
+    def setTrainTail(self, pos, prevTI=None):
         """Same as setTrainHead() but with the trainTail information."""
         if pos == -1:
             self._trainTail = -1
@@ -437,12 +436,12 @@ class TrackItem(QtCore.QObject):
         if self.activeRoute is not None:
             if not self.activeRoute.persistent:
                 beginSignalNextRoute = \
-                            self.activeRoute.beginSignal.nextActiveRoute
+                    self.activeRoute.beginSignal.nextActiveRoute
                 if beginSignalNextRoute is None or \
                    beginSignalNextRoute != self.activeRoute:
-                    if (self.activeRoutePreviousItem.activeRoute is not None
-                        and self.activeRoutePreviousItem.activeRoute
-                                        == self.activeRoute):
+                    if self.activeRoutePreviousItem.activeRoute is not None \
+                       and self.activeRoutePreviousItem.activeRoute \
+                       == self.activeRoute:
                         self.activeRoutePreviousItem.resetActiveRoute()
                         self.updateGraphics()
         self.trainPresentPreviousInfo = self.trainPresent()
@@ -482,7 +481,7 @@ class TrackItem(QtCore.QObject):
         """Updates the graphics item for train only"""
         self.updateGraphics()
 
-    ### Graphics Methods #################################################
+    # ## Graphics Methods #################################################
 
     def getPen(self):
         """Returns the standard pen for drawing trackItems"""
@@ -518,7 +517,7 @@ class TrackItem(QtCore.QObject):
         """
         return shape
 
-    def graphicsPaint(self, painter, options, itemId, widget=0):
+    def graphicsPaint(self, painter, options, itemId, widget=None):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. The implementation in the base class TrackItem outlines the
         shape of the item, if it is selected.
@@ -528,7 +527,7 @@ class TrackItem(QtCore.QObject):
                 pen = QtGui.QPen(Qt.magenta)
                 painter.setPen(pen)
                 painter.drawPath(self._gi[itemId].shape())
-                #painter.drawRect(self._gi[itemId].boundingRect())
+                # painter.drawRect(self._gi[itemId].boundingRect())
 
     def graphicsMousePressEvent(self, event, itemId):
         """This function is called by the owned TrackGraphicsItem to handle
@@ -543,17 +542,18 @@ class TrackItem(QtCore.QObject):
         if itemId == 0:
             if (event.buttons() == Qt.LeftButton and
                     self.simulation.context == utils.Context.EDITOR_SCENERY):
-                if QtCore.QLineF(event.scenePos(),
-                      event.buttonDownScenePos(Qt.LeftButton)).length() < 3.0:
+                if QtCore.QLineF(
+                        event.scenePos(),
+                        event.buttonDownScenePos(Qt.LeftButton)).length() < 3.0:
                     return
                 drag = QtGui.QDrag(event.widget())
                 mime = QtCore.QMimeData()
                 pos = event.buttonDownScenePos(Qt.LeftButton) - self.origin
                 mime.setText(self.tiType + "#" +
-                            str(self.tiId)+ "#" +
-                            str(pos.x()) + "#" +
-                            str(pos.y()) + "#" +
-                            "origin")
+                             str(self.tiId) + "#" +
+                             str(pos.x()) + "#" +
+                             str(pos.y()) + "#" +
+                             "origin")
                 drag.setMimeData(mime)
                 drag.exec_()
 
@@ -575,18 +575,19 @@ class TrackItem(QtCore.QObject):
         does nothing."""
         pass
 
-    #def graphicsItemSelectedChange(self, value):
-        #"""This function is called by the owned TrackGraphicsItem to handle
-        #its itemSelectedChange event. The implementation in the base TrackItem
-        #class handles item selection in the editor. Return True if the item is
-        #finally selected False otherwise."""
-        #retVal = value
-        #if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            #if QtGui.QApplication.keyboardModifiers() == Qt.ShiftModifier:
-                #retVal = 1
-            #QtCore.qDebug("TiId:%i, value:%s, gi.selected:%s" % (self.tiId, str(retVal), str(self.graphicsItem.isSelected())))
-            #self.simulation.updateSelection(self.tiId, retVal)
-        #return retVal
+    # def graphicsItemSelectedChange(self, value):
+        # """This function is called by the owned TrackGraphicsItem to handle
+        # its itemSelectedChange event. The implementation in the base TrackItem
+        # class handles item selection in the editor. Return True if the item is
+        # finally selected False otherwise."""
+        # retVal = value
+        # if self.simulation.context == utils.Context.EDITOR_SCENERY:
+        #     if QtGui.QApplication.keyboardModifiers() == Qt.ShiftModifier:
+        #         retVal = 1
+        #     QtCore.qDebug("TiId:%i, value:%s, gi.selected:%s" %
+        #     (self.tiId, str(retVal), str(self.graphicsItem.isSelected())))
+        #     self.simulation.updateSelection(self.tiId, retVal)
+        # return retVal
 
 
 class ResizableItem(TrackItem):
@@ -602,24 +603,19 @@ class ResizableItem(TrackItem):
 
     @staticmethod
     def getProperties():
-        return [helper.TIProperty("tiTypeStr",
-                                    translate("LineItem", "Type"), True),
-                  helper.TIProperty("tiId",
-                                    translate("LineItem", "id"), True),
-                  helper.TIProperty("name",
-                                    translate("LineItem", "Name")),
-                  helper.TIProperty("originStr",
-                                    translate("LineItem", "Point 1")),
-                  helper.TIProperty("endStr",
-                                    translate("LineItem", "Point 2")),
-                  helper.TIProperty("maxSpeed",
-                                    translate("LineItem",
-                                              "Maximum speed (m/s)")),
-                  helper.TIProperty("conflictTiId",
-                                    translate("LineItem",
-                                              "Conflict item ID"))]
+        return [
+            helper.TIProperty("tiTypeStr", translate("LineItem", "Type"), True),
+            helper.TIProperty("tiId", translate("LineItem", "id"), True),
+            helper.TIProperty("name", translate("LineItem", "Name")),
+            helper.TIProperty("originStr", translate("LineItem", "Point 1")),
+            helper.TIProperty("endStr", translate("LineItem", "Point 2")),
+            helper.TIProperty("maxSpeed", translate("LineItem",
+                                                    "Maximum speed (m/s)")),
+            helper.TIProperty("conflictTiId", translate("LineItem",
+                                                        "Conflict item ID"))
+        ]
 
-    ### Properties #################################################
+    # ## Properties #################################################
 
     def _setOrigin(self, pos):
         """Setter function for the origin property"""
@@ -662,7 +658,7 @@ class ResizableItem(TrackItem):
 
     start = property(_getStart, _setStart)
 
-    ### Graphics Methods #################################################
+    # ## Graphics Methods #################################################
 
     def graphicsBoundingRect(self, itemId):
         """Returns the bounding rectangle of this ResizableItem."""
@@ -681,30 +677,28 @@ class ResizableItem(TrackItem):
         a drag operation on corners."""
         if event.buttons() == Qt.LeftButton and \
            self.simulation.context == utils.Context.EDITOR_SCENERY:
-            if QtCore.QLineF(event.scenePos(),
-                         event.buttonDownScenePos(Qt.LeftButton)).length() \
-                        < 3.0:
+            if QtCore.QLineF(
+                    event.scenePos(),
+                    event.buttonDownScenePos(Qt.LeftButton)).length() < 3.0:
                 return
             drag = QtGui.QDrag(event.widget())
             mime = QtCore.QMimeData()
             pos = event.buttonDownScenePos(Qt.LeftButton) - self.origin
-            if QtCore.QRectF(-5,-5,9,9).contains(pos):
+            if QtCore.QRectF(-5, -5, 9, 9).contains(pos):
                 movedEnd = "start"
             elif QtCore.QRectF(self.end.x() - self.origin.x() - 5,
                                self.end.y() - self.origin.y() - 5,
                                9, 9).contains(pos):
                 movedEnd = "end"
                 pos -= self.end - self.origin
-            #elif self._gi[itemId].shape().contains(pos):
+            # elif self._gi[itemId].shape().contains(pos):
             else:
                 movedEnd = "origin"
             if movedEnd is not None:
                 mime.setText(self.tiType + "#" +
-                            str(self.tiId)+ "#" +
-                            str(pos.x()) + "#" +
-                            str(pos.y()) + "#" +
-                            movedEnd)
+                             str(self.tiId) + "#" +
+                             str(pos.x()) + "#" +
+                             str(pos.y()) + "#" +
+                             movedEnd)
                 drag.setMimeData(mime)
                 drag.exec_()
-
-

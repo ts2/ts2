@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -19,23 +19,23 @@
 #
 from math import sqrt
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtGui, QtWidgets, Qt
 
 from ts2 import routing, utils
 from ts2.scenery.signals import signalaspect
 
-translate = QtGui.qApp.translate
+translate = QtWidgets.qApp.translate
+
 
 class TrainStatus(QtCore.QObject):
     """This class holds the enum describing the status of a train"""
 
-    INACTIVE = 0        # Not yet entered on the scene
-    RUNNING = 10        # Running with a positive speed
-    STOPPED = 20        # Scheduled stop, e.g. at a station
-    WAITING = 30        # Unscheduled stop, e.g. at a red signal
-    OUT = 40            # Exited the area
-    END_OF_SERVICE = 50 # Ended its service and no new service assigned
+    INACTIVE = 0         # Not yet entered on the scene
+    RUNNING = 10         # Running with a positive speed
+    STOPPED = 20         # Scheduled stop, e.g. at a station
+    WAITING = 30         # Unscheduled stop, e.g. at a red signal
+    OUT = 40             # Exited the area
+    END_OF_SERVICE = 50  # Ended its service and no new service assigned
 
     @classmethod
     def text(cls, status):
@@ -47,7 +47,7 @@ class TrainStatus(QtCore.QObject):
             return translate("TrainStatus", "Running")
         elif status == cls.STOPPED:
             return translate("TrainStatus", "Stopped at station")
-        elif status== cls.WAITING:
+        elif status == cls.WAITING:
             return translate("TrainStatus", "Waiting at red signal")
         elif status == cls.OUT:
             return translate("TrainStatus", "Exited the area")
@@ -74,7 +74,7 @@ class TrainListModel(QtCore.QAbstractTableModel):
         """Returns the number of columns of the model"""
         return 8
 
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         train = self.simulation.trains[index.row()]
         if train.nextPlaceIndex is not None:
@@ -82,7 +82,7 @@ class TrainListModel(QtCore.QAbstractTableModel):
         else:
             line = None
         if role == Qt.DisplayRole:
-            if index.column() ==  0:
+            if index.column() == 0:
                 return train.serviceCode
             elif index.column() == 1:
                 return TrainStatus.text(train.status)
@@ -114,7 +114,7 @@ class TrainListModel(QtCore.QAbstractTableModel):
                 return QtGui.QBrush(Qt.darkGray)
         return None
 
-    def headerData(self, column, orientation, role = Qt.DisplayRole):
+    def headerData(self, column, orientation, role=Qt.DisplayRole):
         """Returns the column headers to display"""
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             if column == 0:
@@ -139,7 +139,7 @@ class TrainListModel(QtCore.QAbstractTableModel):
 
     def flags(self, index):
         """Returns the flags of the model"""
-        return Qt.ItemIsSelectable|Qt.ItemIsEnabled
+        return Qt.ItemIsSelectable | Qt.ItemIsEnabled
 
     @QtCore.pyqtSlot(int)
     def update(self, trainId):
@@ -165,11 +165,11 @@ class TrainsModel(QtCore.QAbstractTableModel):
         """Returns the number of columns of the model"""
         return 7
 
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole or role == Qt.EditRole:
             train = self._editor.trains[index.row()]
-            if index.column() ==  0:
+            if index.column() == 0:
                 return index.row()
             elif index.column() == 1:
                 return train.serviceCode
@@ -187,7 +187,7 @@ class TrainsModel(QtCore.QAbstractTableModel):
                 return ""
         return None
 
-    def headerData(self, column, orientation, role = Qt.DisplayRole):
+    def headerData(self, column, orientation, role=Qt.DisplayRole):
         """Returns the column headers to display"""
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             if column == 0:
@@ -229,10 +229,9 @@ class TrainsModel(QtCore.QAbstractTableModel):
             return True
         return False
 
-
     def flags(self, index):
         """Returns the flags of the model"""
-        flags = Qt.ItemIsSelectable|Qt.ItemIsEnabled
+        flags = Qt.ItemIsSelectable | Qt.ItemIsEnabled
         if index.column() != 0:
             flags |= Qt.ItemIsEditable
         return flags
@@ -252,21 +251,21 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
         self.simulation = simulation
         self._train = None
 
-    def rowCount(self, parent = QtCore.QModelIndex(), *args):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows in the model"""
         if self._train is not None:
             return 12
         else:
             return 0
 
-    def columnCount(self, parent = QtCore.QModelIndex(), *args):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
         if self._train is not None:
             return 2
         else:
             return 0
 
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if self._train is not None:
             nextPlaceIndex = self._train.nextPlaceIndex
@@ -307,7 +306,7 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
                         return TrainStatus.text(self._train.status)
                     elif index.row() == 2:
                         return self.tr("%3.0d km/h") % \
-                                       (float(self._train.speed) * 3.6)
+                            (float(self._train.speed) * 3.6)
                     elif index.row() == 3:
                         return self._train.trainType.description
                     elif index.row() == 4:
@@ -324,13 +323,13 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
                         return line.trackCode
                     elif index.row() == 10 and line is not None:
                         if line.mustStop:
-                            return line.scheduledArrivalTime.toString(
-                                                                "hh:mm:ss")
+                            return \
+                                line.scheduledArrivalTime.toString("hh:mm:ss")
                         else:
                             return self.tr("Non-stop")
                     elif index.row() == 11 and line is not None:
-                        return line.scheduledDepartureTime.toString(
-                                                                "hh:mm:ss")
+                        return \
+                            line.scheduledDepartureTime.toString("hh:mm:ss")
                     else:
                         return ""
             elif role == Qt.ForegroundRole:
@@ -346,7 +345,7 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
                 return QtGui.QBrush()
         return None
 
-    def headerData(self, column, orientation, role = Qt.DisplayRole):
+    def headerData(self, column, orientation, role=Qt.DisplayRole):
         """Returns the headers for this model"""
         if self._train is not None \
            and orientation == Qt.Horizontal \
@@ -372,8 +371,9 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
     def setTrainByServiceCode(self, trainId):
         """Sets the train instance associated with this model from its
         serviceCode"""
+        self.beginResetModel()
         self._train = self.simulation.trains[trainId]
-        self.reset()
+        self.endResetModel()
 
     @QtCore.pyqtSlot()
     def update(self):
@@ -405,9 +405,10 @@ class Train(QtCore.QObject):
         previousTiId = parameters["previoustiid"]
         posOnTI = parameters["posonti"]
         self._trainHead = routing.Position(
-                                    self.simulation.trackItem(tiId),
-                                    self.simulation.trackItem(previousTiId),
-                                    posOnTI)
+            self.simulation.trackItem(tiId),
+            self.simulation.trackItem(previousTiId),
+            posOnTI
+        )
         self._status = TrainStatus.INACTIVE
         self._lastSignal = None
         self._signalActions = [(0, 999)]
@@ -415,9 +416,11 @@ class Train(QtCore.QObject):
         self._stoppedTime = 0
         if "stoppedtime" in parameters:
             self._stoppedTime = parameters["stoppedtime"]
+        self._minimumStopTime = 0
         self.updateMinimumStopTime()
-        self._initialDelayProba = utils.DurationProba(
-                                                parameters["initialdelay"])
+        self._initialDelayProba = \
+            utils.DurationProba(parameters["initialdelay"])
+        self._initialDelay = 0
         self.setInitialDelay()
         if self.currentService is not None:
             self._nextPlaceIndex = 0
@@ -429,13 +432,13 @@ class Train(QtCore.QObject):
         self.simulation.timeElapsed.connect(self.advance)
         self.simulation.timeChanged.connect(self.activate)
         # FIXME Throw back all these actions to MainWindow
-        self.assignAction = QtGui.QAction(self.tr("Reassign service..."),
-                                            self)
+        self.assignAction = QtWidgets.QAction(self.tr("Reassign service..."),
+                                              self)
         self.assignAction.triggered.connect(self.reassignService)
-        self.resetServiceAction = QtGui.QAction(self.tr("Reset service"),
-                                                  self)
+        self.resetServiceAction = QtWidgets.QAction(self.tr("Reset service"),
+                                                    self)
         self.resetServiceAction.triggered.connect(self.resetService)
-        self.reverseAction = QtGui.QAction(self.tr("Reverse"), self)
+        self.reverseAction = QtWidgets.QAction(self.tr("Reverse"), self)
         self.reverseAction.triggered.connect(self.reverse)
 
     trainStoppedAtStation = QtCore.pyqtSignal(int)
@@ -444,7 +447,7 @@ class Train(QtCore.QObject):
     trainExitedArea = QtCore.pyqtSignal(int)
     reassignServiceRequested = QtCore.pyqtSignal(int)
 
-    ### Properties ######################################################
+    # ## Properties ######################################################
 
     @property
     def trainId(self):
@@ -481,7 +484,7 @@ class Train(QtCore.QObject):
     @serviceCode.setter
     def serviceCode(self, serviceCode):
         """Changes the train current service code to serviceCode"""
-        if not serviceCode in self.simulation.services:
+        if serviceCode not in self.simulation.services:
             raise Exception(self.tr("No service with code %s") % serviceCode)
         self._serviceCode = serviceCode
         self.nextPlaceIndex = 0
@@ -506,7 +509,8 @@ class Train(QtCore.QObject):
                 self._speed = 0
                 self._status = TrainStatus.OUT
                 self.simulation.messageLogger.addMessage(
-                       self.tr("Train %s exited the area") % self.serviceCode)
+                    self.tr("Train %s exited the area") % self.serviceCode
+                )
             else:
                 self._status = value
         else:
@@ -583,7 +587,8 @@ class Train(QtCore.QObject):
     def initialSpeed(self, value):
         """Setter function for the initialSpeed property"""
         if self.simulation.context == utils.Context.EDITOR_TRAINS:
-            if value is None or value == "": value = "0.0"
+            if value is None or value == "":
+                value = "0.0"
             self._initialSpeed = float(value)
 
     @property
@@ -640,30 +645,30 @@ class Train(QtCore.QObject):
         if self.simulation.context == utils.Context.EDITOR_TRAINS:
             self._appearTime = QtCore.QTime.fromString(value)
 
-    ### Methods ########################################################
+    # ## Methods ########################################################
 
     def isOut(self):
         """Returns true if the train exited the area"""
-        return self._trainHead.isOut() and \
-               self._trainHead.positionOnTI() > self._trainType.length()
+        return \
+            self._trainHead.isOut() and \
+            self._trainHead.positionOnTI() > self._trainType.length()
 
     def isActive(self):
         """Returns true if the train is in the area and its current service
         is not finished"""
-        return self._status != TrainStatus.INACTIVE and \
-               self._status != TrainStatus.OUT and \
-               self._status != TrainStatus.END_OF_SERVICE
-
+        return \
+            self._status != TrainStatus.INACTIVE and \
+            self._status != TrainStatus.OUT and \
+            self._status != TrainStatus.END_OF_SERVICE
 
     def updateMinimumStopTime(self):
         """Updates the minimum stopping time for next station."""
         self._minimumStopTime = utils.DurationProba(
-                            self.simulation.option("defaultMinimumStopTime"))\
-                            .yieldValue()
+            self.simulation.option("defaultMinimumStopTime")).yieldValue()
 
     def showTrainActionsMenu(self, widget, pos):
         """Pops-up the train actions menu on the given QWidget"""
-        contextMenu = QtGui.QMenu(widget)
+        contextMenu = QtWidgets.QMenu(widget)
         contextMenu.addAction(self.assignAction)
         contextMenu.addAction(self.resetServiceAction)
         contextMenu.addAction(self.reverseAction)
@@ -673,8 +678,7 @@ class Train(QtCore.QObject):
         """Sets up the initial delay variable."""
         if self._initialDelayProba.isNull():
             self._initialDelay = utils.DurationProba(
-                            self.simulation.option("defaultDelayAtEntry"))\
-                            .yieldValue()
+                self.simulation.option("defaultDelayAtEntry")).yieldValue()
         else:
             self._initialDelay = self._initialDelayProba.yieldValue()
 
@@ -696,7 +700,8 @@ class Train(QtCore.QObject):
         """Activate this Train if time is after this Train appearTime."""
         if self.status == TrainStatus.INACTIVE:
             realAppearTime = self._appearTime.addSecs(self.initialDelay)
-            if self.simulation.startTime.addSecs(-3600) <= realAppearTime < time:
+            if self.simulation.startTime.addSecs(-3600) \
+                    <= realAppearTime < time:
                 self._speed = self._initialSpeed
                 # Signals update
                 signalAhead = self.findNextSignal()
@@ -719,14 +724,16 @@ class Train(QtCore.QObject):
                 # Print messages
                 if abs(self.initialDelay) < 60:
                     self.simulation.messageLogger.addMessage(
-                                self.tr("Train %s entered the area on time") %
-                                self.serviceCode)
+                        self.tr("Train %s entered the area on time") %
+                        self.serviceCode
+                    )
                 else:
                     loe = self.tr("late") if self.initialDelay > 0 \
-                                        else self.tr("early")
+                        else self.tr("early")
                     self.simulation.messageLogger.addMessage(
-                      self.tr("Train %s entered the area %i minutes %s") %
-                      (self.serviceCode, abs(self.initialDelay // 60), loe))
+                        self.tr("Train %s entered the area %i minutes %s") %
+                        (self.serviceCode, abs(self.initialDelay // 60), loe)
+                    )
 
     @QtCore.pyqtSlot()
     def reverse(self):
@@ -745,7 +752,6 @@ class Train(QtCore.QObject):
             if newSignalAhead is not None:
                 newSignalAhead.trainId = self.trainId
 
-
     @QtCore.pyqtSlot()
     def reassignService(self):
         """ Pops up a dialog for the user to choose the new service and
@@ -756,14 +762,14 @@ class Train(QtCore.QObject):
     @QtCore.pyqtSlot()
     def resetService(self):
         """Resets the service, i.e. sets the pointer to the first station."""
-        if QtGui.QMessageBox.question(
-                    self.simulation.simulationWindow,
-                    self.tr("Reset a service"),
-                    self.tr("Are you sure you really "\
-                            "want to reset service %s?"
-                            % self.serviceCode),
-                    QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel
-                    ) == QtGui.QMessageBox.Ok:
+        if QtWidgets.QMessageBox.question(
+                self.simulation.simulationWindow,
+                self.tr("Reset a service"),
+                self.tr("Are you sure you really "
+                        "want to reset service %s?"
+                        % self.serviceCode),
+                QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel
+                ) == QtWidgets.QMessageBox.Ok:
             self.nextPlaceIndex = 0
 
     def jumpToNextPlace(self):
@@ -788,11 +794,12 @@ class Train(QtCore.QObject):
         nsp, nsd = self.getNextSignalInfo()
         if nsp.isNull():
             # No more signal ahead
-            self._signalActions = [(0,999)]
+            self._signalActions = [(0, 999)]
             self._applicableActionIndex = 0
             return
-        signalVisibility = float(self.simulation.option(
-                                                "defaultSignalVisibility"))
+        signalVisibility = float(
+            self.simulation.option("defaultSignalVisibility")
+        )
         if nsd < signalVisibility:
             self._signalActions = nsp.trackItem.activeAspect.actions
             if self.lastSignal != nsp.trackItem:
@@ -856,10 +863,10 @@ class Train(QtCore.QObject):
                         self.trainStoppedAtStation.emit(self.trainId)
                     elif self.status == TrainStatus.STOPPED:
                         # Train is already stopped at the place
-                        if (line.scheduledDepartureTime >
-                                            self.simulation.currentTime) or \
-                           (self._stoppedTime < self.minimumStopTime) or \
-                           (line.scheduledDepartureTime == QtCore.QTime()):
+                        if line.scheduledDepartureTime > \
+                                self.simulation.currentTime or \
+                                self._stoppedTime < self.minimumStopTime or \
+                                line.scheduledDepartureTime == QtCore.QTime():
                             # Conditions to depart are not met
                             self.status = TrainStatus.STOPPED
                             self._stoppedTime += secs
@@ -870,8 +877,8 @@ class Train(QtCore.QObject):
                             if self.currentService != oldService:
                                 # The service code has changed
                                 if self._trainHead.trackItem.placeCode == \
-                                            self.currentService.lines[
-                                              self.nextPlaceIndex].placeCode:
+                                        self.currentService.lines[
+                                        self.nextPlaceIndex].placeCode:
                                     # This is also the first scheduled place
                                     # of the new service
                                     self.status = TrainStatus.STOPPED
@@ -880,12 +887,14 @@ class Train(QtCore.QObject):
                                     # service is not here
                                     self.status = TrainStatus.RUNNING
                                     self.trainDepartedFromStation.emit(
-                                                                self.trainId)
+                                        self.trainId
+                                    )
                             elif self.nextPlaceIndex is not None:
                                 # There are still places to call at
                                 self.status = TrainStatus.RUNNING
                                 self.trainDepartedFromStation.emit(
-                                                                self.trainId)
+                                    self.trainId
+                                )
                             else:
                                 # There was the last place to call at
                                 self.status = TrainStatus.END_OF_SERVICE
@@ -896,7 +905,7 @@ class Train(QtCore.QObject):
                 # Train is stopped but not assigned any service
                 self.status = TrainStatus.WAITING
 
-    def drawTrain(self, advanceLength = 0):
+    def drawTrain(self, advanceLength=0):
         """This function draws the train on the scene by setting the correct
         trainHead and trainTail to the different trackItems met.
         @param advanceLength : The length that the train has advanced since
@@ -905,19 +914,19 @@ class Train(QtCore.QObject):
         oldTrainTail = trainTail - advanceLength
         # Draw the train in its new position
         self._trainHead.trackItem.setTrainHead(self._trainHead.positionOnTI,
-                                                 self._trainHead.previousTI)
+                                               self._trainHead.previousTI)
         self._trainHead.trackItem.setTrainTail(0, self._trainHead.previousTI)
         if trainTail.trackItem != self._trainHead.trackItem:
             p = self._trainHead.previous()
             while p.trackItem != trainTail.trackItem:
                 p.trackItem.setTrainHead(p.trackItem.realLength,
-                                           p.previous().trackItem)
+                                         p.previous().trackItem)
                 p.trackItem.setTrainTail(0, p.previous().trackItem)
                 p = p.previous()
             trainTail.trackItem.setTrainHead(trainTail.trackItem.realLength,
-                                               trainTail.previousTI)
+                                             trainTail.previousTI)
         trainTail.trackItem.setTrainTail(trainTail.positionOnTI,
-                                           trainTail.previousTI)
+                                         trainTail.previousTI)
         # Remove behind
         if oldTrainTail.trackItem != trainTail.trackItem:
             p = trainTail.previous()
@@ -1050,7 +1059,6 @@ class Train(QtCore.QObject):
             distance += ti.realLength
         return self.getMaximumSpeed(), -1
 
-
     def setSpeed(self, secs):
         if not self.isActive() or self.status == TrainStatus.STOPPED:
             self._speed = 0
@@ -1071,18 +1079,20 @@ class Train(QtCore.QObject):
         distanceToNextStation = self.getDistanceToNextStop(maxDistance)
         # Next speed limit
         nextSpeedLimit, distanceToNextLimit = self.getNextSpeedLimitInfo(
-                                                                maxDistance)
+            maxDistance
+        )
         # Next train
-        distanceToNextTrain = self.getDistanceToNextTrain(maxDistance,
-                                                          trackCircuit=True)
+        distanceToNextTrain = self.getDistanceToNextTrain(
+            maxDistance, trackCircuit=True
+        )
         # Choose target and define speed
         if distanceToNextStation != -1:
             if distanceToNextStation < d:
                 targetSpeedForStation = 0
             else:
-                targetSpeedForStation = self.targetSpeed(secs,
-                                                        distanceToNextStation,
-                                                        0)
+                targetSpeedForStation = self.targetSpeed(
+                    secs, distanceToNextStation, 0
+                )
         else:
             targetSpeedForStation = maxSpeed
 
@@ -1101,20 +1111,19 @@ class Train(QtCore.QObject):
                 if distanceToNextSignal < d:
                     targetSpeedForSignal = applicableAction[1]
                 else:
-                    targetSpeedForSignal = self.targetSpeed(secs,
-                                                        distanceToNextSignal,
-                                                        applicableAction[1])
+                    targetSpeedForSignal = self.targetSpeed(
+                        secs, distanceToNextSignal, applicableAction[1]
+                    )
             else:
                 targetSpeedForSignal = maxSpeed
-
 
         if distanceToNextLimit != -1:
             if distanceToNextLimit < d:
                 targetSpeedForLimit = nextSpeedLimit
             else:
-                targetSpeedForLimit = self.targetSpeed(secs,
-                                                       distanceToNextLimit,
-                                                       nextSpeedLimit)
+                targetSpeedForLimit = self.targetSpeed(
+                    secs, distanceToNextLimit, nextSpeedLimit
+                )
         else:
             targetSpeedForLimit = maxSpeed
 
@@ -1122,9 +1131,9 @@ class Train(QtCore.QObject):
             if distanceToNextTrain < d:
                 targetSpeedForTrain = 0
             else:
-                targetSpeedForTrain = self.targetSpeed(secs,
-                                                       distanceToNextTrain,
-                                                       0)
+                targetSpeedForTrain = self.targetSpeed(
+                    secs, distanceToNextTrain, 0
+                )
         else:
             targetSpeedForTrain = maxSpeed
 
@@ -1136,16 +1145,13 @@ class Train(QtCore.QObject):
                           min(k * (ts - self._speed),
                               self._trainType.stdAccel))
         self._speed = max(0.0, self._speed + self._accel * secs)
-        #QtCore.qDebug("SC:%s, Secs:%f, Accel=%f; ts=%f, speed=%f,"
-        #"dtnstation:%f, dtnsignal:%f, dtnlimit:%f, appl.action=%s" % (
-        #self.serviceCode, secs, self._accel, ts , self._speed,
-        #distanceToNextStation, distanceToNextSignal, distanceToNextLimit,
-        #str(applicableAction)))
+        # QtCore.qDebug("SC:%s, Secs:%f, Accel=%f; ts=%f, speed=%f,"
+        # "dtnstation:%f, dtnsignal:%f, dtnlimit:%f, appl.action=%s" % (
+        # self.serviceCode, secs, self._accel, ts , self._speed,
+        # distanceToNextStation, distanceToNextSignal, distanceToNextLimit,
+        # str(applicableAction)))
 
-    def targetSpeed(self,
-                    secs,
-                    targetDistance=-1,
-                    targetSpeedAtPos=0):
+    def targetSpeed(self, secs, targetDistance=-1, targetSpeedAtPos=0):
         """ Defines the current target speed of the train depending on the
         parameters:
         - targetDistance : the distance at which the train should be at
@@ -1166,11 +1172,10 @@ class Train(QtCore.QObject):
         s2 = theoreticalSpeed * secs / 2
         if theoreticalSpeed < self._speed:
             return self.calculatedSpeed(targetDistance - s1,
-                                         targetSpeedAtPos)
+                                        targetSpeedAtPos)
         else:
             return self.calculatedSpeed(targetDistance - s2,
                                         targetSpeedAtPos)
-
 
     def calculatedSpeed(self, targetDistance, targetSpeedAtPos):
         """Returns the speed the train should be right now to be able to be
@@ -1186,4 +1191,3 @@ class Train(QtCore.QObject):
         position"""
         return min(self._trainType.maxSpeed,
                    self.trainHead.trackItem.maxSpeed)
-

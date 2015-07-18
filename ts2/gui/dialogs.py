@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -21,12 +21,12 @@
 import sys
 import traceback
 
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtWidgets, Qt
 
 from ts2.gui import servicelistview
 
-translate = QtGui.QApplication.translate
+translate = QtWidgets.qApp.translate
+
 
 class ExceptionDialog:
     """A Dialog box for displaying exception information
@@ -43,10 +43,10 @@ class ExceptionDialog:
             message += message.join(traceback.format_tb(sys.exc_info()[2]))
         else:
             message += message.join(traceback.format_exc())
-        return QtGui.QMessageBox.critical(parent, title, message)
+        return QtWidgets.QMessageBox.critical(parent, title, message)
 
 
-class PropertiesDialog(QtGui.QDialog):
+class PropertiesDialog(QtWidgets.QDialog):
     """Dialog box for editing simulation properties during the game."""
 
     def __init__(self, parent, simulation):
@@ -54,33 +54,33 @@ class PropertiesDialog(QtGui.QDialog):
         super().__init__(parent)
         self.simulation = simulation
         self.setWindowTitle(self.tr("Simulation properties"))
-        titleLabel = QtGui.QLabel(self)
+        titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText("<u>" +
                            self.tr("Simulation title:") +
                            "</u>")
-        titleText = QtGui.QLabel(simulation.option("title"), self)
-        hlayout = QtGui.QHBoxLayout()
+        titleText = QtWidgets.QLabel(simulation.option("title"), self)
+        hlayout = QtWidgets.QHBoxLayout()
         hlayout.addWidget(titleLabel)
         hlayout.addWidget(titleText)
         hlayout.addStretch()
-        descriptionLabel = QtGui.QLabel(self)
+        descriptionLabel = QtWidgets.QLabel(self)
         descriptionLabel.setText("<u>" +
                                  self.tr("Description:") +
                                  "</u>")
-        descriptionText = QtGui.QTextEdit(self)
+        descriptionText = QtWidgets.QTextEdit(self)
         descriptionText.setReadOnly(True)
         descriptionText.setText(simulation.option("description"))
-        optionsLabel = QtGui.QLabel(self)
+        optionsLabel = QtWidgets.QLabel(self)
         optionsLabel.setText("<u>" + self.tr("Options:") + "</u>")
-        tibOptionCB = QtGui.QCheckBox(self)
+        tibOptionCB = QtWidgets.QCheckBox(self)
         tibOptionCB.stateChanged.connect(self.changeTIB)
         tibOptionCB.setChecked(
-                            int(simulation.option("trackCircuitBased")) != 0)
-        optionLayout = QtGui.QFormLayout()
+            int(simulation.option("trackCircuitBased")) != 0)
+        optionLayout = QtWidgets.QFormLayout()
         optionLayout.addRow(self.tr("Play simulation with track circuits"),
                             tibOptionCB)
-        buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
-        layout = QtGui.QVBoxLayout()
+        buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok)
+        layout = QtWidgets.QVBoxLayout()
         layout.addLayout(hlayout)
         layout.addWidget(descriptionLabel)
         layout.addWidget(descriptionText)
@@ -99,18 +99,20 @@ class PropertiesDialog(QtGui.QDialog):
             self.simulation.setOption("trackCircuitBased", 0)
 
 
-class ServiceAssignDialog(QtGui.QDialog):
+class ServiceAssignDialog(QtWidgets.QDialog):
     """TODO Document ServiceAssignDialog"""
 
     def __init__(self, parent, simulation):
         super().__init__(parent)
-        self.setWindowTitle(self.tr(
-                                "Choose a service to assign to this train"))
+        self.setWindowTitle(
+            self.tr("Choose a service to assign to this train")
+        )
         self.serviceListView = servicelistview.ServiceListView(self)
         self.serviceListView.setupServiceList(simulation)
-        buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok|
-                                           QtGui.QDialogButtonBox.Cancel)
-        layout = QtGui.QVBoxLayout()
+        buttonBox = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
+        layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.serviceListView)
         layout.addWidget(buttonBox)
         self.setLayout(layout)
@@ -130,9 +132,8 @@ class ServiceAssignDialog(QtGui.QDialog):
         """Reassigns a service to the train given by trainId by poping-up a
         reassignServiceDialog."""
         sad = ServiceAssignDialog(simulation.simulationWindow, simulation)
-        if sad.exec_() == QtGui.QDialog.Accepted:
+        if sad.exec_() == QtWidgets.QDialog.Accepted:
             newServiceCode = sad.getServiceCode()
             if newServiceCode != "":
                 train = simulation.trains[trainId]
                 train.serviceCode = newServiceCode
-

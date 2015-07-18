@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,12 +18,13 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.Qt import Qt
+from Qt import QtCore, QtGui, QtWidgets, Qt
+
 from ts2 import utils
 from ts2.scenery import placeitem, helper, abstract
 
-translate = QtGui.qApp.translate
+translate = QtWidgets.qApp.translate
+
 
 class PlatformItem(abstract.ResizableItem):
     """Platform items are represented as a colored rectangle on the scene to
@@ -33,9 +34,7 @@ class PlatformItem(abstract.ResizableItem):
         """Constructor for the PlatformItem class"""
         super().__init__(simulation, parameters)
         self.tiType = "ZP"
-        x1 = parameters["x"]
         x2 = parameters["xf"]
-        y1 = parameters["y"]
         y2 = parameters["yf"]
         self._end = QtCore.QPointF(x2, y2)
         self._placeCode = parameters["placecode"]
@@ -54,25 +53,25 @@ class PlatformItem(abstract.ResizableItem):
         self._gi[0] = pgi
         self.simulation.registerGraphicsItem(pgi)
         self.platformSelected.connect(
-                                placeitem.Place.selectedPlaceModel.setPlace)
-
+            placeitem.Place.selectedPlaceModel.setPlace
+        )
 
     @staticmethod
     def getProperties():
-        return [helper.TIProperty("tiTypeStr", translate("PlatformItem",
-                                                         "Type"), True),
-                  helper.TIProperty("tiId", translate("PlatformItem",
-                                                      "id"), True),
-                  helper.TIProperty("name", translate("PlatformItem",
-                                                      "Name")),
-                  helper.TIProperty("originStr", translate("PlatformItem",
-                                                           "Point 1")),
-                  helper.TIProperty("endStr", translate("PlatformItem",
-                                                        "Point 2")),
-                  helper.TIProperty("placeCode", translate("PlatformItem",
-                                                           "Place code")),
-                  helper.TIProperty("trackCode", translate("PlatformItem",
-                                                           "Track code"))]
+        return [
+            helper.TIProperty("tiTypeStr",
+                              translate("PlatformItem", "Type"), True),
+            helper.TIProperty("tiId", translate("PlatformItem", "id"), True),
+            helper.TIProperty("name", translate("PlatformItem", "Name")),
+            helper.TIProperty("originStr",
+                              translate("PlatformItem", "Point 1")),
+            helper.TIProperty("endStr",
+                              translate("PlatformItem", "Point 2")),
+            helper.TIProperty("placeCode",
+                              translate("PlatformItem", "Place code")),
+            helper.TIProperty("trackCode",
+                              translate("PlatformItem", "Track code"))
+        ]
 
     platformSelected = QtCore.pyqtSignal(placeitem.Place)
 
@@ -81,21 +80,21 @@ class PlatformItem(abstract.ResizableItem):
         database"""
         parameters = super().getSaveParameters()
         parameters.update({
-                            "xf": self.end.x(),
-                            "yf": self.end.y(),
-                            "placecode": self.placeCode,
-                            "trackcode": self.trackCode
-                          })
+            "xf": self.end.x(),
+            "yf": self.end.y(),
+            "placecode": self.placeCode,
+            "trackcode": self.trackCode
+        })
         return parameters
 
-    ### Properties #####################################################
+    # ## Properties #####################################################
 
     @property
     def toolTipText(self):
         """Returns the string to show on the tool tip"""
         if self._place is not None:
             return self.tr("%s\nPlatform %s") % \
-                                  (self._place.placeName, self.trackCode)
+                (self._place.placeName, self.trackCode)
         elif self.tiId < 0:
             return "Platform"
         else:
@@ -134,9 +133,9 @@ class PlatformItem(abstract.ResizableItem):
             else:
                 self._trackCode = ""
 
-    ### Graphics Methods ##############################################
+    # ## Graphics Methods ##############################################
 
-    def graphicsPaint(self, painter, options, itemId, widget):
+    def graphicsPaint(self, painter, options, itemId, widget=None):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws the rectangle."""
         x1 = self.origin.x()
@@ -156,7 +155,6 @@ class PlatformItem(abstract.ResizableItem):
         It processes mouse clicks on the platform and emits the signal
         platformSelected."""
         super().graphicsMousePressEvent(e, itemId)
-        pos = e.buttonDownPos(Qt.LeftButton)
         if e.button() == Qt.LeftButton:
             if self.simulation.context == utils.Context.GAME:
                 self.platformSelected.emit(self._place)

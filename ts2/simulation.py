@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -21,13 +21,12 @@
 from math import sqrt
 import sqlite3
 
-from PyQt4 import QtCore, QtGui
+from Qt import QtCore, QtWidgets
 
 from ts2 import utils, routing, trains
 from ts2.game import logger, scorer
-from ts2.scenery import placeitem, lineitem, platformitem, \
-                        invisiblelinkitem, enditem, pointsitem, \
-                        textitem
+from ts2.scenery import placeitem, lineitem, platformitem, invisiblelinkitem, \
+    enditem, pointsitem, textitem
 from ts2.scenery.signals import signaltype, signalitem
 
 
@@ -39,10 +38,26 @@ class Simulation(QtCore.QObject):
         super().__init__()
         self._database = ""
         self.simulationWindow = simulationWindow
-        self._scene = QtGui.QGraphicsScene()
+        self._scene = QtWidgets.QGraphicsScene()
         self._timer = QtCore.QTimer(self)
         self._messageLogger = logger.MessageLogger(self)
         self._scorer = scorer.Scorer(self)
+        self._selectedSignal = None
+        self._options = {}
+        self._routes = {}
+        self._trackItems = {}
+        self.activeRouteNumbers = []
+        self._trainTypes = {}
+        self._services = {}
+        self._places = {}
+        self._trains = []
+        self.signalTypes = []
+        self._time = QtCore.QTime()
+        self._startTime = QtCore.QTime()
+        self._serviceListModel = None
+        self._selectedServiceModel = None
+        self._trainListModel = None
+        self._selectedTrainModel = None
         self.initialize()
 
     def initialize(self):
@@ -72,7 +87,7 @@ class Simulation(QtCore.QObject):
     def load(self, fileName):
         """Loads the simulation from fileName."""
         self.messageLogger.addMessage(self.tr("Simulation loading"),
-                                    logger.Message.SOFTWARE_MSG)
+                                      logger.Message.SOFTWARE_MSG)
         self.initialize()
         self._database = fileName
         conn = sqlite3.connect(fileName)
@@ -81,18 +96,20 @@ class Simulation(QtCore.QObject):
         version = float(self.option("version"))
         if version > utils.TS2_FILE_FORMAT:
             conn.close()
-            self.messageLogger.addMessage(self.tr(
-                        "The simulation is from a newer version of TS2.\n"
+            self.messageLogger.addMessage(
+                self.tr("The simulation is from a newer version of TS2.\n"
                         "Please upgrade TS2 to version %s.") % version,
-                        logger.Message.SOFTWARE_MSG)
+                logger.Message.SOFTWARE_MSG
+            )
             return
         if version < utils.TS2_FILE_FORMAT:
             conn.close()
-            self.messageLogger.addMessage(self.tr(
-                    "The simulation is from an older version of TS2.\n"
-                    "Open it in the editor and save it again to play "
-                    "with this version of TS2."),
-                    logger.Message.SOFTWARE_MSG)
+            self.messageLogger.addMessage(
+                self.tr("The simulation is from an older version of TS2.\n"
+                        "Open it in the editor and save it again to play "
+                        "with this version of TS2."),
+                logger.Message.SOFTWARE_MSG
+            )
             return
         self.loadTrackItems(conn)
         self.loadRoutes(conn)
@@ -102,23 +119,23 @@ class Simulation(QtCore.QObject):
         conn.close()
         self.setupConnections()
         self._scene.update()
-        self._startTime = QtCore.QTime.fromString(
-                                self.option("currentTime"), "hh:mm:ss")
+        self._startTime = QtCore.QTime.fromString(self.option("currentTime"),
+                                                  "hh:mm:ss")
         self._time = self._startTime
         self._timer.timeout.connect(self.timerOut)
-        #interval = min(max(100, 5000 / float(self.option("timeFactor"))),500)
+        # interval = min(max(100, 5000 / float(self.option("timeFactor"))),500)
         interval = 500
         self._timer.setInterval(interval)
         self._timer.start()
         self._scorer.score = self.option("currentScore")
         self.messageLogger.addMessage(self.tr("Simulation loaded"),
-                                        logger.Message.SOFTWARE_MSG)
+                                      logger.Message.SOFTWARE_MSG)
 
     def saveGame(self, fileName):
         """Saves the game to the given fileName."""
         self.pause()
         self.messageLogger.addMessage(self.tr("Saving simulation"),
-                                        logger.Message.SOFTWARE_MSG)
+                                      logger.Message.SOFTWARE_MSG)
         connFile = sqlite3.connect(fileName)
         if fileName != self._database:
             # Copy the current database to the saved file
@@ -140,44 +157,47 @@ class Simulation(QtCore.QObject):
         # Options
         connFile.execute("UPDATE options SET optionvalue=:currentTime "
                          "WHERE optionkey='currentTime'",
-                         {"currentTime":self.currentTime.toString("hh:mm:ss")}
+                         {"currentTime": self.currentTime.toString("hh:mm:ss")}
                          )
         connFile.execute("UPDATE options SET optionvalue=:timeFactor "
                          "WHERE optionkey='timeFactor'",
-                         {"timeFactor":self.option("timeFactor")}
+                         {"timeFactor": self.option("timeFactor")}
                          )
         connFile.execute("UPDATE options SET optionvalue=:currentScore "
                          "WHERE optionkey='currentScore'",
-                         {"currentScore":self.scorer.score}
+                         {"currentScore": self.scorer.score}
                          )
         connFile.execute("UPDATE options SET optionvalue=:trackCircuitBased "
                          "WHERE optionkey='trackCircuitBased'",
                          {"trackCircuitBased":
-                                            self.option("trackCircuitBased")}
+                             self.option("trackCircuitBased")}
                          )
         connFile.commit()
         # Routes
         for route in self.routes.values():
             routeState = route.getRouteState()
-            connFile.execute("UPDATE routes SET initialstate=:routeState "
-                             "WHERE routenum=:routeNum",
-                             {"routeNum":route.routeNum,
-                              "routeState":routeState})
+            connFile.execute(
+                "UPDATE routes SET initialstate=:routeState "
+                "WHERE routenum=:routeNum",
+                {"routeNum": route.routeNum, "routeState": routeState}
+            )
         connFile.commit()
         # Trains
         connFile.execute("DROP TABLE IF EXISTS trains")
-        connFile.execute("CREATE TABLE trains (\n"
-                            "trainid INTEGER,\n"
-                            "servicecode VARCHAR(10),\n"
-                            "traintype VARCHAR(10),\n"
-                            "speed DOUBLE,\n"
-                            "tiid INTEGER,\n"
-                            "previoustiid INTEGER,\n"
-                            "posonti DOUBLE,\n"
-                            "appeartime TIME,\n"
-                            "initialdelay VARCHAR(255),\n"
-                            "nextplaceindex INTEGER,\n"
-                            "stoppedtime INTEGER)\n")
+        connFile.execute(
+            "CREATE TABLE trains (\n"
+            "trainid INTEGER,\n"
+            "servicecode VARCHAR(10),\n"
+            "traintype VARCHAR(10),\n"
+            "speed DOUBLE,\n"
+            "tiid INTEGER,\n"
+            "previoustiid INTEGER,\n"
+            "posonti DOUBLE,\n"
+            "appeartime TIME,\n"
+            "initialdelay VARCHAR(255),\n"
+            "nextplaceindex INTEGER,\n"
+            "stoppedtime INTEGER)\n"
+        )
         for train in self.trains:
             if train.status == trains.TrainStatus.INACTIVE:
                 speed = train.initialSpeed
@@ -198,24 +218,24 @@ class Simulation(QtCore.QObject):
                     ":previoustiid, :posonti, :appeartime, :initialdelay, "\
                     ":nextplaceindex, :stoppedtime)"
             parameters = {
-                    "trainid":train.trainId,
-                    "servicecode":train.serviceCode,
-                    "traintype":train.trainTypeCode,
-                    "speed":speed,
-                    "tiid":train.trainHead.trackItem.tiId,
-                    "previoustiid":train.trainHead.previousTI.tiId,
-                    "posonti":train.trainHead.positionOnTI,
-                    "appeartime":appearTime,
-                    "initialdelay":initialDelay,
-                    "nextplaceindex":train.nextPlaceIndex,
-                    "stoppedtime":train.stoppedTime
-                    }
+                "trainid": train.trainId,
+                "servicecode": train.serviceCode,
+                "traintype": train.trainTypeCode,
+                "speed": speed,
+                "tiid": train.trainHead.trackItem.tiId,
+                "previoustiid": train.trainHead.previousTI.tiId,
+                "posonti": train.trainHead.positionOnTI,
+                "appeartime": appearTime,
+                "initialdelay": initialDelay,
+                "nextplaceindex": train.nextPlaceIndex,
+                "stoppedtime": train.stoppedTime
+            }
             connFile.execute(query, parameters)
         connFile.commit()
 
         connFile.close()
         self.messageLogger.addMessage(self.tr("Simulation saved"),
-                                        logger.Message.SOFTWARE_MSG)
+                                      logger.Message.SOFTWARE_MSG)
 
     @property
     def scene(self):
@@ -289,8 +309,8 @@ class Simulation(QtCore.QObject):
         """Returns the trackItem dictionary of this simulation."""
         return self._trackItems
 
-    def trackItem(self, id):
-        return self._trackItems.get(id, None)
+    def trackItem(self, tiId):
+        return self._trackItems.get(tiId, None)
 
     def place(self, placeCode):
         """Returns the place defined by placeCode."""
@@ -312,8 +332,8 @@ class Simulation(QtCore.QObject):
     conflictingRoute = QtCore.pyqtSignal(routing.Route)
     noRouteBetweenSignals = QtCore.pyqtSignal(signalitem.SignalItem,
                                               signalitem.SignalItem)
-    #routeSelected = QtCore.pyqtSignal(routing.Route)
-    #routeDeleted = QtCore.pyqtSignal(routing.Route)
+    # routeSelected = QtCore.pyqtSignal(routing.Route)
+    # routeDeleted = QtCore.pyqtSignal(routing.Route)
     timeChanged = QtCore.pyqtSignal(QtCore.QTime)
     timeElapsed = QtCore.pyqtSignal(float)
     trainSelected = QtCore.pyqtSignal(int)
@@ -359,16 +379,18 @@ class Simulation(QtCore.QObject):
                     self.conflictingRoute.emit(r)
                     si.unselect()
                     self.messageLogger.addMessage(
-                                            self.tr("Conflicting route"),
-                                            logger.Message.PLAYER_WARNING_MSG)
+                        self.tr("Conflicting route"),
+                        logger.Message.PLAYER_WARNING_MSG
+                    )
             else:
                 # No route between both signals
                 self.noRouteBetweenSignals.emit(self._selectedSignal, si)
                 self._selectedSignal.unselect()
                 self._selectedSignal = si
                 self.messageLogger.addMessage(
-                                        self.tr("No route between signals"),
-                                        logger.Message.PLAYER_WARNING_MSG)
+                    self.tr("No route between signals"),
+                    logger.Message.PLAYER_WARNING_MSG
+                )
 
     @QtCore.pyqtSlot(int)
     def desactivateRoute(self, siId):
@@ -424,7 +446,7 @@ class Simulation(QtCore.QObject):
     def loadRoutes(self, conn):
         """Creates the instances of routes from the data of the database."""
         self.messageLogger.addMessage(self.tr("Loading routes"),
-                               logger.Message.SOFTWARE_MSG)
+                                      logger.Message.SOFTWARE_MSG)
         for route in conn.execute("SELECT * FROM routes"):
             routeNum = route["routenum"]
             beginSignalId = route["beginsignal"]
@@ -447,8 +469,9 @@ class Simulation(QtCore.QObject):
 
         if not check:
             self.messageLogger.addMessage(
-                    self.tr("Invalid simulation: Some routes are not valid."),
-                    logger.Message.SOFTWARE_MSG)
+                self.tr("Invalid simulation: Some routes are not valid."),
+                logger.Message.SOFTWARE_MSG
+            )
 
         # Activates routes who are to be activated at the beginning of the
         # simulation
@@ -478,33 +501,34 @@ class Simulation(QtCore.QObject):
             train = trains.Train(self, parameters)
             train.trainStatusChanged.connect(self.trainStatusChanged)
             train.trainStoppedAtStation.connect(
-                                            self.scorer.trainArrivedAtStation)
+                self.scorer.trainArrivedAtStation
+            )
             train.trainExitedArea.connect(self.scorer.trainExitedArea)
             train.reassignServiceRequested.connect(
-                            self.simulationWindow.openReassignServiceWindow)
+                self.simulationWindow.openReassignServiceWindow
+            )
             self._trains.append(train)
-        self._trains.sort(key = lambda x:
-                         x.currentService.lines[0].scheduledDepartureTimeStr)
-
+        self._trains.sort(key=lambda x:
+                          x.currentService.lines[0].scheduledDepartureTimeStr)
 
     def loadOptions(self, conn):
         """Populates the options dict with data from the database"""
         self.messageLogger.addMessage(self.tr("Loading options"),
                                       logger.Message.SOFTWARE_MSG)
         self._options = {
-                "title":"",
-                "description":"",
-                "version":utils.TS2_FILE_FORMAT,
-                "timeFactor":5,
-                "currentTime":"06:00:00",
-                "warningSpeed":8.3,
-                "currentScore":0,
-                "defaultMaxSpeed":44.44,
-                "defaultMinimumStopTime":"[(45,75,70),(75,90,30)]",
-                "defaultDelayAtEntry":"[(-60,0,50),(0,60,50)]",
-                "trackCircuitBased":0,
-                "defaultSignalVisibility":100
-            }
+            "title": "",
+            "description": "",
+            "version": utils.TS2_FILE_FORMAT,
+            "timeFactor": 5,
+            "currentTime": "06:00:00",
+            "warningSpeed": 8.3,
+            "currentScore": 0,
+            "defaultMaxSpeed": 44.44,
+            "defaultMinimumStopTime": "[(45,75,70),(75,90,30)]",
+            "defaultDelayAtEntry": "[(-60,0,50),(0,60,50)]",
+            "trackCircuitBased": 0,
+            "defaultSignalVisibility": 100
+        }
         options = {}
         for option in conn.execute("SELECT * FROM options"):
             key = option["optionkey"]
@@ -520,13 +544,13 @@ class Simulation(QtCore.QObject):
                                       logger.Message.SOFTWARE_MSG)
         self.createAllTrackItems(conn)
         self.linkTrackItems(conn)
-        #self.createTrackItemsLinks()
+        # self.createTrackItemsLinks()
         self.createTrackItemConflicts(conn)
         # Check that all the items are linked
         if not self.checkTrackItemsLinks():
-           self.messageLogger.addMessage(self.tr("Invalid simulation: "
-                                                 "Not all items are linked."),
-                                         logger.Message.SOFTWARE_MSG)
+            self.messageLogger.addMessage(self.tr("Invalid simulation: "
+                                                  "Not all items are linked."),
+                                          logger.Message.SOFTWARE_MSG)
 
     def createAllTrackItems(self, conn):
         """Creates the instances of TrackItem and its subclasses (including
@@ -540,7 +564,7 @@ class Simulation(QtCore.QObject):
             self._places[place.placeCode] = place
 
         for trackItem in \
-                   conn.execute("SELECT * FROM trackitems WHERE titype<>'A'"):
+                conn.execute("SELECT * FROM trackitems WHERE titype<>'A'"):
             parameters = dict(trackItem)
             tiId = parameters["tiid"]
             tiType = parameters["titype"]
@@ -559,7 +583,9 @@ class Simulation(QtCore.QObject):
             elif tiType == "ZT":
                 ti = textitem.TextItem(self, parameters)
             else:
-                self.messageLogger.addMessage(self.tr("File error. Unknown tiType %s") % tiType)
+                self.messageLogger.addMessage(
+                    self.tr("File error. Unknown tiType %s") % tiType
+                )
                 continue
             self.makeTrackItemSignalSlotConnections(ti)
             self._trackItems[tiId] = ti
@@ -589,10 +615,9 @@ class Simulation(QtCore.QObject):
 
     def setupConnections(self):
         """Sets up the connections which need a simulation loaded"""
-        #self.timeChanged.connect(self.selectedTrainModel.reset)
+        # self.timeChanged.connect(self.selectedTrainModel.reset)
         for ti in self.trackItems.values():
             ti.setupTriggers()
-
 
     def findRoute(self, si1, si2):
         """Checks whether a route exists between two signals, and return this
@@ -615,14 +640,14 @@ class Simulation(QtCore.QObject):
             previousTiId = trackItem["ptiid"]
             if previousTiId is not None:
                 self._trackItems[tiId].previousItem = \
-                                                self._trackItems[previousTiId]
+                    self._trackItems[previousTiId]
             nextTiId = trackItem["ntiid"]
             if nextTiId is not None:
                 self._trackItems[tiId].nextItem = self._trackItems[nextTiId]
             reverseTiId = trackItem["rtiid"]
             if reverseTiId is not None:
                 self._trackItems[tiId].reverseItem = \
-                                                self._trackItems[reverseTiId]
+                    self._trackItems[reverseTiId]
 
     def createTrackItemConflicts(self, conn):
         """Create the trackitems' conflicts from the data in database."""
@@ -633,9 +658,9 @@ class Simulation(QtCore.QObject):
             if conflictTiId is not None and conflictTiId != 0:
                 tiId = trackItem["tiid"]
                 self._trackItems[tiId].conflictTI = \
-                                self._trackItems[conflictTiId]
+                    self._trackItems[conflictTiId]
                 self._trackItems[conflictTiId].conflictTI = \
-                                self._trackItems[tiId]
+                    self._trackItems[tiId]
 
     def createTrackItemsLinks(self):
         """Find the items that are linked together through their coordinates
@@ -673,7 +698,6 @@ class Simulation(QtCore.QObject):
                             vi.nextItem = vj
                             vj.reverseItem = vi
 
-
     def checkTrackItemsLinks(self):
         """Checks that all TrackItems are linked together"""
         result = True
@@ -683,15 +707,17 @@ class Simulation(QtCore.QObject):
             if not ti.tiType.startswith(("A", "Z")):
                 if ti.nextItem is None:
                     self.messageLogger.addMessage(
-                            self.tr("TrackItem %i is unlinked at (%f, %f)" %
-                                    (ti.tiId, ti.end.x(), ti.end.y())),
-                            logger.Message.SOFTWARE_MSG)
+                        self.tr("TrackItem %i is unlinked at (%f, %f)" %
+                                (ti.tiId, ti.end.x(), ti.end.y())),
+                        logger.Message.SOFTWARE_MSG
+                    )
                     result = False
                 if ti.previousItem is None:
                     self.messageLogger.addMessage(
-                            self.tr("TrackItem %i is unlinked at (%f, %f)" %
-                                    (ti.tiId, ti.origin.x(), ti.origin.y())),
-                            logger.Message.SOFTWARE_MSG)
+                        self.tr("TrackItem %i is unlinked at (%f, %f)" %
+                                (ti.tiId, ti.origin.x(), ti.origin.y())),
+                        logger.Message.SOFTWARE_MSG
+                    )
                     result = False
         return result
 
@@ -711,5 +737,3 @@ class Simulation(QtCore.QObject):
                 if ti.placeCode == placeCode and ti.trackCode == trackCode:
                     return ti
         return None
-
-

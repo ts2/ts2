@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,11 +18,12 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtGui, QtCore, QtWidgets, Qt
+
 from ts2 import utils
 
-class PositionGraphicsItem(QtGui.QGraphicsPolygonItem):
+
+class PositionGraphicsItem(QtWidgets.QGraphicsPolygonItem):
     """This class is a graphics representation of a position to be put on a
     scene.
     """
@@ -32,15 +33,15 @@ class PositionGraphicsItem(QtGui.QGraphicsPolygonItem):
         self.simulation = simulation
         self._position = position
         self._leftToRightPolygon = QtGui.QPolygonF()
-        self._leftToRightPolygon << QtCore.QPointF(-5,-5) \
-                                 << QtCore.QPointF(0,0) \
-                                 << QtCore.QPointF(-5,5) \
-                                 << QtCore.QPointF(-5,-5)
+        self._leftToRightPolygon << QtCore.QPointF(-5, -5) \
+                                 << QtCore.QPointF(0, 0) \
+                                 << QtCore.QPointF(-5, 5) \
+                                 << QtCore.QPointF(-5, -5)
         self._rightToLeftPolygon = QtGui.QPolygonF()
-        self._rightToLeftPolygon << QtCore.QPointF(5,-5) \
-                                 << QtCore.QPointF(0,0) \
-                                 << QtCore.QPointF(5,5) \
-                                 << QtCore.QPointF(5,-5)
+        self._rightToLeftPolygon << QtCore.QPointF(5, -5) \
+                                 << QtCore.QPointF(0, 0) \
+                                 << QtCore.QPointF(5, 5) \
+                                 << QtCore.QPointF(5, -5)
         self._currentPolygon = self._leftToRightPolygon
         self.setPen(QtGui.QPen(Qt.yellow))
         self.setBrush(QtGui.QBrush(Qt.yellow))
@@ -68,11 +69,13 @@ class PositionGraphicsItem(QtGui.QGraphicsPolygonItem):
                 raise Exception("Error: PositionGraphicsItem can be used only"
                                 "for positions on LineItem and subclasses")
             pos1 = trackItem.sceneLine.pointAt(
-                                        self._position.positionOnTI /
-                                        self._position.trackItem.realLength)
-            pos2 = trackItem.sceneLine.pointAt(1 - (
-                                        self._position.positionOnTI /
-                                        self._position.trackItem.realLength))
+                self._position.positionOnTI /
+                self._position.trackItem.realLength
+            )
+            pos2 = trackItem.sceneLine.pointAt(
+                1 - (self._position.positionOnTI /
+                     self._position.trackItem.realLength)
+            )
             if trackItem.sceneLine.dx() > 0:
                 # line is from left to right
                 if trackItem.previousItem == self._position.previousTI:
@@ -176,7 +179,6 @@ class Position:
             res = p.positionOnTI - self.positionOnTI
         return max(res, 0)
 
-
     def trackItemsToPosition(self, p):
         """Returns a list of all the trackItems between this position and
         position p including the trackItem of this position and the trackItem
@@ -204,17 +206,17 @@ class Position:
             return True
         if self.trackItem is None:
             return False
-        if (self.positionOnTI > self.trackItem.realLength or
-            self.positionOnTI < 0):
+        if self.positionOnTI > self.trackItem.realLength or \
+           self.positionOnTI < 0:
             return False
-        if (self.trackItem.nextItem != self.previousTI and
-            self.trackItem.previousItem != self.previousTI):
-            if (self.trackItem.tiType.startswith("P") and
-                self.trackItem.reverseItem == self.previousTI):
-                    return True
-            if (self.trackItem.tiType.startswith("E") and
-                self.previousTI is None):
-                    return True
+        if self.trackItem.nextItem != self.previousTI and \
+           self.trackItem.previousItem != self.previousTI:
+            if self.trackItem.tiType.startswith("P") and \
+               self.trackItem.reverseItem == self.previousTI:
+                return True
+            if self.trackItem.tiType.startswith("E") and \
+               self.previousTI is None:
+                return True
             return False
         return True
 
@@ -234,8 +236,8 @@ class Position:
     def __eq__(self, p):
         """Returns True if p is the same Position as this one."""
         return (self._trackItem == p.trackItem
-            and self._previousTI == p.previousTI
-            and self._positionOnTI == p.positionOnTI)
+                and self._previousTI == p.previousTI
+                and self._positionOnTI == p.positionOnTI)
 
     def __ne__(self, p):
         """Returns True if p is not the same Position as this one."""
@@ -289,11 +291,10 @@ class Position:
     def __str__(self):
         """Returns the string representation of the position, which is
         "(trackItem.tiId, previousTI.tiId, positionOnTI)"."""
-        if (self.trackItem is None and
-            self.previousTI is None and
-            self.positionOnTI == 0):
+        if self.trackItem is None and \
+           self.previousTI is None and \
+           self.positionOnTI == 0:
             return "<Null position>"
         return "(%i, %i, %f)" % (self.trackItem.tiId,
                                  self.previousTI.tiId,
                                  self.positionOnTI)
-

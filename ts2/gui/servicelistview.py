@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,12 +18,12 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtGui, QtCore
+from Qt import QtCore, QtWidgets
 
 from ts2 import simulation
 
 
-class ServiceListView(QtGui.QTreeView):
+class ServiceListView(QtWidgets.QTreeView):
     """TODO Document ServiceListView"""
 
     def __init__(self, parent):
@@ -45,15 +45,16 @@ class ServiceListView(QtGui.QTreeView):
                 index = self.model().index(i, 0)
                 if self.model().data(index) == serviceCode:
                     self.selectionModel().select(
-                                    index,
-                                    QtGui.QItemSelectionModel.Rows|
-                                    QtGui.QItemSelectionModel.ClearAndSelect)
+                        index,
+                        QtCore.QItemSelectionModel.Rows |
+                        QtCore.QItemSelectionModel.ClearAndSelect
+                    )
 
     @QtCore.pyqtSlot(simulation.Simulation)
     def setupServiceList(self, sim):
         """Updates the service list view."""
         self.simulation = sim
-        #if self.model() is None:
+        # if self.model() is None:
         model = self.simulation.serviceListModel
         model.updateModel()
         self.setModel(model)
@@ -62,10 +63,9 @@ class ServiceListView(QtGui.QTreeView):
             self.resizeColumnToContents(i)
         self.header().setStretchLastSection(False)
         self.header().setSortIndicatorShown(False)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
-
-    @QtCore.pyqtSlot(QtGui.QItemSelection, QtGui.QItemSelection)
+    @QtCore.pyqtSlot(QtCore.QItemSelection, QtCore.QItemSelection)
     def selectionChanged(self, selected, deselected):
         """This function is called when a line is selected in the
         serviceListView.
@@ -74,4 +74,3 @@ class ServiceListView(QtGui.QTreeView):
         index = selected.indexes()[0]
         if index.isValid():
             self.serviceSelected.emit(index.data())
-

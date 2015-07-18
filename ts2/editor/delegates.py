@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,13 +18,10 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import Qt
-
-from ts2.scenery import pointsitem
+from Qt import QtWidgets, Qt
 
 
-class ServicesDelegate(QtGui.QStyledItemDelegate):
+class ServicesDelegate(QtWidgets.QStyledItemDelegate):
     """ServicesDelegate is a delegate that provides a combo box for
     selecting a Service.
     """
@@ -32,7 +29,7 @@ class ServicesDelegate(QtGui.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         """Creates the editor, i.e. a combo box for selecting a service."""
         simulation = index.model().sourceModel().simulation
-        comboBox = QtGui.QComboBox(parent)
+        comboBox = QtWidgets.QComboBox(parent)
         comboBox.setModel(simulation.servicesModel)
         comboBox.setModelColumn(0)
         return comboBox
@@ -43,11 +40,9 @@ class ServicesDelegate(QtGui.QStyledItemDelegate):
         serviceCode = index.model().data(index, Qt.EditRole)
         startSearchIndex = simulation.servicesModel.index(0, 0)
         serviceIndexes = simulation.servicesModel.match(
-                                                startSearchIndex,
-                                                Qt.DisplayRole,
-                                                serviceCode,
-                                                1,
-                                                Qt.MatchExactly|Qt.MatchWrap)
+            startSearchIndex, Qt.DisplayRole, serviceCode, 1,
+            Qt.MatchExactly | Qt.MatchWrap
+        )
         if len(serviceIndexes) > 0:
             serviceIndex = serviceIndexes[0].row()
         else:
@@ -64,8 +59,7 @@ class ServicesDelegate(QtGui.QStyledItemDelegate):
         editor.setGeometry(option.rect)
 
 
-
-class TrainTypesDelegate(QtGui.QStyledItemDelegate):
+class TrainTypesDelegate(QtWidgets.QStyledItemDelegate):
     """TrainTypesDelegate is a delegate that provides a combo box for
     selecting a TrainType.
     """
@@ -73,7 +67,7 @@ class TrainTypesDelegate(QtGui.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         """Creates the editor, i.e. a combo box for selecting a train type."""
         simulation = index.model().sourceModel().simulation
-        comboBox = QtGui.QComboBox(parent)
+        comboBox = QtWidgets.QComboBox(parent)
         comboBox.setModel(simulation.trainTypesModel)
         comboBox.setModelColumn(0)
         return comboBox
@@ -84,11 +78,9 @@ class TrainTypesDelegate(QtGui.QStyledItemDelegate):
         code = index.data(Qt.EditRole)
         startSearchIndex = simulation.trainTypesModel.index(0, 0)
         trainTypeIndexes = simulation.trainTypesModel.match(
-                                                startSearchIndex,
-                                                Qt.DisplayRole,
-                                                code,
-                                                1,
-                                                Qt.MatchExactly|Qt.MatchWrap)
+            startSearchIndex, Qt.DisplayRole, code, 1,
+            Qt.MatchExactly | Qt.MatchWrap
+        )
         if len(trainTypeIndexes) > 0:
             trainTypeIndex = trainTypeIndexes[0].row()
         else:
@@ -105,7 +97,7 @@ class TrainTypesDelegate(QtGui.QStyledItemDelegate):
         editor.setGeometry(option.rect)
 
 
-class PropertyValuesDelegate(QtGui.QStyledItemDelegate):
+class PropertyValuesDelegate(QtWidgets.QStyledItemDelegate):
     """PropertyValuesDelegate is a delegate that provides different editing
     delegates for property values depending on the property propType."""
 
@@ -114,7 +106,7 @@ class PropertyValuesDelegate(QtGui.QStyledItemDelegate):
         direction."""
         prop = index.model().trackItems[0].properties[index.row()]
         if prop.propType == "enum":
-            comboBox = QtGui.QComboBox(parent)
+            comboBox = QtWidgets.QComboBox(parent)
             comboBox.insertItems(0, prop.enumNames)
             return comboBox
         else:

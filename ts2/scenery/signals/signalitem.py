@@ -20,14 +20,14 @@
 
 import copy
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.Qt import Qt
+from Qt import QtCore, QtGui, QtWidgets, Qt
 
 from ts2 import utils
 from ts2.scenery import abstract, helper
 from ts2.scenery.signals import signaltype
 from ts2.scenery.signals.signaltype import ConditionCode as stCode
-translate = QtGui.qApp.translate
+
+translate = QtWidgets.qApp.translate
 
 
 class SignalItem(abstract.TrackItem):
@@ -43,8 +43,8 @@ class SignalItem(abstract.TrackItem):
         signalTypeName = parameters["signaltype"]
         self._signalType = simulation.signalTypes[signalTypeName]
         self._routesSetParams = eval(str(parameters["routesset"])) or {}
-        self._trainNotPresentParams = eval(str(parameters["trainpresent"])) \
-                                      or {}
+        self._trainNotPresentParams = \
+            eval(str(parameters["trainpresent"])) or {}
         try:
             xb = float(parameters["xn"])
         except TypeError:
@@ -87,22 +87,21 @@ class SignalItem(abstract.TrackItem):
         # TODO: Remove builtin reference below to allow custom signal types
         signalTypeNames = [x["name"] for x in signaltype.builtin_signal_types]
         return abstract.TrackItem.getProperties() + [
-                helper.TIProperty("reverse",
-                                  translate("SignalItem", "Reverse")),
-                helper.TIProperty("signalTypeStr",
-                                  translate("SignalItem", "Signal Type"),
-                                  False,
-                                  "enum",
-                                  signalTypeNames,
-                                  signalTypeNames),
-                helper.TIProperty("routesSetParamsStr",
-                                  translate("SignalItem",
-                                            "Route set params")),
-                helper.TIProperty("trainNotPresentParamsStr",
-                                  translate("SignalItem",
-                                            "No train params")),
-                helper.TIProperty("berthOriginStr",
-                                  translate("SignalItem", "Berth Origin"))]
+            helper.TIProperty("reverse",
+                              translate("SignalItem", "Reverse")),
+            helper.TIProperty("signalTypeStr",
+                              translate("SignalItem", "Signal Type"),
+                              False,
+                              "enum",
+                              signalTypeNames,
+                              signalTypeNames),
+            helper.TIProperty("routesSetParamsStr",
+                              translate("SignalItem", "Route set params")),
+            helper.TIProperty("trainNotPresentParamsStr",
+                              translate("SignalItem", "No train params")),
+            helper.TIProperty("berthOriginStr",
+                              translate("SignalItem", "Berth Origin"))
+        ]
 
     signalSelected = QtCore.pyqtSignal(int, bool, bool)
     signalUnselected = QtCore.pyqtSignal(int)
@@ -112,15 +111,15 @@ class SignalItem(abstract.TrackItem):
         """Returns the parameters dictionary to save this TrackItem to the
         database"""
         parameters = super().getSaveParameters()
-        parameters.update({"reverse":int(self.reverse),
-                           "signaltype":self.signalTypeStr,
-                           "routesset":str(self.routesSetParamsStr),
-                           "trainpresent":str(self.trainNotPresentParamsStr),
-                           "xn":self.berthOrigin.x(),
-                           "yn":self.berthOrigin.y()})
+        parameters.update({"reverse": int(self.reverse),
+                           "signaltype": self.signalTypeStr,
+                           "routesset": str(self.routesSetParamsStr),
+                           "trainpresent": str(self.trainNotPresentParamsStr),
+                           "xn": self.berthOrigin.x(),
+                           "yn": self.berthOrigin.y()})
         return parameters
 
-    ### Properties #########################################################
+    # ## Properties #########################################################
 
     origin = property(abstract.TrackItem._getOrigin,
                       abstract.TrackItem._setOrigin)
@@ -169,8 +168,9 @@ class SignalItem(abstract.TrackItem):
     def _setSignalTypeStr(self, value):
         """Setter function for the signalType property."""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            self._signalType = self.simulation.signalTypes.get(value,
-                                  self.simulation.signalTypes["UK_3_ASPECTS"])
+            self._signalType = self.simulation.signalTypes.get(
+                value, self.simulation.signalTypes["UK_3_ASPECTS"]
+            )
             self.updateSignalParams()
             self.updateSignalState()
 
@@ -218,7 +218,7 @@ class SignalItem(abstract.TrackItem):
                 self._trainNotPresentParams = eval(str(value))
 
     trainNotPresentParamsStr = property(_getTrainNotPresentParamsStr,
-                                     _setTrainNotPresentParamsStr)
+                                        _setTrainNotPresentParamsStr)
 
     def _getBerthOrigin(self):
         """Returns the origin of the berth graphics item as a QPointF."""
@@ -231,9 +231,8 @@ class SignalItem(abstract.TrackItem):
             self._gi[SignalItem.BERTH_GRAPHIC_ITEM].setPos(value)
 
     berthOrigin = property(_getBerthOrigin, _setBerthOrigin)
-    berthOriginStr = property(
-                           abstract.qPointFStrizer("berthOrigin"),
-                           abstract.qPointFDestrizer("berthOrigin"))
+    berthOriginStr = property(abstract.qPointFStrizer("berthOrigin"),
+                              abstract.qPointFDestrizer("berthOrigin"))
 
     @property
     def berthRect(self):
@@ -248,8 +247,8 @@ class SignalItem(abstract.TrackItem):
     @property
     def highlighted(self):
         return ((self.activeRoute is not None) or
-               (self.previousActiveRoute is not None) or
-               (self.nextActiveRoute is not None))
+                (self.previousActiveRoute is not None) or
+                (self.nextActiveRoute is not None))
 
     @property
     def signalHighlighted(self):
@@ -328,7 +327,7 @@ class SignalItem(abstract.TrackItem):
         else:
             return ""
 
-    ### Methods #########################################################
+    # ## Methods #########################################################
 
     def setBerthRect(self):
         """Sets the berth graphics item boundingRect."""
@@ -374,12 +373,13 @@ class SignalItem(abstract.TrackItem):
             # => base TrackItem actions
             super().trainTailActions(trainId)
         else:
-            self.resetActiveRoute() # For cleaning purposes:
-                                    # activeRoute not used in this direction
+            # For cleaning purposes: activeRoute not used in this direction
+            self.resetActiveRoute()
+
             if (self.previousActiveRoute is not None) and \
                (not self.previousActiveRoute.persistent):
                 beginSignalNextRoute = \
-                        self.previousActiveRoute.beginSignal.nextActiveRoute
+                    self.previousActiveRoute.beginSignal.nextActiveRoute
                 if beginSignalNextRoute is None or \
                    beginSignalNextRoute != self.previousActiveRoute:
                     # Only reset previous route if the user did not
@@ -403,16 +403,15 @@ class SignalItem(abstract.TrackItem):
         tnp = {}
         for sc in self.signalType.conditions:
             if sc.conditionCode & stCode.TRAIN_NOT_PRESENT_ON_ITEMS:
-                tnp[sc.aspect.name] = self.trainNotPresentParams.get(
-                                                        sc.aspect.name, [])
+                tnp[sc.aspect.name] = \
+                    self.trainNotPresentParams.get(sc.aspect.name, [])
         self.trainNotPresentParamsStr = str(tnp)
         rs = {}
         for sc in self.signalType.conditions:
             if sc.conditionCode & stCode.ROUTES_SET:
-                rs[sc.aspect.name] = self.routesSetParams.get(
-                                                        sc.aspect.name, [])
+                rs[sc.aspect.name] = \
+                    self.routesSetParams.get(sc.aspect.name, [])
         self.routesSetParamsStr = str(rs)
-
 
     @QtCore.pyqtSlot()
     def updateSignalState(self):
@@ -426,7 +425,7 @@ class SignalItem(abstract.TrackItem):
             if not self.trainsAhead():
                 currentSituation |= stCode.TRAIN_NOT_PRESENT_ON_NEXT_ROUTE
             if self.nextActiveRoute is not None:
-                for sa in sc.params.get(stCode.NEXT_SIGNAL_ASPECTS,[]):
+                for sa in sc.params.get(stCode.NEXT_SIGNAL_ASPECTS, []):
                     if self.nextActiveRoute.endSignal.activeAspect.name == sa:
                         currentSituation |= stCode.NEXT_SIGNAL_ASPECTS
                         break
@@ -464,18 +463,26 @@ class SignalItem(abstract.TrackItem):
         for tnp in self.trainNotPresentParams.values():
             tiIds.extend(tnp)
         for tiId in tiIds:
-            self.simulation.trackItem(tiId).trainEntersItem.connect(self.updateSignalState)
-            self.simulation.trackItem(tiId).trainLeavesItem.connect(self.updateSignalState)
+            self.simulation.trackItem(tiId).trainEntersItem.connect(
+                self.updateSignalState
+            )
+            self.simulation.trackItem(tiId).trainLeavesItem.connect(
+                self.updateSignalState
+            )
 
         # Add triggers to routes defined in routeSetParams
         tiIds = []
         for rs in self.routesSetParams.values():
             tiIds.extend(rs)
         for tiId in tiIds:
-            self.simulation.routes[tiId].routeSelected.connect(self.updateSignalState)
-            self.simulation.routes[tiId].routeUnselected.connect(self.updateSignalState)
+            self.simulation.routes[tiId].routeSelected.connect(
+                self.updateSignalState
+            )
+            self.simulation.routes[tiId].routeUnselected.connect(
+                self.updateSignalState
+            )
 
-    ### Graphics Methods ################################################
+    # ## Graphics Methods ################################################
 
     def graphicsMousePressEvent(self, e, itemId):
         """Reimplemented from TrackItem.graphicsMousePressEvent to handle the
@@ -489,7 +496,7 @@ class SignalItem(abstract.TrackItem):
                 if self.simulation.context == utils.Context.GAME:
                     self.selected = True
                 persistent = (e.modifiers() == Qt.ShiftModifier)
-                force = (e.modifiers() == Qt.AltModifier|Qt.ControlModifier)
+                force = (e.modifiers() == Qt.AltModifier | Qt.ControlModifier)
                 self.signalSelected.emit(self.tiId, persistent, force)
             elif itemId == SignalItem.BERTH_GRAPHIC_ITEM:
                 self.trainSelected.emit(self.trainId)
@@ -507,8 +514,8 @@ class SignalItem(abstract.TrackItem):
                     train = self.simulation.trains[self._trainId]
                     if train is not None:
                         train.showTrainActionsMenu(
-                                    self.simulation.simulationWindow.view,
-                                    e.screenPos())
+                            self.simulation.simulationWindow.view, e.screenPos()
+                        )
         self.updateGraphics()
 
     def graphicsBoundingRect(self, itemId):
@@ -522,13 +529,13 @@ class SignalItem(abstract.TrackItem):
                 rect.adjust(-5, -5, 5, 5)
             return rect
 
-    def graphicsPaint(self, p, options, itemId, widget = 0):
+    def graphicsPaint(self, p, options, itemId, widget=0):
         """ Reimplemented from TrackItem.graphicsPaint to
         draw the signal on the owned TrackGraphicsItem"""
         super().graphicsPaint(p, options, itemId, widget)
         isGame = (self.simulation.context == utils.Context.GAME)
-        isEditorScenery = (self.simulation.context ==
-                                                utils.Context.EDITOR_SCENERY)
+        isEditorScenery = \
+            (self.simulation.context == utils.Context.EDITOR_SCENERY)
         linePen = self.getPen()
         shapePen = self.getPen()
         shapePen.setColor(Qt.white)
@@ -544,7 +551,7 @@ class SignalItem(abstract.TrackItem):
                 shapePen.setColor(Qt.darkGray)
 
             persistent = (self.nextActiveRoute is not None and
-                        self.nextActiveRoute.persistent)
+                          self.nextActiveRoute.persistent)
             self.activeAspect.drawAspect(p, linePen, shapePen, persistent)
 
             # Draw the connection rects
@@ -576,7 +583,6 @@ class SignalItem(abstract.TrackItem):
                 if isEditorScenery:
                     self.drawConnectionRect(p, QtCore.QPointF(0, 0))
 
-
     def graphicsMouseMoveEvent(self, event, itemId=0):
         """This function is called by the owned TrackGraphicsItem to handle
         its mouseMoveEvent. The implementation in the base class TrackItem
@@ -585,17 +591,18 @@ class SignalItem(abstract.TrackItem):
         if itemId == SignalItem.BERTH_GRAPHIC_ITEM:
             if event.buttons() == Qt.LeftButton and \
                self.simulation.context == utils.Context.EDITOR_SCENERY:
-                if QtCore.QLineF(event.scenePos(), event\
-                           .buttonDownScenePos(Qt.LeftButton)).length() < 3.0:
+                if QtCore.QLineF(
+                        event.scenePos(),
+                        event.buttonDownScenePos(Qt.LeftButton)).length() < 3.0:
                     return
                 drag = QtGui.QDrag(event.widget())
                 mime = QtCore.QMimeData()
-                pos = event.buttonDownScenePos(Qt.LeftButton) - \
-                                                            self.berthOrigin
+                pos = \
+                    event.buttonDownScenePos(Qt.LeftButton) - self.berthOrigin
                 mime.setText(self.tiType + "#" +
-                            str(self.tiId)+ "#" +
-                            str(pos.x()) + "#" +
-                            str(pos.y()) + "#" +
-                            "berthOrigin")
+                             str(self.tiId) + "#" +
+                             str(pos.x()) + "#" +
+                             str(pos.y()) + "#" +
+                             "berthOrigin")
                 drag.setMimeData(mime)
                 drag.exec_()

@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 #
 #   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
@@ -19,6 +18,9 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-if __name__ == '__main__':
-    import ts2.application
-    ts2.application.Main()
+from PyQt5 import QtCore
+from PyQt5.QtCore import Qt
+
+from PyQt5 import QtGui
+from PyQt5 import QtWidgets
+from PyQt5 import QtSql

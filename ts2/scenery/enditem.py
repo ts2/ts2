@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,12 +18,13 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtCore, Qt
+
 from ts2.scenery import abstract, helper
 from ts2 import utils
 
 BIG = 1000000000
+
 
 class EndItem(abstract.TrackItem):
     """End items are invisible items to which the free ends of other
@@ -49,7 +50,7 @@ class EndItem(abstract.TrackItem):
 
     end = property(_getEnd)
 
-    def getFollowingItem(self, precedingItem, direction = -1):
+    def getFollowingItem(self, precedingItem, direction=-1):
         """Reimplemented from TrackItem to return None if going to the free
         end."""
         if precedingItem == self._previousItem:

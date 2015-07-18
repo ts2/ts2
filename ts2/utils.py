@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -20,12 +20,13 @@
 
 import random
 
-from PyQt4 import QtCore
+from Qt import QtCore
 
 TS2_VERSION = "0.5"
 TS2_FILE_FORMAT = 0.5
 
-class Context():
+
+class Context:
     """This class holds the different contexts for ts2."""
     GAME = 10
     EDITORS = [20, 21, 22, 23, 24, 25]
@@ -43,12 +44,14 @@ class FormatException(Exception):
         """Constructor of the Exception class."""
         super().__init__(arg)
 
+
 def cumsum(lis):
     """Returns a list with the cumulated sum of lis."""
     summ = 0
     for x in lis:
         summ += x
         yield summ
+
 
 class DurationProba(QtCore.QObject):
     """A DurationProba is a probability distribution for a duration in
@@ -97,5 +100,3 @@ class DurationProba(QtCore.QObject):
         r1 = random.random()
         low, high, prob = self._probaList[seg]
         return r1 * (high - low) + low
-
-

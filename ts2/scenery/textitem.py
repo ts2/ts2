@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,12 +18,12 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtGui, QtCore, QtWidgets, Qt
+
 from ts2.scenery import abstract, helper
 from ts2 import utils
 
-tr = QtCore.QObject().tr
+translate = QtWidgets.qApp.translate
 
 
 class TextItem(abstract.TrackItem):
@@ -34,6 +34,7 @@ class TextItem(abstract.TrackItem):
         super().__init__(simulation, parameters)
         self.tiType = "ZT"
         self._name = parameters["name"]
+        self._rect = QtCore.QRectF()
         self.updateBoundingRect()
         gi = helper.TrackGraphicsItem(self)
         gi.setPos(self.origin)
@@ -49,10 +50,12 @@ class TextItem(abstract.TrackItem):
 
     @staticmethod
     def getProperties():
-        return [helper.TIProperty("tiTypeStr", tr("Type"), True),
-                helper.TIProperty("tiId", tr("id"), True),
-                helper.TIProperty("text", tr("Text")),
-                helper.TIProperty("originStr", tr("Point 1"))]
+        return [
+            helper.TIProperty("tiTypeStr", translate("TextItem", "Type"), True),
+            helper.TIProperty("tiId", translate("TextItem", "id"), True),
+            helper.TIProperty("text", translate("TextItem", "Text")),
+            helper.TIProperty("originStr", translate("TextItem", "Point 1"))
+        ]
 
     @property
     def text(self):
@@ -73,7 +76,7 @@ class TextItem(abstract.TrackItem):
         """Updates the bounding rectangle of the graphics item"""
         tl = QtGui.QTextLayout(self.text)
         tl.beginLayout()
-        line = tl.createLine()
+        tl.createLine()
         tl.endLayout()
         self._rect = tl.boundingRect()
 
@@ -89,7 +92,7 @@ class TextItem(abstract.TrackItem):
             else:
                 return self._rect
 
-    def graphicsPaint(self, p, options, itemId, widget = 0):
+    def graphicsPaint(self, p, options, itemId, widget=None):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter."""
         super().graphicsPaint(p, options, itemId, widget)
@@ -98,6 +101,3 @@ class TextItem(abstract.TrackItem):
         pen.setColor(Qt.white)
         p.setPen(pen)
         p.drawText(self._rect.bottomLeft(), self.text)
-
-
-

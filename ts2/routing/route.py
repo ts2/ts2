@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,9 +18,10 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtCore, Qt
+
 import ts2.routing
+
 
 class RoutesModel(QtCore.QAbstractTableModel):
     """The RoutesModel is a table model for routes that is used in the editor
@@ -30,16 +31,16 @@ class RoutesModel(QtCore.QAbstractTableModel):
         super().__init__()
         self._editor = editor
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows of the model, corresponding to the
         number of routes."""
         return len(self._editor.routes)
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
         return 4
 
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole or role == Qt.EditRole:
             routes = list(sorted(self._editor.routes.values()))
@@ -53,7 +54,7 @@ class RoutesModel(QtCore.QAbstractTableModel):
                 return routes[index.row()].initialState
         return None
 
-    def setData(self, index, value, role):
+    def setData(self, index, value, role=None):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
             if index.column() == 3:
@@ -63,7 +64,7 @@ class RoutesModel(QtCore.QAbstractTableModel):
                 return True
         return False
 
-    def headerData(self, section, orientation, role = Qt.DisplayRole):
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Returns the header labels"""
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             if section == 0:
@@ -93,7 +94,7 @@ class Route(QtCore.QObject):
     deactivate them.
     """
     def __init__(self, simulation, routeNum, beginSignal, endSignal,
-                                                            initialState = 0):
+                 initialState=0):
         """Constructor of the Route class. After construction, the directions
         dictionary must be filled and then the _positions list must be
         populated by calling createPositionsList().
@@ -197,12 +198,11 @@ class Route(QtCore.QObject):
                 elif cur.previousTI == cur.trackItem.reverseItem:
                     self._directions[cur.trackItem.tiId] = 1
                 elif cur.previousTI == cur.trackItem.commonItem \
-                     and cur.trackItem.tiId not in self._directions:
+                        and cur.trackItem.tiId not in self._directions:
                     self._directions[cur.trackItem.tiId] = 0
             cur = cur.next(0, self._directions.get(cur.trackItem.tiId, -1))
-        QtCore.qCritical(self.tr("Invalid route %i. "
-                            "Impossible to link beginSignal with endSignal"
-                            % self.routeNum))
+        QtCore.qCritical(self.tr("Invalid route %i. Impossible to link "
+                                 "beginSignal with endSignal" % self.routeNum))
         return False
 
     def links(self, si1, si2):
@@ -214,7 +214,7 @@ class Route(QtCore.QObject):
         else:
             return False
 
-    def activate(self, persistent = False):
+    def activate(self, persistent=False):
         """ This function is called by the simulation when the route is
         activated."""
         for pos in self._positions:
@@ -249,11 +249,11 @@ class Route(QtCore.QObject):
                     return False
                 if pos.trackItem.activeRoute is not None:
                     # The trackItem already has an active route
-                    if pos.trackItem.tiType.startswith("P") and flag == False:
+                    if pos.trackItem.tiType.startswith("P") and not flag:
                         # The trackItem is a pointsItem and it is the first
                         # trackItem with active route that we meet
                         return False
-                    if pos.previousTI!=pos.trackItem.activeRoutePreviousItem:
+                    if pos.previousTI != pos.trackItem.activeRoutePreviousItem:
                         # The direction of this route is different from that
                         # of the active route of the TI
                         return False
@@ -273,14 +273,13 @@ class Route(QtCore.QObject):
                     return False
         return True
 
-
     @property
     def persistent(self):
         """Returns True if this route is persistent"""
         return self._persistent
 
     @persistent.setter
-    def persistent(self, p = True):
+    def persistent(self, p=True):
         """Setter function for the persistent property"""
         self._persistent = p
 
@@ -311,4 +310,3 @@ class Route(QtCore.QObject):
     def __gt__(self, other):
         """Route is greater than other when its routeNum is greater"""
         return self.routeNum > other.routeNum
-

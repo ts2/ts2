@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -19,8 +19,9 @@
 #
 
 import copy
-from PyQt4 import QtCore
-from PyQt4.QtCore import Qt
+
+from Qt import QtCore, Qt
+
 from ts2 import utils
 
 
@@ -33,7 +34,7 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
         self._service = None
         self.simulation = simulation
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows of the model, corresponding to the
         number of serviceLines of this service + lines for displaying general
         service information."""
@@ -42,14 +43,14 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
         else:
             return 0
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
         if self._service is not None:
             return 4
         else:
             return 0
 
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if self._service is not None and role == Qt.DisplayRole:
             if index.row() == 0:
@@ -57,12 +58,12 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
                     return self.tr("Service no:")
                 if index.column() == 1:
                     return self._service.serviceCode
-            elif (index.row() == 1):
+            elif index.row() == 1:
                 if index.column() == 0:
                     return self.tr("Description:")
                 if index.column() == 1:
                     return self._service.description
-            elif (index.row() == 2):
+            elif index.row() == 2:
                 return None
             else:
                 line = self._service._lines[index.row() - 3]
@@ -76,7 +77,7 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
                     return line.scheduledDepartureTime
         return None
 
-    def headerData(self, column, orientation, role = Qt.DisplayRole):
+    def headerData(self, column, orientation, role=Qt.DisplayRole):
         """Returns the header labels"""
         if self._service is not None \
            and orientation == Qt.Horizontal\
@@ -98,8 +99,9 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
     @QtCore.pyqtSlot(str)
     def setServiceCode(self, serviceCode):
         """Sets the service linked with this model from its serviceCode."""
+        self.beginResetModel()
         self._service = self.simulation.service(serviceCode)
-        self.reset()
+        self.endResetModel()
 
 
 class ServiceListModel(QtCore.QAbstractTableModel):
@@ -110,24 +112,27 @@ class ServiceListModel(QtCore.QAbstractTableModel):
         """Constructor for the ServiceInfoModel class"""
         super().__init__()
         self.simulation = simulation
+        self._services = []
         self.updateModel()
 
     def updateModel(self):
         """Updates the internal copy of the services with the simulation
         services."""
-        self._services = sorted(self.simulation.services.values(),
-                        key = lambda x: x.lines[0].scheduledDepartureTimeStr)
+        self._services = sorted(
+            self.simulation.services.values(),
+            key=lambda x: x.lines[0].scheduledDepartureTimeStr
+        )
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows of the model, corresponding to the
         number of services in the simulation."""
         return len(self._services)
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
         return 5
 
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole:
             service = self._services[index.row()]
@@ -143,11 +148,11 @@ class ServiceListModel(QtCore.QAbstractTableModel):
                 return service.exitPlaceName
         return None
 
-    def headerData(self, section, orientation, role = Qt.DisplayRole):
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Returns the header labels"""
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             if section == 0:
-                return self.tr("Code");
+                return self.tr("Code")
             elif section == 1:
                 return self.tr("Time")
             elif section == 2:
@@ -162,7 +167,7 @@ class ServiceListModel(QtCore.QAbstractTableModel):
 
     def flags(self, index):
         """Returns the flags of the model"""
-        return Qt.ItemIsSelectable|Qt.ItemIsEnabled
+        return Qt.ItemIsSelectable | Qt.ItemIsEnabled
 
 
 class ServicesModel(QtCore.QAbstractTableModel):
@@ -178,16 +183,16 @@ class ServicesModel(QtCore.QAbstractTableModel):
         """Returns the simulation this model belongs to."""
         return self._editor
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows of the model, corresponding to the
         number of services of the editor"""
         return len(self._editor.services)
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
         return 5
 
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole or role == Qt.EditRole:
             service = list(self._editor.services.values())[index.row()]
@@ -203,14 +208,14 @@ class ServicesModel(QtCore.QAbstractTableModel):
                 return service.plannedTrainType
         return None
 
-    def setData(self, index, value, role):
+    def setData(self, index, value, role=None):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
             code = index.sibling(index.row(), 0).data()
             if index.column() == 0:
                 if (value is not None) and (value != ""):
                     self._editor.services[value] = \
-                                  copy.copy(self._editor.services[code])
+                        copy.copy(self._editor.services[code])
                     self._editor.services[value].serviceCode = value
                     del self._editor.services[code]
             elif index.column() == 1:
@@ -227,7 +232,7 @@ class ServicesModel(QtCore.QAbstractTableModel):
             return True
         return False
 
-    def headerData(self, section, orientation, role = Qt.DisplayRole):
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Returns the header labels"""
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             if section == 0:
@@ -258,9 +263,9 @@ class ServiceLine:
         self.simulation = service.simulation
         self._placeCode = parameters["placecode"]
         self._scheduledArrivalTime = \
-                QtCore.QTime.fromString(parameters["scheduledarrivaltime"])
+            QtCore.QTime.fromString(parameters["scheduledarrivaltime"])
         self._scheduledDepartureTime = \
-                QtCore.QTime.fromString(parameters["scheduleddeparturetime"])
+            QtCore.QTime.fromString(parameters["scheduleddeparturetime"])
         self._trackCode = parameters["trackcode"]
         self._stop = int(parameters["stop"])
 
@@ -362,7 +367,7 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
         self._service = None
         self._editor = editor
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows of the model, corresponding to the
         number of serviceLines of this service"""
         if self._service is not None:
@@ -370,11 +375,11 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
         else:
             return 0
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
         return 5
 
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole or role == Qt.EditRole:
             line = self._service.lines[index.row()]
@@ -390,7 +395,7 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
                 return bool(line.mustStop)
         return None
 
-    def setData(self, index, value, role):
+    def setData(self, index, value, role=None):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
             line = self._service.lines[index.row()]
@@ -410,7 +415,7 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
             return True
         return False
 
-    def headerData(self, section, orientation, role = Qt.DisplayRole):
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Returns the header labels"""
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             if section == 0:
@@ -468,11 +473,11 @@ class Service:
         """Returns the lines of this service"""
         return self._lines
 
-    #@property
-    #def minimumStopTime(self):
-        #"""Returns the minimum stop time applicable for this Service in the
-        #next plasce."""
-        #return float(self.simulation.option("defaultMinimumStopTime"))
+    # @property
+    # def minimumStopTime(self):
+        # """Returns the minimum stop time applicable for this Service in the
+        # next plasce."""
+        # return float(self.simulation.option("defaultMinimumStopTime"))
 
     @property
     def entryPlaceName(self):

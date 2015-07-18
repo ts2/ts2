@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau                                
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org                                                           
 #                                                                         
 #   This program is free software; you can redistribute it and/or modify  
@@ -19,9 +19,10 @@
 #
 
 import copy
-from PyQt4 import QtCore
-from PyQt4.Qt import Qt
+from Qt import QtCore, Qt
+
 from ts2 import utils
+
 
 class TrainTypesModel(QtCore.QAbstractTableModel):
     """Model for TrainType class used in the editor
@@ -31,16 +32,16 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
         super().__init__(editor)
         self._editor = editor
         
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows of the model, corresponding to the 
         number of rolling stock types."""
         return len(self._editor.trainTypes)
     
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
         return 7
     
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole or role == Qt.EditRole:
             trainTypes = list(self._editor.trainTypes.values())
@@ -60,14 +61,14 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
                 return trainTypes[index.row()].length
         return None
     
-    def setData(self, index, value, role):
+    def setData(self, index, value, role=None):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
             code = index.sibling(index.row(), 0).data()
             if index.column() == 0:
                 if (value is not None) and (value != ""):
                     self._editor.trainTypes[value] = \
-                                  copy.copy(self._editor.trainTypes[code])
+                        copy.copy(self._editor.trainTypes[code])
                     self._editor.trainTypes[value].code = value
                     del self._editor.trainTypes[code]
             elif index.column() == 1:
@@ -88,7 +89,7 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
             return True
         return False
     
-    def headerData(self, section, orientation, role = Qt.DisplayRole):
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Returns the header labels"""
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             if section == 0:
@@ -110,7 +111,6 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
     def flags(self, index):
         """Returns the flags of the model"""
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
-
 
 
 class TrainType:
@@ -209,4 +209,3 @@ class TrainType:
         """Setter function for the length property"""
         if self.simulation.context == utils.Context.EDITOR_TRAINTYPES:
             self._length = value
-

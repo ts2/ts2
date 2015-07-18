@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,8 +18,8 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtGui, Qt
+
 
 class Message(QtCore.QObject):
     """A Message instance holds all the data regarding one message emitted to
@@ -39,6 +39,7 @@ class Message(QtCore.QObject):
         """Returns the string representation of the message."""
         return self.msgText
 
+
 class MessageLogger(QtCore.QAbstractTableModel):
     """A MessageLogger holds all messages that has been emitted to it and
     format them so that it can be used directly as a model for views."""
@@ -53,22 +54,22 @@ class MessageLogger(QtCore.QAbstractTableModel):
         """Adds a message to the logger."""
         row = len(self._messages) - 1
         if msgType == Message.SIMULATION_MSG:
-            msgText = self.simulation.currentTime.toString("HH:mm - ") \
-                                                                    + msgText
+            msgText = \
+                self.simulation.currentTime.toString("HH:mm - ") + msgText
         self.beginInsertRows(QtCore.QModelIndex(), row, row)
         self._messages.insert(row, Message(self, msgText, msgType))
         self.endInsertRows()
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows of the model, corresponding to the
         number of messages in the logger."""
         return len(self._messages)
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
         return 1
 
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole:
             return str(self._messages[index.row()])
@@ -85,13 +86,10 @@ class MessageLogger(QtCore.QAbstractTableModel):
             elif msgType == Message.SIMULATION_MSG:
                 return QtGui.QBrush(Qt.yellow)
 
-    def headerData(self, column, orientation, role = Qt.DisplayRole):
+    def headerData(self, column, orientation, role=Qt.DisplayRole):
         """Returns the column headers to display"""
         return None
 
     def flags(self, index):
         """Returns the flags of the model"""
         return Qt.ItemIsEnabled
-
-
-

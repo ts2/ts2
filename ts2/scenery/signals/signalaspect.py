@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2014 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,8 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtGui, Qt
 
 
 class SignalShape:
@@ -42,6 +41,7 @@ class SignalShape:
     POLE_NE = 34
     POLE_NSE = 35
 
+
 class SignalLineStyle:
     """This class holds the possible representation shapes for the line at
     the base of the signal.
@@ -49,12 +49,14 @@ class SignalLineStyle:
     LINE = 0
     BUFFER = 1
 
+
 class Target:
     """This class defines when a speed limit associated with a signal aspect
     must be applied."""
     ASAP = 0
     BEFORE_THIS_SIGNAL = 1
     BEFORE_NEXT_SIGNAL = 2
+
 
 class SignalAspect(QtCore.QObject):
     """SignalAspect class represents an aspect of a signal, that is a
@@ -69,9 +71,10 @@ class SignalAspect(QtCore.QObject):
         self.outerColors = eval(str(parameters["outercolors"]))
         self.shapes = eval(str(parameters["shapes"]))
         self.shapesColors = eval(str(parameters["shapescolors"]))
-        self.actions = [(t, s) for t, s in zip(
-                                        eval(str(parameters["targets"])),
-                                        eval(str(parameters["speedlimits"])))]
+        self.actions = [(t, s) for t, s in
+                        zip(eval(str(parameters["targets"])),
+                            eval(str(parameters["speedlimits"])))
+                        ]
 
     def meansProceed(self):
         """Returns true if this aspect is a proceed aspect, returns false if
@@ -118,7 +121,6 @@ class SignalAspect(QtCore.QObject):
                 ppen.setCapStyle(Qt.FlatCap)
                 p.setPen(ppen)
                 p.drawLine(6, -10, 6, -3)
-
 
     def drawShape(self, p, shape, rect):
         """Draws the shape on painter p inside rect."""
@@ -169,4 +171,3 @@ class SignalAspect(QtCore.QObject):
     def boundingRect(self):
         """Return the boundingRect of this aspect."""
         return QtCore.QRectF(0, -20, 33, 24)
-

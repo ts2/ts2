@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,22 +18,26 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtWidgets, Qt
+
 from ts2 import utils
 from ts2.scenery import helper, abstract
 
-translate = QtGui.qApp.translate
+translate = QtWidgets.qApp.translate
+
 
 def getEndNames():
-    return [translate("PointsItem", "N"),
-            translate("PointsItem", "NE"),
-            translate("PointsItem", "E"),
-            translate("PointsItem", "SE"),
-            translate("PointsItem", "S"),
-            translate("PointsItem", "SW"),
-            translate("PointsItem", "W"),
-            translate("PointsItem", "NW")]
+    return [
+        translate("PointsItem", "N"),
+        translate("PointsItem", "NE"),
+        translate("PointsItem", "E"),
+        translate("PointsItem", "SE"),
+        translate("PointsItem", "S"),
+        translate("PointsItem", "SW"),
+        translate("PointsItem", "W"),
+        translate("PointsItem", "NW")
+    ]
+
 
 def getEndValues():
     return [(0, -5), (5, -5), (5, 0), (5, 5),
@@ -63,7 +67,7 @@ class PointsItem(abstract.TrackItem):
         self._commonEnd = QtCore.QPointF(cpx, cpy)
         self._normalEnd = QtCore.QPointF(npx, npy)
         self._reverseEnd = QtCore.QPointF(rpx, rpy)
-        self._center = QtCore.QPointF(x,y)
+        self._center = QtCore.QPointF(x, y)
         self._pointsReversed = False
         self._reverseItem = None
         self.defaultZValue = 60
@@ -79,24 +83,25 @@ class PointsItem(abstract.TrackItem):
     @staticmethod
     def getProperties():
         return abstract.TrackItem.getProperties() + [
-                helper.TIProperty("commonEndTuple",
-                                  translate("PointsItem", "Common End"),
-                                  False,
-                                  "enum",
-                                  getEndNames(),
-                                  getEndValues()),
-                helper.TIProperty("normalEndTuple",
-                                  translate("PointsItem", "Normal End"),
-                                  False,
-                                  "enum",
-                                  getEndNames(),
-                                  getEndValues()),
-                helper.TIProperty("reverseEndTuple",
-                                  translate("PointsItem", "Reverse End"),
-                                  False,
-                                  "enum",
-                                  getEndNames(),
-                                  getEndValues())]
+            helper.TIProperty("commonEndTuple",
+                              translate("PointsItem", "Common End"),
+                              False,
+                              "enum",
+                              getEndNames(),
+                              getEndValues()),
+            helper.TIProperty("normalEndTuple",
+                              translate("PointsItem", "Normal End"),
+                              False,
+                              "enum",
+                              getEndNames(),
+                              getEndValues()),
+            helper.TIProperty("reverseEndTuple",
+                              translate("PointsItem", "Reverse End"),
+                              False,
+                              "enum",
+                              getEndNames(),
+                              getEndValues())
+        ]
 
     def getSaveParameters(self):
         """Returns the parameters dictionary to save this TrackItem to the
@@ -107,18 +112,19 @@ class PointsItem(abstract.TrackItem):
         else:
             reverseTiId = None
         parameters.update({
-                                "x":self._center.x(),
-                                "y":self._center.y(),
-                                "xf":self._commonEnd.x(),
-                                "yf":self._commonEnd.y(),
-                                "xn":self._normalEnd.x(),
-                                "yn":self._normalEnd.y(),
-                                "xr":self._reverseEnd.x(),
-                                "yr":self._reverseEnd.y(),
-                                "rtiid":reverseTiId})
+            "x": self._center.x(),
+            "y": self._center.y(),
+            "xf": self._commonEnd.x(),
+            "yf": self._commonEnd.y(),
+            "xn": self._normalEnd.x(),
+            "yn": self._normalEnd.y(),
+            "xr": self._reverseEnd.x(),
+            "yr": self._reverseEnd.y(),
+            "rtiid": reverseTiId
+        })
         return parameters
 
-    ### Properties #####################################################
+    # ## Properties #####################################################
 
     # Ends in scene coordinates
     def _getOrigin(self):
@@ -201,11 +207,11 @@ class PointsItem(abstract.TrackItem):
     middle = property(_getMiddle)
 
     commonEndTuple = property(abstract.qPointFTupler("commonEnd"),
-                            abstract.qPointFDetupler("commonEnd"))
+                              abstract.qPointFDetupler("commonEnd"))
     normalEndTuple = property(abstract.qPointFTupler("normalEnd"),
-                            abstract.qPointFDetupler("normalEnd"))
+                              abstract.qPointFDetupler("normalEnd"))
     reverseEndTuple = property(abstract.qPointFTupler("reverseEnd"),
-                            abstract.qPointFDetupler("reverseEnd"))
+                               abstract.qPointFDetupler("reverseEnd"))
 
     # Other properties
 
@@ -247,9 +253,9 @@ class PointsItem(abstract.TrackItem):
         """Returns the string to show on the tool tip"""
         return self.tr("Points no: %s" % self.name)
 
-    ### Methods ########################################################
+    # ## Methods ########################################################
 
-    def getFollowingItem(self, precedingItem, direction = -1):
+    def getFollowingItem(self, precedingItem, direction=-1):
         """Overload of TrackItem.getFollowingItem for PointsItem, including
         the direction
         @param precedingItem The TrackItem we come from
@@ -258,8 +264,8 @@ class PointsItem(abstract.TrackItem):
         self._pointsReversed)"""
         if precedingItem == self.commonItem:
             if direction < 0:
-                return self.reverseItem if self.pointsReversed \
-                       else self.normalItem
+                return \
+                    self.reverseItem if self.pointsReversed else self.normalItem
             elif direction == 0:
                 return self.normalItem
             else:
@@ -276,9 +282,9 @@ class PointsItem(abstract.TrackItem):
             self.pointsReversed = True
         super().setActiveRoute(r, previous)
 
-    ### Graphics methods ###############################################
+    # ## Graphics methods ###############################################
 
-    def graphicsPaint(self, p, options, itemId, widget = 0):
+    def graphicsPaint(self, p, options, itemId, widget=None):
         """Draws the points on the painter given as parameter.
         This function is called by PointsGraphicsItem.paint.
         @param p The painter on which to draw the signal."""
@@ -331,4 +337,3 @@ class PointsItem(abstract.TrackItem):
             else:
                 self.pointsReversed = True
             self.updateGraphics()
-

@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,8 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtGui, QtWidgets, Qt
 
 from ts2 import simulation, utils
 from ts2.gui import dialogs, trainlistview, servicelistview, widgets
@@ -27,12 +26,13 @@ from ts2.scenery import placeitem
 from ts2.editor import editorwindow
 
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     """ TODO Document MainWindow Class"""
 
     def __init__(self):
         super().__init__()
         MainWindow._self = self
+        self.editorWindow = None
         self.setWindowState(Qt.WindowMaximized)
         self.setGeometry(100, 100, 800, 600)
         self.setWindowTitle(self.tr("ts2 - Train Signalling Simulation"))
@@ -41,46 +41,45 @@ class MainWindow(QtGui.QMainWindow):
         self.simulation = None
 
         # Actions
-        self.openAction = QtGui.QAction(self.tr("&Open..."), self)
+        self.openAction = QtWidgets.QAction(self.tr("&Open..."), self)
         self.openAction.setShortcut(QtGui.QKeySequence.Open)
         self.openAction.setToolTip(self.tr("Open a simulation or a "
                                            "previously saved game"))
         self.openAction.triggered.connect(self.loadSimulation)
 
-        self.saveGameAsAction = QtGui.QAction(self.tr("&Save game as..."),
-                                              self)
+        self.saveGameAsAction = QtWidgets.QAction(self.tr("&Save game as..."),
+                                                  self)
         self.saveGameAsAction.setShortcut(QtGui.QKeySequence.SaveAs)
         self.saveGameAsAction.setToolTip(self.tr("Save the current game"))
         self.saveGameAsAction.triggered.connect(self.saveGame)
         self.saveGameAsAction.setEnabled(False)
 
-        self.propertiesAction = QtGui.QAction(self.tr("&Properties..."),
-                                              self)
-        self.propertiesAction.setShortcut(QtGui.QKeySequence(
-                                                        self.tr("Ctrl+P")))
-        self.propertiesAction.setToolTip(
-                                        self.tr("Edit simulation properties"))
+        self.propertiesAction = QtWidgets.QAction(self.tr("&Properties..."),
+                                                  self)
+        self.propertiesAction.setShortcut(
+            QtGui.QKeySequence(self.tr("Ctrl+P"))
+        )
+        self.propertiesAction.setToolTip(self.tr("Edit simulation properties"))
         self.propertiesAction.triggered.connect(self.openPropertiesDialog)
         self.propertiesAction.setEnabled(False)
 
-
-        self.quitAction = QtGui.QAction(self.tr("&Quit"), self)
+        self.quitAction = QtWidgets.QAction(self.tr("&Quit"), self)
         self.quitAction.setShortcut(QtGui.QKeySequence(self.tr("Ctrl+Q")))
         self.quitAction.setToolTip(self.tr("Quit TS2"))
         self.quitAction.triggered.connect(self.close)
 
-        self.editorAction = QtGui.QAction(self.tr("&Editor"), self)
+        self.editorAction = QtWidgets.QAction(self.tr("&Editor"), self)
         self.editorAction.setShortcut(QtGui.QKeySequence(self.tr("Ctrl+E")))
         self.editorAction.setToolTip(self.tr("Open the simulation editor"))
         self.editorAction.triggered.connect(self.openEditor)
 
-        self.aboutAction = QtGui.QAction(self.tr("&About TS2..."), self)
+        self.aboutAction = QtWidgets.QAction(self.tr("&About TS2..."), self)
         self.aboutAction.setToolTip(self.tr("About TS2"))
         self.aboutAction.triggered.connect(self.showAboutBox)
 
-        self.aboutQtAction = QtGui.QAction(self.tr("About Qt..."), self)
+        self.aboutQtAction = QtWidgets.QAction(self.tr("About Qt..."), self)
         self.aboutQtAction.setToolTip(self.tr("About Qt"))
-        self.aboutQtAction.triggered.connect(QtGui.QApplication.aboutQt)
+        self.aboutQtAction.triggered.connect(QtWidgets.QApplication.aboutQt)
 
         # Menu
         self.fileMenu = self.menuBar().addMenu(self.tr("&File"))
@@ -97,79 +96,93 @@ class MainWindow(QtGui.QMainWindow):
         self.menuBar().setCursor(Qt.PointingHandCursor)
 
         # Dock Widgets
-        self.trainInfoPanel = QtGui.QDockWidget(self.tr("Train Information"),
-                                                self)
-        self.trainInfoPanel.setFeatures(QtGui.QDockWidget.DockWidgetMovable|
-                                        QtGui.QDockWidget.DockWidgetFloatable)
-        self.trainInfoView = QtGui.QTreeView(self)
+        self.trainInfoPanel = QtWidgets.QDockWidget(
+            self.tr("Train Information"), self
+        )
+        self.trainInfoPanel.setFeatures(
+            QtWidgets.QDockWidget.DockWidgetMovable |
+            QtWidgets.QDockWidget.DockWidgetFloatable
+        )
+        self.trainInfoView = QtWidgets.QTreeView(self)
         self.trainInfoView.setItemsExpandable(False)
         self.trainInfoView.setRootIsDecorated(False)
         self.trainInfoView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.trainInfoView.customContextMenuRequested.connect(
-                                            self.showContextMenu)
+            self.showContextMenu
+        )
         self.trainInfoPanel.setWidget(self.trainInfoView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.trainInfoPanel)
 
-        self.serviceInfoPanel = QtGui.QDockWidget(
-                                            self.tr("Service Information"),
-                                            self)
-        self.serviceInfoPanel.setFeatures(QtGui.QDockWidget.DockWidgetMovable|
-                                        QtGui.QDockWidget.DockWidgetFloatable)
-        self.serviceInfoView = QtGui.QTreeView(self)
+        self.serviceInfoPanel = QtWidgets.QDockWidget(
+            self.tr("Service Information"), self
+        )
+        self.serviceInfoPanel.setFeatures(
+            QtWidgets.QDockWidget.DockWidgetMovable |
+            QtWidgets.QDockWidget.DockWidgetFloatable
+        )
+        self.serviceInfoView = QtWidgets.QTreeView(self)
         self.serviceInfoView.setItemsExpandable(False)
         self.serviceInfoView.setRootIsDecorated(False)
         self.serviceInfoPanel.setWidget(self.serviceInfoView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.serviceInfoPanel)
 
-        self.placeInfoPanel = QtGui.QDockWidget(
-                                        self.tr("Station Information"), self)
-        self.placeInfoPanel.setFeatures(QtGui.QDockWidget.DockWidgetMovable|
-                                        QtGui.QDockWidget.DockWidgetFloatable)
-        self.placeInfoView = QtGui.QTreeView(self)
+        self.placeInfoPanel = QtWidgets.QDockWidget(
+            self.tr("Station Information"), self
+        )
+        self.placeInfoPanel.setFeatures(
+            QtWidgets.QDockWidget.DockWidgetMovable |
+            QtWidgets.QDockWidget.DockWidgetFloatable
+        )
+        self.placeInfoView = QtWidgets.QTreeView(self)
         self.placeInfoView.setItemsExpandable(False)
         self.placeInfoView.setRootIsDecorated(False)
         self.placeInfoView.setModel(placeitem.Place.selectedPlaceModel)
         self.placeInfoPanel.setWidget(self.placeInfoView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.placeInfoPanel)
 
-        self.trainListPanel = QtGui.QDockWidget(self.tr("Trains"), self)
-        self.trainListPanel.setFeatures(QtGui.QDockWidget.DockWidgetMovable|
-                                        QtGui.QDockWidget.DockWidgetFloatable)
+        self.trainListPanel = QtWidgets.QDockWidget(self.tr("Trains"), self)
+        self.trainListPanel.setFeatures(
+            QtWidgets.QDockWidget.DockWidgetMovable |
+            QtWidgets.QDockWidget.DockWidgetFloatable
+        )
         self.trainListView = trainlistview.TrainListView(self)
         self.simulationLoaded.connect(self.trainListView.setupTrainList)
         self.trainListPanel.setWidget(self.trainListView)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.trainListPanel)
 
-        self.serviceListPanel = QtGui.QDockWidget(self.tr("Services"), self)
-        self.serviceListPanel.setFeatures(QtGui.QDockWidget.DockWidgetMovable|
-                                        QtGui.QDockWidget.DockWidgetFloatable)
+        self.serviceListPanel = QtWidgets.QDockWidget(self.tr("Services"), self)
+        self.serviceListPanel.setFeatures(
+            QtWidgets.QDockWidget.DockWidgetMovable |
+            QtWidgets.QDockWidget.DockWidgetFloatable
+        )
         self.serviceListView = servicelistview.ServiceListView(self)
         self.simulationLoaded.connect(self.serviceListView.setupServiceList)
         self.serviceListPanel.setWidget(self.serviceListView)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.serviceListPanel)
         self.tabifyDockWidget(self.serviceListPanel, self.trainListPanel)
 
-        self.loggerPanel = QtGui.QDockWidget(self.tr("Messages"), self)
-        self.loggerPanel.setFeatures(QtGui.QDockWidget.DockWidgetMovable|
-                                        QtGui.QDockWidget.DockWidgetFloatable)
-        self.loggerView = QtGui.QTreeView(self)
+        self.loggerPanel = QtWidgets.QDockWidget(self.tr("Messages"), self)
+        self.loggerPanel.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable |
+                                     QtWidgets.QDockWidget.DockWidgetFloatable)
+        self.loggerView = QtWidgets.QTreeView(self)
         self.loggerView.setItemsExpandable(False)
         self.loggerView.setRootIsDecorated(False)
         self.loggerView.setHeaderHidden(True)
         self.loggerView.setPalette(QtGui.QPalette(Qt.black))
         self.loggerView.setVerticalScrollMode(
-                                        QtGui.QAbstractItemView.ScrollPerItem)
+            QtWidgets.QAbstractItemView.ScrollPerItem
+        )
         self.loggerPanel.setWidget(self.loggerView)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.loggerPanel)
 
         # board
-        self.board = QtGui.QWidget(self)
+        self.board = QtWidgets.QWidget(self)
 
         # Canvas
-        self.view = QtGui.QGraphicsView(self.board)
+        self.view = QtWidgets.QGraphicsView(self.board)
         self.view.setInteractive(True)
         self.view.setRenderHint(QtGui.QPainter.Antialiasing, False)
-        self.view.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+        self.view.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.view.setPalette(QtGui.QPalette(Qt.black))
 
         # Panel
@@ -178,10 +191,9 @@ class MainWindow(QtGui.QMainWindow):
         self.panel.zoomChanged.connect(self.zoom)
 
         # Display
-        self.grid = QtGui.QVBoxLayout()
+        self.grid = QtWidgets.QVBoxLayout()
         self.grid.addWidget(self.view)
         self.grid.addWidget(self.panel)
-        self.grid.setMargin(0)
         self.grid.setSpacing(0)
         self.board.setLayout(self.grid)
         self.setCentralWidget(self.board)
@@ -190,8 +202,8 @@ class MainWindow(QtGui.QMainWindow):
         self.editorOpened = False
 
         # DEBUG
-        #self.loadSimulation()
-        #self.openEditor()
+        # self.loadSimulation()
+        # self.openEditor()
 
     simulationLoaded = QtCore.pyqtSignal(simulation.Simulation)
 
@@ -201,18 +213,19 @@ class MainWindow(QtGui.QMainWindow):
 
     @QtCore.pyqtSlot()
     def loadSimulation(self):
-        ### DEBUG
-        #fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain.ts2";
+        # ## DEBUG
+        # fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain.ts2";
 
-        fileName = QtGui.QFileDialog.getOpenFileName(
-                           self,
-                           self.tr("Open a simulation"),
-                           QtCore.QDir.currentPath(),
-                           self.tr("TS2 files (*.ts2 *.tsg);;"
-                                   "TS2 simulation files (*.ts2);;"
-                                   "TS2 saved game files (*.tsg)"))
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            self.tr("Open a simulation"),
+            QtCore.QDir.currentPath(),
+            self.tr("TS2 files (*.ts2 *.tsg);;"
+                    "TS2 simulation files (*.ts2);;"
+                    "TS2 saved game files (*.tsg)"))
         if fileName != "":
-            QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+            print(fileName)
+            QtWidgets.QApplication.setOverrideCursor(Qt.WaitCursor)
             if self.simulation is not None:
                 self.simulationDisconnect()
                 self.simulation = None
@@ -220,20 +233,22 @@ class MainWindow(QtGui.QMainWindow):
                 self.simulation = simulation.Simulation(self)
                 self.simulation.load(fileName)
             except utils.FormatException as err:
-                QtGui.QMessageBox.critical(self,
-                             self.tr("Bad version of TS2 simulation file"),
-                             str(err),
-                             QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    self.tr("Bad version of TS2 simulation file"),
+                    str(err),
+                    QtWidgets.QMessageBox.Ok
+                )
                 self.simulation = None
             except:
                 dialogs.ExceptionDialog.popupException(self)
                 self.simulation = None
             else:
                 self.setWindowTitle(self.tr(
-                        "ts2 - Train Signalling Simulation - %s") % fileName)
+                    "ts2 - Train Signalling Simulation - %s") % fileName)
                 self.simulationConnect()
                 self.simulationLoaded.emit(self.simulation)
-            QtGui.QApplication.restoreOverrideCursor()
+            QtWidgets.QApplication.restoreOverrideCursor()
 
     def simulationConnect(self):
         """Connects the signals and slots to the simulation."""
@@ -245,26 +260,34 @@ class MainWindow(QtGui.QMainWindow):
         self.view.setScene(self.simulation.scene)
         # TrainListView
         self.simulation.trainSelected.connect(
-                                    self.trainListView.updateTrainSelection)
+            self.trainListView.updateTrainSelection
+        )
         self.trainListView.trainSelected.connect(
-                    self.simulation.selectedTrainModel.setTrainByServiceCode)
+            self.simulation.selectedTrainModel.setTrainByServiceCode
+        )
         self.trainListView.trainSelected.connect(
-                    self.serviceListView.updateServiceSelection)
+            self.serviceListView.updateServiceSelection
+        )
         # ServiceListView
         self.serviceListView.serviceSelected.connect(
-                    self.simulation.selectedServiceModel.setServiceCode)
+            self.simulation.selectedServiceModel.setServiceCode
+        )
         # TrainInfoView
         self.simulation.trainStatusChanged.connect(
-                                    self.trainInfoView.model().update)
+            self.trainInfoView.model().update
+        )
         self.simulation.timeChanged.connect(
-                                    self.trainInfoView.model().updateSpeed)
+            self.trainInfoView.model().updateSpeed
+        )
         # MessageLogger
         self.simulation.messageLogger.rowsInserted.connect(
-                                    self.loggerView.scrollToBottom)
+            self.loggerView.scrollToBottom
+        )
         # Panel
         self.simulation.timeChanged.connect(self.panel.clock.setTime)
         self.simulation.scorer.scoreChanged.connect(
-                                    self.panel.scoreDisplay.display)
+            self.panel.scoreDisplay.display
+        )
         self.panel.scoreDisplay.display(self.simulation.scorer.score)
         # Menus
         self.saveGameAsAction.setEnabled(True)
@@ -281,25 +304,32 @@ class MainWindow(QtGui.QMainWindow):
         # Disconnect signals
         try:
             self.simulation.trainSelected.disconnect()
-        except: pass
+        except:
+            pass
         try:
             self.trainListView.trainSelected.disconnect()
-        except: pass
+        except:
+            pass
         try:
             self.serviceListView.serviceSelected.disconnect()
-        except: pass
+        except:
+            pass
         try:
             self.simulation.trainStatusChanged.disconnect()
-        except: pass
+        except:
+            pass
         try:
             self.simulation.timeChanged.disconnect()
-        except: pass
+        except:
+            pass
         try:
             self.simulation.messageLogger.rowsInserted.disconnect()
-        except: pass
+        except:
+            pass
         try:
             self.simulation.scorer.scoreChanged.disconnect()
-        except: pass
+        except:
+            pass
         # Menus
         self.saveGameAsAction.setEnabled(False)
         self.propertiesAction.setEnabled(False)
@@ -309,28 +339,30 @@ class MainWindow(QtGui.QMainWindow):
         """Saves the current game to file."""
         if self.simulation is not None:
             self.panel.pauseButton.click()
-            fileName = QtGui.QFileDialog.getSaveFileName(
-                            self,
-                            self.tr("Save the simulation as"),
-                            QtCore.QDir.homePath(),
-                            self.tr("TS2 game files (*.tsg)"))
+            fileName, _ = QtWidgets.QFileDialog.getSaveFileName(
+                self,
+                self.tr("Save the simulation as"),
+                QtCore.QDir.homePath(),
+                self.tr("TS2 game files (*.tsg)")
+            )
             if fileName != "":
-                QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
+                QtWidgets.QApplication.setOverrideCursor(Qt.WaitCursor)
                 try:
                     self.simulation.saveGame(fileName)
                 except:
                     dialogs.ExceptionDialog.popupException(self)
-                QtGui.QApplication.restoreOverrideCursor()
+                QtWidgets.QApplication.restoreOverrideCursor()
 
     @QtCore.pyqtSlot(int)
     def zoom(self, percent):
-        self.view.setMatrix(QtGui.QMatrix(percent/100, 0, 0,
-                                           percent/100, 0, 0))
+        transform = QtGui.QTransform()
+        transform.scale(percent/100, percent/100)
+        self.view.setTransform(transform)
 
     @QtCore.pyqtSlot()
     def showAboutBox(self):
         """Shows the about box"""
-        QtGui.QMessageBox.about(self, self.tr("About TS2"), self.tr(
+        QtWidgets.QMessageBox.about(self, self.tr("About TS2"), self.tr(
             "TS2 is a train signalling simulation.\n\n"
             "Version %s\n\n"
             "Copyright 2008-2013, NPi (npi@users.sourceforge.net)\n"
@@ -346,7 +378,7 @@ class MainWindow(QtGui.QMainWindow):
             train = self.trainInfoView.model().train
             if train is not None:
                 train.showTrainActionsMenu(self.trainInfoView,
-                                        self.trainInfoView.mapToGlobal(pos))
+                                           self.trainInfoView.mapToGlobal(pos))
 
     @QtCore.pyqtSlot()
     def openEditor(self):
@@ -358,7 +390,6 @@ class MainWindow(QtGui.QMainWindow):
             self.editorWindow.show()
         else:
             self.editorWindow.activateWindow()
-
 
     @QtCore.pyqtSlot()
     def editorIsClosed(self):
@@ -381,4 +412,5 @@ class MainWindow(QtGui.QMainWindow):
         """Opens the reassign service window."""
         if self.simulation is not None:
             dialogs.ServiceAssignDialog.reassignServiceToTrain(
-                                                    self.simulation, trainId)
+                self.simulation, trainId
+            )

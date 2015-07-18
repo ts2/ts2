@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -20,8 +20,7 @@
 
 import sqlite3, copy
 
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtWidgets, Qt
 
 from ts2 import simulation
 from ts2 import utils, trains, routing
@@ -32,12 +31,13 @@ from ts2.editor import editorscenebackground
 from ts2.game import logger
 
 
-class WhiteLineItem(QtGui.QGraphicsLineItem):
+class WhiteLineItem(QtWidgets.QGraphicsLineItem):
     """Shortcut class to make white line items"""
     def __init__(self, x1, y1, x2, y2, parent, scene):
         """Constructor for the WhiteLineItem class"""
-        super().__init__(x1, y1, x2, y2, parent, scene)
+        super().__init__(x1, y1, x2, y2, parent)
         self.setPen(Qt.white)
+        scene.addItem(self)
         self.update()
 
 
@@ -104,7 +104,7 @@ class Editor(simulation.Simulation):
         """Constructor for the Editor class"""
         super().__init__(editorWindow)
         self._context = utils.Context.EDITOR_GENERAL
-        self._libraryScene = QtGui.QGraphicsScene(0, 0, 200, 250, self)
+        self._libraryScene = QtWidgets.QGraphicsScene(0, 0, 200, 250, self)
         self._sceneBackground = editorscenebackground.EditorSceneBackground(
                                                         self, 0, 0, 800, 600)
         self._sceneBackground.setZValue(-100)

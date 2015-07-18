@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,8 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore
+from Qt import QtCore
+
 
 class Scorer(QtCore.QObject):
     """A scorer calculates the score of the player during the simulation."""
@@ -77,7 +78,6 @@ class Scorer(QtCore.QObject):
     @QtCore.pyqtSlot(int)
     def trainArrivedAtStation(self, trainId):
         """Updates the score when a train arrives at a station."""
-        oldScore = self.score
         train = self.simulation.trains[trainId]
         serviceLine = train.currentService.lines[train.nextPlaceIndex]
         place = train.trainHead.trackItem.place
@@ -85,11 +85,11 @@ class Scorer(QtCore.QObject):
         actualPlatform = train.trainHead.trackItem.trackCode
         if actualPlatform != plannedPlatform:
             self.score += self.wrongPlatformPenalty
-            self.simulation.messageLogger.addMessage(self.tr(
-                                    "Train %s arrived at station %s "
-                                    "on platform %s instead of %s") %
-                                    (train.serviceCode, place.placeName,
-                                     actualPlatform, plannedPlatform))
+            self.simulation.messageLogger.addMessage(
+                self.tr("Train %s arrived at station %s on platform %s instead"
+                        " of %s") % (train.serviceCode, place.placeName,
+                                     actualPlatform, plannedPlatform)
+            )
         scheduledArrivalTime = serviceLine.scheduledArrivalTime
         currentTime = self.simulation.currentTime
         secondsLate = abs(scheduledArrivalTime.secsTo(currentTime))
@@ -97,25 +97,23 @@ class Scorer(QtCore.QObject):
             minutesLateByPlayer = ((secondsLate // 60) -
                                    (train.initialDelay // 60))
             self.score += max(self.latePenalty * minutesLateByPlayer, 0)
-            self.simulation.messageLogger.addMessage(self.tr(
-                                    "Train %s arrived %i minutes late at "
-                                    "station %s (%+i minutes)") %
-                                    (train.serviceCode, secondsLate // 60,
-                                     place.placeName, minutesLateByPlayer))
+            self.simulation.messageLogger.addMessage(
+                self.tr("Train %s arrived %i minutes late at station %s "
+                        "(%+i minutes)") %
+                (train.serviceCode, secondsLate // 60, place.placeName,
+                 minutesLateByPlayer)
+            )
         else:
-            self.simulation.messageLogger.addMessage(self.tr(
-                                    "Train %s arrived on time at "
-                                    "station %s") %
-                                    (train.serviceCode, place.placeName))
+            self.simulation.messageLogger.addMessage(
+                self.tr("Train %s arrived on time at station %s") %
+                (train.serviceCode, place.placeName)
+            )
 
     @QtCore.pyqtSlot(int)
     def trainExitedArea(self, trainId):
         """Updates the score when the train exits the area."""
-        oldScore = self.score
         train = self.simulation.trains[trainId]
         if train.nextPlaceIndex is not None:
             self.score += self.wrongDestinationPenalty
-            self.simulation.messageLogger.addMessage(self.tr(
-                                    "Train %s badly routed") %
-                                    train.serviceCode)
-
+            self.simulation.messageLogger.addMessage(
+                self.tr("Train %s badly routed") % train.serviceCode)
