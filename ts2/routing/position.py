@@ -120,6 +120,15 @@ class Position:
         self._previousTI = previousTI
         self._positionOnTI = positionOnTI
 
+    def for_json(self):
+        """Dumps the position to JSON."""
+        return {
+            "__type__": "Position",
+            "trackItem": self.trackItem.tiId,
+            "previousTI": self.previousTI.tiId,
+            "positionOnTI": self.positionOnTI
+        }
+
     @property
     def trackItem(self):
         """The TrackItem on which this Position is"""

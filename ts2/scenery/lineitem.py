@@ -106,6 +106,20 @@ class LineItem(abstract.ResizableItem):
         })
         return parameters
 
+    def for_json(self):
+        """Dumps this line item to JSON."""
+        jsonData = super().for_json()
+        jsonData.update({
+            "xf": self._end.x(),
+            "yf": self._end.y(),
+            "placeCode": self.placeCode,
+            "trackCode": self.trackCode,
+            "realLength": self.realLength,
+            "maxSpeed": self._maxSpeed
+        })
+        return jsonData
+
+
     # ## Properties #####################################################
 
     def _setOrigin(self, pos):

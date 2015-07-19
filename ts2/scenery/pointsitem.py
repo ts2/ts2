@@ -124,6 +124,27 @@ class PointsItem(abstract.TrackItem):
         })
         return parameters
 
+    def for_json(self):
+        """Dumps this points item to JSON."""
+        jsonData = super().for_json()
+        if self.reverseItem is not None:
+            reverseTiId = self.reverseItem.tiId
+        else:
+            reverseTiId = None
+        jsonData.update({
+            "x": self._center.x(),
+            "y": self._center.y(),
+            "xf": self._commonEnd.x(),
+            "yf": self._commonEnd.y(),
+            "xn": self._normalEnd.x(),
+            "yn": self._normalEnd.y(),
+            "xr": self._reverseEnd.x(),
+            "yr": self._reverseEnd.y(),
+            "reverseTiId": reverseTiId
+        })
+        return jsonData
+
+
     # ## Properties #####################################################
 
     # Ends in scene coordinates

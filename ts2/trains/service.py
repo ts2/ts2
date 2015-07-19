@@ -269,6 +269,18 @@ class ServiceLine:
         self._trackCode = parameters["trackcode"]
         self._stop = int(parameters["stop"])
 
+    def for_json(self):
+        """Dumps this service line to JSON."""
+        return {
+            "__type__": "ServiceLine",
+            "service": self.service.serviceCode,
+            "placeCode": self.placeCode,
+            "scheduledArrivalTime": self.scheduledArrivalTimeStr,
+            "scheduledDepartureTime": self.scheduledDepartureTimeStr,
+            "trackCode": self.trackCode,
+            "mustStop": self.mustStop
+        }
+
     @property
     def service(self):
         """Returns the service this ServiceLine belongs to"""
@@ -461,6 +473,18 @@ class Service:
         self._plannedTrainType = parameters.get("plannedtraintype")
         self._current = None
         self._lines = []
+
+    def for_json(self):
+        """Dumps this service to JSON."""
+        return {
+            "__type__": "Service",
+            "serviceCode": self.serviceCode,
+            "description": self.description,
+            "nextServiceCode": self.nextServiceCode,
+            "autoReverse": self.autoReverse,
+            "plannedTrainType": self.plannedTrainType,
+            "lines": self.lines
+        }
 
     def addLine(self, parameters):
         """Add a serviceLine to this Service based on the given parameters."""

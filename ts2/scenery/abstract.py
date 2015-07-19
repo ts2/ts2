@@ -179,6 +179,28 @@ class TrackItem(QtCore.QObject):
             "ntiid": nextTiId
         }
 
+    def for_json(self):
+        """Dumps the trackItem to JSON."""
+        if self.previousItem is not None:
+            previousTiId = self.previousItem.tiId
+        else:
+            previousTiId = None
+        if self.nextItem is not None:
+            nextTiId = self.nextItem.tiId
+        else:
+            nextTiId = None
+        return {
+            "__type__": self.__class__.__name__,
+            "tiId": self.tiId,
+            "name": self.name,
+            "conflictTiTd": self.conflictTiId,
+            "x": self.origin.x(),
+            "y": self.origin.y(),
+            "maxSpeed": self.maxSpeed,
+            "previousTiId": previousTiId,
+            "nextTiId": nextTiId
+        }
+
     # ## Properties #########################################################
 
     def _getOrigin(self):

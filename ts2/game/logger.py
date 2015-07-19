@@ -39,6 +39,14 @@ class Message(QtCore.QObject):
         """Returns the string representation of the message."""
         return self.msgText
 
+    def for_json(self):
+        """Dumps this message to JSON."""
+        return {
+            "__type__": "Message",
+            "msgType": self.msgType,
+            "msgText": self.msgText
+        }
+
 
 class MessageLogger(QtCore.QAbstractTableModel):
     """A MessageLogger holds all messages that has been emitted to it and
@@ -49,6 +57,13 @@ class MessageLogger(QtCore.QAbstractTableModel):
         super().__init__(simulation)
         self.simulation = simulation
         self._messages = [Message(self, " ")]
+
+    def for_json(self):
+        """Dumps the messages to JSON."""
+        return {
+            "__type__": "MessageLogger",
+            "messages": self._messages
+        }
 
     def addMessage(self, msgText, msgType=Message.SIMULATION_MSG):
         """Adds a message to the logger."""

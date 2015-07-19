@@ -441,6 +441,34 @@ class Train(QtCore.QObject):
         self.reverseAction = QtWidgets.QAction(self.tr("Reverse"), self)
         self.reverseAction.triggered.connect(self.reverse)
 
+    def for_json(self):
+        """Dumps this train to JSON."""
+        if self.status == TrainStatus.INACTIVE:
+            speed = self.initialSpeed
+            appearTime = self.appearTimeStr
+            initialDelay = self.initialDelayStr
+        elif self.status == TrainStatus.OUT:
+            speed = 0
+            appearTime = "00:00:00"
+            initialDelay = 0
+        else:
+            speed = self.speed
+            appearTime = self.simulation.currentTime.toString("hh:mm:ss")
+            initialDelay = 0
+        return {
+            "__type__": "Train",
+            "trainId": self.trainId,
+            "serviceCode": self.serviceCode,
+            "trainTypeCode": self.trainTypeCode,
+            "status": self.status,
+            "speed": speed,
+            "trainHead": self.trainHead,
+            "appearTime": appearTime,
+            "initialDelay": initialDelay,
+            "nextPlaceIndex": self.nextPlaceIndex,
+            "stoppedTime": self.stoppedTime
+        }
+
     trainStoppedAtStation = QtCore.pyqtSignal(int)
     trainDepartedFromStation = QtCore.pyqtSignal(int)
     trainStatusChanged = QtCore.pyqtSignal(int)

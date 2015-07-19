@@ -111,6 +111,16 @@ class Route(QtCore.QObject):
         self._initialState = initialState
         self._persistent = False
 
+    def for_json(self):
+        """Dumps this route to JSON."""
+        return {
+            "__type__": "Route",
+            "routeNum": self.routeNum,
+            "beginSignal": self.beginSignal.tiId,
+            "endSignal": self.endSignal.tiId,
+            "directions": self.directions
+        }
+
     routeSelected = QtCore.pyqtSignal()
     routeUnselected = QtCore.pyqtSignal()
 

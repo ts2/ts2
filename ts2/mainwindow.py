@@ -347,10 +347,10 @@ class MainWindow(QtWidgets.QMainWindow):
             )
             if fileName != "":
                 QtWidgets.QApplication.setOverrideCursor(Qt.WaitCursor)
-                try:
-                    self.simulation.saveGame(fileName)
-                except:
-                    dialogs.ExceptionDialog.popupException(self)
+                # try:
+                self.simulation.saveGame(fileName)
+                # except:
+                #     dialogs.ExceptionDialog.popupException(self)
                 QtWidgets.QApplication.restoreOverrideCursor()
 
     @QtCore.pyqtSlot(int)

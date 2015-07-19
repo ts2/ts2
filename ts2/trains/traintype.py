@@ -127,6 +127,19 @@ class TrainType:
         self._emergBraking = float(parameters["emergbraking"])
         self._length = float(parameters["tlength"])
 
+    def for_json(self):
+        """Dumps this trainType to JSON"""
+        return {
+            "__type__": "TrainType",
+            "code": self.code,
+            "description": self.description,
+            "maxSpeed": self.maxSpeed,
+            "stdAccel": self.stdAccel,
+            "stdBraking": self.stdBraking,
+            "emergBraking": self.emergBraking,
+            "length": self.length
+        }
+
     @property
     def code(self):
         """Returns the unique code of this rolling stock type"""

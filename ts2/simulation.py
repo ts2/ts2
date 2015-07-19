@@ -19,6 +19,7 @@
 #
 
 from math import sqrt
+import simplejson
 import sqlite3
 
 from Qt import QtCore, QtWidgets
@@ -131,109 +132,30 @@ class Simulation(QtCore.QObject):
         self.messageLogger.addMessage(self.tr("Simulation loaded"),
                                       logger.Message.SOFTWARE_MSG)
 
+    def for_json(self):
+        """Dumps the simulation to JSON."""
+        savedOptions = self._options.copy()
+        savedOptions.update({
+            "currentTime": self.currentTime.toString("hh:mm:ss"),
+            "currentScore": self.scorer.score
+        })
+        return {
+            "options": savedOptions,
+            "trackItems": self.trackItems,
+            "routes": self.routes,
+            "trainTypes": self.trainTypes,
+            "services": self.services,
+            "trains": self.trains,
+            "messageLogger": self.messageLogger
+        }
+
     def saveGame(self, fileName):
         """Saves the game to the given fileName."""
         self.pause()
         self.messageLogger.addMessage(self.tr("Saving simulation"),
                                       logger.Message.SOFTWARE_MSG)
-        connFile = sqlite3.connect(fileName)
-        if fileName != self._database:
-            # Copy the current database to the saved file
-            connSimulation = sqlite3.connect(self._database)
-            connFile.execute("DROP TABLE IF EXISTS options")
-            connFile.execute("DROP TABLE IF EXISTS trackitems")
-            connFile.execute("DROP TABLE IF EXISTS routes")
-            connFile.execute("DROP TABLE IF EXISTS directions")
-            connFile.execute("DROP TABLE IF EXISTS traintypes")
-            connFile.execute("DROP TABLE IF EXISTS services")
-            connFile.execute("DROP TABLE IF EXISTS servicelines")
-            connFile.execute("DROP TABLE IF EXISTS trains")
-            connFile.execute("DROP TABLE IF EXISTS messages")
-            for line in connSimulation.iterdump():
-                if line != "BEGIN TRANSACTION;" and line != "COMMIT;":
-                    connFile.execute(line)
-            connFile.commit()
-            connSimulation.close()
-        # Options
-        connFile.execute("UPDATE options SET optionvalue=:currentTime "
-                         "WHERE optionkey='currentTime'",
-                         {"currentTime": self.currentTime.toString("hh:mm:ss")}
-                         )
-        connFile.execute("UPDATE options SET optionvalue=:timeFactor "
-                         "WHERE optionkey='timeFactor'",
-                         {"timeFactor": self.option("timeFactor")}
-                         )
-        connFile.execute("UPDATE options SET optionvalue=:currentScore "
-                         "WHERE optionkey='currentScore'",
-                         {"currentScore": self.scorer.score}
-                         )
-        connFile.execute("UPDATE options SET optionvalue=:trackCircuitBased "
-                         "WHERE optionkey='trackCircuitBased'",
-                         {"trackCircuitBased":
-                             self.option("trackCircuitBased")}
-                         )
-        connFile.commit()
-        # Routes
-        for route in self.routes.values():
-            routeState = route.getRouteState()
-            connFile.execute(
-                "UPDATE routes SET initialstate=:routeState "
-                "WHERE routenum=:routeNum",
-                {"routeNum": route.routeNum, "routeState": routeState}
-            )
-        connFile.commit()
-        # Trains
-        connFile.execute("DROP TABLE IF EXISTS trains")
-        connFile.execute(
-            "CREATE TABLE trains (\n"
-            "trainid INTEGER,\n"
-            "servicecode VARCHAR(10),\n"
-            "traintype VARCHAR(10),\n"
-            "speed DOUBLE,\n"
-            "tiid INTEGER,\n"
-            "previoustiid INTEGER,\n"
-            "posonti DOUBLE,\n"
-            "appeartime TIME,\n"
-            "initialdelay VARCHAR(255),\n"
-            "nextplaceindex INTEGER,\n"
-            "stoppedtime INTEGER)\n"
-        )
-        for train in self.trains:
-            if train.status == trains.TrainStatus.INACTIVE:
-                speed = train.initialSpeed
-                appearTime = train.appearTimeStr
-                initialDelay = train.initialDelayStr
-            elif train.status == trains.TrainStatus.OUT:
-                continue
-            else:
-                speed = train.speed
-                appearTime = self.currentTime.toString("hh:mm:ss")
-                initialDelay = 0
-            query = "INSERT INTO trains " \
-                    "(trainid, servicecode, traintype, speed, tiid, " \
-                    "previoustiid, posonti, appeartime, initialdelay, " \
-                    "nextplaceindex, stoppedtime) " \
-                    "VALUES " \
-                    "(:trainid, :servicecode, :traintype, :speed, :tiid, "\
-                    ":previoustiid, :posonti, :appeartime, :initialdelay, "\
-                    ":nextplaceindex, :stoppedtime)"
-            parameters = {
-                "trainid": train.trainId,
-                "servicecode": train.serviceCode,
-                "traintype": train.trainTypeCode,
-                "speed": speed,
-                "tiid": train.trainHead.trackItem.tiId,
-                "previoustiid": train.trainHead.previousTI.tiId,
-                "posonti": train.trainHead.positionOnTI,
-                "appeartime": appearTime,
-                "initialdelay": initialDelay,
-                "nextplaceindex": train.nextPlaceIndex,
-                "stoppedtime": train.stoppedTime
-            }
-            connFile.execute(query, parameters)
-        connFile.commit()
-
-        connFile.close()
+        with open(fileName, 'w') as f:
+            simplejson.dump(self, f, separators=(',', ':'), for_json=True)
         self.messageLogger.addMessage(self.tr("Simulation saved"),
                                       logger.Message.SOFTWARE_MSG)
 

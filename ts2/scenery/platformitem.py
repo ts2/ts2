@@ -87,6 +87,18 @@ class PlatformItem(abstract.ResizableItem):
         })
         return parameters
 
+    def for_json(self):
+        """Dumps this platform item to JSON."""
+        jsonData = super().for_json()
+        jsonData.update({
+            "xf": self.end.x(),
+            "yf": self.end.y(),
+            "placeCode": self.placeCode,
+            "trackCode": self.trackCode
+        })
+        return jsonData
+
+
     # ## Properties #####################################################
 
     @property

@@ -142,6 +142,12 @@ class Place(abstract.TrackItem):
         parameters.update({"placecode": self.placeCode})
         return parameters
 
+    def for_json(self):
+        """Dumps this place item to JSON."""
+        jsonData = super().for_json()
+        jsonData.update({"placeCode": self.placeCode})
+        return jsonData
+
     # ## Properties ###################################################
 
     def _setName(self, value):
