@@ -1,4 +1,5 @@
 {
+  "__type__": "Simulation",
   "messageLogger": {
     "messages": [],
     "__type__": "MessageLogger"

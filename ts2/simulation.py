@@ -140,6 +140,7 @@ class Simulation(QtCore.QObject):
             "currentScore": self.scorer.score
         })
         return {
+            "__type__": "Simulation",
             "options": savedOptions,
             "trackItems": self.trackItems,
             "routes": self.routes,
