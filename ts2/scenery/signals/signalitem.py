@@ -43,9 +43,9 @@ class SignalItem(abstract.TrackItem):
         super().__init__(parameters)
         reverse = bool(parameters.get("reverse", 0))
         self._signalType = None
-        self._routesSetParams = eval(str(parameters["routesSetParams"])) or {}
+        self._routesSetParams = parameters.get("routesSetParams", {})
         self._trainNotPresentParams = \
-            eval(str(parameters["trainNotPresentParams"])) or {}
+            parameters.get("trainNotPresentParams", {})
         try:
             xb = float(parameters.get("xn", ""))
         except ValueError:
@@ -114,8 +114,8 @@ class SignalItem(abstract.TrackItem):
         jsonData.update({
             "reverse": int(self.reverse),
             "signalType": self.signalTypeStr,
-            "routesSetParams": str(self.routesSetParamsStr),
-            "trainNotPresentParams": str(self.trainNotPresentParamsStr),
+            "routesSetParams": self.routesSetParamsStr,
+            "trainNotPresentParams": self.trainNotPresentParamsStr,
             "xn": self.berthOrigin.x(),
             "yn": self.berthOrigin.y()
         })

@@ -142,7 +142,7 @@ class Route(QtCore.QObject):
             "beginSignal": self.beginSignal.tiId,
             "endSignal": self.endSignal.tiId,
             "directions": self.directions,
-            "initialState": self.initialState
+            "initialState": self.getRouteState()
         }
 
     routeSelected = QtCore.pyqtSignal()
