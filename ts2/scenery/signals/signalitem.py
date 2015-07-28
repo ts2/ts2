@@ -119,6 +119,18 @@ class SignalItem(abstract.TrackItem):
                            "yn": self.berthOrigin.y()})
         return parameters
 
+    def for_json(self):
+        jsonData = super().for_json()
+        jsonData.update({
+            "reverse": int(self.reverse),
+            "signalType": self.signalTypeStr,
+            "routesSet": self.routesSetParamsStr,
+            "trainPresent": self.trainNotPresentParamsStr,
+            "xn": self.berthOrigin.x(),
+            "yn": self.berthOrigin.y()
+        })
+        return jsonData
+
     # ## Properties #########################################################
 
     origin = property(abstract.TrackItem._getOrigin,

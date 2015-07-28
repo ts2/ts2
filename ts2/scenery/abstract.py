@@ -193,7 +193,7 @@ class TrackItem(QtCore.QObject):
             "__type__": self.__class__.__name__,
             "tiId": self.tiId,
             "name": self.name,
-            "conflictTiTd": self.conflictTiId,
+            "conflictTiId": self.conflictTiId,
             "x": self.origin.x(),
             "y": self.origin.y(),
             "maxSpeed": self.maxSpeed,
