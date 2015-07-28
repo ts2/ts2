@@ -39,7 +39,7 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
         number of serviceLines of this service + lines for displaying general
         service information."""
         if self._service is not None:
-            return len(self._service._lines) + 3
+            return len(self._service.lines) + 3
         else:
             return 0
 
@@ -66,7 +66,7 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
             elif index.row() == 2:
                 return None
             else:
-                line = self._service._lines[index.row() - 3]
+                line = self._service.lines[index.row() - 3]
                 if index.column() == 0:
                     return line.place.placeName
                 elif index.column() == 1:
@@ -139,7 +139,7 @@ class ServiceListModel(QtCore.QAbstractTableModel):
             if index.column() == 0:
                 return service.serviceCode
             elif index.column() == 1:
-                return service._lines[0].scheduledDepartureTime
+                return service.lines[0].scheduledDepartureTime
             elif index.column() == 2:
                 return service.description
             elif index.column() == 3:
@@ -257,23 +257,27 @@ class ServiceLine:
     It consists of a place (usually a station) with a track number
     and scheduled times to arrive at and depart from this station.
     """
-    def __init__(self, service, parameters):
+    def __init__(self, parameters):
         """Constructor for the ServiceLine class"""
+        self._placeCode = parameters["placeCode"]
+        self._scheduledArrivalTime = \
+            QtCore.QTime.fromString(parameters["scheduledArrivalTime"])
+        self._scheduledDepartureTime = \
+            QtCore.QTime.fromString(parameters["scheduledDepartureTime"])
+        self._trackCode = parameters["trackCode"]
+        self._stop = int(parameters["mustStop"])
+        self._service = None
+        self.simulation = None
+
+    def initialize(self, service):
+        """Initialize the serviceLine for the given service."""
         self._service = service
         self.simulation = service.simulation
-        self._placeCode = parameters["placecode"]
-        self._scheduledArrivalTime = \
-            QtCore.QTime.fromString(parameters["scheduledarrivaltime"])
-        self._scheduledDepartureTime = \
-            QtCore.QTime.fromString(parameters["scheduleddeparturetime"])
-        self._trackCode = parameters["trackcode"]
-        self._stop = int(parameters["stop"])
 
     def for_json(self):
         """Dumps this service line to JSON."""
         return {
             "__type__": "ServiceLine",
-            "service": self.service.serviceCode,
             "placeCode": self.placeCode,
             "scheduledArrivalTime": self.scheduledArrivalTimeStr,
             "scheduledDepartureTime": self.scheduledDepartureTimeStr,
@@ -383,7 +387,7 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
         """Returns the number of rows of the model, corresponding to the
         number of serviceLines of this service"""
         if self._service is not None:
-            return len(self._service._lines)
+            return len(self._service.lines)
         else:
             return 0
 
@@ -463,16 +467,23 @@ class Service:
     follow with a few additional informations.
     The schedule is composed of several "lines" of type ServiceLine
     """
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the Service class"""
-        self.simulation = simulation
-        self._serviceCode = parameters["servicecode"]
+        self._serviceCode = parameters["serviceCode"]
         self._description = parameters["description"]
-        self._nextServiceCode = parameters["nextservice"]
-        self._autoReverse = parameters["autoreverse"]
-        self._plannedTrainType = parameters.get("plannedtraintype")
+        self._nextServiceCode = parameters["nextServiceCode"]
+        self._autoReverse = parameters["autoReverse"]
+        self._plannedTrainType = parameters.get("plannedTrainType")
         self._current = None
-        self._lines = []
+        self.simulation = None
+        self._lines = parameters["lines"]
+
+    def initialize(self, simulation):
+        """Initialize the service once the simulation is loaded."""
+        self.simulation = simulation
+        for line in self._lines:
+            line.initialize(self)
+            line.place.addTimetable(line)
 
     def for_json(self):
         """Dumps this service to JSON."""
@@ -486,22 +497,10 @@ class Service:
             "lines": self.lines
         }
 
-    def addLine(self, parameters):
-        """Add a serviceLine to this Service based on the given parameters."""
-        sl = ServiceLine(self, parameters)
-        self._lines.append(sl)
-        sl.place.addTimetable(sl)
-
     @property
     def lines(self):
         """Returns the lines of this service"""
         return self._lines
-
-    # @property
-    # def minimumStopTime(self):
-        # """Returns the minimum stop time applicable for this Service in the
-        # next plasce."""
-        # return float(self.simulation.option("defaultMinimumStopTime"))
 
     @property
     def entryPlaceName(self):
@@ -566,9 +565,9 @@ class Service:
 
     @property
     def plannedTrainType(self):
-        """Returns the planned train type for this service, which is not
-        necessarily the actual train type of the train to which this service
-        is assigned."""
+        """Returns the planned train type code (string) for this service, which
+        is not necessarily the actual train type of the train to which this
+        service is assigned."""
         return self._plannedTrainType
 
     @plannedTrainType.setter

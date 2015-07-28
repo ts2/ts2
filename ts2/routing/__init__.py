@@ -17,6 +17,3 @@
 #   Free Software Foundation, Inc.,                                       
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
-
-from ts2.routing.position import Position, PositionGraphicsItem
-from ts2.routing.route import Route, RoutesModel

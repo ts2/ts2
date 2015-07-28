@@ -23,7 +23,8 @@ from Qt import QtCore, QtGui, QtWidgets, Qt
 from ts2 import simulation, utils
 from ts2.gui import dialogs, trainlistview, servicelistview, widgets
 from ts2.scenery import placeitem
-from ts2.editor import editorwindow
+# TODO put back the editor
+# from ts2.editor import editorwindow
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -213,41 +214,39 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def loadSimulation(self):
-        # ## DEBUG
-        # fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain.ts2";
+        # ##TODO: DEBUG
+        fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.json"
 
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self,
-            self.tr("Open a simulation"),
-            QtCore.QDir.currentPath(),
-            self.tr("TS2 files (*.ts2 *.tsg);;"
-                    "TS2 simulation files (*.ts2);;"
-                    "TS2 saved game files (*.tsg)"))
+        # fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
+        #     self,
+        #     self.tr("Open a simulation"),
+        #     QtCore.QDir.currentPath(),
+        #     self.tr("TS2 files (*.ts2 *.tsg);;"
+        #             "TS2 simulation files (*.ts2);;"
+        #             "TS2 saved game files (*.tsg)"))
         if fileName != "":
-            print(fileName)
-            QtWidgets.QApplication.setOverrideCursor(Qt.WaitCursor)
+            QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
             if self.simulation is not None:
                 self.simulationDisconnect()
                 self.simulation = None
-            try:
-                self.simulation = simulation.Simulation(self)
-                self.simulation.load(fileName)
-            except utils.FormatException as err:
-                QtWidgets.QMessageBox.critical(
-                    self,
-                    self.tr("Bad version of TS2 simulation file"),
-                    str(err),
-                    QtWidgets.QMessageBox.Ok
-                )
-                self.simulation = None
-            except:
-                dialogs.ExceptionDialog.popupException(self)
-                self.simulation = None
-            else:
-                self.setWindowTitle(self.tr(
-                    "ts2 - Train Signalling Simulation - %s") % fileName)
-                self.simulationConnect()
-                self.simulationLoaded.emit(self.simulation)
+            # try:
+            self.simulation = simulation.load(self, fileName)
+            # except utils.FormatException as err:
+            #     QtWidgets.QMessageBox.critical(
+            #         self,
+            #         self.tr("Bad version of TS2 simulation file"),
+            #         str(err),
+            #         QtWidgets.QMessageBox.Ok
+            #     )
+            #     self.simulation = None
+            # except:
+            #     dialogs.ExceptionDialog.popupException(self)
+            #     self.simulation = None
+            # else:
+            self.setWindowTitle(self.tr(
+                "ts2 - Train Signalling Simulation - %s") % fileName)
+            self.simulationConnect()
+            self.simulationLoaded.emit(self.simulation)
             QtWidgets.QApplication.restoreOverrideCursor()
 
     def simulationConnect(self):

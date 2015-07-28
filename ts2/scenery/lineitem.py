@@ -21,7 +21,8 @@
 from Qt import QtCore, QtGui, QtWidgets, Qt
 
 from ts2.scenery import helper, abstract
-from ts2 import utils, routing
+import ts2.utils as utils
+import ts2.routing.position
 
 translate = QtWidgets.qApp.translate
 
@@ -32,35 +33,25 @@ class LineItem(abstract.ResizableItem):
     have in real life, since this will determine the time the train takes to
     travel on it.
     """
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the LineItem class"""
-        super().__init__(simulation, parameters)
-        self.tiType = "L"
-        self._placeCode = parameters["placecode"]
-        trackCode = parameters["trackcode"]
-        self._place = simulation.place(self._placeCode)
+        super().__init__(parameters)
+        self._placeCode = parameters["placeCode"]
+        trackCode = parameters["trackCode"]
         if self._place is not None:
             self._trackCode = trackCode
             self._place.addTrack(self)
         else:
             self._trackCode = ""
-        realLength = parameters["reallength"]
-        if realLength is None or realLength == 0:
-            realLength = 1.0
-        self._realLength = realLength
+        self._realLength = parameters.get('realLength', 1.0)
         self.defaultZValue = 1
         self._line = QtCore.QLineF()
         self._boundingRect = QtCore.QRectF()
         self.updateGeometry()
         gli = helper.TrackGraphicsItem(self)
-        if simulation.context in utils.Context.EDITORS:
-            gli.setCursor(Qt.PointingHandCursor)
-        else:
-            gli.setCursor(Qt.ArrowCursor)
         gli.setPos(self._origin)
         gli.setZValue(self.defaultZValue)
         self._gi[0] = gli
-        simulation.registerGraphicsItem(gli)
 
         # draw the "train" graphicLineItem
         p = QtGui.QPen()
@@ -73,8 +64,22 @@ class LineItem(abstract.ResizableItem):
         self._tli.setPen(p)
         self._tli.setZValue(10)
         self._tli.hide()
+
+    def initialize(self, simulation):
+        """Initialize the item after all items are loaded."""
+        self._place = simulation.place(self._placeCode)
+        if simulation.context in utils.Context.EDITORS:
+            self._gi[0].setCursor(Qt.PointingHandCursor)
+        else:
+            self._gi[0].setCursor(Qt.ArrowCursor)
+        if simulation.context in utils.Context.EDITORS:
+            self._gi[0].setCursor(Qt.PointingHandCursor)
+        else:
+            self._gi[0].setCursor(Qt.ArrowCursor)
         simulation.registerGraphicsItem(self._tli)
+        self.simulation = simulation
         self.drawTrain()
+        super().initialize(simulation)
 
     def __del__(self):
         """Destructor for the LineItem class"""
@@ -90,35 +95,18 @@ class LineItem(abstract.ResizableItem):
                               translate("LineItem", "Real length (m)"))
         ]
 
-    positionSelected = QtCore.pyqtSignal(routing.Position)
-
-    def getSaveParameters(self):
-        """Returns the parameters dictionary to save this TrackItem to the
-        database"""
-        parameters = super().getSaveParameters()
-        parameters.update({
-            "xf": self._end.x(),
-            "yf": self._end.y(),
-            "placecode": self.placeCode,
-            "trackCode": self.trackCode,
-            "reallength": self.realLength,
-            "maxspeed": self._maxSpeed
-        })
-        return parameters
+    positionSelected = QtCore.pyqtSignal(ts2.routing.position.Position)
 
     def for_json(self):
         """Dumps this line item to JSON."""
         jsonData = super().for_json()
         jsonData.update({
-            "xf": self._end.x(),
-            "yf": self._end.y(),
             "placeCode": self.placeCode,
             "trackCode": self.trackCode,
             "realLength": self.realLength,
             "maxSpeed": self._maxSpeed
         })
         return jsonData
-
 
     # ## Properties #####################################################
 
@@ -332,6 +320,6 @@ class LineItem(abstract.ResizableItem):
                 x = event.buttonDownPos(Qt.LeftButton).x()
                 ratio = (x - self.line.x1())/(self.line.x2() - self.line.x1())
                 self.positionSelected.emit(
-                    routing.Position(self, self.previousItem,
-                                     self.realLength * ratio)
+                    ts2.routing.position.Position(self, self.previousItem,
+                             self.realLength * ratio)
                 )

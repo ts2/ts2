@@ -29,10 +29,9 @@ class InvisibleLinkItem(lineitem.LineItem):
     all on the scenery. They are used to make links between lines or to
     represent bridges and tunnels.
     """
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the InvisibleLinkItem class"""
-        super().__init__(simulation, parameters)
-        self.tiType = "LI"
+        super().__init__(parameters)
         self._tli.hide()
 
     # ## Methods ########################################################
@@ -43,7 +42,7 @@ class InvisibleLinkItem(lineitem.LineItem):
 
     # ## Graphics Methods ###############################################
 
-    def graphicsPaint(self, p, options, itemId, widget):
+    def graphicsPaint(self, p, options, itemId, widget=None):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws nothing during the game."""
         super(lineitem.LineItem, self).graphicsPaint(p, options, itemId, widget)

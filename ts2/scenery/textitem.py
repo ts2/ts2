@@ -29,24 +29,24 @@ translate = QtWidgets.qApp.translate
 class TextItem(abstract.TrackItem):
     """A TextItem is a prop to display simple text on the layout
     """
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the TextItem class"""
-        super().__init__(simulation, parameters)
-        self.tiType = "ZT"
-        self._name = parameters["name"]
+        super().__init__(parameters)
         self._rect = QtCore.QRectF()
         self.updateBoundingRect()
         gi = helper.TrackGraphicsItem(self)
         gi.setPos(self.origin)
         gi.setToolTip(self.toolTipText)
         gi.setZValue(0)
-        if simulation.context in utils.Context.EDITORS:
-            gi.setCursor(Qt.PointingHandCursor)
-        else:
-            gi.setCursor(Qt.ArrowCursor)
         self._gi[0] = gi
-        self.simulation.registerGraphicsItem(gi)
-        self.updateGraphics()
+
+    def initialize(self, simulation):
+        """Initialize the item after all items are loaded."""
+        if simulation.context in utils.Context.EDITORS:
+            self._gi[0].setCursor(Qt.PointingHandCursor)
+        else:
+            self._gi[0].setCursor(Qt.ArrowCursor)
+        super().initialize(simulation)
 
     @staticmethod
     def getProperties():

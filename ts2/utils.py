@@ -22,8 +22,8 @@ import random
 
 from Qt import QtCore
 
-TS2_VERSION = "0.5"
-TS2_FILE_FORMAT = 0.5
+TS2_VERSION = "0.6"
+TS2_FILE_FORMAT = 0.6
 
 
 class Context:

@@ -20,7 +20,10 @@
 
 from Qt import QtCore, Qt
 
-import ts2.routing
+from ts2 import utils
+from ts2.game import logger
+from ts2.scenery import pointsitem
+from . import position
 
 
 class RoutesModel(QtCore.QAbstractTableModel):
@@ -93,23 +96,43 @@ class Route(QtCore.QObject):
     are static and defined in the game file. The player can only activate or
     deactivate them.
     """
-    def __init__(self, simulation, routeNum, beginSignal, endSignal,
-                 initialState=0):
+    def __init__(self, parameters):
         """Constructor of the Route class. After construction, the directions
         dictionary must be filled and then the _positions list must be
         populated by calling createPositionsList().
-        @param routeNum The route number (id)
-        @param beginSignal Pointer to the SignalItem at which the route starts
-        @param endSignal Pointer to the SignalItem at which the route ends"""
-        super().__init__(simulation)
-        self.simulation = simulation
-        self._routeNum = routeNum
-        bsp = ts2.routing.Position(beginSignal, beginSignal.previousItem, 0)
-        esp = ts2.routing.Position(endSignal, endSignal.previousItem, 0)
-        self._positions = [bsp, esp]
+
+        :param parameters: json dict with data to create the route
+        """
+        super().__init__()
+        self._parameters = parameters
+        self._routeNum = parameters['routeNum']
         self._directions = {}
-        self._initialState = initialState
+        for key, value in parameters['directions'].items():
+            self._directions[int(key)] = value
+        self._initialState = parameters.get('initialState', 0)
         self._persistent = False
+        self._positions = []
+
+    def initialize(self, simulation):
+        """Initializes the route once all trackitems are loaded."""
+        if not self._parameters:
+            raise Exception("Internal error: Route already initialized !")
+        beginSignal = simulation.trackItem(self._parameters['beginSignal'])
+        endSignal = simulation.trackItem(self._parameters['endSignal'])
+        bsp = position.Position(beginSignal, beginSignal.previousItem, 0)
+        esp = position.Position(endSignal, endSignal.previousItem, 0)
+        self._positions = [bsp, esp]
+        if not self.createPositionsList():
+            simulation.messageLogger.addMessage(
+                self.tr("Invalid simulation: Route %i is not valid."
+                        % self.routeNum), logger.Message.SOFTWARE_MSG
+            )
+        if simulation.context == utils.Context.GAME:
+            if self.initialState == 2:
+                self.activate(True)
+            elif self.initialState == 1:
+                self.activate(False)
+        self._parameters = None
 
     def for_json(self):
         """Dumps this route to JSON."""
@@ -118,7 +141,8 @@ class Route(QtCore.QObject):
             "routeNum": self.routeNum,
             "beginSignal": self.beginSignal.tiId,
             "endSignal": self.endSignal.tiId,
-            "directions": self.directions
+            "directions": self.directions,
+            "initialState": self.initialState
         }
 
     routeSelected = QtCore.pyqtSignal()
@@ -202,7 +226,7 @@ class Route(QtCore.QObject):
                 return True
             self._positions.insert(it, cur)
             it += 1
-            if cur.trackItem.tiType.startswith("P"):
+            if isinstance(cur.trackItem, pointsitem.PointsItem):
                 if cur.previousTI == cur.trackItem.normalItem:
                     self._directions[cur.trackItem.tiId] = 0
                 elif cur.previousTI == cur.trackItem.reverseItem:
@@ -259,7 +283,8 @@ class Route(QtCore.QObject):
                     return False
                 if pos.trackItem.activeRoute is not None:
                     # The trackItem already has an active route
-                    if pos.trackItem.tiType.startswith("P") and not flag:
+                    if isinstance(pos.trackItem, pointsitem.PointsItem) \
+                            and not flag:
                         # The trackItem is a pointsItem and it is the first
                         # trackItem with active route that we meet
                         return False

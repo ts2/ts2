@@ -62,10 +62,11 @@ class PositionGraphicsItem(QtWidgets.QGraphicsPolygonItem):
     def updatePosition(self):
         """Updates the position of this PositionGraphicsItem according to its
         Position."""
+        import ts2.scenery.lineitem
         if self._position is not None and \
            self.simulation.context == utils.Context.EDITOR_TRAINS:
             trackItem = self._position.trackItem
-            if not trackItem.tiType.startswith("L"):
+            if not isinstance(trackItem, ts2.scenery.lineitem.LineItem):
                 raise Exception("Error: PositionGraphicsItem can be used only"
                                 "for positions on LineItem and subclasses")
             pos1 = trackItem.sceneLine.pointAt(
@@ -114,11 +115,27 @@ class Position:
     TrackItem, the other starting from the other end. You can get the
     other Position by calling reversed()."""
 
-    def __init__(self, trackItem=None, previousTI=None, positionOnTI=0.0):
+    def __init__(self, trackItem=None, previousTI=None, positionOnTI=0.0,
+                 parameters=None):
         """Constructor for the Position class"""
-        self._trackItem = trackItem
-        self._previousTI = previousTI
-        self._positionOnTI = positionOnTI
+        if parameters:
+            self._parameters = parameters
+            self._trackItem = None
+            self._previousTI = None
+            self._positionOnTI = 0.0
+        else:
+            self._trackItem = trackItem
+            self._previousTI = previousTI
+            self._positionOnTI = positionOnTI
+
+    def initialize(self, simulation):
+        """Initialize position defined by parameters."""
+        if not self._parameters:
+            raise Exception("Internal error: Position already initialized !")
+        params = self._parameters
+        self._trackItem = simulation.trackItem(params['trackItem'])
+        self._previousTI = simulation.trackItem(params['previousTI'])
+        self._positionOnTI = params['positionOnTI']
 
     def for_json(self):
         """Dumps the position to JSON."""
@@ -203,13 +220,16 @@ class Position:
     def isOut(self):
         """Returns True if this position is out of the scenery, i.e. on an
         EndItem."""
-        if self.trackItem.tiType.startswith("E"):
+        import ts2.scenery.enditem
+        if isinstance(self.trackItem, ts2.scenery.enditem.EndItem):
             return True
         else:
             return False
 
     def isValid(self):
         """Returns True if this Position is valid."""
+        import ts2.scenery.enditem
+        import ts2.scenery.pointsitem
         if self.isNull():
             # A null position is valid
             return True
@@ -220,10 +240,10 @@ class Position:
             return False
         if self.trackItem.nextItem != self.previousTI and \
            self.trackItem.previousItem != self.previousTI:
-            if self.trackItem.tiType.startswith("P") and \
-               self.trackItem.reverseItem == self.previousTI:
+            if isinstance(self.trackItem, ts2.scenery.pointsitem.PointsItem) \
+                    and self.trackItem.reverseItem == self.previousTI:
                 return True
-            if self.trackItem.tiType.startswith("E") and \
+            if isinstance(self.trackItem, ts2.scenery.enditem.EndItem) and \
                self.previousTI is None:
                 return True
             return False
@@ -304,6 +324,10 @@ class Position:
            self.previousTI is None and \
            self.positionOnTI == 0:
             return "<Null position>"
-        return "(%i, %i, %f)" % (self.trackItem.tiId,
-                                 self.previousTI.tiId,
-                                 self.positionOnTI)
+        if self.trackItem is not None and self.previousTI is not None:
+            return "(%i, %i, %f)" % (self.trackItem.tiId,
+                                     self.previousTI.tiId,
+                                     self.positionOnTI)
+        return "<Invalid position: %s, %s, %s>" % (self.trackItem,
+                                                   self.previousTI,
+                                                   self.positionOnTI)

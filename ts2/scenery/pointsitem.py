@@ -52,10 +52,9 @@ class PointsItem(abstract.TrackItem):
     Usually, the normal end is aligned with the common end and the reverse end
     is sideways, but this is not mandatory.
     """
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the PointsItem class"""
-        super().__init__(simulation, parameters)
-        self.tiType = "P"
+        super().__init__(parameters)
         x = parameters["x"]
         y = parameters["y"]
         cpx = parameters["xf"]
@@ -77,8 +76,12 @@ class PointsItem(abstract.TrackItem):
         pgi.setCursor(Qt.PointingHandCursor)
         pgi.setToolTip(self.toolTipText)
         self._gi[0] = pgi
-        self.simulation.registerGraphicsItem(pgi)
-        self.updateGraphics()
+
+    def initialize(self, simulation):
+        """Initialize the item after all items are loaded."""
+        params = self._parameters
+        self._reverseItem = simulation.trackItem(params['reverseTiId'])
+        super().initialize(simulation)
 
     @staticmethod
     def getProperties():
@@ -102,27 +105,6 @@ class PointsItem(abstract.TrackItem):
                               getEndNames(),
                               getEndValues())
         ]
-
-    def getSaveParameters(self):
-        """Returns the parameters dictionary to save this TrackItem to the
-        database"""
-        parameters = super().getSaveParameters()
-        if self.reverseItem is not None:
-            reverseTiId = self.reverseItem.tiId
-        else:
-            reverseTiId = None
-        parameters.update({
-            "x": self._center.x(),
-            "y": self._center.y(),
-            "xf": self._commonEnd.x(),
-            "yf": self._commonEnd.y(),
-            "xn": self._normalEnd.x(),
-            "yn": self._normalEnd.y(),
-            "xr": self._reverseEnd.x(),
-            "yr": self._reverseEnd.y(),
-            "rtiid": reverseTiId
-        })
-        return parameters
 
     def for_json(self):
         """Dumps this points item to JSON."""

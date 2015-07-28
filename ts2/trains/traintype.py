@@ -116,16 +116,20 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
 class TrainType:
     """The TrainType class holds information relating to rolling stock types.
     """
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the TrainType class"""
-        self.simulation = simulation
         self._code = str(parameters["code"])
         self._description = parameters["description"]
-        self._maxSpeed = float(parameters["maxspeed"])
-        self._stdAccel = float(parameters["stdaccel"])
-        self._stdBraking = float(parameters["stdbraking"])
-        self._emergBraking = float(parameters["emergbraking"])
-        self._length = float(parameters["tlength"])
+        self._maxSpeed = float(parameters["maxSpeed"])
+        self._stdAccel = float(parameters["stdAccel"])
+        self._stdBraking = float(parameters["stdBraking"])
+        self._emergBraking = float(parameters["emergBraking"])
+        self._length = float(parameters["length"])
+        self.simulation = None
+
+    def initialize(self, simulation):
+        """Initializes the simulation variable once it is loaded."""
+        self.simulation = simulation
 
     def for_json(self):
         """Dumps this trainType to JSON"""

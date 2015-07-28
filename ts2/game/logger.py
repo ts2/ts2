@@ -29,11 +29,15 @@ class Message(QtCore.QObject):
     PLAYER_WARNING_MSG = 1
     SIMULATION_MSG = 2
 
-    def __init__(self, parent, msgText, msgType=SIMULATION_MSG):
-        """Constructor for the Message class."""
-        super().__init__(parent)
-        self.msgType = msgType
-        self.msgText = msgText
+    def __init__(self, parameters):
+        """Constructor for the Message class.
+        :param parameters: dictionary to build the message. Should have a
+        'msgType' and a 'msgText' keys.
+        :type parameters: dict
+        """
+        super().__init__()
+        self.msgType = parameters['msgType']
+        self.msgText = parameters['msgText']
 
     def __str__(self):
         """Returns the string representation of the message."""
@@ -52,11 +56,17 @@ class MessageLogger(QtCore.QAbstractTableModel):
     """A MessageLogger holds all messages that has been emitted to it and
     format them so that it can be used directly as a model for views."""
 
-    def __init__(self, simulation):
+    def __init__(self, parameters):
         """Constructor for the MessageLogger class."""
-        super().__init__(simulation)
+        super().__init__()
+        self._messages = parameters['messages'] + [Message(
+            {'msgType': Message.SIMULATION_MSG, 'msgText': " "}
+        )]
+        self.simulation = None
+
+    def initialize(self, simulation):
+        """Initializes the message logger once everything is loaded."""
         self.simulation = simulation
-        self._messages = [Message(self, " ")]
 
     def for_json(self):
         """Dumps the messages to JSON."""
@@ -71,8 +81,12 @@ class MessageLogger(QtCore.QAbstractTableModel):
         if msgType == Message.SIMULATION_MSG:
             msgText = \
                 self.simulation.currentTime.toString("HH:mm - ") + msgText
+        msgData = {
+            'msgType': msgType,
+            'msgText': msgText
+        }
         self.beginInsertRows(QtCore.QModelIndex(), row, row)
-        self._messages.insert(row, Message(self, msgText, msgType))
+        self._messages.insert(row, Message(msgData))
         self.endInsertRows()
 
     def rowCount(self, parent=None, *args, **kwargs):

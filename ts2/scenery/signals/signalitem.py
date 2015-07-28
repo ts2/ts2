@@ -35,28 +35,29 @@ class SignalItem(abstract.TrackItem):
     This class holds the logics of a signal defined by its SignalType.
     A signal is the item from and to which routes are created."""
 
-    def __init__(self, simulation, parameters):
+    SIGNAL_GRAPHIC_ITEM = 0
+    BERTH_GRAPHIC_ITEM = 1
+
+    def __init__(self, parameters):
         """ Constructor for the SignalItem class."""
-        super().__init__(simulation, parameters)
-        reverse = parameters["reverse"]
-        self.tiType = "S"
-        signalTypeName = parameters["signaltype"]
-        self._signalType = simulation.signalTypes[signalTypeName]
-        self._routesSetParams = eval(str(parameters["routesset"])) or {}
+        super().__init__(parameters)
+        reverse = bool(parameters.get("reverse", 0))
+        self._signalType = None
+        self._routesSetParams = eval(str(parameters["routesSetParams"])) or {}
         self._trainNotPresentParams = \
-            eval(str(parameters["trainpresent"])) or {}
+            eval(str(parameters["trainNotPresentParams"])) or {}
         try:
-            xb = float(parameters["xn"])
-        except TypeError:
+            xb = float(parameters.get("xn", ""))
+        except ValueError:
             xb = self.origin.x() - 40
         try:
-            yb = float(parameters["yn"])
-        except TypeError:
+            yb = float(parameters.get("yn", ""))
+        except ValueError:
             yb = self.origin.y() + 5
         self._berthOrigin = QtCore.QPointF(xb, yb)
         self._berthRect = None
         self.setBerthRect()
-        self._activeAspect = self._signalType.getDefaultAspect()
+        self._activeAspect = None
         self._reverse = reverse
         self._previousActiveRoute = None
         self._nextActiveRoute = None
@@ -70,17 +71,21 @@ class SignalItem(abstract.TrackItem):
         if reverse:
             sgi.setRotation(180)
         self._gi[SignalItem.SIGNAL_GRAPHIC_ITEM] = sgi
-        self.simulation.registerGraphicsItem(sgi)
         bgi = helper.TrackGraphicsItem(self, SignalItem.BERTH_GRAPHIC_ITEM)
         bgi.setPos(self._berthOrigin)
         bgi.setCursor(Qt.PointingHandCursor)
         bgi.setZValue(self.defaultZValue)
         self._gi[SignalItem.BERTH_GRAPHIC_ITEM] = bgi
-        self.simulation.registerGraphicsItem(bgi)
-        self.updateGraphics()
 
-    SIGNAL_GRAPHIC_ITEM = 0
-    BERTH_GRAPHIC_ITEM = 1
+    def initialize(self, simulation):
+        """Initialize the signal item once everything is loaded."""
+        params = self._parameters
+        self._signalType = simulation.signalTypes[params['signalType']]
+        self._activeAspect = self._signalType.getDefaultAspect()
+        self.signalSelected.connect(simulation.activateRoute)
+        self.signalUnselected.connect(simulation.desactivateRoute)
+        self.trainSelected.connect(simulation.trainSelected)
+        super().initialize(simulation)
 
     @staticmethod
     def getProperties():
@@ -103,21 +108,22 @@ class SignalItem(abstract.TrackItem):
                               translate("SignalItem", "Berth Origin"))
         ]
 
+    def for_json(self):
+        """Dumps the signalItem to JSON."""
+        jsonData = super().for_json()
+        jsonData.update({
+            "reverse": int(self.reverse),
+            "signalType": self.signalTypeStr,
+            "routesSetParams": str(self.routesSetParamsStr),
+            "trainNotPresentParams": str(self.trainNotPresentParamsStr),
+            "xn": self.berthOrigin.x(),
+            "yn": self.berthOrigin.y()
+        })
+
     signalSelected = QtCore.pyqtSignal(int, bool, bool)
     signalUnselected = QtCore.pyqtSignal(int)
     trainSelected = QtCore.pyqtSignal(int)
 
-    def getSaveParameters(self):
-        """Returns the parameters dictionary to save this TrackItem to the
-        database"""
-        parameters = super().getSaveParameters()
-        parameters.update({"reverse": int(self.reverse),
-                           "signaltype": self.signalTypeStr,
-                           "routesset": str(self.routesSetParamsStr),
-                           "trainpresent": str(self.trainNotPresentParamsStr),
-                           "xn": self.berthOrigin.x(),
-                           "yn": self.berthOrigin.y()})
-        return parameters
 
     # ## Properties #########################################################
 

@@ -30,31 +30,33 @@ class PlatformItem(abstract.ResizableItem):
     """Platform items are represented as a colored rectangle on the scene to
     symbolise the platform. This colored rectangle permits user interaction.
     """
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the PlatformItem class"""
-        super().__init__(simulation, parameters)
+        super().__init__(parameters)
         self.tiType = "ZP"
         x2 = parameters["xf"]
         y2 = parameters["yf"]
         self._end = QtCore.QPointF(x2, y2)
-        self._placeCode = parameters["placecode"]
-        trackCode = parameters["trackcode"]
-        self._place = simulation.place(self._placeCode)
-        if self._place is not None:
-            self._trackCode = trackCode
-            self._place.addTrack(self)
-        else:
-            self._trackCode = ""
+        self._placeCode = parameters["placeCode"]
+        self._trackCode = parameters["trackCode"]
         pgi = helper.TrackGraphicsItem(self)
         pgi.setPos(self.origin)
         pgi.setCursor(Qt.PointingHandCursor)
         pgi.setToolTip(self.toolTipText)
         pgi.setZValue(0)
         self._gi[0] = pgi
-        self.simulation.registerGraphicsItem(pgi)
         self.platformSelected.connect(
             placeitem.Place.selectedPlaceModel.setPlace
         )
+
+    def initialize(self, simulation):
+        """Initialize the item after all items are loaded."""
+        self._place = simulation.place(self._placeCode)
+        if self._place is not None:
+            self._place.addTrack(self)
+        else:
+            self._trackCode = ""
+        super().initialize(simulation)
 
     @staticmethod
     def getProperties():
@@ -74,18 +76,6 @@ class PlatformItem(abstract.ResizableItem):
         ]
 
     platformSelected = QtCore.pyqtSignal(placeitem.Place)
-
-    def getSaveParameters(self):
-        """Returns the parameters dictionary to save this TrackItem to the
-        database"""
-        parameters = super().getSaveParameters()
-        parameters.update({
-            "xf": self.end.x(),
-            "yf": self.end.y(),
-            "placecode": self.placeCode,
-            "trackcode": self.trackCode
-        })
-        return parameters
 
     def for_json(self):
         """Dumps this platform item to JSON."""

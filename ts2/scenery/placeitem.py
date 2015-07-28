@@ -109,11 +109,11 @@ class Place(abstract.TrackItem):
     """A Place is a place where trains will have a schedule (mainly station,
     but can also be a main junction for example)
     """
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the Place class"""
-        super().__init__(simulation, parameters)
-        self.tiType = "A"
-        self._placeCode = parameters["placecode"]
+        super().__init__(parameters)
+        self.simulation = None
+        self._placeCode = parameters["placeCode"]
         self._rect = QtCore.QRectF()
         self.updateBoundingRect()
         gi = helper.TrackGraphicsItem(self)
@@ -122,10 +122,8 @@ class Place(abstract.TrackItem):
         gi.setToolTip(self.toolTipText)
         gi.setZValue(self.defaultZValue)
         self._gi[0] = gi
-        self.simulation.registerGraphicsItem(gi)
         self._timetable = []
         self._tracks = {}
-        self.updateGraphics()
 
     @staticmethod
     def getProperties():
@@ -134,13 +132,6 @@ class Place(abstract.TrackItem):
         ]
 
     selectedPlaceModel = PlaceInfoModel()
-
-    def getSaveParameters(self):
-        """Returns the parameters dictionary to save this TrackItem to the
-        database"""
-        parameters = super().getSaveParameters()
-        parameters.update({"placecode": self.placeCode})
-        return parameters
 
     def for_json(self):
         """Dumps this place item to JSON."""

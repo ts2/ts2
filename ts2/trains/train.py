@@ -20,9 +20,10 @@
 from math import sqrt
 
 from Qt import QtCore, QtGui, QtWidgets, Qt
-
 from ts2 import routing, utils
-from ts2.scenery.signals import signalaspect
+from ts2.routing import position
+from ts2.scenery import lineitem, enditem
+from ts2.scenery.signals import signalaspect, signalitem
 
 translate = QtWidgets.qApp.translate
 
@@ -392,45 +393,30 @@ class Train(QtCore.QObject):
     is assigned a service.
     """
 
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the Train class"""
         super().__init__()
-        self.simulation = simulation
-        self._serviceCode = parameters["servicecode"]
-        self._trainType = self.simulation.trainTypes[parameters["traintype"]]
-        self._speed = 0
-        self._initialSpeed = float(parameters["speed"])
+        self._parameters = parameters
+        self.simulation = None
+        self._serviceCode = parameters["serviceCode"]
+        self._trainType = None
+        self._speed = parameters['speed']
+        self._initialSpeed = parameters.get("initialSpeed", 0.0)
         self._accel = 0
-        tiId = parameters["tiid"]
-        previousTiId = parameters["previoustiid"]
-        posOnTI = parameters["posonti"]
-        self._trainHead = routing.Position(
-            self.simulation.trackItem(tiId),
-            self.simulation.trackItem(previousTiId),
-            posOnTI
-        )
-        self._status = TrainStatus.INACTIVE
+        self._trainHead = parameters["trainHead"]
+        self._status = parameters["status"]
         self._lastSignal = None
         self._signalActions = [(0, 999)]
         self._applicableActionIndex = 0
+        self._nextPlaceIndex = None
         self._stoppedTime = 0
-        if "stoppedtime" in parameters:
-            self._stoppedTime = parameters["stoppedtime"]
+        if "stoppedTime" in parameters:
+            self._stoppedTime = parameters["stoppedTime"]
         self._minimumStopTime = 0
-        self.updateMinimumStopTime()
         self._initialDelayProba = \
-            utils.DurationProba(parameters["initialdelay"])
+            utils.DurationProba(parameters["initialDelay"])
         self._initialDelay = 0
-        self.setInitialDelay()
-        if self.currentService is not None:
-            self._nextPlaceIndex = 0
-            if "nextplaceindex" in parameters:
-                self._nextPlaceIndex = parameters["nextplaceindex"]
-        else:
-            self._nextPlaceIndex = None
-        self._appearTime = QtCore.QTime.fromString(parameters["appeartime"])
-        self.simulation.timeElapsed.connect(self.advance)
-        self.simulation.timeChanged.connect(self.activate)
+        self._appearTime = QtCore.QTime.fromString(parameters["appearTime"])
         # FIXME Throw back all these actions to MainWindow
         self.assignAction = QtWidgets.QAction(self.tr("Reassign service..."),
                                               self)
@@ -440,6 +426,30 @@ class Train(QtCore.QObject):
         self.resetServiceAction.triggered.connect(self.resetService)
         self.reverseAction = QtWidgets.QAction(self.tr("Reverse"), self)
         self.reverseAction.triggered.connect(self.reverse)
+
+    def initialize(self, simulation):
+        """Initialize the train once everything else is loaded."""
+        if not self._parameters:
+            raise Exception("Internal error: Train already initialized !")
+        params = self._parameters
+        self.simulation = simulation
+        self._trainType = simulation.trainTypes[params["trainTypeCode"]]
+        if self.currentService is not None:
+            self._nextPlaceIndex = params.get('nextPlaceIndex')
+        self.setInitialDelay()
+        self.updateMinimumStopTime()
+        self.trainHead.initialize(simulation)
+        self.simulation.timeElapsed.connect(self.advance)
+        self.simulation.timeChanged.connect(self.activate)
+        self.trainStatusChanged.connect(simulation.trainStatusChanged)
+        self.trainStoppedAtStation.connect(
+            simulation.scorer.trainArrivedAtStation
+        )
+        self.trainExitedArea.connect(simulation.scorer.trainExitedArea)
+        self.reassignServiceRequested.connect(
+            simulation.simulationWindow.openReassignServiceWindow
+        )
+        self._parameters = None
 
     def for_json(self):
         """Dumps this train to JSON."""
@@ -462,6 +472,7 @@ class Train(QtCore.QObject):
             "trainTypeCode": self.trainTypeCode,
             "status": self.status,
             "speed": speed,
+            "initialSpeed": self.initialSpeed,
             "trainHead": self.trainHead,
             "appearTime": appearTime,
             "initialDelay": initialDelay,
@@ -621,7 +632,9 @@ class Train(QtCore.QObject):
 
     @property
     def trainHead(self):
-        """Returns the Position of the head of this train."""
+        """Returns the Position of the head of this train.
+        :rtype : position.Position
+        """
         return self._trainHead
 
     @trainHead.setter
@@ -640,7 +653,7 @@ class Train(QtCore.QObject):
             tiId, ptiId, posOnTI = eval(value.strip('()'))
             trackItem = self.simulation.trackItem(tiId)
             previousTI = self.simulation.trackItem(ptiId)
-            self.trainHead = routing.Position(trackItem, previousTI, posOnTI)
+            self.trainHead = position.Position(trackItem, previousTI, posOnTI)
 
     trainHeadStr = property(_getTrainHeadStr, _setTrainHeadStr)
 
@@ -845,7 +858,7 @@ class Train(QtCore.QObject):
         trainExiting = False
         oth = self._trainHead - advanceLength
         for ti in oth.trackItemsToPosition(self._trainHead):
-            if ti.tiType.startswith("L"):
+            if isinstance(ti, lineitem.LineItem):
                 if ti.placeCode is not None and ti.placeCode != "":
                     if self.currentService is not None and \
                        self.nextPlaceIndex is not None:
@@ -856,7 +869,7 @@ class Train(QtCore.QObject):
                                 # Train does not stop at this place
                                 self.jumpToNextPlace()
                                 self.trainStatusChanged.emit(self.trainId)
-            elif ti.tiType.startswith("E"):
+            elif isinstance(ti, enditem.EndItem):
                 trainExiting = True
             ti.trainHeadActions(self.trainId)
         # Train tail
@@ -864,7 +877,7 @@ class Train(QtCore.QObject):
         ott = tt - advanceLength
         for ti in ott.trackItemsToPosition(tt):
             ti.trainTailActions(self.trainId)
-            if ti.tiType.startswith("E") and trainExiting:
+            if isinstance(ti, enditem.EndItem) and trainExiting:
                 self.status = TrainStatus.OUT
                 self.trainExitedArea.emit(self.trainId)
                 break
@@ -881,7 +894,7 @@ class Train(QtCore.QObject):
                self.nextPlaceIndex is not None:
                 # The train is operating on a service that is not over
                 line = self.currentService.lines[self.nextPlaceIndex]
-                if self._trainHead.trackItem.tiType.startswith("L") and \
+                if isinstance(self._trainHead.trackItem, lineitem.LineItem) and \
                    self._trainHead.trackItem.placeCode == line.placeCode:
                     # Train is stopped at the scheduled nextStop place
                     if self.status == TrainStatus.RUNNING:
@@ -938,7 +951,7 @@ class Train(QtCore.QObject):
         trainHead and trainTail to the different trackItems met.
         @param advanceLength : The length that the train has advanced since
         the last call to this function."""
-        trainTail = self._trainHead - self._trainType.length
+        trainTail = self.trainHead - self.trainType.length
         oldTrainTail = trainTail - advanceLength
         # Draw the train in its new position
         self._trainHead.trackItem.setTrainHead(self._trainHead.positionOnTI,
@@ -965,54 +978,54 @@ class Train(QtCore.QObject):
             oldTrainTail.trackItem.setTrainHead(-1, oldTrainTail.previousTI)
             oldTrainTail.trackItem.setTrainTail(-1, oldTrainTail.previousTI)
 
-    def getNextSignalInfo(self, pos=routing.Position()):
+    def getNextSignalInfo(self, pos=position.Position()):
         """Returns the position and distance of first signal ahead of the
         train head or ahead of the given position if specified"""
-        retPos = routing.Position()
+        retPos = position.Position()
         retDist = -1
-        if pos == routing.Position():
+        if pos == position.Position():
             pos = self._trainHead
-        if not pos.trackItem.tiType.startswith("E"):
+        if not isinstance(pos.trackItem, enditem.EndItem):
             cur = pos.next()
-            while not cur.trackItem.tiType.startswith("E"):
+            while not isinstance(cur.trackItem, enditem.EndItem):
                 ti = cur.trackItem
-                if ti.tiType.startswith("S"):
+                if isinstance(ti, signalitem.SignalItem):
                     if ti.isOnPosition(cur):
                         retPos = cur
                         break
                 cur = cur.next()
-        if retPos != routing.Position():
+        if retPos != position.Position():
             retDist = self._trainHead.distanceToPosition(retPos)
         return retPos, retDist
 
-    def findNextSignal(self, pos=routing.Position()):
+    def findNextSignal(self, pos=position.Position()):
         """ @return The first signal ahead the train head
         or ahead of the given position if specified"""
         nsp, nsd = self.getNextSignalInfo(pos)
         return nsp.trackItem
 
-    def getDistanceToNextSignal(self, pos=routing.Position()):
+    def getDistanceToNextSignal(self, pos=position.Position()):
         """Returns the distance to the next Signal"""
         nsp, nsd = self.getNextSignalInfo(pos)
         return nsd
 
-    def findPreviousSignalPosition(self, pos=routing.Position()):
+    def findPreviousSignalPosition(self, pos=position.Position()):
         """ Finds the position of the first signal behind the train head or
         the given position.
         @return The position of the first signal behind"""
-        if pos == routing.Position():
+        if pos == position.Position():
             cur = self._trainHead
         else:
             cur = pos
-        while not cur.trackItem.tiType.startswith("E"):
+        while not isinstance(cur.trackItem, enditem.EndItem):
             ti = cur.trackItem
-            if ti.tiType.startswith("S"):
+            if isinstance(ti, signalitem.SignalItem):
                 if ti.isOnPosition(cur):
                     return cur
             cur = cur.previous()
-        return routing.Position()
+        return position.Position()
 
-    def findPreviousSignal(self, pos=routing.Position()):
+    def findPreviousSignal(self, pos=position.Position()):
         """ @return The first signal behind the train head"""
         return self.findPreviousSignalPosition(pos).trackItem
 
@@ -1031,10 +1044,10 @@ class Train(QtCore.QObject):
             return -1
         pos = self._trainHead
         distance = pos.trackItem.realLength - self._trainHead.positionOnTI
-        while (not pos.trackItem.tiType.startswith("E")) and \
-              (distance < maxDistance):
+        while (not isinstance(pos.trackItem, enditem.EndItem) and
+                (distance < maxDistance)):
             ti = pos.trackItem
-            if ti.tiType.startswith("S"):
+            if isinstance(ti, signalitem.SignalItem):
                 if ti.isOnPosition(pos) and \
                    ti.activeAspect.meansProceed():
                     # We have a red signal here, no need to go further
@@ -1055,10 +1068,10 @@ class Train(QtCore.QObject):
         distance = pos.trackItem.realLength - self.trainHead.positionOnTI
         pos = pos.next()
         while (pos.isValid() and
-               (not pos.trackItem.tiType.startswith("E")) and
-               (distance < maxDistance)):
+               (not isinstance(pos.trackItem, enditem.EndItem) and
+               (distance < maxDistance))):
             ti = pos.trackItem
-            if ti.tiType.startswith("S"):
+            if isinstance(ti, signalitem.SignalItem):
                 if ti.isOnPosition(pos) and \
                    not ti.activeAspect.meansProceed():
                     # We have a red signal here, no need to go further
@@ -1078,7 +1091,7 @@ class Train(QtCore.QObject):
         distance of maxDistance."""
         pos = self._trainHead
         distance = pos.trackItem.realLength - self._trainHead.positionOnTI
-        while (not pos.trackItem.tiType.startswith("E") and
+        while (not isinstance(pos.trackItem, enditem.EndItem) and
                distance < maxDistance):
             pos = pos.next()
             ti = pos.trackItem

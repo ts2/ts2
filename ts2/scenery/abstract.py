@@ -70,24 +70,26 @@ class TrackItem(QtCore.QObject):
     The origin is the top left most corner of the scene.
     The X-axis is from left to right and the Y-axis is from top to bottom.
     """
-    def __init__(self, simulation, parameters):
-        """ Constructor for the TrackItem class"""
+    def __init__(self, parameters):
+        """Constructor for the TrackItem class.
+
+        :param parameters: JSON object holding the parameters to create the
+        TrackItem
+        """
         super().__init__()
-        self.simulation = simulation
-        self.tiId = parameters["tiid"]
-        self._name = parameters["name"]
-        if parameters["maxspeed"] == "" or parameters["maxspeed"] is None:
-            parameters["maxspeed"] = "0.0"
-        self._maxSpeed = float(parameters["maxspeed"])
-        self.tiType = "0"
+        self.simulation = None
+        self._parameters = parameters
+        self.tiId = parameters['tiId']
+        self._name = parameters['name']
+        self._maxSpeed = float(parameters.get('maxSpeed', "0.0"))
         self._nextItem = None
         self._previousItem = None
         self.activeRoute = None
         self.activeRoutePreviousItem = None
         self._selected = False
         self.defaultZValue = 0
-        x = parameters["x"]
-        y = parameters["y"]
+        x = parameters['x']
+        y = parameters['y']
         self._origin = QtCore.QPointF(x, y)
         self._end = QtCore.QPointF(x + 10, y)
         self._realLength = 1.0
@@ -100,6 +102,21 @@ class TrackItem(QtCore.QObject):
         self.toBeDeselected = False
         self.properties = self.getProperties()
         self.multiProperties = self.getMultiProperties()
+
+    def initialize(self, simulation):
+        """Initialize the item after all items are loaded."""
+        if not self._parameters:
+            raise Exception("Internal error: TrackItem already initialized !")
+        self.simulation = simulation
+        params = self._parameters
+        self._nextItem = simulation.trackItem(params['nextTiId'])
+        self._previousItem = simulation.trackItem(params['previousTiId'])
+        self.conflictTI = simulation.trackItem(params['conflictTiId'])
+
+        self._parameters = None
+        for gi in self._gi.values():
+            simulation.registerGraphicsItem(gi)
+        self.updateGraphics()
 
     def __del__(self):
         """Destructor for the TrackItem class"""
@@ -128,57 +145,6 @@ class TrackItem(QtCore.QObject):
                                   translate("TrackItem",
                                             "Maximum speed (m/s)"))]
 
-    fieldTypes = {
-        "tiid": "INTEGER PRIMARY KEY",
-        "titype": "VARCHAR(5)",
-        "name": "VARCHAR(100)",
-        "conflicttiid": "INTEGER",
-        "x": "DOUBLE",
-        "y": "DOUBLE",
-        "xf": "DOUBLE",
-        "yf": "DOUBLE",
-        "xr": "DOUBLE",
-        "yr": "DOUBLE",
-        "xn": "DOUBLE",
-        "yn": "DOUBLE",
-        "reverse": "BOOLEAN",
-        "reallength": "DOUBLE",
-        "maxspeed": "DOUBLE",
-        "placecode": "VARCHAR(10)",
-        "trackcode": "VARCHAR(10)",
-        # "timersw": "DOUBLE",
-        # "timerwc": "DOUBLE",
-        "ptiid": "INTEGER",
-        "ntiid": "INTEGER",
-        "rtiid": "INTEGER",
-        "signaltype": "VARCHAR(50)",
-        "routesset": "VARCHAR(255)",
-        "trainpresent": "VARCHAR(255)"
-    }
-
-    def getSaveParameters(self):
-        """Returns the parameters dictionary to save this TrackItem to the
-        database"""
-        if self.previousItem is not None:
-            previousTiId = self.previousItem.tiId
-        else:
-            previousTiId = None
-        if self.nextItem is not None:
-            nextTiId = self.nextItem.tiId
-        else:
-            nextTiId = None
-        return {
-            "tiid": self.tiId,
-            "titype": self.tiType,
-            "name": self.name,
-            "conflicttiid": self.conflictTiId,
-            "x": self.origin.x(),
-            "y": self.origin.y(),
-            "maxspeed": self.maxSpeed,
-            "ptiid": previousTiId,
-            "ntiid": nextTiId
-        }
-
     def for_json(self):
         """Dumps the trackItem to JSON."""
         if self.previousItem is not None:
@@ -193,7 +159,7 @@ class TrackItem(QtCore.QObject):
             "__type__": self.__class__.__name__,
             "tiId": self.tiId,
             "name": self.name,
-            "conflictTiTd": self.conflictTiId,
+            "conflictTiId": self.conflictTiId,
             "x": self.origin.x(),
             "y": self.origin.y(),
             "maxSpeed": self.maxSpeed,
@@ -331,6 +297,8 @@ class TrackItem(QtCore.QObject):
     @conflictTI.setter
     def conflictTI(self, ti):
         self._conflictTrackItem = ti
+        # TODO: Find a solution for this one ...
+        # ti.conflictTI = self
 
     @property
     def conflictTiId(self):
@@ -345,9 +313,9 @@ class TrackItem(QtCore.QObject):
         """Setter function for the conflictTiId property."""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             if value is not None and value != "":
-                self._conflictTrackItem = self.simulation.trackItem(int(value))
+                self.conflictTI = self.simulation.trackItem(int(value))
             else:
-                self._conflictTrackItem = None
+                self.conflictTI = None
 
     def _getTrainPresentPreviousInfo(self):
         """Returns True if a train has last been seen present on this TI,
@@ -616,11 +584,11 @@ class ResizableItem(TrackItem):
     """ResizableItem is the base class for all TrackItems which can be
     resized by the user in the editor, such as line items or platform items.
     """
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the ResizableItem class."""
-        super().__init__(simulation, parameters)
-        xf = float(parameters["xf"])
-        yf = float(parameters["yf"])
+        super().__init__(parameters)
+        xf = float(parameters['xf'])
+        yf = float(parameters['yf'])
         self._end = QtCore.QPointF(xf, yf)
 
     @staticmethod
@@ -636,6 +604,15 @@ class ResizableItem(TrackItem):
             helper.TIProperty("conflictTiId", translate("LineItem",
                                                         "Conflict item ID"))
         ]
+
+    def for_json(self):
+        """Dumps this resizeable item to JSON."""
+        jsonData = super().for_json()
+        jsonData.update({
+            "xf": self._end.x(),
+            "yf": self._end.y()
+        })
+        return jsonData
 
     # ## Properties #################################################
 

@@ -32,17 +32,19 @@ class EndItem(abstract.TrackItem):
     End items are defined by their titype which is “E” and their position
     (x, y). They are single point items.
     """
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the EndItem class"""
-        super().__init__(simulation, parameters)
-        self.tiType = "E"
+        super().__init__(parameters)
         self._realLength = BIG
         egi = helper.TrackGraphicsItem(self)
         egi.setPos(self.origin)
-        if self.simulation.context in utils.Context.EDITORS:
-            egi.setCursor(Qt.PointingHandCursor)
         self._gi[0] = egi
-        simulation.registerGraphicsItem(egi)
+
+    def initialize(self, simulation):
+        """Initialize the item after all items are loaded."""
+        super().initialize(simulation)
+        if self.simulation.context in utils.Context.EDITORS:
+            self._gi[0].setCursor(Qt.PointingHandCursor)
 
     def _getEnd(self):
         """Returns a point far away of the scene"""
