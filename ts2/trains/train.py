@@ -439,6 +439,7 @@ class Train(QtCore.QObject):
         self.setInitialDelay()
         self.updateMinimumStopTime()
         self.trainHead.initialize(simulation)
+        self.activate(simulation.currentTime)
         self.simulation.timeElapsed.connect(self.advance)
         self.simulation.timeChanged.connect(self.activate)
         self.trainStatusChanged.connect(simulation.trainStatusChanged)
@@ -949,7 +950,8 @@ class Train(QtCore.QObject):
     def drawTrain(self, advanceLength=0):
         """This function draws the train on the scene by setting the correct
         trainHead and trainTail to the different trackItems met.
-        @param advanceLength : The length that the train has advanced since
+
+        :param advanceLength : The length that the train has advanced since
         the last call to this function."""
         trainTail = self.trainHead - self.trainType.length
         oldTrainTail = trainTail - advanceLength
