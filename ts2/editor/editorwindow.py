@@ -20,7 +20,7 @@
 
 from Qt import QtGui, QtCore, QtWidgets, Qt
 
-from ts2 import scenery
+from ts2 import scenery, simulation
 from ts2.editor import editor
 from ts2.gui import dialogs, widgets
 import ts2.editor.views
@@ -35,12 +35,11 @@ class EditorWindow(QtWidgets.QMainWindow):
         super().__init__(mainWindow)
         self.setGeometry(100, 100, 1024, 768)
         self.setWindowTitle(
-                        self.tr("ts2 - Train Signalling Simulation - Editor"))
+            self.tr("ts2 - Train Signalling Simulation - Editor"))
         self._mainWindow = mainWindow
 
         # Editor
-        self.editor = editor.Editor(self)
-        self.editor.selectionChanged.connect(self.setPropertiesModel)
+        self.editor = None
 
         # Actions
         self.newAction = QtWidgets.QAction(self.tr("&New"), self)
@@ -67,7 +66,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.saveAsAction = QtWidgets.QAction(self.tr("&Save as..."), self)
         self.saveAsAction.setShortcut(QtGui.QKeySequence.SaveAs)
         saveAsActionTip = self.tr(
-                    "Save the current simulation with a different file name")
+            "Save the current simulation with a different file name")
         self.saveAsAction.setToolTip(saveAsActionTip)
         self.saveAsAction.setStatusTip(saveAsActionTip)
         self.saveAsAction.triggered.connect(self.saveAsSimulation)
@@ -87,7 +86,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.panToolAction.triggered.connect(self.setPanTool)
 
         self.selectionToolAction = QtWidgets.QAction(self.tr("&Selection tool"),
-                                                 self)
+                                                     self)
         selectionToolActionTip = self.tr("Set the selection tool")
         self.selectionToolAction.setToolTip(selectionToolActionTip)
         self.selectionToolAction.setStatusTip(selectionToolActionTip)
@@ -170,16 +169,17 @@ class EditorWindow(QtWidgets.QMainWindow):
         # >> TrackItems panel: TI Library
         self.toolsPanel = QtWidgets.QDockWidget(self.tr("Tools"), self)
         self.toolsPanel.setFeatures(
-                                QtWidgets.QDockWidget.DockWidgetMovable|
-                                QtWidgets.QDockWidget.DockWidgetFloatable)
-        self.trackItemsLibraryView = \
-                                QtWidgets.QGraphicsView(self.editor.libraryScene)
+            QtWidgets.QDockWidget.DockWidgetMovable |
+            QtWidgets.QDockWidget.DockWidgetFloatable
+        )
+        self.trackItemsLibraryView = QtWidgets.QGraphicsView(self)
         self.trackItemsLibraryView.setBackgroundBrush(QtGui.QBrush(Qt.black))
         self.trackItemsLibraryView.setInteractive(True)
-        self.trackItemsLibraryView.setRenderHint(
-                                QtGui.QPainter.Antialiasing, False)
+        self.trackItemsLibraryView.setRenderHint(QtGui.QPainter.Antialiasing,
+                                                 False)
         self.trackItemsLibraryView.setDragMode(
-                                QtWidgets.QGraphicsView.ScrollHandDrag)
+            QtWidgets.QGraphicsView.ScrollHandDrag
+        )
         self.trackItemsLibraryView.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         # >> TrackItems panel: layout
         toolBoard = QtWidgets.QWidget(self)
@@ -191,10 +191,12 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.addDockWidget(Qt.RightDockWidgetArea, self.toolsPanel)
 
         # >> Properties panel
-        self.propertiesPanel = QtWidgets.QDockWidget(self.tr("Properties"), self)
+        self.propertiesPanel = QtWidgets.QDockWidget(self.tr("Properties"),
+                                                     self)
         self.propertiesPanel.setFeatures(
-                                    QtWidgets.QDockWidget.DockWidgetMovable| \
-                                    QtWidgets.QDockWidget.DockWidgetFloatable)
+            QtWidgets.QDockWidget.DockWidgetMovable |
+            QtWidgets.QDockWidget.DockWidgetFloatable
+        )
         self.propertiesView = ts2.editor.views.PropertiesView(self)
         self.propertiesPanel.setWidget(self.propertiesView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.propertiesPanel)
@@ -203,21 +205,19 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.tabWidget = QtWidgets.QTabWidget(self)
         self.tabWidget.currentChanged.connect(self.showHideDockWidgets)
         self.tabWidget.currentChanged.connect(self.updateMenus)
-        self.tabWidget.currentChanged.connect(self.editor.updateContext)
 
         # General tab
         generalTab = QtWidgets.QWidget()
-        titleLabel = QtWidgets.QLabel(self.tr("Simulation title: "), generalTab)
+        titleLabel = QtWidgets.QLabel(self.tr("Simulation title: "),
+                                      generalTab)
         self.titleTxt = QtWidgets.QLineEdit(generalTab)
         self.titleTxt.editingFinished.connect(self.updateTitle)
-        descriptionLabel = QtWidgets.QLabel(self.tr("Description: "), generalTab)
+        descriptionLabel = QtWidgets.QLabel(self.tr("Description: "),
+                                            generalTab)
         self.descriptionTxt = QtWidgets.QPlainTextEdit(generalTab)
         self.descriptionTxt.textChanged.connect(self.updateDescription)
-        self.editor.optionsChanged.connect(self.updateGeneralTab)
         optionsLabel = QtWidgets.QLabel(self.tr("Options: "))
         self.optionsView = QtWidgets.QTableView(generalTab)
-        self.optionsView.setModel(self.editor.optionsModel)
-        self.editor.optionsChanged.connect(self.optionsView.reset)
         fgrid = QtWidgets.QFormLayout()
         fgrid.addRow(titleLabel, self.titleTxt)
         fgrid.addRow(descriptionLabel, self.descriptionTxt)
@@ -227,27 +227,19 @@ class EditorWindow(QtWidgets.QMainWindow):
 
         # Scenery tab
         sceneryTab = QtWidgets.QWidget()
-        self.sceneryView = QtWidgets.QGraphicsView(self.editor.scene, sceneryTab)
+        self.sceneryView = QtWidgets.QGraphicsView(sceneryTab)
         self.sceneryView.setInteractive(True)
         self.sceneryView.setRenderHint(QtGui.QPainter.Antialiasing, False)
         self.sceneryView.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.sceneryView.setAcceptDrops(True)
         self.sceneryView.setBackgroundBrush(QtGui.QBrush(Qt.black))
-        self.editor.sceneryIsValidated.connect(
-                                    self.sceneryView.setDisabled)
-        self.unlockSceneryBtn = QtWidgets.QPushButton(
-                                    self.tr("Unlock Scenery"), sceneryTab)
+        self.unlockSceneryBtn = QtWidgets.QPushButton(self.tr("Unlock Scenery"),
+                                                      sceneryTab)
         self.unlockSceneryBtn.setEnabled(False)
-        self.unlockSceneryBtn.clicked.connect(
-                                    self.editor.invalidateScenery)
-        self.editor.sceneryIsValidated.connect(
-                                    self.unlockSceneryBtn.setEnabled)
         self.validateSceneryBtn = QtWidgets.QPushButton(
-                                    self.tr("Validate Scenery"), sceneryTab)
-        self.validateSceneryBtn.clicked.connect(
-                                    self.validateSceneryBtnClicked)
-        self.editor.sceneryIsValidated.connect(
-                                    self.validateSceneryBtn.setDisabled)
+            self.tr("Validate Scenery"), sceneryTab
+        )
+        self.validateSceneryBtn.clicked.connect(self.validateSceneryBtnClicked)
         self.zoomWidget = widgets.ZoomWidget(sceneryTab)
         self.zoomWidget.valueChanged.connect(self.zoom)
         hgrid = QtWidgets.QHBoxLayout()
@@ -267,54 +259,49 @@ class EditorWindow(QtWidgets.QMainWindow):
         # Routes tab
         routesTab = QtWidgets.QWidget()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                       QtWidgets.QSizePolicy.Expanding)
+                                           QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
-        self.routesGraphicView = QtWidgets.QGraphicsView(self.editor.scene,
-                                                     routesTab)
+        self.routesGraphicView = QtWidgets.QGraphicsView(routesTab)
         self.routesGraphicView.setInteractive(True)
         self.routesGraphicView.setRenderHint(QtGui.QPainter.Antialiasing,
-                                              False)
+                                             False)
         self.routesGraphicView.setDragMode(
-                                        QtWidgets.QGraphicsView.ScrollHandDrag)
+            QtWidgets.QGraphicsView.ScrollHandDrag
+        )
         self.routesGraphicView.setAcceptDrops(True)
         self.routesGraphicView.setBackgroundBrush(QtGui.QBrush(Qt.black))
         self.routesGraphicView.setSizePolicy(sizePolicy)
-        self.addRouteBtn = QtWidgets.QPushButton(
-                                self.tr("Add Route"), routesTab)
+        self.addRouteBtn = QtWidgets.QPushButton(self.tr("Add Route"),
+                                                 routesTab)
         self.addRouteBtn.clicked.connect(self.addRouteBtnClicked)
-        self.delRouteBtn = QtWidgets.QPushButton(
-                                self.tr("Delete Route"), routesTab)
+        self.delRouteBtn = QtWidgets.QPushButton(self.tr("Delete Route"),
+                                                 routesTab)
         self.delRouteBtn.clicked.connect(self.delRouteBtnClicked)
         hgrid = QtWidgets.QHBoxLayout()
         hgrid.addWidget(self.addRouteBtn)
         hgrid.addWidget(self.delRouteBtn)
         hgrid.addStretch()
         self.routesView = ts2.editor.views.RoutesEditorView(routesTab)
-        self.routesView.setModel(self.editor.routesModel)
-        self.routesView.routeSelected.connect(self.editor.selectRoute)
-        self.editor.routesChanged.connect(self.routesView.reset)
         grid = QtWidgets.QVBoxLayout()
         grid.addWidget(self.routesGraphicView)
         grid.addLayout(hgrid)
         grid.addWidget(self.routesView)
         routesTab.setLayout(grid)
         routesTab.setEnabled(False)
-        self.editor.sceneryIsValidated.connect(routesTab.setEnabled)
         self.tabWidget.addTab(routesTab, self.tr("Routes"))
+        self.routesTab = routesTab
 
         # Train types tab
         trainTypesTab = QtWidgets.QWidget()
         self.trainTypesView = \
             ts2.editor.views.TrainTypesEditorView(trainTypesTab)
-        self.trainTypesView.setModel(self.editor.trainTypesModel)
-        self.editor.trainTypesChanged.connect(self.trainTypesView.reset)
-        self.editor.trainTypesChanged.connect(
-                                self.trainTypesView.resizeColumnsToContents)
         self.addTrainTypeBtn = QtWidgets.QPushButton(
-                                self.tr("Add new train type"), trainTypesTab)
+            self.tr("Add new train type"), trainTypesTab
+        )
         self.addTrainTypeBtn.clicked.connect(self.addTrainTypeBtnClicked)
         self.delTrainTypeBtn = QtWidgets.QPushButton(
-                                self.tr("Remove train type"), trainTypesTab)
+            self.tr("Remove train type"), trainTypesTab
+        )
         self.delTrainTypeBtn.clicked.connect(self.delTrainTypeBtnClicked)
         hgrid = QtWidgets.QHBoxLayout()
         hgrid.addWidget(self.addTrainTypeBtn)
@@ -329,27 +316,20 @@ class EditorWindow(QtWidgets.QMainWindow):
         # Services tab
         servicesTab = QtWidgets.QWidget()
         self.exportServicesBtn = QtWidgets.QPushButton(
-                                self.tr("Export services as CSV file..."),
-                                servicesTab)
-        self.exportServicesBtn.clicked.connect(
-                                self.exportServicesBtnClicked)
+            self.tr("Export services as CSV file..."),
+            servicesTab
+        )
+        self.exportServicesBtn.clicked.connect(self.exportServicesBtnClicked)
         self.importServicesBtn = QtWidgets.QPushButton(
-                                self.tr("Import services from CSV file..."),
-                                servicesTab)
-        self.importServicesBtn.clicked.connect(
-                                self.importServicesBtnClicked)
+            self.tr("Import services from CSV file..."),
+            servicesTab
+        )
+        self.importServicesBtn.clicked.connect(self.importServicesBtnClicked)
         hgride = QtWidgets.QHBoxLayout()
         hgride.addWidget(self.exportServicesBtn)
         hgride.addWidget(self.importServicesBtn)
         hgride.addStretch()
         self.servicesView = ts2.editor.views.ServicesEditorView(servicesTab)
-        servicesSortedModel = QtCore.QSortFilterProxyModel()
-        servicesSortedModel.setSourceModel(self.editor.servicesModel)
-        self.servicesView.setModel(servicesSortedModel)
-        self.editor.servicesChanged.connect(self.servicesView.reset)
-        self.editor.servicesChanged.connect(
-            self.servicesView.resizeColumnsToContents
-        )
         self.addServiceBtn = QtWidgets.QPushButton(self.tr("Add new service"),
                                                    servicesTab)
         self.addServiceBtn.clicked.connect(self.addServiceBtnClicked)
@@ -362,28 +342,24 @@ class EditorWindow(QtWidgets.QMainWindow):
         hgrids.addStretch()
         self.serviceLinesView = QtWidgets.QTableView()
         self.serviceLinesView.setSelectionBehavior(
-                                QtWidgets.QAbstractItemView.SelectRows)
+            QtWidgets.QAbstractItemView.SelectRows)
         self.serviceLinesView.setSelectionMode(
-                                QtWidgets.QAbstractItemView.SingleSelection)
-        self.serviceLinesView.setModel(self.editor.serviceLinesModel)
-        self.servicesView.serviceSelected.connect(
-                                self.editor.serviceLinesModel.setServiceCode)
-        self.editor.serviceLinesChanged.connect(
-                                self.serviceLinesView.reset)
-        self.editor.serviceLinesChanged.connect(
-                                self.serviceLinesView.resizeColumnsToContents)
+            QtWidgets.QAbstractItemView.SingleSelection)
         self.appendServiceLineBtn = QtWidgets.QPushButton(
-                                self.tr("Append new line"), servicesTab)
+            self.tr("Append new line"), servicesTab
+        )
         self.appendServiceLineBtn.clicked.connect(
-                                self.appendServiceLineBtnClicked)
+            self.appendServiceLineBtnClicked
+        )
         self.insertServiceLineBtn = QtWidgets.QPushButton(
-                                self.tr("Insert new line"), servicesTab)
+            self.tr("Insert new line"), servicesTab
+        )
         self.insertServiceLineBtn.clicked.connect(
-                                self.insertServiceLineBtnClicked)
-        self.delServiceLineBtn = QtWidgets.QPushButton(
-                                self.tr("Remove line"), servicesTab)
-        self.delServiceLineBtn.clicked.connect(
-                                self.delServiceLineBtnClicked)
+            self.insertServiceLineBtnClicked
+        )
+        self.delServiceLineBtn = QtWidgets.QPushButton(self.tr("Remove line"),
+                                                       servicesTab)
+        self.delServiceLineBtn.clicked.connect(self.delServiceLineBtnClicked)
         hgridl = QtWidgets.QHBoxLayout()
         hgridl.addWidget(self.appendServiceLineBtn)
         hgridl.addWidget(self.insertServiceLineBtn)
@@ -401,33 +377,24 @@ class EditorWindow(QtWidgets.QMainWindow):
         # Train tab
         trainsTab = QtWidgets.QWidget()
         self.setupTrainsBtn = QtWidgets.QPushButton(
-                                self.tr("Setup trains from services"),
-                                trainsTab)
-        self.setupTrainsBtn.clicked.connect(
-                                self.setupTrainsBtnClicked)
+            self.tr("Setup trains from services"), trainsTab
+        )
+        self.setupTrainsBtn.clicked.connect(self.setupTrainsBtnClicked)
 
         hgride = QtWidgets.QHBoxLayout()
         hgride.addWidget(self.setupTrainsBtn)
         hgride.addStretch()
         self.trainsGraphicsView = ts2.editor.views.TrainsGraphicsView(
-                                                self.editor.scene, trainsTab)
+            trainsTab
+        )
         self.reverseTrainBtn = QtWidgets.QPushButton(
-                                self.tr("Reverse train direction"),
-                                trainsTab)
+            self.tr("Reverse train direction"), trainsTab
+        )
         self.reverseTrainBtn.clicked.connect(self.reverseTrainBtnClicked)
         hgridr = QtWidgets.QHBoxLayout()
         hgridr.addWidget(self.reverseTrainBtn)
         hgridr.addStretch()
         self.trainsView = ts2.editor.views.TrainsEditorView(trainsTab)
-        trainsSortedModel = QtCore.QSortFilterProxyModel()
-        trainsSortedModel.setSourceModel(self.editor.trainsModel)
-        self.trainsView.setModel(trainsSortedModel)
-        self.trainsView.trainSelected.connect(self.editor.selectTrain)
-        self.trainsView.trainsUnselected.connect(self.editor.unselectTrains)
-        self.editor.trainsChanged.connect(self.trainsView.reset)
-        self.editor.trainsChanged.connect(
-            self.trainsView.resizeColumnsToContents
-        )
         self.addTrainBtn = QtWidgets.QPushButton(self.tr("Add new train"),
                                                  trainsTab)
         self.addTrainBtn.clicked.connect(self.addTrainBtnClicked)
@@ -449,6 +416,62 @@ class EditorWindow(QtWidgets.QMainWindow):
 
         self.setCentralWidget(self.tabWidget)
 
+    def simulationConnect(self):
+        """Connects the signals and slots to the simulation."""
+        self.editor.selectionChanged.connect(self.setPropertiesModel)
+        self.tabWidget.currentChanged.connect(self.editor.updateContext)
+        self.editor.optionsChanged.connect(self.updateGeneralTab)
+        self.optionsView.setModel(self.editor.optionsModel)
+        self.editor.optionsChanged.connect(self.optionsView.reset)
+        self.sceneryView.setScene(self.editor.scene)
+        self.trackItemsLibraryView.setScene(self.editor.libraryScene)
+        self.editor.sceneryIsValidated.connect(
+            self.sceneryView.setDisabled
+        )
+        self.unlockSceneryBtn.clicked.connect(
+            self.editor.invalidateScenery
+        )
+        self.editor.sceneryIsValidated.connect(
+            self.unlockSceneryBtn.setEnabled
+        )
+        self.editor.sceneryIsValidated.connect(
+            self.validateSceneryBtn.setDisabled
+        )
+        self.routesGraphicView.setScene(self.editor.scene)
+        self.routesView.setModel(self.editor.routesModel)
+        self.routesView.routeSelected.connect(self.editor.selectRoute)
+        self.editor.routesChanged.connect(self.routesView.reset)
+        self.editor.sceneryIsValidated.connect(self.routesTab.setEnabled)
+        self.trainTypesView.setModel(self.editor.trainTypesModel)
+        self.editor.trainTypesChanged.connect(self.trainTypesView.reset)
+        self.editor.trainTypesChanged.connect(
+            self.trainTypesView.resizeColumnsToContents
+        )
+        servicesSortedModel = QtCore.QSortFilterProxyModel()
+        servicesSortedModel.setSourceModel(self.editor.servicesModel)
+        self.servicesView.setModel(servicesSortedModel)
+        self.editor.servicesChanged.connect(self.servicesView.reset)
+        self.editor.servicesChanged.connect(
+            self.servicesView.resizeColumnsToContents
+        )
+        self.serviceLinesView.setModel(self.editor.serviceLinesModel)
+        self.servicesView.serviceSelected.connect(
+            self.editor.serviceLinesModel.setServiceCode
+        )
+        self.editor.serviceLinesChanged.connect(self.serviceLinesView.reset)
+        self.editor.serviceLinesChanged.connect(
+            self.serviceLinesView.resizeColumnsToContents
+        )
+        self.trainsGraphicsView.setScene(self.editor.scene)
+        trainsSortedModel = QtCore.QSortFilterProxyModel()
+        trainsSortedModel.setSourceModel(self.editor.trainsModel)
+        self.trainsView.setModel(trainsSortedModel)
+        self.trainsView.trainSelected.connect(self.editor.selectTrain)
+        self.trainsView.trainsUnselected.connect(self.editor.unselectTrains)
+        self.editor.trainsChanged.connect(self.trainsView.reset)
+        self.editor.trainsChanged.connect(
+            self.trainsView.resizeColumnsToContents
+        )
 
     closed = QtCore.pyqtSignal()
 
@@ -485,20 +508,21 @@ class EditorWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def loadSimulation(self):
         """Loads the simulation from the database"""
-        #### DEBUG
-        #fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain.ts2"
+        # #TODO DEBUG
+        fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.json"
 
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
-                           self,
-                           self.tr("Open a simulation"),
-                           QtCore.QDir.currentPath(),
-                           self.tr("TS2 simulation files (*.ts2)"))
+        # fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
+        #                    self,
+        #                    self.tr("Open a simulation"),
+        #                    QtCore.QDir.currentPath(),
+        #                    self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
-            self.editor.load(fileName)
+            self.editor = editor.load(self, fileName)
             self.setWindowTitle(
                     self.tr("ts2 - Train Signalling Simulation - Editor - %s")
                     % fileName)
+            self.simulationConnect()
             QtWidgets.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()

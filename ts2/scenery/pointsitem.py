@@ -80,7 +80,7 @@ class PointsItem(abstract.TrackItem):
     def initialize(self, simulation):
         """Initialize the item after all items are loaded."""
         params = self._parameters
-        self._reverseItem = simulation.trackItem(params['reverseTiId'])
+        self._reverseItem = simulation.trackItem(params.get('reverseTiId'))
         super().initialize(simulation)
 
     @staticmethod

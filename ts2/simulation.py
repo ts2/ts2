@@ -325,6 +325,12 @@ class Simulation(QtCore.QObject):
     trainStatusChanged = QtCore.pyqtSignal(int)
     selectionChanged = QtCore.pyqtSignal()
 
+    @QtCore.pyqtSlot(int)
+    def updateContext(self, tabNum):
+        """Updates the context of the simulation. Does nothing in the base
+        class."""
+        pass
+
     @QtCore.pyqtSlot(int, bool, bool)
     def activateRoute(self, siId, persistent=False, force=False):
         """This slot is normally connected to the signal

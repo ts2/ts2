@@ -59,7 +59,7 @@ class MessageLogger(QtCore.QAbstractTableModel):
     def __init__(self, parameters):
         """Constructor for the MessageLogger class."""
         super().__init__()
-        self._messages = parameters['messages'] + [Message(
+        self._messages = parameters.get('messages', []) + [Message(
             {'msgType': Message.SIMULATION_MSG, 'msgText': " "}
         )]
         self.simulation = None

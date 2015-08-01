@@ -109,9 +109,9 @@ class TrackItem(QtCore.QObject):
             raise Exception("Internal error: TrackItem already initialized !")
         self.simulation = simulation
         params = self._parameters
-        self._nextItem = simulation.trackItem(params['nextTiId'])
-        self._previousItem = simulation.trackItem(params['previousTiId'])
-        self.conflictTI = simulation.trackItem(params['conflictTiId'])
+        self._nextItem = simulation.trackItem(params.get('nextTiId'))
+        self._previousItem = simulation.trackItem(params.get('previousTiId'))
+        self.conflictTI = simulation.trackItem(params.get('conflictTiId'))
 
         self._parameters = None
         for gi in self._gi.values():
@@ -539,7 +539,7 @@ class TrackItem(QtCore.QObject):
                 drag = QtGui.QDrag(event.widget())
                 mime = QtCore.QMimeData()
                 pos = event.buttonDownScenePos(Qt.LeftButton) - self.origin
-                mime.setText(self.tiType + "#" +
+                mime.setText(type(self).__name__ + "#" +
                              str(self.tiId) + "#" +
                              str(pos.x()) + "#" +
                              str(pos.y()) + "#" +
@@ -694,7 +694,7 @@ class ResizableItem(TrackItem):
             else:
                 movedEnd = "origin"
             if movedEnd is not None:
-                mime.setText(self.tiType + "#" +
+                mime.setText(type(self).__name__ + "#" +
                              str(self.tiId) + "#" +
                              str(pos.x()) + "#" +
                              str(pos.y()) + "#" +

@@ -23,8 +23,7 @@ from Qt import QtCore, QtGui, QtWidgets, Qt
 from ts2 import simulation, utils
 from ts2.gui import dialogs, trainlistview, servicelistview, widgets
 from ts2.scenery import placeitem
-# TODO put back the editor
-# from ts2.editor import editorwindow
+from ts2.editor import editorwindow
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -214,16 +213,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def loadSimulation(self):
-        # ##TODO: DEBUG
-        fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.json"
+        # ## DEBUG
+        # fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.json"
 
-        # fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
-        #     self,
-        #     self.tr("Open a simulation"),
-        #     QtCore.QDir.currentPath(),
-        #     self.tr("TS2 files (*.ts2 *.tsg);;"
-        #             "TS2 simulation files (*.ts2);;"
-        #             "TS2 saved game files (*.tsg)"))
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            self.tr("Open a simulation"),
+            QtCore.QDir.currentPath(),
+            self.tr("TS2 files (*.ts2 *.tsg);;"
+                    "TS2 simulation files (*.ts2);;"
+                    "TS2 saved game files (*.tsg)"))
         if fileName != "":
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
             if self.simulation is not None:

@@ -124,7 +124,6 @@ class SignalItem(abstract.TrackItem):
     signalUnselected = QtCore.pyqtSignal(int)
     trainSelected = QtCore.pyqtSignal(int)
 
-
     # ## Properties #########################################################
 
     origin = property(abstract.TrackItem._getOrigin,
@@ -160,6 +159,12 @@ class SignalItem(abstract.TrackItem):
                 self.updateGraphics()
 
     reverse = property(_getReverse, _setReverse)
+
+    def _getBerthItem(self):
+        """Returns the berth graphics item."""
+        return self._gi[SignalItem.BERTH_GRAPHIC_ITEM]
+
+    berthItem = property(_getBerthItem)
 
     def _getSignalType(self):
         """Returns the signal type of this SignalItem."""
@@ -605,7 +610,7 @@ class SignalItem(abstract.TrackItem):
                 mime = QtCore.QMimeData()
                 pos = \
                     event.buttonDownScenePos(Qt.LeftButton) - self.berthOrigin
-                mime.setText(self.tiType + "#" +
+                mime.setText(type(self).__name__ + "#" +
                              str(self.tiId) + "#" +
                              str(pos.x()) + "#" +
                              str(pos.y()) + "#" +

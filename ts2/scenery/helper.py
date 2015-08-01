@@ -99,9 +99,9 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
         self.trackItems = trackItems
         self.simulation = trackItems[0].simulation
         self.multiType = False
-        tiType = self.trackItems[0].tiType
+        tiType = type(self.trackItems[0])
         for ti in self.trackItems:
-            if ti.tiType != tiType:
+            if type(ti) != tiType:
                 self.multiType = True
                 break
 

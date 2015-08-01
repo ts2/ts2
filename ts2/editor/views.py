@@ -137,9 +137,9 @@ class TrainsGraphicsView(QtWidgets.QGraphicsView):
     """Graphics view with specific options for editing train positions in the
     editor
     """
-    def __init__(self, scene, parent):
+    def __init__(self, parent):
         """Constructor for the TrainsGraphicsView class"""
-        super().__init__(scene, parent)
+        super().__init__(parent)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
                                            QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
