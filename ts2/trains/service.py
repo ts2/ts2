@@ -212,13 +212,7 @@ class ServicesModel(QtCore.QAbstractTableModel):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
             code = index.sibling(index.row(), 0).data()
-            if index.column() == 0:
-                if (value is not None) and (value != ""):
-                    self._editor.services[value] = \
-                        copy.copy(self._editor.services[code])
-                    self._editor.services[value].serviceCode = value
-                    del self._editor.services[code]
-            elif index.column() == 1:
+            if index.column() == 1:
                 self._editor.services[code].description = value
             elif index.column() == 2:
                 self._editor.services[code].nextServiceCode = value
@@ -249,7 +243,10 @@ class ServicesModel(QtCore.QAbstractTableModel):
 
     def flags(self, index):
         """Returns the flags of the model"""
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
+        flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        if index.column() != 0:
+            flags |= Qt.ItemIsEditable
+        return flags
 
 
 class ServiceLine:
@@ -453,8 +450,9 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
     @QtCore.pyqtSlot(str)
     def setServiceCode(self, serviceCode):
         """Sets the service linked with this model from its serviceCode."""
+        self.beginResetModel()
         self._service = self._editor.service(serviceCode)
-        self.reset()
+        self.endResetModel()
 
     @property
     def service(self):
@@ -476,7 +474,7 @@ class Service:
         self._plannedTrainType = parameters.get("plannedTrainType")
         self._current = None
         self.simulation = None
-        self._lines = parameters["lines"]
+        self._lines = parameters.get("lines", [])
 
     def initialize(self, simulation):
         """Initialize the service once the simulation is loaded."""

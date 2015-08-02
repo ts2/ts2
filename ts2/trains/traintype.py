@@ -65,13 +65,7 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
             code = index.sibling(index.row(), 0).data()
-            if index.column() == 0:
-                if (value is not None) and (value != ""):
-                    self._editor.trainTypes[value] = \
-                        copy.copy(self._editor.trainTypes[code])
-                    self._editor.trainTypes[value].code = value
-                    del self._editor.trainTypes[code]
-            elif index.column() == 1:
+            if index.column() == 1:
                 self._editor.trainTypes[code].description = value
             elif index.column() == 2:
                 self._editor.trainTypes[code].maxSpeed = value
@@ -110,7 +104,10 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
     
     def flags(self, index):
         """Returns the flags of the model"""
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
+        flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        if index.column() != 0:
+            flags |= Qt.ItemIsEditable
+        return flags
 
 
 class TrainType:

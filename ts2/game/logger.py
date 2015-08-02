@@ -19,6 +19,7 @@
 #
 
 from Qt import QtCore, QtGui, Qt
+from ts2 import utils
 
 
 class Message(QtCore.QObject):
@@ -70,9 +71,12 @@ class MessageLogger(QtCore.QAbstractTableModel):
 
     def for_json(self):
         """Dumps the messages to JSON."""
+        messages = []
+        if self.simulation.context == utils.Context.GAME:
+            messages = self._messages
         return {
             "__type__": "MessageLogger",
-            "messages": self._messages
+            "messages": messages
         }
 
     def addMessage(self, msgText, msgType=Message.SIMULATION_MSG):

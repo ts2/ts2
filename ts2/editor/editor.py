@@ -18,7 +18,6 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-import sqlite3
 import copy
 import simplejson as json
 
@@ -64,6 +63,7 @@ def load(editorWindow, fileName):
             translate("simulation.load", "Loaded file is not a TS2 simulation")
         )
     editor.initialize(editorWindow)
+    editor.fileName = fileName
     return editor
 
 
@@ -169,7 +169,7 @@ class Editor(simulation.Simulation):
         self.librarySignalItem = signalitem.SignalItem({
             "tiId": -1, "name": "Signal", "x": 65, "y": 25, "reverse": 0,
             "xn": 20, "yn": 30, "signalType": "UK_3_ASPECTS", "maxSpeed": 0.0,
-            "routesSetParams": {}, "trainNotPresentParams": {}
+            "routesSetParams": "{}", "trainNotPresentParams": "{}"
         })
         self.libraryLineItem = lineitem.LineItem({
             "tiId": -5, "name": "Line", "x": 120, "y": 25, "xf": 180, "yf": 25,
@@ -203,15 +203,13 @@ class Editor(simulation.Simulation):
             "placeCode": None, "trackCode": None
         })
         self._sceneryValidated = False
-        self._services = {}
-        self._trains = []
         self._routesModel = route.RoutesModel(self)
         self._trainTypesModel = trains.TrainTypesModel(self)
         self._servicesModel = trains.ServicesModel(self)
         self._serviceLinesModel = trains.ServiceLinesModel(self)
         self._trainsModel = trains.TrainsModel(self)
         self._optionsModel = OptionsModel(self)
-        self._database = ""
+        self.fileName = ""
         self._nextId = 1
         self._nextRouteId = 1
         self._grid = 5.0
@@ -257,8 +255,8 @@ class Editor(simulation.Simulation):
         self.libraryInvisibleLinkItem.initialize(self)
 
         if self.validateScenery():
-            for route in self.routes.values():
-                route.initialize(self)
+            for rte in self.routes.values():
+                rte.initialize(self)
             for key in self.routes.keys():
                 # Change string keys to int
                 self.routes[int(key)] = self.routes.pop(key)
@@ -322,16 +320,6 @@ class Editor(simulation.Simulation):
         return self._optionsModel
 
     @property
-    def database(self):
-        """Returns the database filename, with full path"""
-        return self._database
-
-    @database.setter
-    def database(self, value):
-        """Setter function for the database property"""
-        self._database = value
-
-    @property
     def selectedRoute(self):
         """Returns the selected route in the route editor."""
         return self._selectedRoute
@@ -387,259 +375,13 @@ class Editor(simulation.Simulation):
                     return ti
         return None
 
-    # def load(self, fileName):
-    #     """Load all the data of the simulation from the database."""
-    #     self._database = fileName
-    #     self.updateFileFormat(fileName)
-    #     conn = sqlite3.connect(fileName)
-    #     conn.row_factory = sqlite3.Row
-    #     self.loadOptions(conn)
-    #     self.optionsChanged.emit()
-    #     self.createAllTrackItems(conn)
-    #     self.createTrackItemConflicts(conn)
-    #     self.adjustSceneBackground()
-    #     try:
-    #         self._nextId = max(self._trackItems.keys()) + 1
-    #     except ValueError:
-    #         self._nextId = 1
-    #     if self.validateScenery():
-    #         self.loadRoutes(conn)
-    #         try:
-    #             self._nextRouteId = max(self._routes.keys()) + 1
-    #         except ValueError:
-    #             self._nextRouteId = 1
-    #         self.routesChanged.emit()
-    #     self.loadTrainTypes(conn)
-    #     self.trainTypesChanged.emit()
-    #     self.loadServices(conn)
-    #     self.servicesChanged.emit()
-    #     self.loadTrains(conn)
-    #     self.trainsChanged.emit()
-    #     conn.close()
-
     def save(self):
         """Saves the data of the simulation to the database"""
         # Set up database
         self.setOption("version", utils.TS2_FILE_FORMAT)
-        conn = sqlite3.connect(self._database)
-        self.saveOptions(conn)
-        self.saveTrackItems(conn)
-        self.saveRoutes(conn)
-        self.saveTrainTypes(conn)
-        self.saveServices(conn)
-        self.saveTrains(conn)
-        conn.close()
-
-    # def saveOptions(self, conn):
-    #     """Saves the options of this editor in the database"""
-    #     conn.execute("DROP TABLE IF EXISTS options")
-    #     conn.execute("CREATE TABLE options (\n"
-    #                  "optionkey VARCHAR(30),\n"
-    #                  "optionvalue VARCHAR(50))")
-    #     for key, value in [(k, str(v)) for k,v in self._options.items()]:
-    #         query = "INSERT INTO options " \
-    #                 "(optionkey, optionvalue) " \
-    #                 "VALUES " \
-    #                 "(:optionkey, :optionvalue)"
-    #         parameters = {
-    #                 "optionkey":key,
-    #                 "optionvalue":value
-    #                 }
-    #         conn.execute(query, parameters)
-    #     conn.commit()
-    #
-    #
-    # def saveTrackItems(self, conn):
-    #     """Saves the TrackItem instances of this editor in the database"""
-    #     conn.execute("DROP TABLE IF EXISTS trackitems")
-    #     fieldString = "("
-    #     for name, fieldType in abstract.TrackItem.fieldTypes.items():
-    #         fieldString += "%s %s," % (name, fieldType)
-    #     fieldString = fieldString[:-1] + ")"
-    #     conn.execute("CREATE TABLE trackitems %s" % fieldString)
-    #     for ti in self._trackItems.values():
-    #         query = "INSERT INTO trackitems %s VALUES (" % \
-    #                                 str(tuple(ti.getSaveParameters().keys()))
-    #         for k in ti.getSaveParameters().keys():
-    #             query += ":%s," % k
-    #         query = query[:-1] + ")"
-    #         conn.execute(query, ti.getSaveParameters())
-    #     conn.commit()
-    #
-    # def saveRoutes(self, conn):
-    #     """Saves the Route instances of this editor in the database"""
-    #     # Save routes themselves
-    #     conn.execute("DROP TABLE IF EXISTS routes")
-    #     conn.execute("CREATE TABLE routes (\n"
-    #                         "routenum INTEGER PRIMARY KEY,\n"
-    #                         "beginsignal INTEGER,\n"
-    #                         "endsignal INTEGER,\n"
-    #                         "initialstate INTEGER)\n"
-    #                 )
-    #     for route in self._routes.values():
-    #         query = "INSERT INTO routes " \
-    #                 "(routenum, beginsignal, endsignal, initialstate) " \
-    #                 "VALUES " \
-    #                 "(:routenum, :beginsignal, :endsignal, :initialstate)"
-    #         parameters = {
-    #                 "routenum":route.routeNum,
-    #                 "beginsignal":route.beginSignal.tiId,
-    #                 "endsignal":route.endSignal.tiId,
-    #                 "initialstate":route.initialState
-    #                      }
-    #         conn.execute(query, parameters)
-    #
-    #     # Save the directions
-    #     conn.execute("DROP TABLE IF EXISTS directions")
-    #     conn.execute("CREATE TABLE directions (\n"
-    #                     "routenum INTEGER,\n"
-    #                     "tiid INTEGER,\n"
-    #                     "direction INTEGER)\n"
-    #                 )
-    #     for route in self._routes.values():
-    #         for tiId, direction in route.directions.items():
-    #             query = "INSERT INTO directions " \
-    #                     "(routenum, tiid, direction) " \
-    #                     "VALUES " \
-    #                     "(:routenum, :tiid, :direction)"
-    #             parameters = {
-    #                     "routenum":route.routeNum,
-    #                     "tiid":tiId,
-    #                     "direction":direction
-    #                          }
-    #             conn.execute(query, parameters)
-    #     conn.commit()
-    #
-    # def saveTrainTypes(self, conn):
-    #     """Saves the TrainType instances of this editor in the database"""
-    #     conn.execute("DROP TABLE IF EXISTS traintypes")
-    #     conn.execute("CREATE TABLE traintypes (\n"
-    #                         "code VARCHAR(10),\n"
-    #                         "description VARCHAR(200),\n"
-    #                         "maxspeed DOUBLE,\n"
-    #                         "stdaccel DOUBLE,\n"
-    #                         "stdbraking DOUBLE,\n"
-    #                         "emergbraking DOUBLE,\n"
-    #                         "tlength DOUBLE)")
-    #
-    #     for trainType in self._trainTypes.values():
-    #         query = "INSERT INTO traintypes " \
-    #                 "(code, description, maxspeed, stdaccel, "\
-    #                 "stdbraking, emergbraking, tlength) " \
-    #                 "VALUES " \
-    #                 "(:code, :description, :maxspeed, :stdaccel, "\
-    #                 ":stdbraking, :emergbraking, :tlength)"
-    #         parameters = {
-    #                 "code":trainType.code,
-    #                 "description":trainType.description,
-    #                 "maxspeed":trainType.maxSpeed,
-    #                 "stdaccel":trainType.stdAccel,
-    #                 "stdbraking":trainType.stdBraking,
-    #                 "emergbraking":trainType.emergBraking,
-    #                 "tlength":trainType.length}
-    #         conn.execute(query, parameters)
-    #     conn.commit()
-    #
-    # def saveServices(self, conn):
-    #     """Saves the Service instances of this editor in the database"""
-    #     conn.execute("DROP TABLE IF EXISTS services")
-    #     conn.execute("CREATE TABLE services (\n"
-    #                         "servicecode VARCHAR(10),\n"
-    #                         "description VARCHAR(200),\n"
-    #                         "nextservice VARCHAR(10),\n"
-    #                         "autoreverse BOOLEAN,\n"
-    #                         "plannedtraintype VARCHAR(10))"
-    #                 )
-    #     for service in self._services.values():
-    #         query = "INSERT INTO services "\
-    #                 "(servicecode, description, nextservice, autoreverse,"\
-    #                 "plannedtraintype) VALUES " \
-    #                 "(:servicecode, :description, :nextservice, "\
-    #                 ":autoreverse, :plannedtraintype)"
-    #         parameters = {
-    #                 "servicecode":service.serviceCode,
-    #                 "description":service.description,
-    #                 "nextservice":service.nextServiceCode,
-    #                 "autoreverse":service.autoReverse,
-    #                 "plannedtraintype":service.plannedTrainType
-    #                      }
-    #         conn.execute(query, parameters)
-    #
-    #     # Save the service lines
-    #     conn.execute("DROP TABLE IF EXISTS servicelines")
-    #     conn.execute("CREATE TABLE servicelines (\n"
-    #                         "servicecode VARCHAR(10),\n"
-    #                         "placecode VARCHAR(10),\n"
-    #                         "scheduledarrivaltime TIME,\n"
-    #                         "scheduleddeparturetime TIME,\n"
-    #                         "trackcode VARCHAR(10),\n"
-    #                         "stop BOOLEAN)"
-    #                 )
-    #     for service in self._services.values():
-    #         for sl in service.lines:
-    #             query = "INSERT INTO servicelines " \
-    #                     "(servicecode, placecode, scheduledarrivaltime, "\
-    #                     "scheduleddeparturetime, trackcode, stop) " \
-    #                     "VALUES " \
-    #                     "(:servicecode, :placecode, :scheduledarrivaltime, " \
-    #                     ":scheduleddeparturetime, :trackcode, :stop) "
-    #             parameters = {
-    #                 "servicecode":service.serviceCode,
-    #                 "placecode":sl.placeCode,
-    #                 "scheduledarrivaltime":sl.scheduledArrivalTimeStr,
-    #                 "scheduleddeparturetime":sl.scheduledDepartureTimeStr,
-    #                 "trackcode":sl.trackCode,
-    #                 "stop":sl.mustStop
-    #                          }
-    #             conn.execute(query, parameters)
-    #     conn.commit()
-    #
-    # def saveTrains(self, conn):
-    #     """Saves the Train instances of this editor in the database"""
-    #     conn.execute("DROP TABLE IF EXISTS trains")
-    #     conn.execute("CREATE TABLE trains (\n"
-    #                         "trainid INTEGER,\n"
-    #                         "servicecode VARCHAR(10),\n"
-    #                         "traintype VARCHAR(10),\n"
-    #                         "speed DOUBLE,\n"
-    #                         "tiid INTEGER,\n"
-    #                         "previoustiid INTEGER,\n"
-    #                         "posonti DOUBLE,\n"
-    #                         "appeartime TIME,\n"
-    #                         "initialdelay VARCHAR(255),\n"
-    #                         "nextplaceindex INTEGER,\n"
-    #                         "stoppedtime INTEGER)\n")
-    #     for train in self._trains:
-    #         query = "INSERT INTO trains " \
-    #                 "(trainid, servicecode, traintype, speed, tiid, " \
-    #                 "previoustiid, posonti, appeartime, initialdelay, " \
-    #                 "nextplaceindex, stoppedtime) " \
-    #                 "VALUES " \
-    #                 "(:trainid, :servicecode, :traintype, :speed, :tiid, "\
-    #                 ":previoustiid, :posonti, :appeartime, :initialdelay, "\
-    #                 ":nextplaceindex, :stoppedtime)"
-    #         parameters = {
-    #                 "trainid":train.trainId,
-    #                 "servicecode":train.serviceCode,
-    #                 "traintype":train.trainTypeCode,
-    #                 "speed":train.initialSpeed,
-    #                 "tiid":train.trainHead.trackItem.tiId,
-    #                 "previoustiid":train.trainHead.previousTI.tiId,
-    #                 "posonti":train.trainHead.positionOnTI,
-    #                 "appeartime":train.appearTimeStr,
-    #                 "initialdelay":train.initialDelayStr,
-    #                 "nextplaceindex":0,
-    #                 "stoppedtime":0
-    #                 }
-    #         if not train.trainHead.isValid():
-    #             self.messageLogger.addMessage("Train %s discarded: invalid "
-    #                                           "train head" %
-    #                                           str(train.trainId)+"/"+
-    #                                           train.serviceCode,
-    #                                           logger.Message.SOFTWARE_MSG)
-    #             continue
-    #         conn.execute(query, parameters)
-    #     conn.commit()
+        with open(self.fileName, 'w') as f:
+            json.dump(self, f, separators=(',', ':'), for_json=True,
+                      encoding='utf-8')
 
     def exportServicesToFile(self, fileName):
         """Exports the services to the file with the given fileName in ts2
@@ -788,8 +530,8 @@ class Editor(simulation.Simulation):
             "placeCode": None,
             "trackCode": None,
             "signalType": "UK_3_ASPECTS",
-            "routesSetParams": {},
-            "trainNotPresentParams": {}
+            "routesSetParams": "{}",
+            "trainNotPresentParams": "{}"
         }
 
         if tiType == "LineItem":
@@ -799,7 +541,7 @@ class Editor(simulation.Simulation):
         elif tiType == "InvisibleLinkItem":
             ti = invisiblelinkitem.InvisibleLinkItem(parameters)
         elif tiType == "SignalItem":
-            parameters.update({"xn":pos.x() - 45, "yn":pos.y() + 5})
+            parameters.update({"xn": pos.x() - 45, "yn": pos.y() + 5})
             ti = signalitem.SignalItem(parameters)
         elif tiType == "PointsItem":
             ti = pointsitem.PointsItem(parameters)
@@ -949,14 +691,16 @@ class Editor(simulation.Simulation):
                     directions[ti.tiId] = int(ti.pointsReversed)
                 if isinstance(ti, signalitem.SignalItem):
                     if ti.isOnPosition(cur):
-                        self._preparedRoute = \
-                            route.Route(self, self._nextRouteId, si, ti)
-                        self._nextRouteId += 1
-                        for tiId, direction in directions.items():
-                            self._preparedRoute.appendDirection(tiId,
-                                                                direction)
-                        self._preparedRoute.createPositionsList()
+                        self._preparedRoute = route.Route({
+                            "routeNum": self._nextRouteId,
+                            "beginSignal": si.tiId,
+                            "endSignal": ti.tiId,
+                            "directions": directions,
+                            "initialState": 0
+                        })
+                        self._preparedRoute.initialize(self)
                         self.selectedRoute = self._preparedRoute
+                        self._nextRouteId += 1
                         return
                 cur = cur.next()
 
@@ -1012,13 +756,14 @@ class Editor(simulation.Simulation):
             parameters = {
                 "code": code,
                 "description": "<Stock type description>",
-                "maxspeed": "25.0",
-                "stdaccel": "0.5",
-                "stdbraking": "0.5",
-                "emergbraking": "1.5",
-                "tlength": "100"
+                "maxSpeed": 25.0,
+                "stdAccel": 0.5,
+                "stdBraking": 0.5,
+                "emergBraking": 1.5,
+                "length": 100
             }
-            self._trainTypes[code] = trains.TrainType(self, parameters)
+            self._trainTypes[code] = trains.TrainType(parameters)
+            self._trainTypes[code].initialize(self)
             self.trainTypesChanged.emit()
             return True
         return False
@@ -1033,12 +778,13 @@ class Editor(simulation.Simulation):
         """Adds an empty Service to the services list."""
         if self.context == utils.Context.EDITOR_SERVICES:
             parameters = {
-                "servicecode": code,
+                "serviceCode": code,
                 "description": "<Service description>",
-                "nextservice": "",
-                "autoreverse": 0
+                "nextServiceCode": "",
+                "autoReverse": 0
             }
-            self._services[code] = trains.Service(self, parameters)
+            self._services[code] = trains.Service(parameters)
+            self._services[code].initialize(self)
             self.servicesChanged.emit()
             return True
         return False
@@ -1053,14 +799,15 @@ class Editor(simulation.Simulation):
         """Adds a service line to service at the current index"""
         if self.context == utils.Context.EDITOR_SERVICES:
             parameters = {
-                "placecode": "",
-                "trackcode": "",
-                "scheduledarrivaltime": "00:00:00",
-                "scheduleddeparturetime": "00:00:00",
-                "stop": False
+                "placeCode": "",
+                "scheduledArrivalTime": "00:00:00",
+                "scheduledDepartureTime": "00:00:00",
+                "trackCode": "",
+                "mustStop": 0
             }
-            service.lines.insert(index, trains.ServiceLine(
-                                                        service, parameters))
+            serviceLine = trains.ServiceLine(parameters)
+            serviceLine.initialize(service)
+            service.lines.insert(index, serviceLine)
             self.serviceLinesChanged.emit()
 
     def deleteServiceLine(self, service, index):
@@ -1123,17 +870,16 @@ class Editor(simulation.Simulation):
             if pos is None:
                 raise Exception("No valid position found. Check scenery.")
             parameters = {
-                "servicecode": list(self.services.values())[0].serviceCode,
-                "traintype": list(self.trainTypes.values())[0].code,
+                "serviceCode": list(self.services.values())[0].serviceCode,
+                "trainTypeCode": list(self.trainTypes.values())[0].code,
                 "speed": 0.0,
-                "accel": 0.0,
-                "tiid": pos.trackItem.tiId,
-                "previoustiid": pos.previousTI.tiId,
-                "posonti": pos.positionOnTI,
-                "appeartime": "00:00:00",
-                "initialdelay": self.option("defaultDelayAtEntry")
+                "trainHead": pos,
+                "appearTime": "00:00:00",
+                "initialDelay": self.option("defaultDelayAtEntry"),
+                "initialSpeed": 0,
             }
-            train = trains.Train(self, parameters)
+            train = trains.Train(parameters)
+            train.initialize(self)
             self._trains.append(train)
             self.trainsChanged.emit()
             return train

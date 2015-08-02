@@ -117,6 +117,7 @@ class Route(QtCore.QObject):
         """Initializes the route once all trackitems are loaded."""
         if not self._parameters:
             raise Exception("Internal error: Route already initialized !")
+        self.simulation = simulation
         beginSignal = simulation.trackItem(self._parameters['beginSignal'])
         endSignal = simulation.trackItem(self._parameters['endSignal'])
         bsp = position.Position(beginSignal, beginSignal.previousItem, 0)
@@ -136,13 +137,17 @@ class Route(QtCore.QObject):
 
     def for_json(self):
         """Dumps this route to JSON."""
+        if self.simulation.context == utils.Context.GAME:
+            initialState = self.getRouteState()
+        else:
+            initialState = self.initialState
         return {
             "__type__": "Route",
             "routeNum": self.routeNum,
             "beginSignal": self.beginSignal.tiId,
             "endSignal": self.endSignal.tiId,
             "directions": self.directions,
-            "initialState": self.getRouteState()
+            "initialState": initialState
         }
 
     routeSelected = QtCore.pyqtSignal()

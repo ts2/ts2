@@ -124,6 +124,7 @@ class Position:
             self._previousTI = None
             self._positionOnTI = 0.0
         else:
+            self._parameters = None
             self._trackItem = trackItem
             self._previousTI = previousTI
             self._positionOnTI = positionOnTI
@@ -131,7 +132,7 @@ class Position:
     def initialize(self, simulation):
         """Initialize position defined by parameters."""
         if not self._parameters:
-            raise Exception("Internal error: Position already initialized !")
+            return
         params = self._parameters
         self._trackItem = simulation.trackItem(params['trackItem'])
         self._previousTI = simulation.trackItem(params['previousTI'])

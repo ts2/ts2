@@ -43,9 +43,9 @@ class SignalItem(abstract.TrackItem):
         super().__init__(parameters)
         reverse = bool(parameters.get("reverse", 0))
         self._signalType = None
-        self._routesSetParams = parameters.get("routesSetParams", {})
+        self._routesSetParams = eval(str(parameters.get("routesSetParams", {})))
         self._trainNotPresentParams = \
-            parameters.get("trainNotPresentParams", {})
+            eval(str(parameters.get("trainNotPresentParams", {})))
         try:
             xb = float(parameters.get("xn", ""))
         except ValueError:
@@ -119,6 +119,7 @@ class SignalItem(abstract.TrackItem):
             "xn": self.berthOrigin.x(),
             "yn": self.berthOrigin.y()
         })
+        return jsonData
 
     signalSelected = QtCore.pyqtSignal(int, bool, bool)
     signalUnselected = QtCore.pyqtSignal(int)

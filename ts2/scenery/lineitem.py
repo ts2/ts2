@@ -37,12 +37,7 @@ class LineItem(abstract.ResizableItem):
         """Constructor for the LineItem class"""
         super().__init__(parameters)
         self._placeCode = parameters["placeCode"]
-        trackCode = parameters["trackCode"]
-        if self._place is not None:
-            self._trackCode = trackCode
-            self._place.addTrack(self)
-        else:
-            self._trackCode = ""
+        self._trackCode = ""
         self._realLength = parameters.get('realLength', 1.0)
         self.defaultZValue = 1
         self._line = QtCore.QLineF()
@@ -68,6 +63,10 @@ class LineItem(abstract.ResizableItem):
     def initialize(self, simulation):
         """Initialize the item after all items are loaded."""
         self._place = simulation.place(self._placeCode)
+        trackCode = self._parameters["trackCode"]
+        if self._place is not None:
+            self._trackCode = trackCode
+            self._place.addTrack(self)
         if simulation.context in utils.Context.EDITORS:
             self._gi[0].setCursor(Qt.PointingHandCursor)
         else:

@@ -404,7 +404,7 @@ class Train(QtCore.QObject):
         self._initialSpeed = parameters.get("initialSpeed", 0.0)
         self._accel = 0
         self._trainHead = parameters["trainHead"]
-        self._status = parameters["status"]
+        self._status = parameters.get("status", TrainStatus.INACTIVE)
         self._lastSignal = None
         self._signalActions = [(0, 999)]
         self._applicableActionIndex = 0

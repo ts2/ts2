@@ -19,6 +19,7 @@
 #
 
 from math import sqrt
+import collections
 import simplejson as json
 
 from Qt import QtCore, QtWidgets
@@ -129,14 +130,17 @@ class Simulation(QtCore.QObject):
         self._messageLogger = messageLogger
         self._scorer = scorer.Scorer(self)
         self._selectedSignal = None
-        self._options = BUILTIN_OPTIONS
+        self._options = collections.OrderedDict()
+        self._options.update(BUILTIN_OPTIONS)
         self._options.update(options)
         self._routes = routes
         self._trackItems = trackItems
         self.activeRouteNumbers = []
-        self._trainTypes = trainTypes
-        self._services = services
-        self._places = {}
+        self._trainTypes = collections.OrderedDict()
+        self._trainTypes.update(trainTypes)
+        self._services = collections.OrderedDict()
+        self._services.update(services)
+        self._places = collections.OrderedDict()
         self._trains = trns
         self.signalTypes = []
         self._time = QtCore.QTime()
@@ -196,10 +200,11 @@ class Simulation(QtCore.QObject):
     def for_json(self):
         """Dumps the simulation to JSON."""
         savedOptions = self._options.copy()
-        savedOptions.update({
-            "currentTime": self.currentTime.toString("hh:mm:ss"),
-            "currentScore": self.scorer.score
-        })
+        if self.context == utils.Context.GAME:
+            savedOptions.update({
+                "currentTime": self.currentTime.toString("hh:mm:ss"),
+                "currentScore": self.scorer.score
+            })
         return {
             "__type__": "Simulation",
             "options": savedOptions,

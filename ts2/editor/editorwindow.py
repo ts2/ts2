@@ -20,9 +20,9 @@
 
 from Qt import QtGui, QtCore, QtWidgets, Qt
 
-from ts2 import scenery, simulation
+from ts2 import scenery
 from ts2.editor import editor
-from ts2.gui import dialogs, widgets
+from ts2.gui import widgets
 import ts2.editor.views
 
 
@@ -418,6 +418,8 @@ class EditorWindow(QtWidgets.QMainWindow):
 
     def simulationConnect(self):
         """Connects the signals and slots to the simulation."""
+        self.titleTxt.setText(self.editor.option("title"))
+        self.descriptionTxt.setPlainText(self.editor.option("description"))
         self.editor.selectionChanged.connect(self.setPropertiesModel)
         self.tabWidget.currentChanged.connect(self.editor.updateContext)
         self.editor.optionsChanged.connect(self.updateGeneralTab)
@@ -481,11 +483,12 @@ class EditorWindow(QtWidgets.QMainWindow):
         super().closeEvent(closeEvent)
         if closeEvent.isAccepted():
             choice = QtWidgets.QMessageBox.question(
-                            self,
-                            self.tr("Close editor"),
-                            self.tr("Do you want to save your changes ?"),
-                            QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No|
-                            QtWidgets.QMessageBox.Cancel)
+                self,
+                self.tr("Close editor"),
+                self.tr("Do you want to save your changes ?"),
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No |
+                QtWidgets.QMessageBox.Cancel
+            )
             if choice == QtWidgets.QMessageBox.Yes:
                 self.saveSimulation()
             if choice == QtWidgets.QMessageBox.Yes or \
@@ -500,8 +503,8 @@ class EditorWindow(QtWidgets.QMainWindow):
         properties view"""
         if len(self.editor.selectedItems) > 0:
             self.propertiesView.setModel(
-                                  scenery.helper.TrackPropertiesModel(
-                                                 self.editor.selectedItems))
+                scenery.helper.TrackPropertiesModel(self.editor.selectedItems)
+            )
         else:
             self.propertiesView.setModel(None)
 
@@ -520,28 +523,26 @@ class EditorWindow(QtWidgets.QMainWindow):
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
             self.editor = editor.load(self, fileName)
             self.setWindowTitle(
-                    self.tr("ts2 - Train Signalling Simulation - Editor - %s")
-                    % fileName)
+                self.tr("ts2 - Train Signalling Simulation - Editor - %s")
+                % fileName
+            )
             self.simulationConnect()
             QtWidgets.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def saveSimulation(self):
         """Saves the simulation to the database"""
-        if self.editor.database is None:
+        if not self.editor.fileName:
             self.saveAsSimulation()
         QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
-        try:
-            self.editor.save()
-        except:
-            ts2.gui.dialogs.ExceptionDialog.popupException(self)
+        self.editor.save()
         QtWidgets.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def saveAsSimulation(self):
         """Saves the simulation to a different database"""
         # DEBUG
-        #fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain-save.ts2"
+        # fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain-save.ts2"
         fileName, _ = QtWidgets.QFileDialog.getSaveFileName(
                            self,
                            self.tr("Save the simulation as"),
@@ -557,12 +558,12 @@ class EditorWindow(QtWidgets.QMainWindow):
         """
         if self.editor.database is not None:
             if QtWidgets.QMessageBox.warning(
-                    self,
-                    self.tr("Simulation loaded"),
-                    self.tr("The current simulation will be closed.\n"
-                            "Do you want to continue?"),
-                    QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No) \
-                            == QtWidgets.QMessageBox.Yes:
+                self,
+                self.tr("Simulation loaded"),
+                self.tr("The current simulation will be closed.\n"
+                        "Do you want to continue?"),
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            ) == QtWidgets.QMessageBox.Yes:
                 self.editor.initialize()
 
     @QtCore.pyqtSlot()
@@ -588,13 +589,13 @@ class EditorWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def deleteItems(self):
         """Delete the items of the current selection."""
-        if (QtWidgets.QMessageBox.warning(
-                            self,
-                            self.tr("Delete items"),
-                            self.tr("Do you really want to delete all "
-                                    "the selected items?"),
-                            QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No)
-                == QtWidgets.QMessageBox.Yes):
+        if QtWidgets.QMessageBox.warning(
+            self,
+            self.tr("Delete items"),
+            self.tr("Do you really want to delete all "
+                    "the selected items?"),
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+        ) == QtWidgets.QMessageBox.Yes:
             self.editor.deleteSelection()
 
     @QtCore.pyqtSlot()
@@ -655,12 +656,12 @@ class EditorWindow(QtWidgets.QMainWindow):
             row = rows[0]
             routeNum = self.routesView.model().data(row, 0)
             if QtWidgets.QMessageBox.question(
-                        self,
-                        self.tr("Delete route"),
-                        self.tr("Are you sure you want "
-                                "to delete route %i?") % routeNum,
-                        QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No) \
-                                == QtWidgets.QMessageBox.Yes:
+                self,
+                self.tr("Delete route"),
+                self.tr("Are you sure you want "
+                        "to delete route %i?") % routeNum,
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            ) == QtWidgets.QMessageBox.Yes:
                 self.editor.deleteRoute(routeNum)
 
     @QtCore.pyqtSlot()
@@ -668,112 +669,143 @@ class EditorWindow(QtWidgets.QMainWindow):
         """Adds a route in routesView when the add route button is clicked."""
         if not self.editor.addRoute():
             QtWidgets.QMessageBox.warning(
-                        self,
-                        self.tr("Add route"),
-                        self.tr("No route added:\n"
-                                "No route selected or a route between "
-                                "these two signals already exists."))
+                self,
+                self.tr("Add route"),
+                self.tr("No route added:\n"
+                        "No route selected or a route between "
+                        "these two signals already exists.")
+            )
 
     @QtCore.pyqtSlot()
     def addTrainTypeBtnClicked(self):
         """Adds an empty stock type to the editor"""
         code, ok = QtWidgets.QInputDialog.getText(
-                        self,
-                        self.tr("Add train type"),
-                        self.tr("Enter new train type code:"))
+            self,
+            self.tr("Add train type"),
+            self.tr("Enter new train type code:")
+        )
         if ok:
             if code not in self.editor.trainTypes:
+                model = self.editor.trainTypesModel
+                model.beginInsertRows(QtCore.QModelIndex(),
+                                      model.rowCount(), model.rowCount())
                 self.editor.addTrainType(code)
+                model.endInsertRows()
             else:
                 QtWidgets.QMessageBox.warning(
-                            self,
-                            self.tr("Add train type"),
-                            self.tr("Unable to add train type: \n"
-                                    "This train type code already exists."))
+                    self,
+                    self.tr("Add train type"),
+                    self.tr("Unable to add train type: \n"
+                            "This train type code already exists.")
+                )
 
     @QtCore.pyqtSlot()
     def delTrainTypeBtnClicked(self):
         """Removes the currently selected stock type from the simulation"""
-        rows = self.trainTypesView.selectionModel().selectedRows()
-        if len(rows) != 0:
-            row = rows[0]
-            code = self.trainTypesView.model().data(row, 0)
+        rowIndexes = self.trainTypesView.selectionModel().selectedRows()
+        if len(rowIndexes) != 0:
+            rowIndex = rowIndexes[0]
+            model = self.editor.trainTypesModel
+            code = model.data(rowIndex, 0)
             if QtWidgets.QMessageBox.question(
-                        self,
-                        self.tr("Delete train type"),
-                        self.tr("Are you sure you want "
-                                "to delete train type %s?") % code,
-                        QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No) \
-                                == QtWidgets.QMessageBox.Yes:
+                self,
+                self.tr("Delete train type"),
+                self.tr("Are you sure you want "
+                        "to delete train type %s?") % code,
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            ) == QtWidgets.QMessageBox.Yes:
+                model.beginRemoveRows(QtCore.QModelIndex(), rowIndex.row(),
+                                      rowIndex.row())
                 self.editor.deleteTrainType(code)
+                model.endRemoveRows()
 
     @QtCore.pyqtSlot()
     def addServiceBtnClicked(self):
         """Adds an empty service to the editor"""
         code, ok = QtWidgets.QInputDialog.getText(
-                        self,
-                        self.tr("Add service"),
-                        self.tr("Enter new service code:"))
+            self,
+            self.tr("Add service"),
+            self.tr("Enter new service code:")
+        )
         if ok:
             if code not in self.editor.services:
+                model = self.editor.servicesModel
+                model.beginInsertRows(QtCore.QModelIndex(), model.rowCount(),
+                                      model.rowCount())
                 self.editor.addService(code)
+                model.endInsertRows()
             else:
                 QtWidgets.QMessageBox.warning(
-                            self,
-                            self.tr("Add service"),
-                            self.tr("Unable to add service: \n"
-                                    "This service code already exists."))
+                    self,
+                    self.tr("Add service"),
+                    self.tr("Unable to add service: \n"
+                            "This service code already exists.")
+                )
 
     @QtCore.pyqtSlot()
     def delServiceBtnClicked(self):
         """Removes the currently selected service from the simulation"""
-        rows = self.servicesView.selectionModel().selectedRows()
-        if len(rows) != 0:
-            row = rows[0]
-            code = self.servicesView.model().data(row, 0)
+        rowIndexes = self.servicesView.selectionModel().selectedRows()
+        if len(rowIndexes) != 0:
+            rowIndex = self.servicesView.model().mapToSource(rowIndexes[0])
+            model = self.editor.servicesModel
+            code = model.data(rowIndex, 0)
             if QtWidgets.QMessageBox.question(
-                        self,
-                        self.tr("Delete service"),
-                        self.tr("Are you sure you want "
-                                "to delete service %s?") % code,
-                        QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No) \
-                                == QtWidgets.QMessageBox.Yes:
+                self,
+                self.tr("Delete service"),
+                self.tr("Are you sure you want "
+                        "to delete service %s?") % code,
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            ) == QtWidgets.QMessageBox.Yes:
+                model.beginRemoveRows(QtCore.QModelIndex(), rowIndex.row(),
+                                      rowIndex.row())
                 self.editor.deleteService(code)
+                model.endRemoveRows()
 
     @QtCore.pyqtSlot()
     def appendServiceLineBtnClicked(self):
         """Appends a service line to this service at the end of the list"""
-        service = self.serviceLinesView.model().service
-        index = self.serviceLinesView.model().rowCount()
+        model = self.editor.serviceLinesModel
+        service = model.service
+        index = model.rowCount()
+        model.beginInsertRows(QtCore.QModelIndex(), index, index)
         self.editor.addServiceLine(service, index)
+        model.endInsertRows()
 
     @QtCore.pyqtSlot()
     def insertServiceLineBtnClicked(self):
         """Add a service line to this service after the currently selected"""
-        service = self.serviceLinesView.model().service
+        model = self.editor.serviceLinesModel
+        service = model.service
         index = 0
         if len(service.lines) != 0:
             rows = self.serviceLinesView.selectionModel().selectedRows()
             if len(rows) != 0:
                 index = rows[0].row()
+        model.beginInsertRows(QtCore.QModelIndex(), index, index)
         self.editor.addServiceLine(service, index)
+        model.endInsertRows()
 
     @QtCore.pyqtSlot()
     def delServiceLineBtnClicked(self):
         """Removes the currently selected service line of this service"""
         service = self.serviceLinesView.model().service
-        rows = self.serviceLinesView.selectionModel().selectedRows()
-        if len(rows) != 0:
-            row = rows[0]
-            code = self.serviceLinesView.model().data(row, 0)
+        rowIndexes = self.serviceLinesView.selectionModel().selectedRows()
+        if len(rowIndexes) != 0:
+            rowIndex = self.serviceLinesView.model().mapToSource(rowIndexes[0])
+            model = self.editor.serviceLinesModel
+            code = model.data(rowIndex, 0)
             if QtWidgets.QMessageBox.question(
-                                self,
-                                self.tr("Delete service"),
-                                self.tr("Are you sure you want "
-                                        "to delete the line at %s?") % code,
-                                QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
-                                         ) == QtWidgets.QMessageBox.Yes:
-                self.editor.deleteServiceLine(service, row.row())
+                self,
+                self.tr("Delete service"),
+                self.tr("Are you sure you want "
+                        "to delete the line at %s?") % code,
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            ) == QtWidgets.QMessageBox.Yes:
+                model.beginRemoveRows(QtCore.QModelIndex(), rowIndex.row(),
+                                      rowIndex.row())
+                self.editor.deleteServiceLine(service, rowIndex.row())
+                model.endRemoveRows()
 
     @QtCore.pyqtSlot()
     def importServicesBtnClicked(self):
@@ -781,21 +813,22 @@ class EditorWindow(QtWidgets.QMainWindow):
         services from and asks the editor to actually do the import"""
 
         # ### DEBUG
-        #fileName = "/home/nicolas/drain.csv"
+        # fileName = "/home/nicolas/drain.csv"
 
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
-                                self,
-                                self.tr("Import services"),
-                                QtCore.QDir.currentPath(),
-                                self.tr("CSV files (*.csv)"))
+            self,
+            self.tr("Import services"),
+            QtCore.QDir.currentPath(),
+            self.tr("CSV files (*.csv)")
+        )
         if fileName != "":
             if QtWidgets.QMessageBox.warning(
-                            self,
-                            self.tr("Import services"),
-                            self.tr("This will erase any existing service\n"
-                                    "Are you sure you want to continue?"),
-                            QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
-                                         ) == QtWidgets.QMessageBox.Yes:
+                self,
+                self.tr("Import services"),
+                self.tr("This will erase any existing service\n"
+                        "Are you sure you want to continue?"),
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            ) == QtWidgets.QMessageBox.Yes:
                 QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
                 self.editor.importServicesFromFile(fileName)
                 QtWidgets.qApp.restoreOverrideCursor()
@@ -806,10 +839,11 @@ class EditorWindow(QtWidgets.QMainWindow):
         to export the services and asks the editor to actually do the export.
         """
         fileName, _ = QtWidgets.QFileDialog.getSaveFileName(
-                                self,
-                                self.tr("Export services"),
-                                QtCore.QDir.currentPath(),
-                                self.tr("CSV files (*.csv)"))
+            self,
+            self.tr("Export services"),
+            QtCore.QDir.currentPath(),
+            self.tr("CSV files (*.csv)")
+        )
         if fileName != "":
             self.editor.exportServicesToFile(fileName)
 
@@ -818,14 +852,14 @@ class EditorWindow(QtWidgets.QMainWindow):
         """Calls the editor to setup the trains list from the services list.
         """
         if QtWidgets.QMessageBox.warning(
-                        self,
-                        self.tr("Setup trains"),
-                        self.tr("This will erase any existing train, and will"
-                                " create a train for each service that do not"
-                                " follow another one.\n"
-                                "Are you sure you want to continue?"),
-                        QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
-                                        ) == QtWidgets.QMessageBox.Yes:
+            self,
+            self.tr("Setup trains"),
+            self.tr("This will erase any existing train, and will"
+                    " create a train for each service that do not"
+                    " follow another one.\n"
+                    "Are you sure you want to continue?"),
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+        ) == QtWidgets.QMessageBox.Yes:
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
             self.editor.setupTrainsFromServices()
             QtWidgets.qApp.restoreOverrideCursor()
@@ -839,22 +873,29 @@ class EditorWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def addTrainBtnClicked(self):
         """Adds an empty train to the editor"""
+        model = self.editor.trainsModel
+        model.beginInsertRows(QtCore.QModelIndex(), model.rowCount(),
+                              model.rowCount())
         self.editor.addTrain()
+        model.endInsertRows()
 
     @QtCore.pyqtSlot()
     def delTrainBtnClicked(self):
         """Removes the currently selected train"""
-        rows = self.trainsView.selectionModel().selectedRows()
-        if len(rows) != 0:
-            row = rows[0].row()
+        rowIndexes = self.trainsView.selectionModel().selectedRows()
+        if len(rowIndexes) != 0:
+            row = self.trainsView.model().mapToSource(rowIndexes[0]).row()
+            model = self.editor.trainsModel
             if QtWidgets.QMessageBox.question(
-                        self,
-                        self.tr("Delete train"),
-                        self.tr("Are you sure you want "
-                                "to delete train %i?") % row,
-                        QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No) \
-                                == QtWidgets.QMessageBox.Yes:
+                self,
+                self.tr("Delete train"),
+                self.tr("Are you sure you want "
+                        "to delete train %i?") % row,
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            ) == QtWidgets.QMessageBox.Yes:
+                model.beginRemoveRows(QtCore.QModelIndex(), row, row)
                 self.editor.deleteTrain(row)
+                model.endRemoveRows()
 
     @QtCore.pyqtSlot()
     def updateTitle(self):
@@ -878,4 +919,3 @@ class EditorWindow(QtWidgets.QMainWindow):
     def openReassignServiceWindow(self, trainId):
         """To conform to Mainwindow morphism."""
         pass
-
