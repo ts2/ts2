@@ -97,6 +97,44 @@ class TrainTypesDelegate(QtWidgets.QStyledItemDelegate):
         editor.setGeometry(option.rect)
 
 
+class PlacesDelegate(QtWidgets.QStyledItemDelegate):
+    """PlacesDelegate is a delegate that provides a combo box for
+    selecting a Place.
+    """
+
+    def createEditor(self, parent, option, index):
+        """Creates the editor, i.e. a combo box for selecting a place."""
+        simulation = index.model().simulation
+        comboBox = QtWidgets.QComboBox(parent)
+        comboBox.setModel(simulation.placesModel)
+        comboBox.setModelColumn(0)
+        return comboBox
+
+    def setEditorData(self, editor, index):
+        """Sets the values from the model in the combo box"""
+        simulation = index.model().simulation
+        code = index.data(Qt.EditRole)
+        startSearchIndex = simulation.placesModel.index(0, 0)
+        placesIndexes = simulation.placesModel.match(
+            startSearchIndex, Qt.DisplayRole, code, 1,
+            Qt.MatchExactly | Qt.MatchWrap
+        )
+        if len(placesIndexes) > 0:
+            placeIndex = placesIndexes[0].row()
+        else:
+            placeIndex = 0
+        editor.setCurrentIndex(placeIndex)
+
+    def setModelData(self, editor, model, index):
+        """Sets the values from the combo box to the model after editing"""
+        code = editor.currentText()
+        model.setData(index, code, Qt.EditRole)
+
+    def updateEditorGeometry(self, editor, option, index):
+        """Sets the editor geometry."""
+        editor.setGeometry(option.rect)
+
+
 class PropertyValuesDelegate(QtWidgets.QStyledItemDelegate):
     """PropertyValuesDelegate is a delegate that provides different editing
     delegates for property values depending on the property propType."""

@@ -309,6 +309,11 @@ class Simulation(QtCore.QObject):
         else:
             return None
 
+    @property
+    def places(self):
+        """Returns the places dictionary."""
+        return self._places
+
     def service(self, serviceCode):
         return self._services[serviceCode]
 

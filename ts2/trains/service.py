@@ -459,6 +459,11 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
         """Returns the service this model is attached to"""
         return self._service
 
+    @property
+    def simulation(self):
+        """Returns the editor of this model."""
+        return self._editor
+
 
 class Service:
     """A Service is mainly a predefined schedule that trains are supposed to

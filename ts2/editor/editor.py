@@ -209,6 +209,7 @@ class Editor(simulation.Simulation):
         self._serviceLinesModel = trains.ServiceLinesModel(self)
         self._trainsModel = trains.TrainsModel(self)
         self._optionsModel = OptionsModel(self)
+        self._placesModel = placeitem.PlacesModel(self)
         self.fileName = ""
         self._nextId = 1
         self._nextRouteId = 1
@@ -318,6 +319,11 @@ class Editor(simulation.Simulation):
     def optionsModel(self):
         """Returns the OptionsModel of this editor."""
         return self._optionsModel
+
+    @property
+    def placesModel(self):
+        """Returns the PlacesModel of this editor."""
+        return self._placesModel
 
     @property
     def selectedRoute(self):

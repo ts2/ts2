@@ -340,7 +340,9 @@ class EditorWindow(QtWidgets.QMainWindow):
         hgrids.addWidget(self.addServiceBtn)
         hgrids.addWidget(self.delServiceBtn)
         hgrids.addStretch()
-        self.serviceLinesView = QtWidgets.QTableView()
+        self.serviceLinesView = ts2.editor.views.ServiceLinesEditorView(
+            servicesTab
+        )
         self.serviceLinesView.setSelectionBehavior(
             QtWidgets.QAbstractItemView.SelectRows)
         self.serviceLinesView.setSelectionMode(

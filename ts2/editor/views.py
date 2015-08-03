@@ -103,6 +103,20 @@ class ServicesEditorView(QtWidgets.QTableView):
             self.serviceSelected.emit(index.data())
 
 
+class ServiceLinesEditorView(QtWidgets.QTableView):
+    """Table view with specific options for editing service lines in the editor.
+    """
+    def __init__(self, parent):
+        super().__init__(parent)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                           QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setVerticalStretch(1)
+        self.setSizePolicy(sizePolicy)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.setItemDelegateForColumn(0, delegates.PlacesDelegate(self))
+
+
 class TrainsEditorView(QtWidgets.QTableView):
     """Table view with specific options for editing trains in the editor
     """

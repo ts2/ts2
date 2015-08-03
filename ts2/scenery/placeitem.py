@@ -105,6 +105,24 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
         self.place = place
 
 
+class PlacesModel(QtCore.QAbstractTableModel):
+    """Model listing places to be used in item delegates."""
+    def __init__(self, editor):
+        super().__init__()
+        self._editor = editor
+
+    def rowCount(self, parent=None, *args, **kwargs):
+        return len(self._editor.places)
+
+    def columnCount(self, parent=None, *args, **kwargs):
+        return 1
+
+    def data(self, index, role=Qt.DisplayRole):
+        placeCodes = list(self._editor.places.keys())
+        if role == Qt.DisplayRole:
+            return placeCodes[index.row()]
+
+
 class Place(abstract.TrackItem):
     """A Place is a place where trains will have a schedule (mainly station,
     but can also be a main junction for example)
