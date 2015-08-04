@@ -69,10 +69,7 @@ class LineItem(abstract.ResizableItem):
             self._place.addTrack(self)
         if simulation.context in utils.Context.EDITORS:
             self._gi[0].setCursor(Qt.PointingHandCursor)
-        else:
-            self._gi[0].setCursor(Qt.ArrowCursor)
-        if simulation.context in utils.Context.EDITORS:
-            self._gi[0].setCursor(Qt.PointingHandCursor)
+            self.positionSelected.connect(simulation.setSelectedTrainHead)
         else:
             self._gi[0].setCursor(Qt.ArrowCursor)
         simulation.registerGraphicsItem(self._tli)

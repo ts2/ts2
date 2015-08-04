@@ -560,20 +560,11 @@ class Editor(simulation.Simulation):
         else:
             ti = abstract.TrackItem(parameters)
         ti.initialize(self)
-        self.makeTrackItemSignalSlotConnections(ti)
         self.expandBackgroundTo(ti)
         self._trackItems[self._nextId] = ti
         self._nextId += 1
         self.updateSelection()
         return ti
-
-    def makeTrackItemSignalSlotConnections(self, ti):
-        """Makes all signal-slot connections for TrackItem ti"""
-        if isinstance(ti, signalitem.SignalItem):
-            ti.signalSelected.connect(self.prepareRoute)
-            ti.signalUnselected.connect(self.deselectRoute)
-        elif isinstance(ti, lineitem.LineItem):
-            ti.positionSelected.connect(self.setSelectedTrainHead)
 
     def deleteTrackItem(self, tiId):
         """Delete the TrackItem given by tiId."""

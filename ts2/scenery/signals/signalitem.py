@@ -82,8 +82,12 @@ class SignalItem(abstract.TrackItem):
         params = self._parameters
         self._signalType = simulation.signalTypes[params['signalType']]
         self._activeAspect = self._signalType.getDefaultAspect()
-        self.signalSelected.connect(simulation.activateRoute)
-        self.signalUnselected.connect(simulation.desactivateRoute)
+        if simulation.context == utils.Context.GAME:
+            self.signalSelected.connect(simulation.activateRoute)
+            self.signalUnselected.connect(simulation.desactivateRoute)
+        else:
+            self.signalSelected.connect(simulation.prepareRoute)
+            self.signalUnselected.connect(simulation.deselectRoute)
         self.trainSelected.connect(simulation.trainSelected)
         super().initialize(simulation)
 
