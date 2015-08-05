@@ -204,8 +204,6 @@ class EditorWindow(QtWidgets.QMainWindow):
 
         # Central tab widget
         self.tabWidget = QtWidgets.QTabWidget(self)
-        self.tabWidget.currentChanged.connect(self.showHideDockWidgets)
-        self.tabWidget.currentChanged.connect(self.updateMenus)
 
         # General tab
         generalTab = QtWidgets.QWidget()
@@ -439,6 +437,8 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.trainsView.setModel(trainsSortedModel)
 
         # Signal connections
+        self.tabWidget.currentChanged.connect(self.showHideDockWidgets)
+        self.tabWidget.currentChanged.connect(self.updateMenus)
         self.editor.selectionChanged.connect(self.setPropertiesModel)
         self.tabWidget.currentChanged.connect(self.editor.updateContext)
         self.editor.sceneryIsValidated.connect(
@@ -460,6 +460,8 @@ class EditorWindow(QtWidgets.QMainWindow):
         )
         self.trainsView.trainSelected.connect(self.editor.selectTrain)
         self.trainsView.trainsUnselected.connect(self.editor.unselectTrains)
+
+        self.editor.updateContext(self.tabWidget.currentIndex())
 
     def simulationDisconnect(self):
         """Disconnects all the signals of this editor."""

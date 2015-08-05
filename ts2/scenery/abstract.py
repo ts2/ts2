@@ -111,8 +111,9 @@ class TrackItem(QtCore.QObject):
         params = self._parameters
         self._nextItem = simulation.trackItem(params.get('nextTiId'))
         self._previousItem = simulation.trackItem(params.get('previousTiId'))
-        self.conflictTI = simulation.trackItem(params.get('conflictTiId'))
-
+        self._conflictTrackItem = simulation.trackItem(
+            params.get('conflictTiId')
+        )
         self._parameters = None
         for gi in self._gi.values():
             simulation.registerGraphicsItem(gi)
@@ -294,17 +295,11 @@ class TrackItem(QtCore.QObject):
     def conflictTI(self):
         return self._conflictTrackItem
 
-    @conflictTI.setter
-    def conflictTI(self, ti):
-        self._conflictTrackItem = ti
-        # TODO: Find a solution for this one ...
-        # ti.conflictTI = self
-
     @property
     def conflictTiId(self):
         """Returns the conflict trackitem ID."""
-        if self._conflictTrackItem is not None:
-            return str(self._conflictTrackItem.tiId)
+        if hasattr(self._conflictTrackItem, "tiId"):
+            return self._conflictTrackItem.tiId
         else:
             return None
 
@@ -312,10 +307,10 @@ class TrackItem(QtCore.QObject):
     def conflictTiId(self, value):
         """Setter function for the conflictTiId property."""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            if value is not None and value != "":
-                self.conflictTI = self.simulation.trackItem(int(value))
+            if value is not None and value != 0:
+                self._conflictTrackItem = self.simulation.trackItem(int(value))
             else:
-                self.conflictTI = None
+                self._conflictTrackItem = None
 
     def _getTrainPresentPreviousInfo(self):
         """Returns True if a train has last been seen present on this TI,
