@@ -517,14 +517,14 @@ class EditorWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def loadSimulation(self):
         """Loads the simulation from the database"""
-        # #TODO DEBUG
-        fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.json"
+        # DEBUG
+        # fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.json"
 
-        # fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
-        #                    self,
-        #                    self.tr("Open a simulation"),
-        #                    QtCore.QDir.currentPath(),
-        #                    self.tr("TS2 simulation files (*.ts2)"))
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
+                           self,
+                           self.tr("Open a simulation"),
+                           QtCore.QDir.currentPath(),
+                           self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
             self.simulationDisconnect()
