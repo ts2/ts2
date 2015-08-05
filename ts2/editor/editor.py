@@ -232,11 +232,7 @@ class Editor(simulation.Simulation):
         for key in self.trackItems.keys():
             # Change string keys to int
             self.trackItems[int(key)] = self.trackItems.pop(key)
-        for ti in self.trackItems.values():
-            # We need places before initializing the trackItems, so we need 2
-            # loops.
-            if isinstance(ti, placeitem.Place):
-                self._places[ti.placeCode] = ti
+        self.updatePlaces()
         for ti in self.trackItems.values():
             ti.initialize(self)
             ti.setupTriggers()
@@ -278,12 +274,7 @@ class Editor(simulation.Simulation):
         self._scene.update()
 
     sceneryIsValidated = QtCore.pyqtSignal(bool)
-    routesChanged = QtCore.pyqtSignal()
-    trainTypesChanged = QtCore.pyqtSignal()
-    servicesChanged = QtCore.pyqtSignal()
-    serviceLinesChanged = QtCore.pyqtSignal()
     trainsChanged = QtCore.pyqtSignal()
-    optionsChanged = QtCore.pyqtSignal()
 
     @property
     def libraryScene(self):
@@ -458,7 +449,6 @@ class Editor(simulation.Simulation):
                     if lineParameters["placecode"] != "":
                         self.services[serviceCode].addLine(lineParameters)
         file.close()
-        self.servicesChanged.emit()
 
     def registerGraphicsItem(self, graphicItem):
         """Adds the graphicItem to the scene or to the libraryScene.
@@ -632,6 +622,7 @@ class Editor(simulation.Simulation):
     def validateScenery(self):
         """Validates the scenery, i.e. tries to create all links between
         TrackItems, checks and set sceneryValidated to True if succeeded"""
+        self.updatePlaces()
         self.createTrackItemsLinks()
         if self.checkTrackItemsLinks():
             self.sceneryIsValidated.emit(True)
@@ -657,7 +648,6 @@ class Editor(simulation.Simulation):
                (self._preparedRoute not in self._routes.values()):
                 routeNum = self._preparedRoute.routeNum
                 self._routes[routeNum] = self._preparedRoute
-                self.routesChanged.emit()
                 self.deselectRoute()
                 return True
         self.deselectRoute()
@@ -668,7 +658,6 @@ class Editor(simulation.Simulation):
         if self.context == utils.Context.EDITOR_ROUTES:
             self.deselectRoute()
             del self._routes[routeNum]
-            self.routesChanged.emit()
 
     @QtCore.pyqtSlot(int)
     def prepareRoute(self, signalId):
@@ -761,7 +750,6 @@ class Editor(simulation.Simulation):
             }
             self._trainTypes[code] = trains.TrainType(parameters)
             self._trainTypes[code].initialize(self)
-            self.trainTypesChanged.emit()
             return True
         return False
 
@@ -769,7 +757,6 @@ class Editor(simulation.Simulation):
         """Deletes the trainType defined by code"""
         if self.context == utils.Context.EDITOR_TRAINTYPES:
             del self._trainTypes[code]
-        self.trainTypesChanged.emit()
 
     def addService(self, code):
         """Adds an empty Service to the services list."""
@@ -782,7 +769,6 @@ class Editor(simulation.Simulation):
             }
             self._services[code] = trains.Service(parameters)
             self._services[code].initialize(self)
-            self.servicesChanged.emit()
             return True
         return False
 
@@ -790,7 +776,6 @@ class Editor(simulation.Simulation):
         """Deletes the service defined by code"""
         if self.context == utils.Context.EDITOR_SERVICES:
             del self._services[code]
-        self.servicesChanged.emit()
 
     def addServiceLine(self, service, index):
         """Adds a service line to service at the current index"""
@@ -805,13 +790,11 @@ class Editor(simulation.Simulation):
             serviceLine = trains.ServiceLine(parameters)
             serviceLine.initialize(service)
             service.lines.insert(index, serviceLine)
-            self.serviceLinesChanged.emit()
 
     def deleteServiceLine(self, service, index):
         """Deletes the service line of service defined by index"""
         if self.context == utils.Context.EDITOR_SERVICES:
             del service.lines[index]
-            self.serviceLinesChanged.emit()
 
     def setupTrainsFromServices(self):
         """Removes all trains instances and creates a train for each relevant

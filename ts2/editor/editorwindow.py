@@ -39,7 +39,8 @@ class EditorWindow(QtWidgets.QMainWindow):
         self._mainWindow = mainWindow
 
         # Editor
-        self.editor = None
+        self.editor = editor.Editor()
+        self.editor.initialize(self)
 
         # Actions
         self.newAction = QtWidgets.QAction(self.tr("&New"), self)
@@ -422,18 +423,26 @@ class EditorWindow(QtWidgets.QMainWindow):
         """Connects the signals and slots to the simulation."""
         self.titleTxt.setText(self.editor.option("title"))
         self.descriptionTxt.setPlainText(self.editor.option("description"))
-        self.editor.selectionChanged.connect(self.setPropertiesModel)
-        self.tabWidget.currentChanged.connect(self.editor.updateContext)
-        self.editor.optionsChanged.connect(self.updateGeneralTab)
         self.optionsView.setModel(self.editor.optionsModel)
-        self.editor.optionsChanged.connect(self.optionsView.reset)
         self.sceneryView.setScene(self.editor.scene)
         self.trackItemsLibraryView.setScene(self.editor.libraryScene)
+        self.routesGraphicView.setScene(self.editor.scene)
+        self.routesView.setModel(self.editor.routesModel)
+        self.trainTypesView.setModel(self.editor.trainTypesModel)
+        servicesSortedModel = QtCore.QSortFilterProxyModel()
+        servicesSortedModel.setSourceModel(self.editor.servicesModel)
+        self.servicesView.setModel(servicesSortedModel)
+        self.serviceLinesView.setModel(self.editor.serviceLinesModel)
+        self.trainsGraphicsView.setScene(self.editor.scene)
+        trainsSortedModel = QtCore.QSortFilterProxyModel()
+        trainsSortedModel.setSourceModel(self.editor.trainsModel)
+        self.trainsView.setModel(trainsSortedModel)
+
+        # Signal connections
+        self.editor.selectionChanged.connect(self.setPropertiesModel)
+        self.tabWidget.currentChanged.connect(self.editor.updateContext)
         self.editor.sceneryIsValidated.connect(
             self.sceneryView.setDisabled
-        )
-        self.unlockSceneryBtn.clicked.connect(
-            self.editor.invalidateScenery
         )
         self.editor.sceneryIsValidated.connect(
             self.unlockSceneryBtn.setEnabled
@@ -441,41 +450,34 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.editor.sceneryIsValidated.connect(
             self.validateSceneryBtn.setDisabled
         )
-        self.routesGraphicView.setScene(self.editor.scene)
-        self.routesView.setModel(self.editor.routesModel)
-        self.routesView.routeSelected.connect(self.editor.selectRoute)
-        self.editor.routesChanged.connect(self.routesView.reset)
         self.editor.sceneryIsValidated.connect(self.routesTab.setEnabled)
-        self.trainTypesView.setModel(self.editor.trainTypesModel)
-        self.editor.trainTypesChanged.connect(self.trainTypesView.reset)
-        self.editor.trainTypesChanged.connect(
-            self.trainTypesView.resizeColumnsToContents
+        self.unlockSceneryBtn.clicked.connect(
+            self.editor.invalidateScenery
         )
-        servicesSortedModel = QtCore.QSortFilterProxyModel()
-        servicesSortedModel.setSourceModel(self.editor.servicesModel)
-        self.servicesView.setModel(servicesSortedModel)
-        self.editor.servicesChanged.connect(self.servicesView.reset)
-        self.editor.servicesChanged.connect(
-            self.servicesView.resizeColumnsToContents
-        )
-        self.serviceLinesView.setModel(self.editor.serviceLinesModel)
+        self.routesView.routeSelected.connect(self.editor.selectRoute)
         self.servicesView.serviceSelected.connect(
             self.editor.serviceLinesModel.setServiceCode
         )
-        self.editor.serviceLinesChanged.connect(self.serviceLinesView.reset)
-        self.editor.serviceLinesChanged.connect(
-            self.serviceLinesView.resizeColumnsToContents
-        )
-        self.trainsGraphicsView.setScene(self.editor.scene)
-        trainsSortedModel = QtCore.QSortFilterProxyModel()
-        trainsSortedModel.setSourceModel(self.editor.trainsModel)
-        self.trainsView.setModel(trainsSortedModel)
         self.trainsView.trainSelected.connect(self.editor.selectTrain)
         self.trainsView.trainsUnselected.connect(self.editor.unselectTrains)
-        self.editor.trainsChanged.connect(self.trainsView.reset)
-        self.editor.trainsChanged.connect(
-            self.trainsView.resizeColumnsToContents
-        )
+
+    def simulationDisconnect(self):
+        """Disconnects all the signals of this editor."""
+        signals = [
+            self.editor.selectionChanged,
+            self.tabWidget.currentChanged,
+            self.editor.sceneryIsValidated,
+            self.unlockSceneryBtn.clicked,
+            self.routesView.routeSelected,
+            self.servicesView.serviceSelected,
+            self.trainsView.trainSelected,
+            self.trainsView.trainsUnselected
+        ]
+        for signal in signals:
+            try:
+                signal.disconnect()
+            except TypeError:
+                pass
 
     closed = QtCore.pyqtSignal()
 
@@ -523,6 +525,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         #                    self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
+            self.simulationDisconnect()
             self.editor = editor.load(self, fileName)
             self.setWindowTitle(
                 self.tr("ts2 - Train Signalling Simulation - Editor - %s")
@@ -551,7 +554,7 @@ class EditorWindow(QtWidgets.QMainWindow):
                            QtCore.QDir.currentPath(),
                            self.tr("TS2 simulation files (*.ts2)"))
         if fileName != "":
-            self.editor.database = fileName
+            self.editor.fileName = fileName
             self.saveSimulation()
 
     @QtCore.pyqtSlot()
@@ -566,7 +569,8 @@ class EditorWindow(QtWidgets.QMainWindow):
                         "Do you want to continue?"),
                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
             ) == QtWidgets.QMessageBox.Yes:
-                self.editor.initialize()
+                self.editor = editor.Editor()
+                self.editor.initialize(self)
 
     @QtCore.pyqtSlot()
     def setPanTool(self):
@@ -653,10 +657,11 @@ class EditorWindow(QtWidgets.QMainWindow):
     def delRouteBtnClicked(self):
         """Deletes the selected route in routesView when the delete route
         button is clicked."""
-        rows = self.routesView.selectionModel().selectedRows()
-        if len(rows) != 0:
-            row = rows[0]
-            routeNum = self.routesView.model().data(row, 0)
+        rowIndexes = self.routesView.selectionModel().selectedRows()
+        if len(rowIndexes) != 0:
+            rowIndex = rowIndexes[0]
+            model = self.editor.routesModel
+            routeNum = model.data(rowIndex, 0)
             if QtWidgets.QMessageBox.question(
                 self,
                 self.tr("Delete route"),
@@ -664,12 +669,20 @@ class EditorWindow(QtWidgets.QMainWindow):
                         "to delete route %i?") % routeNum,
                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
             ) == QtWidgets.QMessageBox.Yes:
+                model.beginRemoveRows(QtCore.QModelIndex(), rowIndex.row(),
+                                      rowIndex.row())
                 self.editor.deleteRoute(routeNum)
+                model.endRemoveRows()
 
     @QtCore.pyqtSlot()
     def addRouteBtnClicked(self):
         """Adds a route in routesView when the add route button is clicked."""
-        if not self.editor.addRoute():
+        model = self.editor.routesModel
+        model.beginInsertRows(QtCore.QModelIndex(),
+                              model.rowCount(), model.rowCount())
+        if self.editor.addRoute():
+            model.endInsertRows()
+        else:
             QtWidgets.QMessageBox.warning(
                 self,
                 self.tr("Add route"),
@@ -794,7 +807,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         service = self.serviceLinesView.model().service
         rowIndexes = self.serviceLinesView.selectionModel().selectedRows()
         if len(rowIndexes) != 0:
-            rowIndex = self.serviceLinesView.model().mapToSource(rowIndexes[0])
+            rowIndex = rowIndexes
             model = self.editor.serviceLinesModel
             code = model.data(rowIndex, 0)
             if QtWidgets.QMessageBox.question(

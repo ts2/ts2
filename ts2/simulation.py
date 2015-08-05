@@ -160,11 +160,7 @@ class Simulation(QtCore.QObject):
         for key in self.trackItems.keys():
             # Change string keys to int
             self.trackItems[int(key)] = self.trackItems.pop(key)
-        for ti in self.trackItems.values():
-            # We need places before initializing the trackItems, so we need 2
-            # loops.
-            if isinstance(ti, placeitem.Place):
-                self._places[ti.placeCode] = ti
+        self.updatePlaces()
         for ti in self.trackItems.values():
             ti.initialize(self)
             ti.setupTriggers()
@@ -442,6 +438,13 @@ class Simulation(QtCore.QObject):
         """Updates the trackItem selection. Does nothing in the base
         simulation class."""
         pass
+
+    def updatePlaces(self):
+        """Updates the places dictionary from TrackItem data."""
+        self._places = {}
+        for ti in self.trackItems.values():
+            if isinstance(ti, placeitem.Place):
+                self._places[ti.placeCode] = ti
 
     def findRoute(self, si1, si2):
         """Checks whether a route exists between two signals, and return this

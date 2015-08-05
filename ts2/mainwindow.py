@@ -302,31 +302,31 @@ class MainWindow(QtWidgets.QMainWindow):
         # Disconnect signals
         try:
             self.simulation.trainSelected.disconnect()
-        except:
+        except TypeError:
             pass
         try:
             self.trainListView.trainSelected.disconnect()
-        except:
+        except TypeError:
             pass
         try:
             self.serviceListView.serviceSelected.disconnect()
-        except:
+        except TypeError:
             pass
         try:
             self.simulation.trainStatusChanged.disconnect()
-        except:
+        except TypeError:
             pass
         try:
             self.simulation.timeChanged.disconnect()
-        except:
+        except TypeError:
             pass
         try:
             self.simulation.messageLogger.rowsInserted.disconnect()
-        except:
+        except TypeError:
             pass
         try:
             self.simulation.scorer.scoreChanged.disconnect()
-        except:
+        except TypeError:
             pass
         # Menus
         self.saveGameAsAction.setEnabled(False)
@@ -383,6 +383,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """This slot opens the editor window if it is not already opened"""
         if not self.editorOpened:
             self.editorWindow = editorwindow.EditorWindow(self)
+            self.editorWindow.simulationConnect()
             self.editorWindow.closed.connect(self.editorIsClosed)
             self.editorOpened = True
             self.editorWindow.show()
