@@ -42,7 +42,14 @@ class EndItem(abstract.TrackItem):
         if self.simulation.context in utils.Context.EDITORS:
             egi.setCursor(Qt.PointingHandCursor)
         self._gi[0] = egi
-        simulation.registerGraphicsItem(egi)
+
+    def for_json(self):
+        """Dumps this end item to JSON."""
+        jsonData = super().for_json()
+        jsonData.update({
+            "nextTiId": None
+        })
+        return jsonData
 
     def _getEnd(self):
         """Returns a point far away of the scene"""
