@@ -336,7 +336,7 @@ class TrackItem(QtCore.QObject):
     def conflictTiId(self):
         """Returns the conflict trackitem ID."""
         if self._conflictTrackItem is not None:
-            return str(self._conflictTrackItem.tiId)
+            return self._conflictTrackItem.tiId
         else:
             return None
 
