@@ -17,6 +17,7 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
+import zipfile
 
 from Qt import QtCore, QtGui, QtWidgets, Qt
 
@@ -225,11 +226,18 @@ class MainWindow(QtWidgets.QMainWindow):
                     "TS2 saved game files (*.tsg)"))
         if fileName != "":
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
+
             if self.simulation is not None:
                 self.simulationDisconnect()
                 self.simulation = None
             # try:
-            self.simulation = simulation.load(self, fileName)
+            if zipfile.is_zipfile(fileName):
+                with zipfile.ZipFile(fileName) as zipArchive:
+                    with zipArchive.open("simulation.json") as file:
+                        self.simulation = simulation.load(self, file)
+            else:
+                with open(fileName) as file:
+                    self.simulation = simulation.load(self, file)
             # except utils.FormatException as err:
             #     QtWidgets.QMessageBox.critical(
             #         self,

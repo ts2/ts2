@@ -97,7 +97,7 @@ def json_hook(dct):
         )
 
 
-def load(simulationWindow, fileName):
+def load(simulationWindow, jsonStream):
     """Loads the simulation from fileName and returns it.
 
     The logic of loading is the following:
@@ -107,8 +107,7 @@ def load(simulationWindow, fileName):
     simulation which calls in turn the initialize() method of each object.
     This method will create all the missing links between the object and the
     simulation (and other objects)."""
-    with open(fileName) as f:
-        simulation = json.load(f, object_hook=json_hook, encoding='utf-8')
+    simulation = json.load(jsonStream, object_hook=json_hook, encoding='utf-8')
     if not isinstance(simulation, Simulation):
         raise utils.FormatException(
             translate("simulation.load", "Loaded file is not a TS2 simulation")
