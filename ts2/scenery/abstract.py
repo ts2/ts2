@@ -109,10 +109,10 @@ class TrackItem(QtCore.QObject):
             raise Exception("Internal error: TrackItem already initialized !")
         self.simulation = simulation
         params = self._parameters
-        self._nextItem = simulation.trackItem(params.get('nextTiId'))
-        self._previousItem = simulation.trackItem(params.get('previousTiId'))
+        self._nextItem = simulation.trackItem(params['nextTiId'])
+        self._previousItem = simulation.trackItem(params['previousTiId'])
         self._conflictTrackItem = simulation.trackItem(
-            params.get('conflictTiId')
+            params['conflictTiId']
         )
         self._parameters = None
         for gi in self._gi.values():
@@ -344,7 +344,8 @@ class TrackItem(QtCore.QObject):
         elif precedingItem == self._nextItem:
             return self._previousItem
         else:
-            return None
+            raise Exception("Items not linked: %s and %s" %
+                            (self.tiId, precedingItem.tiId))
 
     def setActiveRoute(self, r, previous):
         """Sets the activeRoute and activeRoutePreviousItem informations. It

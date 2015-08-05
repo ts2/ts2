@@ -156,11 +156,11 @@ class Simulation(QtCore.QObject):
         self.simulationWindow = simulationWindow
         self.signalTypes = signaltype.SignalType.createBuiltinSignalLibrary()
 
-        for key in self.trackItems.keys():
+        for key in self._trackItems.keys():
             # Change string keys to int
-            self.trackItems[int(key)] = self.trackItems.pop(key)
+            self._trackItems[int(key)] = self._trackItems.pop(key)
         self.updatePlaces()
-        for ti in self.trackItems.values():
+        for ti in self._trackItems.values():
             ti.initialize(self)
             ti.setupTriggers()
         if not self.checkTrackItemsLinks():
@@ -168,6 +168,7 @@ class Simulation(QtCore.QObject):
                 self.tr("Invalid simulation: Not all items are linked."),
                 logger.Message.SOFTWARE_MSG
             )
+            raise Exception("Invalid simulation: Not all items are linked.")
         for route in self.routes.values():
             route.initialize(self)
         for trainType in self.trainTypes.values():

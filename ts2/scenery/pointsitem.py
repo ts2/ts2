@@ -273,8 +273,12 @@ class PointsItem(abstract.TrackItem):
                 return self.normalItem
             else:
                 return self.reverseItem
-        else:
+        elif precedingItem == self.normalItem or \
+                precedingItem == self.reverseItem:
             return self.commonItem
+        else:
+            raise Exception("Items not linked: %s and %s" %
+                            (self.tiId, precedingItem.tiId))
 
     def setActiveRoute(self, r, previous):
         """Sets the active route information (see TrackItem.setActiveRoute()).
