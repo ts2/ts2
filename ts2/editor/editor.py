@@ -229,9 +229,6 @@ class Editor(simulation.Simulation):
         self.simulationWindow = editorWindow
         self.signalTypes = signaltype.SignalType.createBuiltinSignalLibrary()
 
-        for key in self.trackItems.keys():
-            # Change string keys to int
-            self.trackItems[int(key)] = self.trackItems.pop(key)
         self.updatePlaces()
         for ti in self.trackItems.values():
             ti.initialize(self)
@@ -254,9 +251,6 @@ class Editor(simulation.Simulation):
         if self.validateScenery():
             for rte in self.routes.values():
                 rte.initialize(self)
-            for key in self.routes.keys():
-                # Change string keys to int
-                self.routes[int(key)] = self.routes.pop(key)
             try:
                 self._nextRouteId = max(self._routes.keys()) + 1
             except ValueError:

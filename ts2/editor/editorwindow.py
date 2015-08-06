@@ -461,7 +461,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.trainsView.trainSelected.connect(self.editor.selectTrain)
         self.trainsView.trainsUnselected.connect(self.editor.unselectTrains)
 
-        self.editor.updateContext(self.tabWidget.currentIndex())
+        self.tabWidget.currentChanged.emit(self.tabWidget.currentIndex())
 
     def simulationDisconnect(self):
         """Disconnects all the signals of this editor."""

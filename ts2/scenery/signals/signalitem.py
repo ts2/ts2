@@ -80,6 +80,9 @@ class SignalItem(abstract.TrackItem):
     def initialize(self, simulation):
         """Initialize the signal item once everything is loaded."""
         params = self._parameters
+        if not params:
+            raise Exception("Internal error: TrackItem %s already initialized"
+                            % self.tiId)
         self._signalType = simulation.signalTypes[params['signalType']]
         self._activeAspect = self._signalType.getDefaultAspect()
         if simulation.context == utils.Context.GAME:

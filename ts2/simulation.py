@@ -132,8 +132,12 @@ class Simulation(QtCore.QObject):
         self._options = collections.OrderedDict()
         self._options.update(BUILTIN_OPTIONS)
         self._options.update(options)
-        self._routes = routes
-        self._trackItems = trackItems
+        self._routes = collections.OrderedDict()
+        for key, value in routes.items():
+            self._routes[int(key)] = value
+        self._trackItems = collections.OrderedDict()
+        for key, value in trackItems.items():
+            self._trackItems[int(key)] = value
         self.activeRouteNumbers = []
         self._trainTypes = collections.OrderedDict()
         self._trainTypes.update(trainTypes)
@@ -155,10 +159,6 @@ class Simulation(QtCore.QObject):
                                       logger.Message.SOFTWARE_MSG)
         self.simulationWindow = simulationWindow
         self.signalTypes = signaltype.SignalType.createBuiltinSignalLibrary()
-
-        for key in self._trackItems.keys():
-            # Change string keys to int
-            self._trackItems[int(key)] = self._trackItems.pop(key)
         self.updatePlaces()
         for ti in self._trackItems.values():
             ti.initialize(self)
@@ -503,7 +503,7 @@ class Simulation(QtCore.QObject):
             if not isinstance(ti, placeitem.Place) \
                     and not isinstance(ti, platformitem.PlatformItem) \
                     and not isinstance(ti, textitem.TextItem):
-                if ti.nextItem is None:
+                if ti.nextItem is None and not isinstance(ti, enditem.EndItem):
                     self.messageLogger.addMessage(
                         self.tr("TrackItem %i is unlinked at (%f, %f)" %
                                 (ti.tiId, ti.end.x(), ti.end.y())),

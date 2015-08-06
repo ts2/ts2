@@ -106,13 +106,14 @@ class TrackItem(QtCore.QObject):
     def initialize(self, simulation):
         """Initialize the item after all items are loaded."""
         if not self._parameters:
-            raise Exception("Internal error: TrackItem already initialized !")
+            raise Exception("Internal error: TrackItem %s already initialized"
+                            % self.tiId)
         self.simulation = simulation
         params = self._parameters
-        self._nextItem = simulation.trackItem(params['nextTiId'])
-        self._previousItem = simulation.trackItem(params['previousTiId'])
+        self._nextItem = simulation.trackItem(params.get('nextTiId'))
+        self._previousItem = simulation.trackItem(params.get('previousTiId'))
         self._conflictTrackItem = simulation.trackItem(
-            params['conflictTiId']
+            params.get('conflictTiId')
         )
         self._parameters = None
         for gi in self._gi.values():
