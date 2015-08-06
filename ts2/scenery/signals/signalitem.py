@@ -124,8 +124,8 @@ class SignalItem(abstract.TrackItem):
         jsonData.update({
             "reverse": int(self.reverse),
             "signalType": self.signalTypeStr,
-            "routesSet": self.routesSetParamsStr,
-            "trainPresent": self.trainNotPresentParamsStr,
+            "routesSetParams": self.routesSetParamsStr,
+            "trainNotPresentParams": self.trainNotPresentParamsStr,
             "xn": self.berthOrigin.x(),
             "yn": self.berthOrigin.y()
         })
