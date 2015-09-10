@@ -16,10 +16,13 @@ DOCS_WWW_GIT = "ssh://5570e9ce5973ca4a1a000006@docs-ts2.rhcloud.com/~/git/docs.g
 DOCS_WWW_DIR =  "docs-ts2.rhcloud.comz"
 DOCS_TEMP_DIR = TEMP_LOCAL + "/" + DOCS_WWW_DIR
 
-#python -m SimpleHTTPServer 8000
+def serve_docs(port=8080):
+	"""Run local HTTP server with docs"""
+	with lcd(TEMP_LOCAL + "/docs_build"):
+		local("python -m SimpleHTTPServer %s" % port)
 
 def clean():
-    """Clean current docs-build"""
+	"""Clean current docs-build"""
 	local("rm ./docs/_static/favicon.*")
 	local("rm -f -r temp/*")
 
