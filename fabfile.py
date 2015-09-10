@@ -19,11 +19,12 @@ DOCS_TEMP_DIR = TEMP_LOCAL + "/" + DOCS_WWW_DIR
 #python -m SimpleHTTPServer 8000
 
 def clean():
+    """Clean current docs-build"""
 	local("rm ./docs/_static/favicon.*")
 	local("rm -f -r temp/*")
 
 def build_docs():
-	"""Builds the documentation"""
+	"""Build the documentation to temp/docs_build"""
 	
 	# copy some stuff
 	local("cp ./images/favicon.* ./docs/_static/")
@@ -34,7 +35,7 @@ def build_docs():
 	local("/usr/bin/python3 /usr/local/bin/sphinx-build -b html ./docs/ ./temp/docs_build")
 	
 def update_www():
-	"""Copies build over to openshioft scheckout and push online"""
+	"""Copies build over to http://docs-ts2.rhcloud.com/.git and push online"""
 	
 	# nuke all stuff in openshift dir as its olde eg dead files et all
 	with lcd(DOCS_TEMP_DIR):
@@ -64,4 +65,3 @@ def init():
 	else:
 		with lcd(TEMP_LOCAL):
 			local( "git clone %s %s" % (DOCS_WWW_GIT, DOCS_WWW_DIR) )
-		
