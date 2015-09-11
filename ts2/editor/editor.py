@@ -232,7 +232,6 @@ class Editor(simulation.Simulation):
         self.updatePlaces()
         for ti in self.trackItems.values():
             ti.initialize(self)
-            ti.setupTriggers()
         self.adjustSceneBackground()
         try:
             self._nextId = max(self._trackItems.keys()) + 1

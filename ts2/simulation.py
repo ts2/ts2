@@ -162,7 +162,6 @@ class Simulation(QtCore.QObject):
         self.updatePlaces()
         for ti in self._trackItems.values():
             ti.initialize(self)
-            ti.setupTriggers()
         if not self.checkTrackItemsLinks():
             self.messageLogger.addMessage(
                 self.tr("Invalid simulation: Not all items are linked."),

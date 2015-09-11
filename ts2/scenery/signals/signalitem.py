@@ -358,8 +358,8 @@ class SignalItem(abstract.TrackItem):
     def isOnPosition(self, p):
         """ Checks that the signalItem is on the position p,
         i.e. the trackItem and direction are the same
-        @param p the position
-        @return Returns true if the signalItem is on position p"""
+        :param p: the position
+        :return True if the signalItem is on position p"""
         if p.trackItem == self and p.previousTI == self.previousItem:
             return True
         else:

@@ -58,28 +58,37 @@ class Target:
     BEFORE_NEXT_SIGNAL = 2
 
 
-class SignalAspect(QtCore.QObject):
+class SignalAspect:
     """SignalAspect class represents an aspect of a signal, that is a
     combination of on and off lights with a meaning for the train driver."""
 
     def __init__(self, parameters):
         """Constructor for the SignalAspect class."""
-        super().__init__()
         self.name = parameters["name"]
-        self.lineStyle = int(parameters["linestyle"])
-        self.outerShapes = eval(str(parameters["outershapes"]))
-        self.outerColors = eval(str(parameters["outercolors"]))
-        self.shapes = eval(str(parameters["shapes"]))
-        self.shapesColors = eval(str(parameters["shapescolors"]))
-        self.actions = [(t, s) for t, s in
-                        zip(eval(str(parameters["targets"])),
-                            eval(str(parameters["speedlimits"])))
-                        ]
+        self.lineStyle = parameters["lineStyle"]
+        self.outerShapes = parameters["outerShapes"]
+        self.outerColors = parameters["outerColors"]
+        self.shapes = parameters["shapes"]
+        self.shapesColors = parameters["shapesColors"]
+        self.actions = parameters["actions"]
+
+    def for_json(self):
+        """Dumps this SignalAspect to JSON."""
+        return {
+            "__type__": "SignalAspect",
+            "lineStyle": self.lineStyle,
+            "outerShapes": self.outerShapes,
+            "outerColors": self.outerColors,
+            "shapes": self.outerShapes,
+            "shapesColors": self.shapesColors,
+            "actions": self.actions
+        }
 
     def meansProceed(self):
         """Returns true if this aspect is a proceed aspect, returns false if
         this aspect requires to stop."""
-        return self.actions[0] != (0, 0) and self.actions[0] != (1, 0)
+        return self.actions[0] != (Target.ASAP, 0) \
+            and self.actions[0] != (Target.BEFORE_THIS_SIGNAL, 0)
 
     def drawAspect(self, p, linePen, shapePen, persistent=False):
         """Draws the aspect on the given painter p. Draws the line with
