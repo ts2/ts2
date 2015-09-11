@@ -43,3 +43,5 @@ nosetests.xml
 
 .idea
 .kdev4
+.settings
+temp/
