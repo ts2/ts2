@@ -167,11 +167,11 @@ class Simulation(QtCore.QObject):
                 logger.Message.SOFTWARE_MSG
             )
             raise Exception("Invalid simulation: Not all items are linked.")
-        for ti in self.trackItems.values():
-            # We need all trackItems linked before calculating triggers
-            ti.setupTriggers()
         for route in self.routes.values():
             route.initialize(self)
+        for ti in self.trackItems.values():
+            # We need trackItems linked and routes set before setting triggers
+            ti.setupTriggers()
         for trainType in self.trainTypes.values():
             trainType.initialize(self)
         for service in self.services.values():

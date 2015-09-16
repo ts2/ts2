@@ -459,12 +459,26 @@ class SignalItem(abstract.TrackItem):
 
     def trainsAhead(self):
         """ Returns true if there is a train ahead of this signalItem and
-        before the end of the next active route. Note that this function
-        returns False if no route is set from this signal."""
+        before the end of the next active route or the next signal if no route
+        is set."""
         if self.nextActiveRoute is not None:
             for pos in self.nextActiveRoute.positions:
                 if pos.trackItem.trainPresent():
                     return True
+        else:
+            cur = self.getFollowingItem(self.previousItem)
+            prev = self
+            while cur:
+                if cur.trainPresent():
+                    return True
+                if isinstance(cur, SignalItem):
+                    if prev == cur.previousItem:
+                        break
+                elif isinstance(cur, enditem.EndItem):
+                    break
+                oldPrev = prev
+                prev = cur
+                cur = cur.getFollowingItem(oldPrev)
         return False
 
     def trainHeadActions(self, trainId):
@@ -1013,10 +1027,8 @@ class NextSignalAspectsCondition:
         given in params. params must be a list of signal aspect names."""
         if params is None:
             params = []
-        if signalItem.nextActiveRoute:
-            nextSignal = signalItem.nextActiveRoute.endSignal
-        else:
-            nextSignal = signalItem.getNextSignal()
+
+        nextSignal = signalItem.getNextSignal()
         if nextSignal:
             aspectName = nextSignal.activeAspect.name
             if aspectName in params:

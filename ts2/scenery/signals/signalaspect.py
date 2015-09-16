@@ -115,7 +115,7 @@ class SignalAspect:
             for i in range(6):
                 p.drawLine(2, 0, 2, -7)
                 p.drawLine(2, -7, 8, -7)
-                r = QtCore.QRect((i // 2) * 8 + 8, -(i % 2) * 8 - 11, 8, 8)
+                r = QtCore.QRectF((i // 2) * 8 + 8, -(i % 2) * 8 - 11, 8, 8)
                 brush.setColor(QtGui.QColor(self.outerColors[i]))
                 p.setBrush(brush)
                 self.drawShape(p, self.outerShapes[i], r)
@@ -156,25 +156,25 @@ class SignalAspect:
         elif shape == SignalShape.BAR_E_W:
             tl = rect.topLeft() + QtCore.QPointF(3, 1)
             p.drawRect(QtCore.QRectF(tl, QtCore.QSizeF(2, 6)))
-        elif (shape == SignalShape.POLE_NE or
+        if (shape == SignalShape.POLE_NE or
               shape == SignalShape.POLE_NS or
               shape == SignalShape.POLE_NSE or
               shape == SignalShape.POLE_NSW):
-            tm = QtCore.QPointF(rect.center().x(), rect.top())
+            tm = QtCore.QPointF(rect.right(), rect.center().y())
             p.drawLine(rect.center(), tm)
-        elif (shape == SignalShape.POLE_NS or
+        if (shape == SignalShape.POLE_NS or
               shape == SignalShape.POLE_NSE or
               shape == SignalShape.POLE_NSW or
               shape == SignalShape.POLE_SW):
-            bm = QtCore.QPointF(rect.center().x(), rect.bottom())
+            bm = QtCore.QPointF(rect.left(), rect.center().y())
             p.drawLine(rect.center(), bm)
-        elif (shape == SignalShape.POLE_NE or
+        if (shape == SignalShape.POLE_NE or
               shape == SignalShape.POLE_NSE):
-            rm = QtCore.QPointF(rect.right().x(), rect.center().y())
+            rm = QtCore.QPointF(rect.center().x(), rect.bottom())
             p.drawLine(rect.center(), rm)
-        elif (shape == SignalShape.POLE_NSW or
+        if (shape == SignalShape.POLE_NSW or
               shape == SignalShape.POLE_SW):
-            lm = QtCore.QPointF(rect.left().x(), rect.center().y())
+            lm = QtCore.QPointF(rect.center().x(), rect.top())
             p.drawLine(rect.center(), lm)
 
     def boundingRect(self):
