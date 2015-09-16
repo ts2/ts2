@@ -215,7 +215,7 @@ class MainWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def loadSimulation(self):
         # ## DEBUG
-        # fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.json"
+        # fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.ts2"
 
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,

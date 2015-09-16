@@ -116,7 +116,6 @@ class TrackItem(QtCore.QObject):
             params.get('conflictTiId')
         )
         self._parameters = None
-        self.setupTriggers()
         for gi in self._gi.values():
             simulation.registerGraphicsItem(gi)
         self.updateGraphics()

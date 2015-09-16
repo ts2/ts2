@@ -29,7 +29,7 @@ from ts2.routing import route, position
 from ts2.game import logger, scorer
 from ts2.scenery import placeitem, lineitem, platformitem, invisiblelinkitem, \
     enditem, pointsitem, textitem
-from ts2.scenery.signals import signaltype, signalitem
+from ts2.scenery.signals import signalitem
 
 translate = QtWidgets.qApp.translate
 
@@ -145,7 +145,7 @@ class Simulation(QtCore.QObject):
         self._services.update(services)
         self._places = collections.OrderedDict()
         self._trains = trns
-        self.signalTypes = []
+        self.signalLibrary = signalitem.signalLibrary
         self._time = QtCore.QTime()
         self._startTime = QtCore.QTime()
         self._serviceListModel = trains.ServiceListModel(self)
@@ -158,7 +158,6 @@ class Simulation(QtCore.QObject):
         self.messageLogger.addMessage(self.tr("Simulation initializing"),
                                       logger.Message.SOFTWARE_MSG)
         self.simulationWindow = simulationWindow
-        self.signalTypes = signaltype.SignalType.createBuiltinSignalLibrary()
         self.updatePlaces()
         for ti in self._trackItems.values():
             ti.initialize(self)
@@ -168,6 +167,9 @@ class Simulation(QtCore.QObject):
                 logger.Message.SOFTWARE_MSG
             )
             raise Exception("Invalid simulation: Not all items are linked.")
+        for ti in self.trackItems.values():
+            # We need all trackItems linked before calculating triggers
+            ti.setupTriggers()
         for route in self.routes.values():
             route.initialize(self)
         for trainType in self.trainTypes.values():
@@ -176,8 +178,9 @@ class Simulation(QtCore.QObject):
             service.initialize(self)
         for train in self.trains:
             train.initialize(self)
-        self._trains.sort(key=lambda x:
-                          x.currentService.lines[0].scheduledDepartureTimeStr)
+        self._trains.sort(key=lambda x: x.currentService.lines and
+                          x.currentService.lines[0].scheduledDepartureTimeStr
+                          or x.currentService.serviceCode)
         self.messageLogger.initialize(self)
 
         self._scene.update()

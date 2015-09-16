@@ -27,7 +27,7 @@ from ts2 import utils, trains
 from ts2.routing import position, route
 from ts2.scenery import abstract, placeitem, lineitem, platformitem, \
     invisiblelinkitem, enditem, pointsitem, textitem
-from ts2.scenery.signals import signalitem, signaltype
+from ts2.scenery.signals import signalitem
 from ts2.editor import editorscenebackground
 from ts2.game import logger
 
@@ -227,7 +227,6 @@ class Editor(simulation.Simulation):
     def initialize(self, editorWindow):
         """Initialize the simulation."""
         self.simulationWindow = editorWindow
-        self.signalTypes = signaltype.SignalType.createBuiltinSignalLibrary()
 
         self.updatePlaces()
         for ti in self.trackItems.values():
@@ -260,8 +259,9 @@ class Editor(simulation.Simulation):
             service.initialize(self)
         for train in self.trains:
             train.initialize(self)
-        self._trains.sort(key=lambda x:
-                          x.currentService.lines[0].scheduledDepartureTimeStr)
+        self._trains.sort(key=lambda x: x.currentService.lines and
+                          x.currentService.lines[0].scheduledDepartureTimeStr
+                          or x.currentService.serviceCode)
         self.messageLogger.initialize(self)
 
         self._scene.update()

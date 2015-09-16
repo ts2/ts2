@@ -64,13 +64,13 @@ class SignalAspect:
 
     def __init__(self, parameters):
         """Constructor for the SignalAspect class."""
-        self.name = parameters["name"]
+        self.name = "__UNNAMED__"
         self.lineStyle = parameters["lineStyle"]
         self.outerShapes = parameters["outerShapes"]
         self.outerColors = parameters["outerColors"]
         self.shapes = parameters["shapes"]
         self.shapesColors = parameters["shapesColors"]
-        self.actions = parameters["actions"]
+        self.actions = [tuple(x) for x in parameters["actions"]]
 
     def for_json(self):
         """Dumps this SignalAspect to JSON."""

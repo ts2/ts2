@@ -518,7 +518,7 @@ class EditorWindow(QtWidgets.QMainWindow):
     def loadSimulation(self):
         """Loads the simulation from the database"""
         # DEBUG
-        # fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.json"
+        # fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.ts2"
 
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
                            self,
@@ -809,7 +809,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         service = self.serviceLinesView.model().service
         rowIndexes = self.serviceLinesView.selectionModel().selectedRows()
         if len(rowIndexes) != 0:
-            rowIndex = rowIndexes
+            rowIndex = rowIndexes[0]
             model = self.editor.serviceLinesModel
             code = model.data(rowIndex, 0)
             if QtWidgets.QMessageBox.question(

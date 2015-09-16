@@ -19,15 +19,126 @@
 #
 
 import copy
+import os
+import collections
+import simplejson as json
 
 from Qt import QtCore, QtGui, QtWidgets, Qt
 
 from ts2 import utils
-from ts2.scenery import abstract, helper
-from ts2.scenery.signals import signaltype
-from ts2.scenery.signals.signaltype import ConditionCode as stCode
+from ts2.scenery import abstract, helper, enditem
+from . import signalaspect
 
 translate = QtWidgets.qApp.translate
+
+
+BUILTIN_SIGNAL_LIBRARY = """{
+    "__type__": "SignalLibrary",
+    "signalAspects": {
+        "BUFFER": {
+            "__type__": "SignalAspect",
+            "lineStyle": 1,
+            "outerShapes": [0, 0, 0, 0, 0, 0],
+            "outerColors": [0, 0, 0, 0, 0, 0],
+            "shapes": [0, 0, 0, 0, 0, 0],
+            "shapesColors": [0, 0, 0, 0, 0, 0],
+            "actions": [[1, 0]]
+        },
+        "UK_DANGER": {
+            "__type__": "SignalAspect",
+            "lineStyle": 0,
+            "outerShapes": [0, 0, 0, 0, 0, 0],
+            "outerColors": [0, 0, 0, 0, 0, 0],
+            "shapes": [1, 0, 0, 0, 0, 0],
+            "shapesColors": ["#FF0000", 0, 0, 0, 0, 0],
+            "actions": [[1, 0]]
+        },
+        "UK_CAUTION": {
+            "__type__": "SignalAspect",
+            "lineStyle": 0,
+            "outerShapes": [0, 0, 0, 0, 0, 0],
+            "outerColors": [0, 0, 0, 0, 0, 0],
+            "shapes": [1, 0, 0, 0, 0, 0],
+            "shapesColors": ["#FFFF00", 0, 0, 0, 0, 0],
+            "actions": [[2, 0]]
+        },
+        "UK_CLEAR": {
+            "__type__": "SignalAspect",
+            "lineStyle": 0,
+            "outerShapes": [0, 0, 0, 0, 0, 0],
+            "outerColors": [0, 0, 0, 0, 0, 0],
+            "shapes": [1, 0, 0, 0, 0, 0],
+            "shapesColors": ["#00FF00", 0, 0, 0, 0, 0],
+            "actions": [[0, 999]]
+        }
+    },
+    "signalTypes": {
+        "BUFFER": {
+            "__type__": "SignalType",
+            "states": [
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "BUFFER",
+                    "conditions": {}
+                }
+            ]
+        },
+        "UK_3_ASPECTS": {
+            "__type__": "SignalType",
+            "states": [
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "UK_CLEAR",
+                    "conditions": {
+                        "NEXT_ROUTE_ACTIVE": [],
+                        "TRAIN_NOT_PRESENT_ON_NEXT_ROUTE": [],
+                        "NEXT_SIGNAL_ASPECTS": ["UK_CLEAR", "UK_CAUTION"]
+                    }
+                },
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "UK_CAUTION",
+                    "conditions": {
+                        "NEXT_ROUTE_ACTIVE": [],
+                        "TRAIN_NOT_PRESENT_ON_NEXT_ROUTE": [],
+                        "NEXT_SIGNAL_ASPECTS": ["UK_DANGER", "BUFFER"]
+                    }
+                },
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "UK_DANGER",
+                    "conditions": {}
+                }
+            ]
+        }
+    }
+}"""
+
+
+def json_hook(dct):
+    """Hook method for json loading of signal library."""
+    if not dct.get('__type__'):
+        return dct
+    elif dct['__type__'] == "SignalLibrary":
+        return SignalLibrary(parameters=dct)
+    elif dct['__type__'] == "SignalType":
+        return SignalType(parameters=dct)
+    elif dct['__type__'] == "SignalState":
+        return SignalState(parameters=dct)
+    elif dct['__type__'] == "SignalAspect":
+        return signalaspect.SignalAspect(parameters=dct)
+
+
+class ConditionCode:
+    """This class holds the possible conditions to display a Signal aspect."""
+    # Without parameters
+    NEXT_ROUTE_ACTIVE = 1
+    PREVIOUS_ROUTE_ACTIVE = 2
+    TRAIN_NOT_PRESENT_ON_NEXT_ROUTE = 4
+    # With parameters
+    TRAIN_NOT_PRESENT_ON_ITEMS = 1024   # No train on any item in list
+    ROUTES_SET = 2048                   # At least one route set in list
+    NEXT_SIGNAL_ASPECTS = 4096          # Aspect in list
 
 
 class SignalItem(abstract.TrackItem):
@@ -83,7 +194,9 @@ class SignalItem(abstract.TrackItem):
         if not params:
             raise Exception("Internal error: TrackItem %s already initialized"
                             % self.tiId)
-        self._signalType = simulation.signalTypes[params['signalType']]
+        self._signalType = simulation.signalLibrary.signalTypes[
+            params['signalType']
+        ]
         self._activeAspect = self._signalType.getDefaultAspect()
         if simulation.context == utils.Context.GAME:
             self.signalSelected.connect(simulation.activateRoute)
@@ -96,8 +209,12 @@ class SignalItem(abstract.TrackItem):
 
     @staticmethod
     def getProperties():
-        # TODO: Remove builtin reference below to allow custom signal types
-        signalTypeNames = [x["name"] for x in signaltype.builtin_signal_types]
+        signalTypeNames = sorted(
+            list(signalLibrary.signalTypes.keys())
+        )
+        signalCustomProperties = [
+            item for item in signalLibrary.tiProperties.values()
+        ]
         return abstract.TrackItem.getProperties() + [
             helper.TIProperty("reverse",
                               translate("SignalItem", "Reverse")),
@@ -107,13 +224,9 @@ class SignalItem(abstract.TrackItem):
                               "enum",
                               signalTypeNames,
                               signalTypeNames),
-            helper.TIProperty("routesSetParamsStr",
-                              translate("SignalItem", "Route set params")),
-            helper.TIProperty("trainNotPresentParamsStr",
-                              translate("SignalItem", "No train params")),
             helper.TIProperty("berthOriginStr",
                               translate("SignalItem", "Berth Origin"))
-        ]
+        ] + signalCustomProperties
 
     def for_json(self):
         """Dumps the signalItem to JSON."""
@@ -131,6 +244,7 @@ class SignalItem(abstract.TrackItem):
     signalSelected = QtCore.pyqtSignal(int, bool, bool)
     signalUnselected = QtCore.pyqtSignal(int)
     trainSelected = QtCore.pyqtSignal(int)
+    aspectChanged = QtCore.pyqtSignal()
 
     # ## Properties #########################################################
 
@@ -187,57 +301,14 @@ class SignalItem(abstract.TrackItem):
     def _setSignalTypeStr(self, value):
         """Setter function for the signalType property."""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            self._signalType = self.simulation.signalTypes.get(
-                value, self.simulation.signalTypes["UK_3_ASPECTS"]
+            signalTypes = self.simulation.signalLibrary.signalTypes
+            self._signalType = signalTypes.get(
+                value, signalTypes["UK_3_ASPECTS"]
             )
             self.updateSignalParams()
             self.updateSignalState()
 
     signalTypeStr = property(_getSignalTypeStr, _setSignalTypeStr)
-
-    def _getRouteSetParams(self):
-        """Returns the route set parameters, which is a dictionary with the
-        aspect names as keys, and lists of routes as values."""
-        return self._routesSetParams
-
-    routesSetParams = property(_getRouteSetParams)
-
-    def _getRouteSetParamsStr(self):
-        """Returns the route set parameters as a string."""
-        return str(self._routesSetParams)
-
-    def _setRouteSetParamsStr(self, value):
-        """Setter function for the routesSetParamsStr property."""
-        if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            if value == "":
-                self._routesSetParams = {}
-            else:
-                self._routesSetParams = eval(str(value))
-
-    routesSetParamsStr = property(_getRouteSetParamsStr,
-                                  _setRouteSetParamsStr)
-
-    def _getTrainNotPresentParams(self):
-        """Returns the train present parameters, which is a dictionary with
-        the aspect names as keys, and lists of track items as values."""
-        return self._trainNotPresentParams
-
-    trainNotPresentParams = property(_getTrainNotPresentParams)
-
-    def _getTrainNotPresentParamsStr(self):
-        """Returns the train present parameters as a string."""
-        return str(self._trainNotPresentParams)
-
-    def _setTrainNotPresentParamsStr(self, value):
-        """Setter function for the trainPresentParamsStr."""
-        if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            if value == "":
-                self._trainNotPresentParams = {}
-            else:
-                self._trainNotPresentParams = eval(str(value))
-
-    trainNotPresentParamsStr = property(_getTrainNotPresentParamsStr,
-                                        _setTrainNotPresentParamsStr)
 
     def _getBerthOrigin(self):
         """Returns the origin of the berth graphics item as a QPointF."""
@@ -348,6 +419,27 @@ class SignalItem(abstract.TrackItem):
 
     # ## Methods #########################################################
 
+    def getNextSignal(self):
+        """Helper function that returns the next signal of SignalItem.
+
+        If a route starts from this signal, the next signal is the end signal
+        of this route. Otherwise, it is the next signal found on the line."""
+        if self.nextActiveRoute is not None:
+            return self.nextActiveRoute.endSignal
+
+        cur = self.getFollowingItem(self.previousItem)
+        prev = self
+        while cur:
+            if isinstance(cur, SignalItem):
+                if prev == cur.previousItem:
+                    return cur
+            elif isinstance(cur, enditem.EndItem):
+                return None
+            oldPrev = prev
+            prev = cur
+            cur = cur.getFollowingItem(oldPrev)
+        return None
+
     def setBerthRect(self):
         """Sets the berth graphics item boundingRect."""
         font = QtGui.QFont("Courier New")
@@ -377,10 +469,11 @@ class SignalItem(abstract.TrackItem):
 
     def trainHeadActions(self, trainId):
         """Actions to be performed when the train head reaches this signal.
+
         Pushes the train code to the next signal."""
-        if self.nextActiveRoute is not None:
-            self.nextActiveRoute.endSignal.trainId = trainId
-            self.resetTrainId()
+        if self.getNextSignal():
+            self.getNextSignal().trainId = trainId
+        self.resetTrainId()
         super().trainHeadActions(trainId)
 
     def trainTailActions(self, trainId):
@@ -417,89 +510,27 @@ class SignalItem(abstract.TrackItem):
         self.updateGraphics()
 
     def updateSignalParams(self):
-        """Updates routeSetParams and trainNotPresentParams according to the
-        SignalType."""
-        tnp = {}
-        for sc in self.signalType.conditions:
-            if sc.conditionCode & stCode.TRAIN_NOT_PRESENT_ON_ITEMS:
-                tnp[sc.aspect.name] = \
-                    self.trainNotPresentParams.get(sc.aspect.name, [])
-        self.trainNotPresentParamsStr = str(tnp)
-        rs = {}
-        for sc in self.signalType.conditions:
-            if sc.conditionCode & stCode.ROUTES_SET:
-                rs[sc.aspect.name] = \
-                    self.routesSetParams.get(sc.aspect.name, [])
-        self.routesSetParamsStr = str(rs)
+        """Updates signal custom parameters according to the SignalType."""
+        self.signalType.updateParams(self)
 
     @QtCore.pyqtSlot()
     def updateSignalState(self):
         """Update the signal current aspect."""
-        for sc in self.signalType.conditions:
-            currentSituation = 0
-            if self.nextActiveRoute is not None:
-                currentSituation |= stCode.NEXT_ROUTE_ACTIVE
-            if self.previousActiveRoute is not None:
-                currentSituation |= stCode.PREVIOUS_ROUTE_ACTIVE
-            if not self.trainsAhead():
-                currentSituation |= stCode.TRAIN_NOT_PRESENT_ON_NEXT_ROUTE
-            if self.nextActiveRoute is not None:
-                for sa in sc.params.get(stCode.NEXT_SIGNAL_ASPECTS, []):
-                    if self.nextActiveRoute.endSignal.activeAspect.name == sa:
-                        currentSituation |= stCode.NEXT_SIGNAL_ASPECTS
-                        break
-            aspectName = sc.aspect.name
-            if aspectName in self.routesSetParams:
-                routesSet = self.routesSetParams[aspectName]
-                for rnum in routesSet:
-                    if self.simulation.routes[rnum].getRouteState() != 0:
-                        currentSituation |= stCode.ROUTES_SET
-                        break
-            if aspectName in self.trainNotPresentParams:
-                trainPresent = self.trainNotPresentParams[aspectName]
-                tnp = True
-                for tiId in trainPresent:
-                    if self.simulation.trackItems[tiId].trainPresent():
-                        tnp = False
-                        break
-                if tnp:
-                    currentSituation |= stCode.TRAIN_NOT_PRESENT_ON_ITEMS
+        oldAspect = self.activeAspect
+        self._activeAspect = self.signalType.getAspect(self)
 
-            if currentSituation & sc.conditionCode == sc.conditionCode:
-                self._activeAspect = sc.aspect
-                break
-        else:
-            self._activeAspect = self.signalType.getDefaultAspect()
+        if self.activeAspect != oldAspect:
+            self.aspectChanged.emit()
 
         if self.previousActiveRoute is not None:
             self.previousActiveRoute.beginSignal.updateSignalState()
+
         self.updateGraphics()
 
     def setupTriggers(self):
         """Create the triggers necessary for this Item."""
-        # Add triggers to trackItems defined in trainNotPresentParams
-        tiIds = []
-        for tnp in self.trainNotPresentParams.values():
-            tiIds.extend(tnp)
-        for tiId in tiIds:
-            self.simulation.trackItem(tiId).trainEntersItem.connect(
-                self.updateSignalState
-            )
-            self.simulation.trackItem(tiId).trainLeavesItem.connect(
-                self.updateSignalState
-            )
-
-        # Add triggers to routes defined in routeSetParams
-        tiIds = []
-        for rs in self.routesSetParams.values():
-            tiIds.extend(rs)
-        for tiId in tiIds:
-            self.simulation.routes[tiId].routeSelected.connect(
-                self.updateSignalState
-            )
-            self.simulation.routes[tiId].routeUnselected.connect(
-                self.updateSignalState
-            )
+        for trigger in self.simulation.signalLibrary.triggers.values():
+            trigger(self)
 
     # ## Graphics Methods ################################################
 
@@ -625,3 +656,377 @@ class SignalItem(abstract.TrackItem):
                              "berthOrigin")
                 drag.setMimeData(mime)
                 drag.exec_()
+
+
+class SignalState:
+    """A SignalState is an aspect of a signal with a set of conditions to
+    display this aspect."""
+
+    def __init__(self, parameters):
+        """Constructor for the SignalState class."""
+        self.aspect = None
+        self.parameters = parameters
+        self.conditions = parameters["conditions"]
+
+    def initialize(self, signalLib):
+        """Initializes the SignalState once we know the SignalState it belongs
+        to."""
+        if not self.parameters:
+            raise Exception("Internal error: SignalState already initialized")
+        params = self.parameters
+        self.aspect = signalLib.signalAspects[params["aspectName"]]
+        self.parameters = None
+
+    def for_json(self):
+        """Dumps this SignalState to JSON."""
+        return {
+            "__type__": "SignalState",
+            "aspectName": self.aspect.name,
+            "conditions": self.conditions
+        }
+
+    def conditionsMet(self, signalItem, params=None):
+        """Returns True if all conditions of this SignalState are met (or if
+        there is no conditions) on the given signalItem instance."""
+        if params is None:
+            params = {}
+
+        applicableSolvers = {k: v for (k, v) in SignalLibrary.solvers.items() if
+                             k in self.conditions.keys()}
+        for conditionName in self.conditions.keys():
+            parameters = self.conditions[conditionName]
+            conditions = params.get(conditionName, {})
+            parameters.extend(conditions.get(self.aspect.name, []))
+            if not applicableSolvers[conditionName](signalItem, parameters):
+                return False
+        return True
+
+
+class SignalType:
+    """A SignalType describes a type of signals which can have different
+    aspects and the logic for displaying aspects."""
+
+    def __init__(self, parameters):
+        """Constructor for the SignalType class."""
+        self.name = "__UNNAMED__"
+        self.states = parameters["states"]
+
+    def initialize(self, signalLib):
+        """Initializes this SignalType once the SignalLibrary is loaded."""
+        for state in self.states:
+            state.initialize(signalLib)
+
+    def for_json(self):
+        """Dumps this signalType to JSON."""
+        return {
+            "__type__": "SignalType",
+            "states": self.states
+        }
+
+    def getDefaultAspect(self):
+        """Returns the default aspect for this signal type."""
+        return self.states[-1].aspect
+
+    def getCustomParams(self, signalItem):
+        """Returns a dict of the custom parameters of signalItem.
+        The params dict has keys which are condition names and values which are
+        dict with signal aspect name as keys and a list of parameters as values.
+        """
+        params = {}
+        conditionNames = {c for state in self.states for c in state.conditions}
+        applicableUpdaters = [v for k, v in SignalLibrary.updaters.items()
+                              if k in conditionNames]
+        for updater in applicableUpdaters:
+            params = updater(signalItem, params)
+        return params
+
+    def updateParams(self, signalItem):
+        """Updates all user parameters of signalItem according to this
+        SignalType."""
+        params = self.getCustomParams(signalItem)
+        allProperties = [p.name
+                         for p in SignalLibrary.tiProperties.values()]
+        for prop in allProperties:
+            setattr(signalItem, prop, {})
+
+        # Update properties from params dict
+        for k, v in params.items():
+            propName = SignalLibrary.tiProperties[k].name
+            setattr(signalItem, propName, str(v))
+
+    def getAspect(self, signalItem):
+        """Returns the aspect that must be active in the context of signalItem.
+        """
+        for state in self.states:
+            params = self.getCustomParams(signalItem)
+            if state.conditionsMet(signalItem, params):
+                return state.aspect
+        else:
+            return self.getDefaultAspect()
+
+
+class SignalLibrary:
+    """A SignalLibrary holds the informations about the signal types and signal
+    aspects available in the simulation.
+
+    At runtime, each simulation has SignalLibrary instance which is filled with:
+    - The built-in UK_3_ASPECTS  and BUFFER signal types and their aspects
+    - The signal types defined in tsl files in the data directory
+    - The signal types defined in the simulation itself."""
+
+    def __init__(self, parameters):
+        """Constructor for the SignalLibrary class."""
+        self.signalAspects = parameters["signalAspects"]
+        for name, sa in self.signalAspects.items():
+            sa.name = name
+        self.signalTypes = parameters["signalTypes"]
+        for name, st in self.signalTypes.items():
+            st.name = name
+
+    def initialize(self):
+        """Initializes the SignalLibrary once it is totally loaded."""
+        for st in self.signalTypes.values():
+            st.initialize(self)
+
+    solvers = {}
+    tiProperties = {}
+    updaters = {}
+    triggers = {}
+
+    def for_json(self):
+        """Dumps this SignalLibrary to JSON."""
+        return {
+            "__type__": "SignalLibrary",
+            "signalAspects": self.signalAspects,
+            "signalTypes": self.signalTypes
+        }
+
+    def update(self, other):
+        """Updates this SignalLibrary instance by adding signal aspects and
+        signal types from the other SignalLibrary. If signal aspects or signal
+        types of the same name exists in both SignalLibrary instance, the data
+        in the other SignalLibray will overwrite the data of this SignalLibrary.
+        """
+        self.signalAspects.update(other.signalAspects)
+        self.signalTypes.update(other.signalTypes)
+
+    @staticmethod
+    def createSignalLibrary():
+        """Returns a SignalLibrary with the builtin signal types and those
+        defined in tsl files in the data directory."""
+        builtinLibrary = json.loads(BUILTIN_SIGNAL_LIBRARY,
+                                    object_hook=json_hook, encoding="utf-8")
+        tslFiles = [f for f in os.listdir("data") if f.endswith('.tsl')]
+        for tslFile in tslFiles:
+            fileName = "data" + os.sep + tslFile
+            with open(fileName) as fileStream:
+                sl = json.load(fileStream, object_hook=json_hook,
+                               encoding="utf-8")
+                builtinLibrary.update(sl)
+        builtinLibrary.initialize()
+        return builtinLibrary
+
+
+signalLibrary = SignalLibrary.createSignalLibrary()
+
+
+def condition(cls):
+    """Decorator to register a class as a condition.
+
+    Conditions are classes which include:
+    - A 'code' class attribute
+    - A 'solver' function with a signalItem and a params list as parameters. The
+    solver function must return True if the signalItem currently meets the
+    condition(s) defined by the condition class.
+    - A 'tiProperty' class attribute being the TIProperty of custom parameters
+    associated to this condition. The TIProperty name must not finish by 'Str'.
+    - An 'updater' function which takes a signalItem and a params dict as
+    parameters. The params dict has keys which are condition codes and values
+    which are dict with signal aspect name as keys and a list of parameters as
+    values. The updater function must update this params dict according to the
+    signal item.
+    - A 'trigger' function which takes a signalItem as parameters and which
+    returns a dict with keys being 'routes' or 'trackItems' and values being a
+    list of ids on which to install triggers.
+    """
+    SignalLibrary.solvers[cls.code] = cls.solver
+
+    if hasattr(cls, 'tiProperty'):
+
+        propName = cls.tiProperty.name
+
+        def _propertyGetter(self):
+            return getattr(self, "_" + propName)
+
+        def _propertyStrGetter(self):
+            return str(dict(getattr(self, str("_" + propName))))
+
+        def _propertyStrSetter(self, value):
+            if self.simulation.context == utils.Context.EDITOR_SCENERY:
+                value = collections.OrderedDict(eval(str(value)))
+                if isinstance(value, dict):
+                    setattr(self, "_" + propName, value)
+                else:
+                    setattr(self, "_" + propName, collections.OrderedDict())
+
+        cls.tiProperty.name += "Str"
+        SignalLibrary.tiProperties[cls.code] = cls.tiProperty
+        setattr(SignalItem,
+                propName,
+                property(_propertyGetter))
+        setattr(SignalItem,
+                propName + "Str",
+                property(_propertyStrGetter, _propertyStrSetter))
+
+    if hasattr(cls, 'updater'):
+        SignalLibrary.updaters[cls.code] = cls.updater
+
+    if hasattr(cls, 'trigger'):
+        SignalLibrary.triggers[cls.code] = cls.trigger
+
+    return cls
+
+
+@condition
+class NextActiveRouteCondition:
+    code = "NEXT_ROUTE_ACTIVE"
+
+    @staticmethod
+    def solver(signalItem, params=None):
+        """This solver returns True if the next route of the signal is active.
+        """
+        return bool(signalItem.nextActiveRoute)
+
+
+@condition
+class PreviousActiveRouteCondition:
+    code = "PREVIOUS_ROUTE_ACTIVE"
+
+    @staticmethod
+    def solver(signalItem, params=None):
+        """This solver returns True if a route ending at this signal is active.
+        """
+        return bool(signalItem.previousActiveRoute)
+
+
+@condition
+class TrainNotPresentOnNextRouteCondition:
+    code = "TRAIN_NOT_PRESENT_ON_NEXT_ROUTE"
+
+    @staticmethod
+    def solver(signalItem, params=None):
+        """This solver returns True if no route is active starting from this
+        signal or if there is no train on any items of the active route starting
+        from this signal."""
+        return not signalItem.trainsAhead()
+
+
+@condition
+class TrainNotPresentOnItems:
+    code = "TRAIN_NOT_PRESENT_ON_ITEMS"
+    tiProperty = helper.TIProperty(
+        "trainNotPresentParams", translate("SignalItem", "No train params")
+    )
+
+    @staticmethod
+    def solver(signalItem, params=None):
+        """This solver returns True if no train is found on any trackItems given
+        in the params list. params must be a list of trackItem IDs."""
+        if params is None:
+            params = []
+        simulation = signalItem.simulation
+        trackItems = [simulation.trackItem(tiId) for tiId in params]
+        return not any([ti.trainPresent() for ti in trackItems])
+
+    @staticmethod
+    def updater(signalItem, params):
+        tnp = signalItem.trainNotPresentParams
+        aspectNames = [st.aspect.name for st in signalItem.signalType.states]
+        params[TrainNotPresentOnItems.code] = {
+            aspectName: tnp.get(aspectName, []) for aspectName in aspectNames
+        }
+        return params
+
+    @staticmethod
+    def trigger(signalItem):
+        tiIds = []
+        for tnp in signalItem.trainNotPresentParams.values():
+            tiIds.extend(tnp)
+        for tiId in tiIds:
+            signalItem.simulation.trackItem(tiId).trainEntersItem.connect(
+                signalItem.updateSignalState
+            )
+            signalItem.simulation.trackItem(tiId).trainLeavesItem.connect(
+                signalItem.updateSignalState
+            )
+
+
+@condition
+class RouteSetCondition:
+    code = "ROUTES_SET"
+    tiProperty = helper.TIProperty(
+        "routesSetParams", translate("SignalItem", "Route set params")
+    )
+
+    @staticmethod
+    def solver(signalItem, params=None):
+        """This solver returns True if at least one of the routes given in the
+        params list is active. These routes don't have to start at this signal.
+        params must be a list of route numbers."""
+        if params is None:
+            params = []
+        simulation = signalItem.simulation
+        routes = [simulation.routes[routeNum] for routeNum in params]
+        return any([(r.getRouteState() != 0) for r in routes])
+
+    @staticmethod
+    def updater(signalItem, params):
+        rs = signalItem.routesSetParams
+        aspectNames = [st.aspect.name for st in signalItem.signalType.states]
+        params[RouteSetCondition.code] = {
+            aspectName: rs.get(aspectName, []) for aspectName in aspectNames
+        }
+        return params
+
+    @staticmethod
+    def trigger(signalItem):
+        tiIds = []
+        for rs in signalItem.routesSetParams.values():
+            tiIds.extend(rs)
+        for tiId in tiIds:
+            signalItem.simulation.routes[tiId].routeSelected.connect(
+                signalItem.updateSignalState
+            )
+            signalItem.simulation.routes[tiId].routeUnselected.connect(
+                signalItem.updateSignalState
+            )
+
+
+@condition
+class NextSignalAspectsCondition:
+    code = "NEXT_SIGNAL_ASPECTS"
+
+    @staticmethod
+    def solver(signalItem, params=None):
+        """This solver returns True if a route starting from this signal is
+        active and the ending signal of this route is showing one of the aspects
+        given in params. params must be a list of signal aspect names."""
+        if params is None:
+            params = []
+        if signalItem.nextActiveRoute:
+            nextSignal = signalItem.nextActiveRoute.endSignal
+        else:
+            nextSignal = signalItem.getNextSignal()
+        if nextSignal:
+            aspectName = nextSignal.activeAspect.name
+            if aspectName in params:
+                return True
+        return False
+
+    @staticmethod
+    def trigger(signalItem):
+        """Trigger to connect to next signal (used only when no route)."""
+        nextItem = signalItem.getNextSignal()
+        if nextItem:
+            nextItem.aspectChanged.connect(signalItem.updateSignalState)
+            signalItem.updateSignalState()

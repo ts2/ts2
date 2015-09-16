@@ -120,7 +120,8 @@ class ServiceListModel(QtCore.QAbstractTableModel):
         services."""
         self._services = sorted(
             self.simulation.services.values(),
-            key=lambda x: x.lines[0].scheduledDepartureTimeStr
+            key=lambda x: x.lines and x.lines[0].scheduledDepartureTimeStr
+                          or x.serviceCode
         )
 
     def rowCount(self, parent=None, *args, **kwargs):
