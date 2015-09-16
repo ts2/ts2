@@ -761,6 +761,7 @@ class Train(QtCore.QObject):
                     self.status = TrainStatus.STOPPED
                 else:
                     self.status = TrainStatus.RUNNING
+                self.nextPlaceIndex = 0
                 self.drawTrain()
                 self.executeActions(0)
                 # Print messages
