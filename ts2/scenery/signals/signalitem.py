@@ -485,9 +485,13 @@ class SignalItem(abstract.TrackItem):
         """Actions to be performed when the train head reaches this signal.
 
         Pushes the train code to the next signal."""
-        if self.getNextSignal():
-            self.getNextSignal().trainId = trainId
-        self.resetTrainId()
+        if self.trainId == trainId:
+            # Only push train code if this signal has the descriptor
+            # Typically to prevent opposite signals to get it
+            nextSignal = self.getNextSignal()
+            if nextSignal:
+                nextSignal.trainId = trainId
+            self.resetTrainId()
         super().trainHeadActions(trainId)
 
     def trainTailActions(self, trainId):
