@@ -154,9 +154,11 @@ class SignalItem(abstract.TrackItem):
         super().__init__(parameters)
         reverse = bool(parameters.get("reverse", 0))
         self._signalType = None
-        self._routesSetParams = eval(str(parameters.get("routesSetParams", {})))
-        self._trainNotPresentParams = \
-            eval(str(parameters.get("trainNotPresentParams", {})))
+        for customProperty in signalLibrary.tiProperties.values():
+            # Initialize backend vars for custom properties
+            propName = "_" + customProperty.name[:-3]
+            setattr(self, propName,
+                    eval(str(parameters.get(customProperty.name[:-3], {}))))
         try:
             xb = float(parameters.get("xn", ""))
         except ValueError:
@@ -970,6 +972,46 @@ class TrainNotPresentOnItems:
         tiIds = []
         for tnp in signalItem.trainNotPresentParams.values():
             tiIds.extend(tnp)
+        for tiId in tiIds:
+            signalItem.simulation.trackItem(tiId).trainEntersItem.connect(
+                signalItem.updateSignalState
+            )
+            signalItem.simulation.trackItem(tiId).trainLeavesItem.connect(
+                signalItem.updateSignalState
+            )
+
+
+@condition
+class TrainPresentOnItems:
+    code = "TRAIN_PRESENT_ON_ITEMS"
+    tiProperty = helper.TIProperty(
+        "trainPresentParams", translate("SignalItem", "Train Present Params")
+    )
+
+    @staticmethod
+    def solver(signalItem, params=None):
+        """This solver returns True if a train is found on all trackItems given
+        in the params list. params must be a list of trackItem IDs."""
+        if params is None:
+            params = []
+        simulation = signalItem.simulation
+        trackItems = [simulation.trackItem(tiId) for tiId in params]
+        return all([ti.trainPresent() for ti in trackItems])
+
+    @staticmethod
+    def updater(signalItem, params):
+        tp = signalItem.trainPresentParams
+        aspectNames = [st.aspect.name for st in signalItem.signalType.states]
+        params[TrainPresentOnItems.code] = {
+            aspectName: tp.get(aspectName, []) for aspectName in aspectNames
+        }
+        return params
+
+    @staticmethod
+    def trigger(signalItem):
+        tiIds = []
+        for tp in signalItem.trainPresentParams.values():
+            tiIds.extend(tp)
         for tiId in tiIds:
             signalItem.simulation.trackItem(tiId).trainEntersItem.connect(
                 signalItem.updateSignalState
