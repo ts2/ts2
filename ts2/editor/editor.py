@@ -654,34 +654,43 @@ class Editor(simulation.Simulation):
 
     @QtCore.pyqtSlot(int)
     def prepareRoute(self, signalId):
-        """Prepares the route starting with the SignalItem given by signalId:
-        - Checks that the route leads to another SignalItem, using the current
-        directions of each PointsItem.
+        """Prepares the route starting with the SignalItem given by
+        _selectedSignal and ending at signalId. Sets _selectedSignal to signalId
+        if it is not set. Preparation means:
+        - Check that the route leads to signalId, using the current directions
+        of each PointsItem.
         - Set _preparedRoute to this route
         - Highlights the route if valid"""
         if self.context == utils.Context.EDITOR_ROUTES:
             si = self.trackItem(signalId)
-            pos = position.Position(si, si.previousItem, 0)
-            directions = {}
-            cur = pos.next()
-            while not isinstance(cur.trackItem, enditem.EndItem):
-                ti = cur.trackItem
-                if isinstance(ti, pointsitem.PointsItem):
-                    directions[ti.tiId] = int(ti.pointsReversed)
-                if isinstance(ti, signalitem.SignalItem):
-                    if ti.isOnPosition(cur):
-                        self._preparedRoute = route.Route({
-                            "routeNum": self._nextRouteId,
-                            "beginSignal": si.tiId,
-                            "endSignal": ti.tiId,
-                            "directions": directions,
-                            "initialState": 0
-                        })
-                        self._preparedRoute.initialize(self)
-                        self.selectedRoute = self._preparedRoute
-                        self._nextRouteId += 1
-                        return
-                cur = cur.next()
+            if self._selectedSignal is None or self._selectedSignal == si:
+                # First signal selected
+                self._selectedSignal = si
+            else:
+                pos = position.Position(self._selectedSignal,
+                                        self._selectedSignal.previousItem, 0)
+                directions = {}
+                cur = pos.next()
+                while not isinstance(cur.trackItem, enditem.EndItem):
+                    ti = cur.trackItem
+                    if isinstance(ti, pointsitem.PointsItem):
+                        directions[ti.tiId] = int(ti.pointsReversed)
+                    if ti == si:
+                        if ti.isOnPosition(cur):
+                            self._preparedRoute = route.Route({
+                                "routeNum": self._nextRouteId,
+                                "beginSignal": self._selectedSignal.tiId,
+                                "endSignal": signalId,
+                                "directions": directions,
+                                "initialState": 0
+                            })
+                            self._preparedRoute.initialize(self)
+                            self.selectedRoute = self._preparedRoute
+                            self._nextRouteId += 1
+                            self._selectedSignal = None
+                            si.unselect()
+                            return
+                    cur = cur.next()
 
     @QtCore.pyqtSlot(int)
     def selectRoute(self, routeNum):
@@ -694,6 +703,7 @@ class Editor(simulation.Simulation):
     def deselectRoute(self):
         """Desactivate the selected route in the routes editor"""
         if self.context == utils.Context.EDITOR_ROUTES:
+            self._selectedSignal = None
             self.selectedRoute = None
             self._preparedRoute = None
 

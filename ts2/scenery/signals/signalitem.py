@@ -499,9 +499,12 @@ class SignalItem(abstract.TrackItem):
     def trainTailActions(self, trainId):
         """Actions that are to be done when a train tail reaches this signal.
         It deals with desactivating this signal."""
-        if self.activeRoute is not None and \
-           self.activeRoutePreviousItem != self.previousItem:
-            # The line is highlighted by an opposite direction route
+        if (self.activeRoute is not None and
+                (self.activeRoutePreviousItem != self.previousItem or
+                     (self.activeRoute.beginSignal != self and
+                      self.activeRoute.endSignal != self))):
+            # The line is highlighted by an opposite direction route or this
+            # signal is not the starting/ending signal of this route.
             # => base TrackItem actions
             super().trainTailActions(trainId)
         else:
@@ -527,7 +530,6 @@ class SignalItem(abstract.TrackItem):
     def unselect(self):
         """Unselect the signal."""
         self.selected = False
-        self.updateGraphics()
 
     def updateSignalParams(self):
         """Updates signal custom parameters according to the SignalType."""
@@ -563,7 +565,7 @@ class SignalItem(abstract.TrackItem):
         super().graphicsMousePressEvent(e, itemId)
         if e.button() == Qt.LeftButton:
             if itemId == SignalItem.SIGNAL_GRAPHIC_ITEM:
-                if self.simulation.context == utils.Context.GAME:
+                if self.simulation.context != utils.Context.EDITOR_SCENERY:
                     self.selected = True
                 persistent = (e.modifiers() == Qt.ShiftModifier)
                 force = (e.modifiers() == Qt.AltModifier | Qt.ControlModifier)
@@ -575,7 +577,7 @@ class SignalItem(abstract.TrackItem):
                 self.reverse = not self.reverse
             if itemId == SignalItem.SIGNAL_GRAPHIC_ITEM:
                 # The signal itself is right-clicked
-                if self.simulation.context == utils.Context.GAME:
+                if self.simulation.context != utils.Context.EDITOR_SCENERY:
                     self.selected = False
                 self.signalUnselected.emit(self.tiId)
             elif itemId == SignalItem.BERTH_GRAPHIC_ITEM:
@@ -1036,7 +1038,8 @@ class RouteSetCondition:
         if params is None:
             params = []
         simulation = signalItem.simulation
-        routes = [simulation.routes[routeNum] for routeNum in params]
+        routes = [simulation.routes[routeNum] for routeNum in params
+                  if routeNum in simulation.routes]
         return any([(r.getRouteState() != 0) for r in routes])
 
     @staticmethod

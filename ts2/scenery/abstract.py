@@ -426,6 +426,8 @@ class TrackItem(QtCore.QObject):
                     self.activeRoute.beginSignal.nextActiveRoute
                 if beginSignalNextRoute is None or \
                    beginSignalNextRoute != self.activeRoute:
+                    # The first signal of the route has no route set or it is a
+                    # different route than this one
                     if self.activeRoutePreviousItem.activeRoute is not None \
                        and self.activeRoutePreviousItem.activeRoute \
                        == self.activeRoute:
