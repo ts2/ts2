@@ -962,9 +962,11 @@ class TrainNotPresentOnItems:
 
     @staticmethod
     def updater(signalItem, params):
+        code = TrainNotPresentOnItems.code
         tnp = signalItem.trainNotPresentParams
-        aspectNames = [st.aspect.name for st in signalItem.signalType.states]
-        params[TrainNotPresentOnItems.code] = {
+        aspectNames = [st.aspect.name for st in signalItem.signalType.states
+                       if code in st.conditions.keys()]
+        params[code] = {
             aspectName: tnp.get(aspectName, []) for aspectName in aspectNames
         }
         return params
@@ -1002,9 +1004,11 @@ class TrainPresentOnItems:
 
     @staticmethod
     def updater(signalItem, params):
+        code = TrainPresentOnItems.code
         tp = signalItem.trainPresentParams
-        aspectNames = [st.aspect.name for st in signalItem.signalType.states]
-        params[TrainPresentOnItems.code] = {
+        aspectNames = [st.aspect.name for st in signalItem.signalType.states
+                       if code in st.conditions.keys()]
+        params[code] = {
             aspectName: tp.get(aspectName, []) for aspectName in aspectNames
         }
         return params
@@ -1044,9 +1048,11 @@ class RouteSetCondition:
 
     @staticmethod
     def updater(signalItem, params):
+        code = RouteSetCondition.code
         rs = signalItem.routesSetParams
-        aspectNames = [st.aspect.name for st in signalItem.signalType.states]
-        params[RouteSetCondition.code] = {
+        aspectNames = [st.aspect.name for st in signalItem.signalType.states
+                       if code in st.conditions.keys()]
+        params[code] = {
             aspectName: rs.get(aspectName, []) for aspectName in aspectNames
         }
         return params
