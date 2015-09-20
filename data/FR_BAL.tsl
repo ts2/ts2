@@ -447,6 +447,8 @@
                             "FR_BAL_ARR30",
                             "FR_BAL_C",
                             "FR_BAL_S",
+                            "FR_CV",
+                            "FR_M",
                             "BUFFER"
                         ],
                         "ROUTES_SET": []
@@ -483,6 +485,8 @@
                         "NEXT_SIGNAL_ASPECTS": [
                             "FR_BAL_C",
                             "FR_BAL_S",
+                            "FR_CV",
+                            "FR_M",
                             "BUFFER"
                         ]
                     }
