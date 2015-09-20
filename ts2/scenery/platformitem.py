@@ -33,7 +33,6 @@ class PlatformItem(abstract.ResizableItem):
     def __init__(self, parameters):
         """Constructor for the PlatformItem class"""
         super().__init__(parameters)
-        self.tiType = "ZP"
         x2 = parameters["xf"]
         y2 = parameters["yf"]
         self._end = QtCore.QPointF(x2, y2)

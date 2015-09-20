@@ -610,8 +610,8 @@ class EditorWindow(QtWidgets.QMainWindow):
     def selectAll(self):
         """Select all the items on the scene."""
         self.editor.clearSelection()
-        for tiId in self.editor.trackItems:
-            self.editor.updateSelection(tiId, True)
+        for ti in self.editor.trackItems.values():
+            self.editor.addItemToSelection(ti, True)
 
     @QtCore.pyqtSlot(int)
     def showHideDockWidgets(self, index):

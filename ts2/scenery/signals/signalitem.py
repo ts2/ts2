@@ -214,9 +214,7 @@ class SignalItem(abstract.TrackItem):
         signalTypeNames = sorted(
             list(signalLibrary.signalTypes.keys())
         )
-        signalCustomProperties = [
-            item for item in signalLibrary.tiProperties.values()
-        ]
+        signalCustomProperties = list(signalLibrary.tiProperties.values())
         return abstract.TrackItem.getProperties() + [
             helper.TIProperty("reverse",
                               translate("SignalItem", "Reverse")),
@@ -233,11 +231,12 @@ class SignalItem(abstract.TrackItem):
     def for_json(self):
         """Dumps the signalItem to JSON."""
         jsonData = super().for_json()
+        signalCustomProperties = list(signalLibrary.tiProperties.values())
+        for customProp in signalCustomProperties:
+            jsonData[customProp.name[:-3]] = getattr(self, customProp.name)
         jsonData.update({
             "reverse": int(self.reverse),
             "signalType": self.signalTypeStr,
-            "routesSetParams": self.routesSetParamsStr,
-            "trainNotPresentParams": self.trainNotPresentParamsStr,
             "xn": self.berthOrigin.x(),
             "yn": self.berthOrigin.y()
         })
@@ -501,8 +500,8 @@ class SignalItem(abstract.TrackItem):
         It deals with desactivating this signal."""
         if (self.activeRoute is not None and
                 (self.activeRoutePreviousItem != self.previousItem or
-                     (self.activeRoute.beginSignal != self and
-                      self.activeRoute.endSignal != self))):
+                 (self.activeRoute.beginSignal != self and
+                  self.activeRoute.endSignal != self))):
             # The line is highlighted by an opposite direction route or this
             # signal is not the starting/ending signal of this route.
             # => base TrackItem actions
@@ -839,6 +838,7 @@ class SignalLibrary:
         builtinLibrary = json.loads(BUILTIN_SIGNAL_LIBRARY,
                                     object_hook=json_hook, encoding="utf-8")
         tslFiles = [f for f in os.listdir("data") if f.endswith('.tsl')]
+        tslFiles.sort()
         for tslFile in tslFiles:
             fileName = "data" + os.sep + tslFile
             with open(fileName) as fileStream:

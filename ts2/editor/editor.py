@@ -515,7 +515,7 @@ class Editor(simulation.Simulation):
             "yr": -5,
             "reverse": 0,
             "maxSpeed": 0.0,
-            "realLength": 0.0,
+            "realLength": 1.0,
             "placeCode": None,
             "trackCode": None,
             "signalType": "UK_3_ASPECTS",
@@ -952,7 +952,7 @@ class Editor(simulation.Simulation):
         translation = refPos + QtCore.QPointF(100, 100) - \
             self._clipbooard[0].origin
         for ti in self._clipbooard:
-            newTi = self.createTrackItem(ti.tiType,
+            newTi = self.createTrackItem(ti.tiTypeStr,
                                          ti.origin + translation,
                                          ti.end + translation)
             newTi.maxSpeed = ti.maxSpeed
