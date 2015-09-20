@@ -621,7 +621,7 @@
                 },
                 {
                     "__type__": "SignalState",
-                    "aspectName": "FR_M",
+                    "aspectName": "FR_BAL_S",
                     "conditions": {
                         "NEXT_ROUTE_ACTIVE": []
                     }
