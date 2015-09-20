@@ -294,6 +294,90 @@
                     8.33
                 ]
             ]
+        },
+        "FR_CV": {
+            "__type__": "SignalAspect",
+            "lineStyle": 0,
+            "outerShapes": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "outerColors": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "shapes": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "shapesColors": [
+                "#800080",
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "actions": [
+                [
+                    1,
+                    0
+                ]
+            ]
+        },
+        "FR_M": {
+            "__type__": "SignalAspect",
+            "lineStyle": 0,
+            "outerShapes": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "outerColors": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "shapes": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "shapesColors": [
+                "#FFFFFF",
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "actions": [
+                [
+                    0,
+                    8.33
+                ]
+            ]
         }
     },
     "signalTypes": {
@@ -343,6 +427,15 @@
         "FR_BAL_RR30": {
             "__type__": "SignalType",
             "states": [
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "FR_M",
+                    "conditions": {
+                        "NEXT_ROUTE_ACTIVE": [],
+                        "TRAIN_PRESENT_ON_ITEMS": [],
+                        "ROUTES_SET": []
+                    }
+                },
                 {
                     "__type__": "SignalState",
                     "aspectName": "FR_BAL_ARR30",
@@ -473,6 +566,65 @@
                 {
                     "__type__": "SignalState",
                     "aspectName": "FR_BAL_S",
+                    "conditions": {}
+                }
+            ]
+        },
+        "FR_SIDING": {
+            "__type__": "SignalType",
+            "states": [
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "FR_M",
+                    "conditions": {
+                        "NEXT_ROUTE_ACTIVE": []
+                    }
+                },
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "FR_CV",
+                    "conditions": {}
+                }
+            ]
+        },
+        "FR_SIDING_OUT": {
+            "__type__": "SignalType",
+            "states": [
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "FR_BAL_VL",
+                    "conditions": {
+                        "NEXT_ROUTE_ACTIVE": [],
+                        "TRAIN_NOT_PRESENT_ON_NEXT_ROUTE": [],
+                        "NEXT_SIGNAL_ASPECTS": [
+                            "FR_BAL_VL",
+                            "FR_BAL_A",
+                            "FR_BAL_R30"
+                        ]
+                    }
+                },
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "FR_BAL_A",
+                    "conditions": {
+                        "NEXT_ROUTE_ACTIVE": [],
+                        "TRAIN_NOT_PRESENT_ON_NEXT_ROUTE": [],
+                        "NEXT_SIGNAL_ASPECTS": [
+                            "FR_BAL_C",
+                            "FR_BAL_S"
+                        ]
+                    }
+                },
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "FR_M",
+                    "conditions": {
+                        "NEXT_ROUTE_ACTIVE": []
+                    }
+                },
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "FR_CV",
                     "conditions": {}
                 }
             ]
