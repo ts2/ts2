@@ -584,6 +584,13 @@
                 },
                 {
                     "__type__": "SignalState",
+                    "aspectName": "FR_M",
+                    "conditions": {
+                        "ROUTE_SET_ACROSS": []
+                    }
+                },
+                {
+                    "__type__": "SignalState",
                     "aspectName": "FR_CV",
                     "conditions": {}
                 }
