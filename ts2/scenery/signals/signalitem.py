@@ -530,6 +530,16 @@ class SignalItem(abstract.TrackItem):
         """Unselect the signal."""
         self.selected = False
 
+    def setActiveRoute(self, r, previous):
+        """Overridden here to update signal state."""
+        super().setActiveRoute(r, previous)
+        self.updateSignalState()
+
+    def resetActiveRoute(self):
+        """Overridden here to update signal state."""
+        super().resetActiveRoute()
+        self.updateSignalState()
+
     def updateSignalParams(self):
         """Updates signal custom parameters according to the SignalType."""
         self.signalType.updateParams(self)
@@ -867,9 +877,8 @@ def condition(cls):
     which are dict with signal aspect name as keys and a list of parameters as
     values. The updater function must update this params dict according to the
     signal item.
-    - A 'trigger' function which takes a signalItem as parameters and which
-    returns a dict with keys being 'routes' or 'trackItems' and values being a
-    list of ids on which to install triggers.
+    - A 'trigger' function which sets up triggers as Qt signals/slot
+    connections between other objects and this signal.
     """
     SignalLibrary.solvers[cls.code] = cls.solver
 
@@ -929,6 +938,22 @@ class PreviousActiveRouteCondition:
         """This solver returns True if a route ending at this signal is active.
         """
         return bool(signalItem.previousActiveRoute)
+
+
+@condition
+class NextActiveRouteCondition:
+    code = "ROUTE_SET_ACROSS"
+
+    @staticmethod
+    def solver(signalItem, params=None):
+        """This solver returns True if a route is set across this signal in the
+        same direction (but not starting or ending at this signal).
+        """
+        if signalItem.activeRoute:
+            for pos in signalItem.activeRoute.positions[1:-1]:
+                if signalItem.isOnPosition(pos):
+                    return True
+        return False
 
 
 @condition
