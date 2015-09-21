@@ -386,6 +386,27 @@
             "states": [
                 {
                     "__type__": "SignalState",
+                    "aspectName": "FR_M",
+                    "conditions": {
+                        "NEXT_ROUTE_ACTIVE": [],
+                        "TRAIN_PRESENT_ON_ITEMS": [],
+                        "ROUTES_SET": []
+                    }
+                },
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "FR_BAL_R30",
+                    "conditions": {
+                        "NEXT_ROUTE_ACTIVE": [],
+                        "TRAIN_NOT_PRESENT_ON_NEXT_ROUTE": [],
+                        "NEXT_SIGNAL_ASPECTS": [
+                            "FR_BAL_RR30",
+                            "FR_BAL_ARR30"
+                        ]
+                    }
+                },
+                {
+                    "__type__": "SignalState",
                     "aspectName": "FR_BAL_VL",
                     "conditions": {
                         "NEXT_ROUTE_ACTIVE": [],
@@ -424,6 +445,51 @@
                 }
             ]
         },
+        "FR_BAL_CARRE_AUTO": {
+            "__type__": "SignalType",
+            "states": [
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "FR_BAL_R30",
+                    "conditions": {
+                        "TRAIN_NOT_PRESENT_ON_NEXT_ROUTE": [],
+                        "NEXT_SIGNAL_ASPECTS": [
+                            "FR_BAL_RR30",
+                            "FR_BAL_ARR30"
+                        ]
+                    }
+                },
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "FR_BAL_VL",
+                    "conditions": {
+                        "TRAIN_NOT_PRESENT_ON_NEXT_ROUTE": [],
+                        "NEXT_SIGNAL_ASPECTS": [
+                            "FR_BAL_VL",
+                            "FR_BAL_A",
+                            "FR_BAL_R30"
+                        ]
+                    }
+                },
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "FR_BAL_A",
+                    "conditions": {
+                        "TRAIN_NOT_PRESENT_ON_NEXT_ROUTE": [],
+                        "NEXT_SIGNAL_ASPECTS": [
+                            "FR_BAL_C",
+                            "FR_BAL_S",
+                            "BUFFER"
+                        ]
+                    }
+                },
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "FR_BAL_C",
+                    "conditions": {}
+                }
+            ]
+        },
         "FR_BAL_RR30": {
             "__type__": "SignalType",
             "states": [
@@ -433,19 +499,6 @@
                     "conditions": {
                         "NEXT_ROUTE_ACTIVE": [],
                         "TRAIN_PRESENT_ON_ITEMS": [],
-                        "ROUTES_SET": []
-                    }
-                },
-                {
-                    "__type__": "SignalState",
-                    "aspectName": "FR_BAL_R30",
-                    "conditions": {
-                        "NEXT_ROUTE_ACTIVE": [],
-                        "TRAIN_NOT_PRESENT_ON_NEXT_ROUTE": [],
-                        "NEXT_SIGNAL_ASPECTS": [
-                            "FR_BAL_RR30",
-                            "FR_BAL_ARR30"
-                        ],
                         "ROUTES_SET": []
                     }
                 },
@@ -474,6 +527,18 @@
                         "NEXT_ROUTE_ACTIVE": [],
                         "TRAIN_NOT_PRESENT_ON_NEXT_ROUTE": [],
                         "ROUTES_SET": []
+                    }
+                },
+                {
+                    "__type__": "SignalState",
+                    "aspectName": "FR_BAL_R30",
+                    "conditions": {
+                        "NEXT_ROUTE_ACTIVE": [],
+                        "TRAIN_NOT_PRESENT_ON_NEXT_ROUTE": [],
+                        "NEXT_SIGNAL_ASPECTS": [
+                            "FR_BAL_RR30",
+                            "FR_BAL_ARR30"
+                        ]
                     }
                 },
                 {
