@@ -438,6 +438,19 @@
                 },
                 {
                     "__type__": "SignalState",
+                    "aspectName": "FR_BAL_R30",
+                    "conditions": {
+                        "NEXT_ROUTE_ACTIVE": [],
+                        "TRAIN_NOT_PRESENT_ON_NEXT_ROUTE": [],
+                        "NEXT_SIGNAL_ASPECTS": [
+                            "FR_BAL_RR30",
+                            "FR_BAL_ARR30"
+                        ],
+                        "ROUTES_SET": []
+                    }
+                },
+                {
+                    "__type__": "SignalState",
                     "aspectName": "FR_BAL_ARR30",
                     "conditions": {
                         "NEXT_ROUTE_ACTIVE": [],
