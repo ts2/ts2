@@ -562,6 +562,7 @@ class SignalItem(abstract.TrackItem):
         """Create the triggers necessary for this Item."""
         for trigger in self.simulation.signalLibrary.triggers.values():
             trigger(self)
+        self.updateSignalState()
 
     # ## Graphics Methods ################################################
 
