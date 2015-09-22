@@ -169,6 +169,9 @@ class Simulation(QtCore.QObject):
             raise Exception("Invalid simulation: Not all items are linked.")
         for route in self.routes.values():
             route.initialize(self)
+        for route in self.routes.values():
+            # We need routes initialized before setting them up
+            route.setToInitialState()
         for ti in self.trackItems.values():
             # We need trackItems linked and routes set before setting triggers
             ti.setupTriggers()

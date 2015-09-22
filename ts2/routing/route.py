@@ -104,6 +104,7 @@ class Route(QtCore.QObject):
         :param parameters: json dict with data to create the route
         """
         super().__init__()
+        self.simulation = None
         self._parameters = parameters
         self._routeNum = parameters['routeNum']
         self._directions = {}
@@ -128,12 +129,15 @@ class Route(QtCore.QObject):
                 self.tr("Invalid simulation: Route %i is not valid."
                         % self.routeNum), logger.Message.SOFTWARE_MSG
             )
-        if simulation.context == utils.Context.GAME:
+        self._parameters = None
+
+    def setToInitialState(self):
+        """Setup routes according to their initial state."""
+        if self.simulation.context == utils.Context.GAME:
             if self.initialState == 2:
                 self.activate(True)
             elif self.initialState == 1:
                 self.activate(False)
-        self._parameters = None
 
     def for_json(self):
         """Dumps this route to JSON."""
