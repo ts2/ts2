@@ -726,7 +726,7 @@ class SignalState:
         applicableSolvers = {k: v for (k, v) in SignalLibrary.solvers.items() if
                              k in self.conditions.keys()}
         for conditionName in self.conditions.keys():
-            parameters = self.conditions[conditionName]
+            parameters = copy.copy(self.conditions[conditionName])
             conditions = params.get(conditionName, {})
             parameters.extend(conditions.get(self.aspect.name, []))
             if not applicableSolvers[conditionName](signalItem, parameters):
