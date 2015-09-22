@@ -29,7 +29,3 @@ setup(
         description = "Train Signalling Simulation",
         options = {"build_exe" : build_exe_options},
         executables = [Executable("ts2.py", base = base)])
-
-if sys.platform == "linux":
-
-	# Todo: Add Linux support
