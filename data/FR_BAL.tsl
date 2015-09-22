@@ -378,6 +378,48 @@
                     8.33
                 ]
             ]
+        },
+        "FR_M_DISCARD": {
+            "__type__": "SignalAspect",
+            "lineStyle": 0,
+            "outerShapes": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "outerColors": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "shapes": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "shapesColors": [
+                "#FFFFFF",
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "actions": [
+                [
+                    0,
+                    999
+                ]
+            ]
         }
     },
     "signalTypes": {
@@ -662,7 +704,7 @@
                 },
                 {
                     "__type__": "SignalState",
-                    "aspectName": "FR_M",
+                    "aspectName": "FR_M_DISCARD",
                     "conditions": {
                         "ROUTE_SET_ACROSS": []
                     }
