@@ -871,20 +871,19 @@ class Train(QtCore.QObject):
                                 # Train does not stop at this place
                                 self.jumpToNextPlace()
                                 self.trainStatusChanged.emit(self.trainId)
-            elif isinstance(ti, enditem.EndItem):
-                trainExiting = True
             if self.isActive():
                 ti.trainHeadActions(self.trainId)
+        if self._trainHead.isOut():
+            trainExiting = True
         # Train tail
         tt = self._trainHead - self._trainType.length
         ott = tt - advanceLength
         for ti in ott.trackItemsToPosition(tt):
             if self.isActive():
                 ti.trainTailActions(self.trainId)
-            if isinstance(ti, enditem.EndItem) and trainExiting:
-                self.status = TrainStatus.OUT
-                self.trainExitedArea.emit(self.trainId)
-                break
+        if tt.isOut() and trainExiting:
+            self.status = TrainStatus.OUT
+            self.trainExitedArea.emit(self.trainId)
 
     def updateStatus(self, secs):
         """Updates the status of the train"""
@@ -960,8 +959,8 @@ class Train(QtCore.QObject):
         oldTrainHead = self.trainHead - advanceLength
         trainTail = self.trainHead - self.trainType.length
         oldTrainTail = trainTail - advanceLength
-        # Register train on new items (even if to be unregsitered just behind)
-        for ti in oldTrainHead.trackItemsToPosition(self.trainHead):
+        # Register train on new items (even if to be unregistered just behind)
+        for ti in trainTail.trackItemsToPosition(self.trainHead):
             ti.registerTrain(self.trainId)
         # Unregister train on left behind items:
         for ti in oldTrainTail.trackItemsToPosition(trainTail):

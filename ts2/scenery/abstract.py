@@ -98,7 +98,6 @@ class TrackItem(QtCore.QObject):
         self._trainTails = []
         self._place = None
         self._conflictTrackItem = None
-        self._trainPresentPreviousInfo = False
         self._gi = {}
         self.toBeDeselected = False
         self.properties = self.getProperties()
@@ -314,25 +313,6 @@ class TrackItem(QtCore.QObject):
             else:
                 self._conflictTrackItem = None
 
-    def _getTrainPresentPreviousInfo(self):
-        """Returns True if a train has last been seen present on this TI,
-        False otherwise."""
-        return self._trainPresentPreviousInfo
-
-    def _setTrainPresentPreviousInfo(self, value):
-        """Setter function for the trainPresentPreviousInfo property. Emits
-        trainEntersItem and trainLeavesItem signals, when applicable."""
-        if value == self._trainPresentPreviousInfo:
-            return
-        if value:
-            self.trainEntersItem.emit()
-        else:
-            self.trainLeavesItem.emit()
-        self._trainPresentPreviousInfo = value
-
-    trainPresentPreviousInfo = property(_getTrainPresentPreviousInfo,
-                                        _setTrainPresentPreviousInfo)
-
     # ## Methods #########################################################
 
     def getFollowingItem(self, precedingItem, direction=-1):
@@ -369,9 +349,12 @@ class TrackItem(QtCore.QObject):
 
     def registerTrain(self, trainId):
         """Registers the train with the given trainId on this trackItem."""
+        hadTrains = bool(self._trains)
         train = self.simulation.trains[trainId]
         if not train in self._trains:
             self._trains.append(train)
+            if not hadTrains:
+                self.trainEntersItem.emit()
         self.updateTrainHeadAndTail()
 
     def unRegisterTrain(self, trainId):
@@ -380,6 +363,8 @@ class TrackItem(QtCore.QObject):
         trainTail = train.trainHead - train.trainType.length
         if trainTail.trackItem != self and train in self._trains:
             self._trains.remove(train)
+            if not self._trains:
+                self.trainLeavesItem.emit()
         self.updateTrainHeadAndTail()
 
     def updateTrainHeadAndTail(self):
@@ -390,24 +375,22 @@ class TrackItem(QtCore.QObject):
         self._trainHeads = []
         self._trainTails = []
         for train in self._trains:
+            th = self._realLength
+            tt = 0
             trainHead = train.trainHead
             if trainHead.trackItem == self:
                 if trainHead.previousTI == self.previousItem:
-                    self._trainHeads.append(trainHead.positionOnTI)
+                    th = trainHead.positionOnTI
                 else:
-                    self._trainHeads.append(self.realLength -
-                                            trainHead.positionOnTI)
-            else:
-                self._trainHeads.append(self._realLength)
+                    tt = self.realLength - trainHead.positionOnTI
             trainTail = train.trainHead - train.trainType.length
             if trainTail.trackItem == self:
                 if trainTail.previousTI == self.previousItem:
-                    self._trainTails.append(trainTail.positionOnTI)
+                    tt = trainTail.positionOnTI
                 else:
-                    self._trainTails.append(self.realLength -
-                                            trainTail.positionOnTI)
-            else:
-                self._trainTails.append(0)
+                    th = self.realLength - trainTail.positionOnTI
+            self._trainHeads.append(th)
+            self._trainTails.append(tt)
         self.updateTrain()
 
     def trainPresent(self):
@@ -436,7 +419,7 @@ class TrackItem(QtCore.QObject):
     def trainHeadActions(self, trainId):
         """Performs the actions to be done when a train head reaches this
         TrackItem"""
-        self.trainPresentPreviousInfo = self.trainPresent()
+        pass
 
     def trainTailActions(self, trainId):
         """Performs the actions to be done when a train tail reaches this
@@ -454,7 +437,6 @@ class TrackItem(QtCore.QObject):
                        == self.activeRoute:
                         self.activeRoutePreviousItem.resetActiveRoute()
                         self.updateGraphics()
-        self.trainPresentPreviousInfo = self.trainPresent()
 
     def setupTriggers(self):
         """Creates the triggers necessary for this trackItem.

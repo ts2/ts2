@@ -490,7 +490,8 @@ class SignalItem(abstract.TrackItem):
         # Check that signal is in same direction as trainHead to push the train
         # descriptor only this case
         pos = train.trainHead
-        while not pos.isOut():
+        # We do not use isOut, because we are backwards
+        while not isinstance(pos.trackItem, enditem.EndItem):
             if pos.trackItem == self:
                 if self.isOnPosition(pos):
                     nextSignal = self.getNextSignal()

@@ -184,11 +184,15 @@ class Position:
         not connected to this TrackItem). By default, pos is equal to the
         length of the previous Item, so that the position is on the
         connection point with this TrackItem."""
+        # try:
         if pos is None:
             pos = self._previousTI.realLength
-        return Position(self._previousTI,
-                        self._previousTI.getFollowingItem(self._trackItem),
-                        pos)
+        res = Position(self._previousTI,
+                       self._previousTI.getFollowingItem(self._trackItem),
+                       pos)
+        # except AttributeError:
+        #     res = Position()
+        return res
 
     def distanceToPosition(self, p):
         """Returns the distance between the current position and p if p is
@@ -219,10 +223,11 @@ class Position:
         return til
 
     def isOut(self):
-        """Returns True if this position is out of the scenery, i.e. on an
-        EndItem."""
+        """Returns True if this position is out of the scenery, going outwards
+        i.e. on an EndItem with a previous item that is not None."""
         import ts2.scenery.enditem
-        if isinstance(self.trackItem, ts2.scenery.enditem.EndItem):
+        if isinstance(self.trackItem, ts2.scenery.enditem.EndItem) and \
+                self.previousTI is not None:
             return True
         else:
             return False
@@ -265,9 +270,9 @@ class Position:
 
     def __eq__(self, p):
         """Returns True if p is the same Position as this one."""
-        return (self._trackItem == p.trackItem
-                and self._previousTI == p.previousTI
-                and self._positionOnTI == p.positionOnTI)
+        return (self._trackItem == p.trackItem and
+                self._previousTI == p.previousTI and
+                self._positionOnTI == p.positionOnTI)
 
     def __ne__(self, p):
         """Returns True if p is not the same Position as this one."""
@@ -304,6 +309,7 @@ class Position:
             return (self.previous(self._previousTI.realLength) -
                     (length - self._positionOnTI))
 
+    # noinspection PyMethodFirstArgAssignment
     def __iadd__(self, length):
         """Implements Position += length operator.
         :rtype : Position
@@ -311,6 +317,7 @@ class Position:
         self = self + length
         return self
 
+    # noinspection PyMethodFirstArgAssignment
     def __isub__(self, length):
         """Implements Position -= length operator.
         :rtype : Position
@@ -325,7 +332,7 @@ class Position:
            self.previousTI is None and \
            self.positionOnTI == 0:
             return "<Null position>"
-        if self.trackItem is not None and self.previousTI is not None:
+        if self.isValid():
             return "(%i, %i, %f)" % (self.trackItem.tiId,
                                      self.previousTI.tiId,
                                      self.positionOnTI)
