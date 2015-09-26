@@ -378,7 +378,7 @@ class TrackItem(QtCore.QObject):
         """Removes the train given by trainId from the registry of this item."""
         train = self.simulation.trains[trainId]
         trainTail = train.trainHead - train.trainType.length
-        if trainTail.trackItem != self:
+        if trainTail.trackItem != self and train in self._trains:
             self._trains.remove(train)
         self.updateTrainHeadAndTail()
 
