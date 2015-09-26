@@ -873,12 +873,14 @@ class Train(QtCore.QObject):
                                 self.trainStatusChanged.emit(self.trainId)
             elif isinstance(ti, enditem.EndItem):
                 trainExiting = True
-            ti.trainHeadActions(self.trainId)
+            if self.isActive():
+                ti.trainHeadActions(self.trainId)
         # Train tail
         tt = self._trainHead - self._trainType.length
         ott = tt - advanceLength
         for ti in ott.trackItemsToPosition(tt):
-            ti.trainTailActions(self.trainId)
+            if self.isActive():
+                ti.trainTailActions(self.trainId)
             if isinstance(ti, enditem.EndItem) and trainExiting:
                 self.status = TrainStatus.OUT
                 self.trainExitedArea.emit(self.trainId)
@@ -896,8 +898,9 @@ class Train(QtCore.QObject):
                self.nextPlaceIndex is not None:
                 # The train is operating on a service that is not over
                 line = self.currentService.lines[self.nextPlaceIndex]
-                if isinstance(self._trainHead.trackItem, lineitem.LineItem) and \
-                   self._trainHead.trackItem.placeCode == line.placeCode:
+                trainHeadItem = self._trainHead.trackItem
+                if isinstance(trainHeadItem, lineitem.LineItem) \
+                        and trainHeadItem.placeCode == line.placeCode:
                     # Train is stopped at the scheduled nextStop place
                     if self.status == TrainStatus.RUNNING:
                         # Train just stopped
@@ -954,32 +957,19 @@ class Train(QtCore.QObject):
 
         :param advanceLength : The length that the train has advanced since
         the last call to this function."""
+        oldTrainHead = self.trainHead - advanceLength
         trainTail = self.trainHead - self.trainType.length
         oldTrainTail = trainTail - advanceLength
-        # Draw the train in its new position
-        self._trainHead.trackItem.setTrainHead(self._trainHead.positionOnTI,
-                                               self._trainHead.previousTI)
-        self._trainHead.trackItem.setTrainTail(0, self._trainHead.previousTI)
-        if trainTail.trackItem != self._trainHead.trackItem:
-            p = self._trainHead.previous()
-            while p.trackItem != trainTail.trackItem:
-                p.trackItem.setTrainHead(p.trackItem.realLength,
-                                         p.previous().trackItem)
-                p.trackItem.setTrainTail(0, p.previous().trackItem)
-                p = p.previous()
-            trainTail.trackItem.setTrainHead(trainTail.trackItem.realLength,
-                                             trainTail.previousTI)
-        trainTail.trackItem.setTrainTail(trainTail.positionOnTI,
-                                         trainTail.previousTI)
-        # Remove behind
-        if oldTrainTail.trackItem != trainTail.trackItem:
-            p = trainTail.previous()
-            while p.trackItem != oldTrainTail.trackItem:
-                p.trackItem.setTrainHead(-1, p.previous().trackItem)
-                p.trackItem.setTrainTail(-1, p.previous().trackItem)
-                p = p.previous()
-            oldTrainTail.trackItem.setTrainHead(-1, oldTrainTail.previousTI)
-            oldTrainTail.trackItem.setTrainTail(-1, oldTrainTail.previousTI)
+        # Register train on new items (even if to be unregsitered just behind)
+        for ti in oldTrainHead.trackItemsToPosition(self.trainHead):
+            ti.registerTrain(self.trainId)
+        # Unregister train on left behind items:
+        for ti in oldTrainTail.trackItemsToPosition(trainTail):
+            if ti != trainTail.trackItem:
+                ti.unRegisterTrain(self.trainId)
+        # Update head and tails for all
+        for ti in oldTrainTail.trackItemsToPosition(self.trainHead):
+            ti.updateTrainHeadAndTail()
 
     def getNextSignalInfo(self, pos=position.Position()):
         """Returns the position and distance of first signal ahead of the
@@ -1068,8 +1058,7 @@ class Train(QtCore.QObject):
         which a train is present. Otherwise, the real distance to the train is
         returned."""
         pos = self.trainHead
-        distance = pos.trackItem.realLength - self.trainHead.positionOnTI
-        pos = pos.next()
+        distance = 0
         while (pos.isValid() and
                (not isinstance(pos.trackItem, enditem.EndItem) and
                (distance < maxDistance))):
@@ -1079,13 +1068,17 @@ class Train(QtCore.QObject):
                    not ti.activeAspect.meansProceed():
                     # We have a red signal here, no need to go further
                     return -1
-            if ti.trainPresent():
+            distanceToTrain = ti.distanceToTrainEnd(pos)
+            if distanceToTrain != -1:
                 if trackCircuit:
                     return distance
                 else:
-                    return distance + ti.distanceToTrainEnd(pos.previousTI)
+                    return distance + distanceToTrain
             pos = pos.next()
-            distance += pos.trackItem.realLength
+            if distance:
+                distance += ti.realLength
+            else:
+                distance = ti.realLength - self.trainHead.positionOnTI
         return -1
 
     def getNextSpeedLimitInfo(self, maxDistance):
@@ -1126,9 +1119,7 @@ class Train(QtCore.QObject):
             maxDistance
         )
         # Next train
-        distanceToNextTrain = self.getDistanceToNextTrain(
-            maxDistance, trackCircuit=True
-        )
+        distanceToNextTrain = self.getDistanceToNextTrain(maxDistance)
         # Choose target and define speed
         if distanceToNextStation != -1:
             if distanceToNextStation < d:

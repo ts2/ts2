@@ -93,8 +93,9 @@ class TrackItem(QtCore.QObject):
         self._origin = QtCore.QPointF(x, y)
         self._end = QtCore.QPointF(x + 10, y)
         self._realLength = 1.0
-        self._trainHead = -1
-        self._trainTail = -1
+        self._trains = []
+        self._trainHeads = []
+        self._trainTails = []
         self._place = None
         self._conflictTrackItem = None
         self._trainPresentPreviousInfo = False
@@ -366,45 +367,65 @@ class TrackItem(QtCore.QObject):
         self.activeRoutePreviousItem = None
         self.updateGraphics()
 
-    def setTrainHead(self, pos, prevTI=None):
-        """Sets the trainHead indication on this TrackItem. The trainHead
-        indication enables the drawing of a Train on this TrackItem.
-        @param pos is the position of the trainHead in metres. Set to -1 if no
-        Train head on this TrackItem
-        @param prevTI To define the direction of the train, prevTI is a
-        pointer to the previous TrackItem where the Train comes from."""
-        if pos == -1:
-            self._trainHead = -1
-        else:
-            if prevTI == self._previousItem:
-                self._trainHead = pos
-            else:
-                self._trainHead = self._realLength - pos
-        self.updateTrain()
+    def registerTrain(self, trainId):
+        """Registers the train with the given trainId on this trackItem."""
+        train = self.simulation.trains[trainId]
+        if not train in self._trains:
+            self._trains.append(train)
+        self.updateTrainHeadAndTail()
 
-    def setTrainTail(self, pos, prevTI=None):
-        """Same as setTrainHead() but with the trainTail information."""
-        if pos == -1:
-            self._trainTail = -1
-        else:
-            if prevTI == self._previousItem:
-                self._trainTail = pos
+    def unRegisterTrain(self, trainId):
+        """Removes the train given by trainId from the registry of this item."""
+        train = self.simulation.trains[trainId]
+        trainTail = train.trainHead - train.trainType.length
+        if trainTail.trackItem != self:
+            self._trains.remove(train)
+        self.updateTrainHeadAndTail()
+
+    def updateTrainHeadAndTail(self):
+        """Updates the _trainHeads and _trainTails lists from the _trains
+        data. _trainHeads are always the closest to nextItem whereas _trainTails
+        are always the closest to previousItem, whatever the trains' direction
+        and real trainHead and trainTail."""
+        self._trainHeads = []
+        self._trainTails = []
+        for train in self._trains:
+            trainHead = train.trainHead
+            if trainHead.trackItem == self:
+                if trainHead.previousTI == self.previousItem:
+                    self._trainHeads.append(trainHead.positionOnTI)
+                else:
+                    self._trainHeads.append(self.realLength -
+                                            trainHead.positionOnTI)
             else:
-                self._trainTail = self._realLength - pos
+                self._trainHeads.append(self._realLength)
+            trainTail = train.trainHead - train.trainType.length
+            if trainTail.trackItem == self:
+                if trainTail.previousTI == self.previousItem:
+                    self._trainTails.append(trainTail.positionOnTI)
+                else:
+                    self._trainTails.append(self.realLength -
+                                            trainTail.positionOnTI)
+            else:
+                self._trainTails.append(0)
         self.updateTrain()
 
     def trainPresent(self):
-        """Returns True if a train is present on this TrackItem"""
-        return self._trainHead != -1 or self._trainTail != -1
+        """Returns True if at least one train is present on this TrackItem."""
+        return self._trains
 
-    def distanceToTrainEnd(self, previousTI):
+    def distanceToTrainEnd(self, pos):
         """Returns the distance to the closest end (either trainHead or
-        trainTail) of the train from previousTI."""
-        if previousTI == self.previousItem:
-            return min(self._trainHead, self._trainTail)
+        trainTail) of the closest train when on pos."""
+        if pos.previousTI == self.previousItem:
+            return min([x - pos.positionOnTI for x in self._trainTails
+                        if (x - pos.positionOnTI) > 0]
+                       or [-1])
         else:
-            return min(self.realLength - self._trainHead,
-                       self.realLength - self._trainTail)
+            return min([(self.realLength - x) - pos.positionOnTI
+                        for x in self._trainHeads
+                        if (self.realLength - x) - pos.positionOnTI > 0]
+                       or [-1])
 
     def isOnPosition(self, p):
         if p.trackItem() == self:

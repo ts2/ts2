@@ -47,18 +47,7 @@ class LineItem(abstract.ResizableItem):
         gli.setPos(self._origin)
         gli.setZValue(self.defaultZValue)
         self._gi[0] = gli
-
-        # draw the "train" graphicLineItem
-        p = QtGui.QPen()
-        p.setWidth(3)
-        p.setJoinStyle(Qt.RoundJoin)
-        p.setCapStyle(Qt.RoundCap)
-        p.setColor(Qt.red)
-        self._tli = QtWidgets.QGraphicsLineItem()
-        self._tli.setCursor(Qt.ArrowCursor)
-        self._tli.setPen(p)
-        self._tli.setZValue(10)
-        self._tli.hide()
+        self._tli = []
 
     def initialize(self, simulation):
         """Initialize the item after all items are loaded."""
@@ -72,14 +61,14 @@ class LineItem(abstract.ResizableItem):
             self.positionSelected.connect(simulation.setSelectedTrainHead)
         else:
             self._gi[0].setCursor(Qt.ArrowCursor)
-        simulation.registerGraphicsItem(self._tli)
         self.simulation = simulation
         self.drawTrain()
         super().initialize(simulation)
 
     def __del__(self):
         """Destructor for the LineItem class"""
-        self.simulation.scene.removeItem(self._tli)
+        for tli in self._tli:
+            self.simulation.scene.removeItem(tli)
         super().__del__()
 
     @staticmethod
@@ -280,28 +269,55 @@ class LineItem(abstract.ResizableItem):
             self.drawConnectionRect(p, self.line.p2())
 
     def drawTrain(self):
-        """Draws the train on the line, if any"""
+        """Draws the train(s) on the line, if any"""
+        tlines = []
         if self.simulation.context == utils.Context.GAME and \
            self.trainPresent():
             if int(self.simulation.option("trackCircuitBased")) == 0:
-                tline = QtCore.QLineF(
-                    self.sceneLine.pointAt(self._trainHead/self._realLength),
-                    self.sceneLine.pointAt(self._trainTail/self._realLength)
-                )
-                if tline.length() < 5.0 and self._trainTail != 0:
-                    # Make sure that the train representation is always at least
-                    # 5 pixel long.
-                    tline.setLength(min(5.0,
-                                        (1 - self._trainTail/self._realLength) *
-                                        self.sceneLine.length()))
+                for i in range(len(self._trainHeads)):
+                    tlines.append(QtCore.QLineF(
+                        self.sceneLine.pointAt(self._trainHeads[i] /
+                                               self._realLength),
+                        self.sceneLine.pointAt(self._trainTails[i] /
+                                               self._realLength)
+                    ))
+                    if tlines[i].length() < 5.0 and self._trainTails[i] != 0:
+                        # Make sure that the train representation is always
+                        # at least 5 pixel long.
+                        tlines[i].setLength(
+                            min(5.0,
+                                (1 - self._trainTails[i] / self._realLength) *
+                                self.sceneLine.length()))
             else:
-                tline = self.sceneLine
-            self._tli.setLine(tline)
-            self._tli.show()
-            self._tli.update()
-        else:
-            self._tli.hide()
-            self._tli.update()
+                tlines = [self.sceneLine]
+        self.showTrainLineItem(tlines)
+
+    def showTrainLineItem(self, lines):
+        """Shows the given lines (representing trains) on the scenery."""
+        if lines:
+            # Set the pen
+            p = QtGui.QPen()
+            p.setWidth(3)
+            p.setJoinStyle(Qt.RoundJoin)
+            p.setCapStyle(Qt.RoundCap)
+            p.setColor(Qt.red)
+            for i in range(len(lines)):
+                try:
+                    self._tli[i].setLine(lines[i])
+                except IndexError:
+                    newTli = QtWidgets.QGraphicsLineItem()
+                    newTli.setCursor(Qt.ArrowCursor)
+                    newTli.setPen(p)
+                    newTli.setZValue(10)
+                    newTli.setLine(lines[i])
+                    self.simulation.registerGraphicsItem(newTli)
+                    self._tli.append(newTli)
+                    newTli.show()
+                self._tli[i].update()
+        for i in range(len(lines), len(self._tli)):
+            self._tli[i].hide()
+            self._tli[i].update()
+            del self._tli[i]
 
     def graphicsMousePressEvent(self, event, itemId):
         """This function is called by the owned TrackGraphicsItem to handle
@@ -317,5 +333,5 @@ class LineItem(abstract.ResizableItem):
                 ratio = (x - self.line.x1())/(self.line.x2() - self.line.x1())
                 self.positionSelected.emit(
                     ts2.routing.position.Position(self, self.previousItem,
-                             self.realLength * ratio)
+                                                  self.realLength * ratio)
                 )

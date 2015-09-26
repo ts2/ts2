@@ -32,7 +32,8 @@ class InvisibleLinkItem(lineitem.LineItem):
     def __init__(self, parameters):
         """Constructor for the InvisibleLinkItem class"""
         super().__init__(parameters)
-        self._tli.hide()
+        for tli in self._tli:
+            tli.hide()
 
     # ## Methods ########################################################
 
