@@ -504,6 +504,8 @@ class SignalItem(abstract.TrackItem):
                 else:
                     return
             pos = pos.previous()
+        # Update signal state to close the signal if applicable
+        self.updateSignalState()
         super().trainHeadActions(trainId)
 
     def trainTailActions(self, trainId):
@@ -535,6 +537,10 @@ class SignalItem(abstract.TrackItem):
                (not self.nextActiveRoute.persistent):
                 self.resetNextActiveRoute()
             self.updateSignalState()
+            # We emit aspectChanged here to recalculate previous signal, even if
+            # this signal aspect did not change, since the train just left the
+            # block.
+            self.aspectChanged.emit()
 
     @QtCore.pyqtSlot()
     def unselect(self):

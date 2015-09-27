@@ -1141,7 +1141,13 @@ class Train(QtCore.QObject):
                 if nsp.trackItem == self.lastSignal:
                     # The signal with the applicable action is still ahead
                     distanceToNextSignal += self.getDistanceToNextSignal(nsp)
-            if distanceToNextSignal != -1:
+
+            if applicableAction[0] == signalaspect.Target.BEFORE_THIS_SIGNAL \
+                    and nsp.trackItem != self.lastSignal:
+                # We passed the signal, and we keep its speed limit until we
+                # see the next one.
+                targetSpeedForSignal = applicableAction[1]
+            elif distanceToNextSignal != -1:
                 if distanceToNextSignal < d:
                     targetSpeedForSignal = applicableAction[1]
                 else:
@@ -1179,11 +1185,11 @@ class Train(QtCore.QObject):
                           min(k * (ts - self._speed),
                               self._trainType.stdAccel))
         self._speed = max(0.0, self._speed + self._accel * secs)
-        # QtCore.qDebug("SC:%s, Secs:%f, Accel=%f; ts=%f, speed=%f,"
-        # "dtnstation:%f, dtnsignal:%f, dtnlimit:%f, appl.action=%s" % (
-        # self.serviceCode, secs, self._accel, ts , self._speed,
-        # distanceToNextStation, distanceToNextSignal, distanceToNextLimit,
-        # str(applicableAction)))
+        print("SC:%s, Secs:%f, Accel=%f; ts=%f, speed=%f,"
+        "dtnstation:%f, dtnsignal:%f, dtnlimit:%f, appl.action=%s" % (
+        self.serviceCode, secs, self._accel, ts , self._speed,
+        distanceToNextStation, distanceToNextSignal, distanceToNextLimit,
+        str(applicableAction)))
 
     def targetSpeed(self, secs, targetDistance=-1, targetSpeedAtPos=0):
         """ Defines the current target speed of the train depending on the
