@@ -729,11 +729,11 @@ class Train(QtCore.QObject):
         """Advances the train by a step corresponding to the elapsed secs,
         and executes all the associated actions."""
         if self.isActive():
+            self.updateSignalActions()
             self.setSpeed(secs)
             advanceLength = self._speed * secs
             self._trainHead += advanceLength
             self.updateStatus(secs)
-            self.updateSignalActions()
             self.drawTrain(advanceLength)
             self.executeActions(advanceLength)
 
