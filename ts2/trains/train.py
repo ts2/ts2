@@ -1185,11 +1185,11 @@ class Train(QtCore.QObject):
                           min(k * (ts - self._speed),
                               self._trainType.stdAccel))
         self._speed = max(0.0, self._speed + self._accel * secs)
-        print("SC:%s, Secs:%f, Accel=%f; ts=%f, speed=%f,"
-        "dtnstation:%f, dtnsignal:%f, dtnlimit:%f, appl.action=%s" % (
-        self.serviceCode, secs, self._accel, ts , self._speed,
-        distanceToNextStation, distanceToNextSignal, distanceToNextLimit,
-        str(applicableAction)))
+        # print("SC:%s, Secs:%f, Accel=%f; ts=%f, speed=%f,"
+        # "dtnstation:%f, dtnsignal:%f, dtnlimit:%f, appl.action=%s" % (
+        # self.serviceCode, secs, self._accel, ts , self._speed,
+        # distanceToNextStation, distanceToNextSignal, distanceToNextLimit,
+        # str(applicableAction)))
 
     def targetSpeed(self, secs, targetDistance=-1, targetSpeedAtPos=0):
         """ Defines the current target speed of the train depending on the
