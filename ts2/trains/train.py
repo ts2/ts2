@@ -408,6 +408,7 @@ class Train(QtCore.QObject):
         self._lastSignal = None
         self._signalActions = [(0, 999)]
         self._applicableActionIndex = 0
+        self._actionTime = 0
         self._nextPlaceIndex = None
         self._stoppedTime = 0
         if "stoppedTime" in parameters:
@@ -616,6 +617,12 @@ class Train(QtCore.QObject):
     def applicableActionIndex(self):
         """Returns the applicable action in the action list."""
         return self._applicableActionIndex
+
+    @property
+    def actionTime(self):
+        """Returns the time at which the current action has been achieved or 0.
+        """
+        return self._actionTime
 
     @property
     def initialSpeed(self):
@@ -846,8 +853,23 @@ class Train(QtCore.QObject):
         if nsd < signalVisibility:
             self._signalActions = nsp.trackItem.activeAspect.actions
             if self.lastSignal != nsp.trackItem:
+                # Change actions list if we see this signal for the first time
                 self._lastSignal = nsp.trackItem
                 self._applicableActionIndex = 0
+                self._actionTime = 0
+        applicableAction = self.signalActions[self.applicableActionIndex]
+        currentTime = self.simulation.currentTime
+        if abs(self.speed - applicableAction[1]) < 0.1:
+            # We have achieved the target speed
+            if self._actionTime == 0:
+                self._actionTime = currentTime
+            if len(applicableAction) >= 3:
+                timeToWait = applicableAction[2]
+            else:
+                timeToWait = 0
+            if currentTime > self._actionTime.addSecs(timeToWait):
+                if len(self.signalActions) > self.applicableActionIndex + 1:
+                    self._applicableActionIndex += 1
 
     def executeActions(self, advanceLength):
         """ Execute actions that have to be done when the train head enters
