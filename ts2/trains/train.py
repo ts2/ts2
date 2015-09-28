@@ -1155,29 +1155,32 @@ class Train(QtCore.QObject):
         applicableAction = self.signalActions[self.applicableActionIndex]
 
         if applicableAction[0] == signalaspect.Target.ASAP:
-            # FIXME: This will lead to emergency braking
-            targetSpeedForSignal = applicableAction[1]
-        else:
-            # BEFORE_THIS_SIGNAL or BEFORE_NEXT_SIGNAL
-            if applicableAction[0] == signalaspect.Target.BEFORE_NEXT_SIGNAL:
-                if nsp.trackItem == self.lastSignal:
-                    # The signal with the applicable action is still ahead
-                    distanceToNextSignal += self.getDistanceToNextSignal(nsp)
+            # We emulate a distance to next signal to get a stdBraking
+            distanceToNextSignal = (
+                ((self.speed - self.trainType.stdBraking * secs)**2 -
+                applicableAction[1]**2) / (2 * self.trainType.stdBraking) +
+                (self.speed * secs / 2)
+            )
 
-            if applicableAction[0] == signalaspect.Target.BEFORE_THIS_SIGNAL \
-                    and nsp.trackItem != self.lastSignal:
-                # We passed the signal, and we keep its speed limit until we
-                # see the next one.
+        if applicableAction[0] == signalaspect.Target.BEFORE_NEXT_SIGNAL:
+            if nsp.trackItem == self.lastSignal:
+                # The signal with the applicable action is still ahead
+                distanceToNextSignal += self.getDistanceToNextSignal(nsp)
+
+        if applicableAction[0] == signalaspect.Target.BEFORE_THIS_SIGNAL \
+                and nsp.trackItem != self.lastSignal:
+            # We passed the signal, and we keep its speed limit until we
+            # see the next one.
+            targetSpeedForSignal = applicableAction[1]
+        elif distanceToNextSignal != -1:
+            if distanceToNextSignal < d:
                 targetSpeedForSignal = applicableAction[1]
-            elif distanceToNextSignal != -1:
-                if distanceToNextSignal < d:
-                    targetSpeedForSignal = applicableAction[1]
-                else:
-                    targetSpeedForSignal = self.targetSpeed(
-                        secs, distanceToNextSignal, applicableAction[1]
-                    )
             else:
-                targetSpeedForSignal = maxSpeed
+                targetSpeedForSignal = self.targetSpeed(
+                    secs, distanceToNextSignal, applicableAction[1]
+                )
+        else:
+            targetSpeedForSignal = maxSpeed
 
         if distanceToNextLimit != -1:
             if distanceToNextLimit < d:
