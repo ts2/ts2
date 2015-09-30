@@ -6,7 +6,9 @@ version 0.5
 - The 0.5 version and this `master`branch is the **last version to use PyQt4** 
 - Soon the `develop` branch will be merged which is **python3 + pyQt5 only** and the future path
 - Also saving data in json instead of sqlite with future sharing online idea 
-- And migration from sourceforge to http://github.com/ts2 and http://ts2.github.io/
+  - https://github.com/ts2/ts2-data
+- Project moved from sourceforge to github 
+   - ts2.sf.net to http://github.com/ts2 and http://ts2.github.io/
 
 
 ## Overview
