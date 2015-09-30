@@ -25,18 +25,18 @@
 ###############################################################
 
 
-__VERSION__ = "0.4.1"
-__FILE_FORMAT__ = 0.4
-__APP_SHORT__ = "ts2"
-__APP_LONG__ = "Train Signalling Simulation #2"
+__VERSION__ = "0.6.0"
+__FILE_FORMAT__ = 0.6
+__APP_SHORT__ = "TS2"
+__APP_LONG__ = "Train Signalling Simulation"
 __APP_DESCRIPTION__ = "A railway simulation game where you have to dispatch trains across an area and keep them on schedule"
 
-__ORG_NAME__ = "ts2 team"
+__ORG_NAME__ = "TS2 team"
 __ORG_CONTACT__ = "npiganeau"
 
-__PROJECT_DOMAIN__ = "ts2.sourceforge.net"
-__PROJECT_WWW__ = "http://ts2.sourceforge.net/"
-__PROJECT_HOME__ = "https://github.com/npiganeau/ts2"
+__PROJECT_DOMAIN__ = "ts2.github.com"
+__PROJECT_WWW__ = "http://ts2.github.com/"
+__PROJECT_HOME__ = "https://github.com/ts2"
 
 
 def get_info():

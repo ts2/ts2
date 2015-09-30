@@ -1,9 +1,9 @@
 Dev Guide
 =================================
 
-Ts2 runs on
+TS2 runs on
  - python3
- - new devel effort is Qt5
+ - Qt5
  
 Code:
 	- github.com/ts2
@@ -13,6 +13,6 @@ Branches:
  - develop - next version upcoming
  
  Dev Docs:
-  - docs www site
+  - http://
  
  
