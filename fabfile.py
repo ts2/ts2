@@ -68,3 +68,4 @@ def init():
 	else:
 		with lcd(TEMP_LOCAL):
 			local( "git clone %s %s" % (DOCS_WWW_GIT, DOCS_WWW_DIR) )
+			
