@@ -41,7 +41,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Simulation
         self.simulation = None
 
-        # Actions
+        ## Actions  ======================================
         self.openAction = QtWidgets.QAction(self.tr("&Open..."), self)
         self.openAction.setShortcut(QtGui.QKeySequence.Open)
         self.openAction.setToolTip(self.tr("Open a simulation or a "
@@ -82,7 +82,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.aboutQtAction.setToolTip(self.tr("About Qt"))
         self.aboutQtAction.triggered.connect(QtWidgets.QApplication.aboutQt)
 
-        # Menu
+		## Menus ======================================
+		
+        # FileMenu
         self.fileMenu = self.menuBar().addMenu(self.tr("&File"))
         self.fileMenu.addAction(self.openAction)
         self.fileMenu.addAction(self.saveGameAsAction)
@@ -90,13 +92,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.fileMenu.addAction(self.propertiesAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitAction)
+		
+		## Editor Menu
         self.editorMenu = self.menuBar().addAction(self.editorAction)
-        self.helpMenu = self.menuBar().addMenu(self.tr("&Help"))
+        
+		## Help Menu
+		self.helpMenu = self.menuBar().addMenu(self.tr("&Help"))
         self.helpMenu.addAction(self.aboutAction)
         self.helpMenu.addAction(self.aboutQtAction)
+		
         self.menuBar().setCursor(Qt.PointingHandCursor)
 
-        # Dock Widgets
+        ## Dock Widgets ============================
         self.trainInfoPanel = QtWidgets.QDockWidget(
             self.tr("Train Information"), self
         )
