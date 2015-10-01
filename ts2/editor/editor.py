@@ -19,6 +19,7 @@
 #
 
 import copy
+import zipfile
 import simplejson as json
 
 from Qt import QtCore, QtWidgets, Qt
@@ -367,9 +368,16 @@ class Editor(simulation.Simulation):
         """Saves the data of the simulation to the database"""
         # Set up database
         self.setOption("version", utils.TS2_FILE_FORMAT)
-        with open(self.fileName, 'w') as f:
-            json.dump(self, f, separators=(',', ':'), for_json=True,
-                      encoding='utf-8')
+        if self.fileName.endswith(".ts2"):
+            with zipfile.ZipFile(self.fileName, "w") as zipArchive:
+                zipArchive.writestr("simulation.json",
+                                    json.dumps(self, separators=(',', ':'),
+                                               for_json=True, encoding='utf-8'),
+                                    compress_type=zipfile.ZIP_BZIP2)
+        else:
+            with open(self.fileName, 'w') as f:
+                json.dump(self, f, separators=(', ', ': '), indent=4,
+                          sort_keys=True, for_json=True, encoding='utf-8')
 
     def exportServicesToFile(self, fileName):
         """Exports the services to the file with the given fileName in ts2

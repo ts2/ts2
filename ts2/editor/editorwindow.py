@@ -566,10 +566,12 @@ class EditorWindow(QtWidgets.QMainWindow):
         # DEBUG
         # fileName = "/home/nicolas/Progs/GitHub/ts2/data/drain-save.ts2"
         fileName, _ = QtWidgets.QFileDialog.getSaveFileName(
-                           self,
-                           self.tr("Save the simulation as"),
-                           QtCore.QDir.currentPath(),
-                           self.tr("TS2 simulation files (*.ts2)"))
+            self,
+            self.tr("Save the simulation as"),
+            QtCore.QDir.currentPath(),
+            self.tr("TS2 files (*.ts2 *.json);;"
+                    "TS2 simulation files (*.ts2);;"
+                    "JSON simulation files (*.json)"))
         if fileName != "":
             self.editor.fileName = fileName
             self.saveSimulation()
