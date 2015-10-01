@@ -260,8 +260,8 @@ class Editor(simulation.Simulation):
         for train in self.trains:
             train.initialize(self)
         self._trains.sort(key=lambda x: x.currentService.lines and
-                          x.currentService.lines[0].scheduledDepartureTimeStr
-                          or x.currentService.serviceCode)
+                          x.currentService.lines[0].scheduledDepartureTimeStr or
+                          x.currentService.serviceCode)
         self.messageLogger.initialize(self)
 
         self._scene.update()
@@ -377,10 +377,10 @@ class Editor(simulation.Simulation):
         """Exports the services to the file with the given fileName in ts2
         services CSV format"""
         file = open(fileName, "w", encoding="utf-8")
-        file.write("servicecode;description;nextservice;autoreverse;")
-        file.write("plannedtraintype;")
-        file.write("places=>;placecode;scheduledarrivaltime;")
-        file.write("scheduleddeparturetime;trackcode;stop\n")
+        file.write("serviceCode;description;nextServiceCode;autoReverse;")
+        file.write("plannedTrainType;")
+        file.write("places=>;placeCode;scheduledArrivalTime;")
+        file.write("scheduledDepartureTime;trackCode;mustStop\n")
         for service in self.services.values():
             file.write("\"%s\";" % service.serviceCode)
             file.write("\"%s\";" % service.description)
@@ -403,9 +403,9 @@ class Editor(simulation.Simulation):
         fileName, deleting any previous service in the editor if any."""
         self._services = {}
         allowedHeaders = [
-            "servicecode", "description", "nextservice", "autoreverse",
-            "plannedtraintype", "places=>", "placecode", "scheduledarrivaltime",
-            "scheduleddeparturetime", "trackcode", "stop"
+            "serviceCode", "description", "nextServiceCode", "autoReverse",
+            "plannedTrainType", "places=>", "placeCode", "scheduledArrivalTime",
+            "scheduledDepartureTime", "trackCode", "mustStop"
         ]
         file = open(fileName, "r", encoding="utf-8")
         headers = file.readline().split(";")
@@ -414,6 +414,7 @@ class Editor(simulation.Simulation):
         placesIndex = 0
         inPlaces = False
         for header in headers:
+            # We have empty headers over service line columns
             if header != "":
                 if header not in allowedHeaders:
                     raise Exception(self.tr(
@@ -431,16 +432,24 @@ class Editor(simulation.Simulation):
                 params = [p.strip('" \n') for p in params]
                 serviceParameters = dict(zip(headers[:placesIndex],
                                              params[:placesIndex]))
-                serviceCode = serviceParameters["servicecode"]
-                self.services[serviceCode] = trains.Service(serviceParameters)
+                serviceParameters["__type__"] = "Service"
                 lineLength = len(lineHeaders)
-                for i in range((len(params)-placesIndex-1) // lineLength):
+                serviceLines = []
+                for i in range((len(params) - placesIndex - 1) // lineLength):
                     startIndex = placesIndex + 1 + i * lineLength
                     endIndex = startIndex + lineLength + 1
                     lineParameters = dict(zip(lineHeaders,
                                               params[startIndex:endIndex]))
-                    if lineParameters["placecode"] != "":
-                        self.services[serviceCode].addLine(lineParameters)
+                    lineParameters["__type__"] = "ServiceLine"
+                    if lineParameters["placeCode"]:
+                        serviceLines.append(lineParameters)
+                serviceParameters["lines"] = serviceLines
+                serviceCode = serviceParameters["serviceCode"]
+                jsonStr = json.dumps(serviceParameters, encoding='utf-8')
+                self.services[serviceCode] = json.loads(
+                    jsonStr, object_hook=json_hook, encoding='utf-8'
+                )
+                self.services[serviceCode].initialize(self)
         file.close()
 
     def registerGraphicsItem(self, graphicItem):
