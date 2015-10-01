@@ -17,6 +17,7 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
+import zipfile
 
 from Qt import QtGui, QtCore, QtWidgets, Qt
 
@@ -521,14 +522,28 @@ class EditorWindow(QtWidgets.QMainWindow):
         # fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.ts2"
 
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
-                           self,
-                           self.tr("Open a simulation"),
-                           QtCore.QDir.currentPath(),
-                           self.tr("TS2 simulation files (*.ts2)"))
+            self,
+            self.tr("Open a simulation"),
+            QtCore.QDir.currentPath(),
+            self.tr("TS2 files (*.ts2 *.json);;"
+                    "TS2 simulation files (*.ts2);;"
+                    "JSON simulation files (*.json)"))
         if fileName != "":
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
-            self.simulationDisconnect()
-            self.editor = editor.load(self, fileName)
+
+            if self.editor is not None:
+                self.simulationDisconnect()
+                self.editor = None
+            # try:
+            if zipfile.is_zipfile(fileName):
+                with zipfile.ZipFile(fileName) as zipArchive:
+                    with zipArchive.open("simulation.json") as file:
+                        self.editor = editor.load(self, file)
+            else:
+                with open(fileName) as file:
+                    self.editor = editor.load(self, file)
+
+            self.editor.fileName = fileName
             self.setWindowTitle(
                 self.tr("ts2 - Train Signalling Simulation - Editor - %s")
                 % fileName

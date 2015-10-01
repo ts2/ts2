@@ -46,8 +46,8 @@ def json_hook(dct):
         return simulation.json_hook(dct)
 
 
-def load(editorWindow, fileName):
-    """Loads the simulation from fileName and returns it as an Editor.
+def load(editorWindow, jsonStream):
+    """Loads the simulation from jsonStream and returns it as an Editor.
 
     The logic of loading is the following:
     1. We create the graph of objects from json.load(). When initialized,
@@ -56,14 +56,12 @@ def load(editorWindow, fileName):
     simulation which calls in turn the initialize() method of each object.
     This method will create all the missing links between the object and the
     simulation (and other objects)."""
-    with open(fileName) as f:
-        editor = json.load(f, object_hook=json_hook, encoding='utf-8')
+    editor = json.load(jsonStream, object_hook=json_hook, encoding='utf-8')
     if not isinstance(editor, Editor):
         raise utils.FormatException(
             translate("simulation.load", "Loaded file is not a TS2 simulation")
         )
     editor.initialize(editorWindow)
-    editor.fileName = fileName
     return editor
 
 

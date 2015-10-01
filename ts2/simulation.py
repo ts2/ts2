@@ -98,7 +98,7 @@ def json_hook(dct):
 
 
 def load(simulationWindow, jsonStream):
-    """Loads the simulation from fileName and returns it.
+    """Loads the simulation from jsonStream and returns it.
 
     The logic of loading is the following:
     1. We create the graph of objects from json.load(). When initialized,
