@@ -23,7 +23,7 @@ import shlex
 ## This variable is important as is used to "not load" and condiion stuff in loading ts2.* libs
 os.environ["__GEN_DOCS__"] = "1"
 
-print "=========", os.environ["__GEN_DOCS__"]
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
