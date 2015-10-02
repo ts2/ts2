@@ -42,12 +42,13 @@ class XSettings(QtCore.QSettings):
         v = self.value( "window/%s/geometry" % window.objectName() )
         if v == None:
             return
-        window.restoreGeometry(  v.toByteArray() )
-        
+        window.restoreGeometry(  v )
+
+        ## TODO This is not restoring the dock's
         v = self.value( "window/%s/state" % window.objectName() )
         if v == None:
             return
-        window.restoreState(  v.toByteArray() )
+        window.restoreState(  v )
 
     def save_splitter( self, window, splitter ):
         self.settings.setValue( "window/%s/splitter" % window.objectName(),  splitter.saveState()  )

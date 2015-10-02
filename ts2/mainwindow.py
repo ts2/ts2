@@ -483,4 +483,5 @@ class MainWindow(QtWidgets.QMainWindow):
         """Save window postions on close"""
         settings.save_window( self )
         settings.sync()
+        print("SAVEEEEEEEEE")
         super().closeEvent(event)
