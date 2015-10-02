@@ -20,6 +20,7 @@
 
 from math import sqrt
 import collections
+import zipfile
 import simplejson as json
 
 from Qt import QtCore, QtWidgets
@@ -98,7 +99,7 @@ def json_hook(dct):
 
 
 def load(simulationWindow, jsonStream):
-    """Loads the simulation from fileName and returns it.
+    """Loads the simulation from jsonStream and returns it.
 
     The logic of loading is the following:
     1. We create the graph of objects from json.load(). When initialized,
@@ -222,9 +223,11 @@ class Simulation(QtCore.QObject):
         self.pause()
         self.messageLogger.addMessage(self.tr("Saving simulation"),
                                       logger.Message.SOFTWARE_MSG)
-        with open(fileName, 'w') as f:
-            json.dump(self, f, separators=(',', ':'), for_json=True,
-                      encoding='utf-8')
+        with zipfile.ZipFile(fileName, "w") as zipArchive:
+            zipArchive.writestr("simulation.json",
+                                json.dumps(self, separators=(',', ':'),
+                                           for_json=True, encoding='utf-8'),
+                                compress_type=zipfile.ZIP_BZIP2)
         self.messageLogger.addMessage(self.tr("Simulation saved"),
                                       logger.Message.SOFTWARE_MSG)
 
