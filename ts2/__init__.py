@@ -34,8 +34,8 @@ __APP_DESCRIPTION__ = "A railway simulation game where you have to dispatch trai
 __ORG_NAME__ = "TS2 team"
 __ORG_CONTACT__ = "npiganeau"
 
-__PROJECT_DOMAIN__ = "ts2.github.com"
-__PROJECT_WWW__ = "http://ts2.github.com/"
+__PROJECT_DOMAIN__ = "ts2.github.io"
+__PROJECT_WWW__ = "http://ts2.github.io/"
 __PROJECT_HOME__ = "https://github.com/ts2"
 
 

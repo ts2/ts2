@@ -48,5 +48,12 @@ scenery.textitem.*
 .. automodule:: ts2.scenery.textitem
 
 
+scenery.signals.signalsaspect.*
+==================================================
+.. automodule:: ts2.scenery.signals.signalaspect
+
+scenery.signals.signalsaspect.*
+==================================================
+.. automodule:: ts2.scenery.signals.signalitem
 
 

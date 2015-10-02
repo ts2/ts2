@@ -19,7 +19,15 @@
             font-family: 'Fira Mono', cursive;
         }
         
-        
+        .main_title small{
+            margin: 10px;
+            font-size: 8pt;
+            vertical-align: top;
+            color: #999999;
+            font-weight: normal
+            font-family: 'Fira Mono', cursive;
+        }
+
          .externals_nav {
             float: right;
             margin-right: 150px;
@@ -85,8 +93,11 @@
         .related ul li {
 			color: #FFFF00 !important;
         }
-   
-   .sphinxsidebar ul li{
+
+.sphinxsidebar {
+    width: 260px;
+}
+.sphinxsidebar ul li{
     border-top: 1px solid #dddddd !important;
     padding: 2px !important;
 }
@@ -158,7 +169,7 @@ dl.method tt.descname {
   
   
    <ul class="externals_nav">
-    <li><a href="{{INFO.project_home}}" target="github">TS2 Home</a></li>
+    <li><a href="{{INFO.project_www}}" target="github">TS2 Home</a></li>
     <li><a href="{{INFO.project_home}}" target="github">TS2 Project</a></li>
     <li><a href="{{INFO.project_home}}/issues" target="issues">Issues</a></li>
   </ul>
@@ -166,7 +177,7 @@ dl.method tt.descname {
 	{{foo}}
  
   
-  <h1 class="main_title"><a href="/"><img src="/_static/favicon.png"></a> TS2 Developer Docs</h1>
+  <h1 class="main_title"><a href="/"><img src="/_static/favicon.png"></a> TS2 Developer Docs <small>v{{INFO.version}}</small></h1>
   </div>
   {{ super() }}
 {% endblock %}

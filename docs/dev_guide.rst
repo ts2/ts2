@@ -2,17 +2,16 @@ Dev Guide
 =================================
 
 TS2 runs on
- - python3
- - Qt5
+ - `Python3 <https://www.python.org/download/releases/3.0/>`_
+ - `PyQt5 <https://riverbankcomputing.com/software/pyqt/download5>`_
  
-Code:
-	- github.com/ts2
+Source Code:
+	- http://github.com/ts2
 	
 Branches:
- - master - latest stable release
- - develop - next version upcoming
+ - `master <https://github.com/ts2/ts2/tree/master>`_ - latest stable release
+ - `develop <https://github.com/ts2/ts2/tree/develop>`_ - next version upcoming
  
- Dev Docs:
-  - http://
- 
+ Api Docs:
+  - http://docs-ts2.rhcloud.com/
  
