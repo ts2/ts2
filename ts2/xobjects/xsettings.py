@@ -19,7 +19,6 @@ class XSettings(QtCore.QSettings):
         s = self.value("recent")
         if s == None or s == "":
             return []
-        print (s)
         return ts2.utils.from_json(s)
         
             
@@ -43,12 +42,12 @@ class XSettings(QtCore.QSettings):
         v = self.value( "window/%s/geometry" % window.objectName() )
         if v == None:
             return
-        window.restoreGeometry(  v )
+        window.restoreGeometry(  v.toByteArray() )
         
         v = self.value( "window/%s/state" % window.objectName() )
         if v == None:
             return
-        window.restoreState(  v )
+        window.restoreState(  v.toByteArray() )
 
     def save_splitter( self, window, splitter ):
         self.settings.setValue( "window/%s/splitter" % window.objectName(),  splitter.saveState()  )

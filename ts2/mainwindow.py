@@ -29,11 +29,14 @@ from ts2.editor import editorwindow
 from ts2.utils import settings
 
 class MainWindow(QtWidgets.QMainWindow):
-    """ TODO Document MainWindow Class"""
+    """MainWindow Class"""
+
+    simulationLoaded = QtCore.pyqtSignal(simulation.Simulation)
 
     def __init__(self):
         super().__init__()
         MainWindow._self = self
+        self.setObjectName("ts2_main_window")
         self.editorWindow = None
         self.setWindowState(Qt.WindowMaximized)
         self.setGeometry(100, 100, 800, 600)
@@ -240,7 +243,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.loadSimulation()
         # self.openEditor()
 
-    simulationLoaded = QtCore.pyqtSignal(simulation.Simulation)
+
 
     @staticmethod
     def instance():
