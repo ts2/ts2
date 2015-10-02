@@ -18,6 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 import zipfile
+import os
 
 from Qt import QtCore, QtGui, QtWidgets, Qt
 
@@ -25,7 +26,7 @@ from ts2 import simulation, utils
 from ts2.gui import dialogs, trainlistview, servicelistview, widgets
 from ts2.scenery import placeitem
 from ts2.editor import editorwindow
-
+from ts2.utils import settings
 
 class MainWindow(QtWidgets.QMainWindow):
     """ TODO Document MainWindow Class"""
@@ -48,8 +49,13 @@ class MainWindow(QtWidgets.QMainWindow):
                                            "previously saved game"))
         self.openAction.triggered.connect(self.loadSimulation)
 
-        self.saveGameAsAction = QtWidgets.QAction(self.tr("&Save game as..."),
-                                                  self)
+        self.openRecentAction = QtWidgets.QAction(self.tr("Recent"), self)
+        menu = QtWidgets.QMenu()
+        self.openRecentAction.setMenu(menu)
+        menu.triggered.connect(self.on_recent)
+        
+        
+        self.saveGameAsAction = QtWidgets.QAction(self.tr("&Save game"), self)
         self.saveGameAsAction.setShortcut(QtGui.QKeySequence.SaveAs)
         self.saveGameAsAction.setToolTip(self.tr("Save the current game"))
         self.saveGameAsAction.triggered.connect(self.saveGame)
@@ -87,6 +93,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # FileMenu
         self.fileMenu = self.menuBar().addMenu(self.tr("&File"))
         self.fileMenu.addAction(self.openAction)
+        self.fileMenu.addAction(self.openRecentAction)
+        self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.saveGameAsAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.propertiesAction)
@@ -103,10 +111,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.menuBar().setCursor(Qt.PointingHandCursor)
 
-        # Dock Widgets ============================
+        ##===========================================
+        # Dock Widgets
+
+        ## Train Info
         self.trainInfoPanel = QtWidgets.QDockWidget(
             self.tr("Train Information"), self
         )
+        self.trainInfoPanel.setObjectName("train_information")
         self.trainInfoPanel.setFeatures(
             QtWidgets.QDockWidget.DockWidgetMovable |
             QtWidgets.QDockWidget.DockWidgetFloatable
@@ -121,9 +133,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.trainInfoPanel.setWidget(self.trainInfoView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.trainInfoPanel)
 
+        ## Service Info
         self.serviceInfoPanel = QtWidgets.QDockWidget(
             self.tr("Service Information"), self
         )
+        self.serviceInfoPanel.setObjectName("service_information")
         self.serviceInfoPanel.setFeatures(
             QtWidgets.QDockWidget.DockWidgetMovable |
             QtWidgets.QDockWidget.DockWidgetFloatable
@@ -134,9 +148,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.serviceInfoPanel.setWidget(self.serviceInfoView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.serviceInfoPanel)
 
+        ## Stations + Places Info
         self.placeInfoPanel = QtWidgets.QDockWidget(
             self.tr("Station Information"), self
         )
+        self.placeInfoPanel.setObjectName("place_information")
         self.placeInfoPanel.setFeatures(
             QtWidgets.QDockWidget.DockWidgetMovable |
             QtWidgets.QDockWidget.DockWidgetFloatable
@@ -148,30 +164,36 @@ class MainWindow(QtWidgets.QMainWindow):
         self.placeInfoPanel.setWidget(self.placeInfoView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.placeInfoPanel)
 
+        ## Trains
         self.trainListPanel = QtWidgets.QDockWidget(self.tr("Trains"), self)
         self.trainListPanel.setFeatures(
             QtWidgets.QDockWidget.DockWidgetMovable |
             QtWidgets.QDockWidget.DockWidgetFloatable
         )
+        self.trainListPanel.setObjectName("trains_panel")
         self.trainListView = trainlistview.TrainListView(self)
         self.simulationLoaded.connect(self.trainListView.setupTrainList)
         self.trainListPanel.setWidget(self.trainListView)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.trainListPanel)
 
+        ## Services
         self.serviceListPanel = QtWidgets.QDockWidget(self.tr("Services"), self)
         self.serviceListPanel.setFeatures(
             QtWidgets.QDockWidget.DockWidgetMovable |
             QtWidgets.QDockWidget.DockWidgetFloatable
         )
+        self.serviceListPanel.setObjectName("services_panel")
         self.serviceListView = servicelistview.ServiceListView(self)
         self.simulationLoaded.connect(self.serviceListView.setupServiceList)
         self.serviceListPanel.setWidget(self.serviceListView)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.serviceListPanel)
         self.tabifyDockWidget(self.serviceListPanel, self.trainListPanel)
 
+        ## Message Logger
         self.loggerPanel = QtWidgets.QDockWidget(self.tr("Messages"), self)
         self.loggerPanel.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable |
                                      QtWidgets.QDockWidget.DockWidgetFloatable)
+        self.loggerPanel.setObjectName("logger_panel")
         self.loggerView = QtWidgets.QTreeView(self)
         self.loggerView.setItemsExpandable(False)
         self.loggerView.setRootIsDecorated(False)
@@ -183,7 +205,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.loggerPanel.setWidget(self.loggerView)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.loggerPanel)
 
-        # board
+
+        ##===========================================
+        # Main Board
         self.board = QtWidgets.QWidget(self)
 
         # Canvas
@@ -209,6 +233,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Editor
         self.editorOpened = False
 
+        self.refresh_recent()
+        settings.restore_window(self)
+
         # DEBUG
         # self.loadSimulation()
         # self.openEditor()
@@ -220,18 +247,20 @@ class MainWindow(QtWidgets.QMainWindow):
         return MainWindow._self
 
     @QtCore.pyqtSlot()
-    def loadSimulation(self):
+    def loadSimulation(self, fileName=None):
         # ## DEBUG
         # fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.ts2"
 
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self,
-            self.tr("Open a simulation"),
-            QtCore.QDir.currentPath(),
-            self.tr("TS2 files (*.ts2 *.tsg *.json);;"
-                    "TS2 simulation files (*.ts2);;"
-                    "TS2 saved game files (*.tsg);;"
-                    "JSON simulation files (*.json)"))
+        if fileName == None:
+            fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
+                self,
+                self.tr("Open a simulation"),
+                QtCore.QDir.currentPath(),
+                self.tr("TS2 files (*.ts2 *.tsg *.json);;"
+                        "TS2 simulation files (*.ts2);;"
+                        "TS2 saved game files (*.tsg);;"
+                        "JSON simulation files (*.json)"))
+
         if fileName != "":
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
 
@@ -246,6 +275,7 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 with open(fileName) as file:
                     self.simulation = simulation.load(self, file)
+                    settings.add_recent(fileName)
             # except utils.FormatException as err:
             #     QtWidgets.QMessageBox.critical(
             #         self,
@@ -429,3 +459,25 @@ class MainWindow(QtWidgets.QMainWindow):
             dialogs.ServiceAssignDialog.reassignServiceToTrain(
                 self.simulation, trainId
             )
+
+    def refresh_recent(self):
+        """Reload the recent menu"""
+        menu = self.openRecentAction.menu()
+        menu.clear()
+        act = None
+        for file_name in settings.get_recent():
+            if os.path.exists(file_name):
+                act = menu.addAction(file_name)
+        if act:
+            self.on_recent(act)
+
+    def on_recent(self, act):
+        """Open a  recent item"""
+        self.loadSimulation( fileName=act.text() )
+
+
+    def closeEvent( self, event ):
+        """Save window postions on close"""
+        settings.save_window( self )
+        settings.sync()
+        super().closeEvent(event)

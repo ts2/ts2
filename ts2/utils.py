@@ -21,10 +21,15 @@
 import random
 
 from Qt import QtCore
+import simplejson
+
+import ts2.xobjects.xsettings
 
 TS2_VERSION = "0.6"
 TS2_FILE_FORMAT = 0.6
 
+settings = ts2.xobjects.xsettings.XSettings()
+"""Settings instance"""
 
 class Context:
     """This class holds the different contexts for ts2."""
@@ -100,3 +105,16 @@ class DurationProba(QtCore.QObject):
         r1 = random.random()
         low, high, prob = self._probaList[seg]
         return r1 * (high - low) + low
+
+##==============================================
+def to_json(data):
+    """Serialize data to a json string
+
+    .. important:: Its advised to use this function as its is indented and sorted and therefore
+                   a consistent output. This is for git and versioning reasons, ie less deltas.
+    """
+    return simplejson.dumps(data, indent=4, sort_keys=True)
+
+def from_json(json_str):
+    """Load data from a json string"""
+    return simplejson.loads(json_str)
