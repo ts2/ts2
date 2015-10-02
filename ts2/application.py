@@ -21,13 +21,17 @@ import sys
 
 from Qt import QtCore, QtGui, QtWidgets
 
+
 from ts2 import mainwindow
 from ts2 import ressources_rc
 from ts2.gui import dialogs
 
+from ts2 import __APP_SHORT__, __VERSION__
 
 def Main():
     app = QtWidgets.QApplication(sys.argv)
+    app.setApplicationName(__APP_SHORT__)
+    app.setApplicationName(__VERSION__)
     app.setWindowIcon(QtGui.QIcon(QtGui.QPixmap(":/ts2.png")))
     qtTranslator = QtCore.QTranslator()
     qtTranslator.load("qt_" + QtCore.QLocale.system().name(),
