@@ -19,6 +19,12 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
+import sys
+
 if __name__ == '__main__':
+
+    if not sys.version_info >= (3, 0, 0):
+        sys.exit("ERROR: TS2 requires python3")
+
     import ts2.application
     ts2.application.Main()
