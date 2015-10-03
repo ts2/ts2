@@ -20,7 +20,7 @@
 
 ###############################################################
 ### Please try and not include any imports here
-### As this file may be laodes in any enviroment
+### As this file may be loaded in any enviroment
 ### such as a packager, docs compile etc
 ###############################################################
 
@@ -38,18 +38,21 @@ __PROJECT_DOMAIN__ = "ts2.github.io"
 __PROJECT_WWW__ = "http://ts2.github.io/"
 __PROJECT_HOME__ = "https://github.com/ts2"
 
+__SIMULATIONS_REPO__ = "https://github.com/ts2/ts2-data"
+
 
 def get_info():
-	"""ts2 info
-	
-	 :rtype: `dict`
-	"""
-	return dict(
-		version = __VERSION__,
-		app_short = __APP_SHORT__,
-		app_long = __APP_LONG__,
-		app_description = __APP_DESCRIPTION__,
-		project_domain = __PROJECT_DOMAIN__,
-		project_www = __PROJECT_WWW__,
-		project_home = __PROJECT_HOME__
-	)
+    """ts2 info
+
+    :rtype: `dict`
+    """
+    return dict(
+        version = __VERSION__,
+        app_short = __APP_SHORT__,
+        app_long = __APP_LONG__,
+        app_description = __APP_DESCRIPTION__,
+        project_domain = __PROJECT_DOMAIN__,
+        project_www = __PROJECT_WWW__,
+        project_home = __PROJECT_HOME__,
+        simulations_repo = __SIMULATIONS_REPO__
+    )

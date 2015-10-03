@@ -17,8 +17,11 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
+
+import tempfile
 import zipfile
 import os
+from urllib import request
 
 from Qt import QtCore, QtGui, QtWidgets, Qt
 
@@ -27,6 +30,7 @@ from ts2.gui import dialogs, trainlistview, servicelistview, widgets
 from ts2.scenery import placeitem
 from ts2.editor import editorwindow
 from ts2.utils import settings
+
 
 class MainWindow(QtWidgets.QMainWindow):
     """MainWindow Class"""
@@ -56,13 +60,20 @@ class MainWindow(QtWidgets.QMainWindow):
         menu = QtWidgets.QMenu()
         self.openRecentAction.setMenu(menu)
         menu.triggered.connect(self.on_recent)
-        
-        
+
         self.saveGameAsAction = QtWidgets.QAction(self.tr("&Save game"), self)
         self.saveGameAsAction.setShortcut(QtGui.QKeySequence.SaveAs)
         self.saveGameAsAction.setToolTip(self.tr("Save the current game"))
         self.saveGameAsAction.triggered.connect(self.saveGame)
         self.saveGameAsAction.setEnabled(False)
+
+        self.downloadAction = QtWidgets.QAction(
+            self.tr("&Download simulations..."), self
+        )
+        self.downloadAction.setToolTip(
+            self.tr("Download simulations from a server")
+        )
+        self.downloadAction.triggered.connect(self.downloadSimulations)
 
         self.propertiesAction = QtWidgets.QAction(self.tr("&Properties..."),
                                                   self)
@@ -100,6 +111,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.saveGameAsAction)
         self.fileMenu.addSeparator()
+        self.fileMenu.addAction(self.downloadAction)
+        self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.propertiesAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitAction)
@@ -114,10 +127,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.menuBar().setCursor(Qt.PointingHandCursor)
 
-        ##===========================================
+        # ===========================================
         # Dock Widgets
 
-        ## Train Info
+        # Train Info
         self.trainInfoPanel = QtWidgets.QDockWidget(
             self.tr("Train Information"), self
         )
@@ -136,7 +149,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.trainInfoPanel.setWidget(self.trainInfoView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.trainInfoPanel)
 
-        ## Service Info
+        # Service Info
         self.serviceInfoPanel = QtWidgets.QDockWidget(
             self.tr("Service Information"), self
         )
@@ -151,7 +164,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.serviceInfoPanel.setWidget(self.serviceInfoView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.serviceInfoPanel)
 
-        ## Stations + Places Info
+        # Stations + Places Info
         self.placeInfoPanel = QtWidgets.QDockWidget(
             self.tr("Station Information"), self
         )
@@ -167,7 +180,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.placeInfoPanel.setWidget(self.placeInfoView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.placeInfoPanel)
 
-        ## Trains
+        # Trains
         self.trainListPanel = QtWidgets.QDockWidget(self.tr("Trains"), self)
         self.trainListPanel.setFeatures(
             QtWidgets.QDockWidget.DockWidgetMovable |
@@ -179,7 +192,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.trainListPanel.setWidget(self.trainListView)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.trainListPanel)
 
-        ## Services
+        # Services
         self.serviceListPanel = QtWidgets.QDockWidget(self.tr("Services"), self)
         self.serviceListPanel.setFeatures(
             QtWidgets.QDockWidget.DockWidgetMovable |
@@ -192,7 +205,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.addDockWidget(Qt.BottomDockWidgetArea, self.serviceListPanel)
         self.tabifyDockWidget(self.serviceListPanel, self.trainListPanel)
 
-        ## Message Logger
+        # Message Logger
         self.loggerPanel = QtWidgets.QDockWidget(self.tr("Messages"), self)
         self.loggerPanel.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable |
                                      QtWidgets.QDockWidget.DockWidgetFloatable)
@@ -208,8 +221,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.loggerPanel.setWidget(self.loggerView)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.loggerPanel)
 
-
-        ##===========================================
+        # ===========================================
         # Main Board
         self.board = QtWidgets.QWidget(self)
 
@@ -243,8 +255,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.loadSimulation()
         # self.openEditor()
 
-
-
     @staticmethod
     def instance():
         return MainWindow._self
@@ -254,7 +264,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # ## DEBUG
         # fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.ts2"
 
-        if fileName == None:
+        if not fileName:
             fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
                 self,
                 self.tr("Open a simulation"),
@@ -400,6 +410,37 @@ class MainWindow(QtWidgets.QMainWindow):
                 #     dialogs.ExceptionDialog.popupException(self)
                 QtWidgets.QApplication.restoreOverrideCursor()
 
+    @QtCore.pyqtSlot()
+    def downloadSimulations(self):
+        """Download simulations from a GitHub repository"""
+        serverDialog = dialogs.DownloadSimulationsDialog(self)
+        if serverDialog.exec() == QtWidgets.QDialog.Accepted:
+            QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
+            url = "%s/archive/master.zip" % serverDialog.url.text().strip('/')
+            response = request.urlopen(url)
+            with tempfile.TemporaryFile() as tmpFile:
+                tmpFile.write(response.read())
+                with zipfile.ZipFile(tmpFile) as zipArchive:
+                    for fileName in zipArchive.namelist():
+                        fs = fileName.split('/', 1)
+                        fn = fs[1] if len(fs) > 1 else fs[0]
+                        if fileName.endswith(".ts2"):
+                            fName = "simulations/%s" % fn
+                            with open(fName, 'wb') as f:
+                                f.write(zipArchive.read(fileName))
+                        elif fileName.endswith(".tsl"):
+                            fName = "data/%s" % os.path.basename(fileName)
+                            with open(fName, 'wb') as f:
+                                f.write(zipArchive.read(fileName))
+                        elif fileName.endswith(".json"):
+                            fName = "simulations/%s" % fn.replace(".json",
+                                                                  ".ts2")
+                            with zipfile.ZipFile(fName, "w") as ts2Zip:
+                                ts2Zip.writestr("simulation.json",
+                                                zipArchive.read(fileName))
+
+            QtWidgets.qApp.restoreOverrideCursor()
+
     @QtCore.pyqtSlot(int)
     def zoom(self, percent):
         transform = QtGui.QTransform()
@@ -476,12 +517,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def on_recent(self, act):
         """Open a  recent item"""
-        self.loadSimulation( fileName=act.text() )
+        self.loadSimulation(fileName=act.text())
 
-
-    def closeEvent( self, event ):
+    def closeEvent(self, event):
         """Save window postions on close"""
-        settings.save_window( self )
+        settings.save_window(self)
         settings.sync()
-        print("SAVEEEEEEEEE")
         super().closeEvent(event)

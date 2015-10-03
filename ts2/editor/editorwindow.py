@@ -27,7 +27,6 @@ from ts2.gui import widgets
 import ts2.editor.views
 
 
-
 class EditorWindow(QtWidgets.QMainWindow):
     """The EditorWindow class holds the main window of the editor"""
 
