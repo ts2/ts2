@@ -31,6 +31,8 @@ from ts2.scenery import placeitem
 from ts2.editor import editorwindow
 from ts2.utils import settings
 
+from ts2 import __PROJECT_WWW__, __ORG_CONTACT__, __VERSION__
+
 
 class MainWindow(QtWidgets.QMainWindow):
     """MainWindow Class"""
@@ -239,6 +241,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Display
         self.grid = QtWidgets.QVBoxLayout()
+        self.grid.setContentsMargins(0, 0, 0, 0)
         self.grid.addWidget(self.view)
         self.grid.addWidget(self.panel)
         self.grid.setSpacing(0)
@@ -453,10 +456,10 @@ class MainWindow(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.about(self, self.tr("About TS2"), self.tr(
             "TS2 is a train signalling simulation.\n\n"
             "Version %s\n\n"
-            "Copyright 2008-2013, NPi (npi@users.sourceforge.net)\n"
-            "http://ts2.sourceforge.net\n\n"
+            "Copyright 2008-%s, NPi (%s)\n"
+            "%s\n\n"
             "TS2 is licensed under the terms of the GNU GPL v2\n""") %
-            utils.TS2_VERSION)
+            (__VERSION__, QtCore.QDate.currentDate().year(), __ORG_CONTACT__,   __PROJECT_WWW__))
         if self.editorOpened:
             self.editorWindow.activateWindow()
 

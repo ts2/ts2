@@ -31,8 +31,8 @@ __APP_SHORT__ = "TS2"
 __APP_LONG__ = "Train Signalling Simulation"
 __APP_DESCRIPTION__ = "A railway simulation game where you have to dispatch trains across an area and keep them on schedule"
 
-__ORG_NAME__ = "TS2 team"
-__ORG_CONTACT__ = "npiganeau"
+__ORG_NAME__ = "TS2 Team"
+__ORG_CONTACT__ = "npiganeau@github.com"
 
 __PROJECT_DOMAIN__ = "ts2.github.io"
 __PROJECT_WWW__ = "http://ts2.github.io/"
