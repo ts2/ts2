@@ -580,7 +580,7 @@ class EditorWindow(QtWidgets.QMainWindow):
     def closeSimulation(self):
         """Closes the current simulation, and prepares for editing a new one
         """
-        if self.editor.database is not None:
+        if self.editor.fileName is not None:
             if QtWidgets.QMessageBox.warning(
                 self,
                 self.tr("Simulation loaded"),
