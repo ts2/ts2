@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #
 #   Copyright (C) 2008-2015 by
 #     Nicolas Piganeau <npi@m4x.org> & TS2 Team
