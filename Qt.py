@@ -30,12 +30,9 @@
 # In c++ `Qt::AlignLeft` is just there 
 # but in PyQt land its at `PyQt5.QtCore.Qt.AlignLeft` .. phew
 # So this imports for shortcut.. ta snake
+
 from PyQt5.QtCore import Qt
 
-## TODO test for fail, eg QSql requrements etc
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5 import QtWidgets
-from PyQt5 import QtSql
-
-
