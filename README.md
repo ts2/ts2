@@ -3,7 +3,7 @@
 version 0.6
 
 **== IMPORTANT ==**
-This 0.6 branch and current `develop`
+- This 0.6 branch and current `develop`
 - abandons PyQt4 for PyQt5
 - python3 only 
 - Sorry guys but its a step we have to do..

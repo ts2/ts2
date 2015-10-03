@@ -51,10 +51,10 @@ class XSettings(QtCore.QSettings):
         window.restoreState(  v )
 
     def save_splitter( self, window, splitter ):
-        self.settings.setValue( "window/%s/splitter" % window.objectName(),  splitter.saveState()  )
+        self.setValue( "window/%s/splitter" % window.objectName(),  splitter.saveState()  )
         
     def restore_splitter( self, window, splitter ):
-        splitter.restoreState( self.settings.value( "window/%s/splitter" % window.objectName() ).toByteArray() )
+        splitter.restoreState( self.value( "window/%s/splitter" % window.objectName() ).toByteArray() )
 
     def save_tree( self, tree ):
         self.settings.setValue( "tree/%s" % tree._settings_ki,  tree.header().saveState()  )
