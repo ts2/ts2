@@ -18,7 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from Qt import QtCore
+from Qt import QtCore, Qt
 
 import ts2
 import ts2.utils
@@ -54,17 +54,22 @@ class XSettings(QtCore.QSettings):
                       window.saveGeometry())
         self.setValue("window/%s/state" % window.objectName(),
                       window.saveState())
+        self.setValue("window/%s/maximised" % window.objectName(),
+                      "1" if window.windowState() == Qt.WindowMaximized else "0")
 
     def restore_window(self, window):
         v = self.value("window/%s/geometry" % window.objectName())
-        if not v:
-            return
-        window.restoreGeometry(v)
+        if v:
+            window.restoreGeometry(v)
 
         v = self.value("window/%s/state" % window.objectName())
-        if not v:
-            return
-        window.restoreState(v)
+        if v:
+            window.restoreState(v)
+
+        ## BUG: Window state, eg Maximised is not being saved!!
+        v = self.value("window/%s/maximised" % window.objectName())
+        if v and bool(v):
+            window.setWindowState(Qt.WindowMaximized)
 
     def save_splitter(self, window, splitter):
         self.setValue("window/%s/splitter" % window.objectName(),
