@@ -170,3 +170,21 @@ class Panel(QtWidgets.QWidget):
     @QtCore.pyqtSlot(int)
     def zoomWidgetChanged(self, percent):
         self.zoomChanged.emit(percent)
+
+
+class XGraphicsView(QtWidgets.QGraphicsView):
+
+    wheelChanged = QtCore.pyqtSignal(int)
+
+    """Graphics View with watched wheel events"""
+    def __init__(self, parent=None):
+        """Constructor for the XGraphicsView class."""
+        super().__init__(parent)
+
+
+    def wheelEvent(self, ev):
+        if ev.angleDelta().y() > 1:
+            self.wheelChanged.emit(+1)
+        else:
+            self.wheelChanged.emit(-1)
+

@@ -228,12 +228,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.board = QtWidgets.QWidget(self)
 
         # Canvas
-        self.view = QtWidgets.QGraphicsView(self.board)
+        self.view = widgets.XGraphicsView(self.board)
         self.view.setInteractive(True)
         self.view.setRenderHint(QtGui.QPainter.Antialiasing, False)
         self.view.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.view.setPalette(QtGui.QPalette(Qt.black))
-
+        self.view.wheelChanged.connect(self.on_wheel_changed)
         # Panel
         # Loaded with simulation
         self.panel = widgets.Panel(self.board, self)
@@ -527,3 +527,8 @@ class MainWindow(QtWidgets.QMainWindow):
         settings.save_window(self)
         settings.sync()
         super().closeEvent(event)
+
+    def on_wheel_changed(self, direction):
+        """Handle scrollwheel on canvas"""
+        percent = self.panel.zoomWidget.spinBox.value()
+        self.panel.zoomWidget.spinBox.setValue(percent + (direction * 10))
