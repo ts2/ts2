@@ -168,6 +168,7 @@ class Simulation(QtCore.QObject):
                 logger.Message.SOFTWARE_MSG
             )
             raise Exception("Invalid simulation: Not all items are linked.")
+
         for route in self.routes.values():
             route.initialize(self)
         for route in self.routes.values():

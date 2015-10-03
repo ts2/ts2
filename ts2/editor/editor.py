@@ -368,6 +368,7 @@ class Editor(simulation.Simulation):
         """Saves the data of the simulation to the database"""
         # Set up database
         self.setOption("version", utils.TS2_FILE_FORMAT)
+
         if self.fileName.endswith(".ts2"):
             with zipfile.ZipFile(self.fileName, "w") as zipArchive:
                 zipArchive.writestr("simulation.json",

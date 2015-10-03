@@ -257,7 +257,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # DEBUG
         # self.loadSimulation()
-        # self.openEditor()
+        #self.openEditor()
 
     @staticmethod
     def instance():
