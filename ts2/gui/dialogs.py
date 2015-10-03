@@ -23,6 +23,7 @@ import traceback
 
 from Qt import QtCore, QtWidgets, Qt
 
+import ts2
 from ts2.gui import servicelistview
 
 translate = QtWidgets.qApp.translate
@@ -137,3 +138,37 @@ class ServiceAssignDialog(QtWidgets.QDialog):
             if newServiceCode != "":
                 train = simulation.trains[trainId]
                 train.serviceCode = newServiceCode
+
+
+class DownloadSimulationsDialog(QtWidgets.QDialog):
+    """Popup window for the user to select download server."""
+    def __init__(self, parent):
+        """Constructor for the DownloadSimulationsDialog."""
+        super().__init__(parent)
+        self.setWindowTitle(
+            self.tr("Download simulations from server")
+        )
+        label = QtWidgets.QLabel(self)
+        label.setText(self.tr("Download server: "))
+        self.url = QtWidgets.QLineEdit(self)
+        self.url.setText(ts2.get_info().get('simulations_repo'))
+        hlayout = QtWidgets.QHBoxLayout()
+        hlayout.addWidget(label)
+        hlayout.addWidget(self.url)
+        note = QtWidgets.QLabel(self)
+        note.setText(self.tr("<em>The download server must be the url of a "
+                             "valid GitHub repository.</em>"))
+        buttonBox = QtWidgets.QDialogButtonBox()
+        buttonBox.addButton(self.tr("Download"),
+                            QtWidgets.QDialogButtonBox.AcceptRole)
+        buttonBox.addButton(self.tr("Cancel"),
+                            QtWidgets.QDialogButtonBox.RejectRole)
+        vlayout = QtWidgets.QVBoxLayout()
+        vlayout.addLayout(hlayout)
+        vlayout.addSpacing(5)
+        vlayout.addWidget(note)
+        vlayout.addSpacing(10)
+        vlayout.addWidget(buttonBox)
+        self.setLayout(vlayout)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)

@@ -1,15 +1,12 @@
+from Qt import QtCore
 
-
-from Qt import QtCore, Qt
-
+import ts2
 import ts2.utils
 
-class XSettings(QtCore.QSettings):
-    
-    def __init__(self):
-        super().__init__()
-        
 
+class XSettings(QtCore.QSettings):
+    def __init__(self):
+        super().__init__(ts2.__ORG_NAME__, ts2.__APP_SHORT__)
 
     def get_recent(self):
         """List of recent files
@@ -17,11 +14,10 @@ class XSettings(QtCore.QSettings):
         :rtype: lst of str's
         """
         s = self.value("recent")
-        if s == None or s == "":
+        if not s:
             return []
         return ts2.utils.from_json(s)
-        
-            
+
     def add_recent(self, file_path):
         """Add a recent file"""
         lst = self.get_recent()
@@ -32,32 +28,36 @@ class XSettings(QtCore.QSettings):
         lst.insert(0, file_path)
         self.setValue("recent", ts2.utils.to_json(lst))
         return lst
-    
-    
-    def save_window( self, window ):
-        self.setValue( "window/%s/geometry" % window.objectName(), window.saveGeometry()  )
-        self.setValue( "window/%s/state" % window.objectName(), window.saveState()  )
-        
-    def restore_window( self, window ):
-        v = self.value( "window/%s/geometry" % window.objectName() )
-        if v == None:
+
+    def save_window(self, window):
+        self.setValue("window/%s/geometry" % window.objectName(),
+                      window.saveGeometry())
+        self.setValue("window/%s/state" % window.objectName(),
+                      window.saveState())
+
+    def restore_window(self, window):
+        v = self.value("window/%s/geometry" % window.objectName())
+        if not v:
             return
-        window.restoreGeometry(  v )
+        window.restoreGeometry(v)
 
-        ## TODO This is not restoring the dock's
-        v = self.value( "window/%s/state" % window.objectName() )
-        if v == None:
+        v = self.value("window/%s/state" % window.objectName())
+        if not v:
             return
-        window.restoreState(  v )
+        window.restoreState(v)
 
-    def save_splitter( self, window, splitter ):
-        self.setValue( "window/%s/splitter" % window.objectName(),  splitter.saveState()  )
-        
-    def restore_splitter( self, window, splitter ):
-        splitter.restoreState( self.value( "window/%s/splitter" % window.objectName() ).toByteArray() )
+    def save_splitter(self, window, splitter):
+        self.setValue("window/%s/splitter" % window.objectName(),
+                      splitter.saveState())
 
-    def save_tree( self, tree ):
-        self.settings.setValue( "tree/%s" % tree._settings_ki,  tree.header().saveState()  )
-        
-    def restore_tree( self, tree ):
-        tree.header().restoreState( self.settings.value("tree/%s" % tree._settings_ki ).toByteArray() )
+    def restore_splitter(self, window, splitter):
+        splitter.restoreState(self.value(
+            "window/%s/splitter" % window.objectName()).toByteArray())
+
+    def save_tree(self, tree):
+        self.settings.setValue("tree/%s" % tree._settings_ki,
+                               tree.header().saveState())
+
+    def restore_tree(self, tree):
+        tree.header().restoreState(
+            self.settings.value("tree/%s" % tree._settings_ki).toByteArray())
