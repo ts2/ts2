@@ -23,9 +23,10 @@ from Qt import QtCore, QtWidgets, Qt
 from ts2 import simulation
 
 
-class Clock(QtWidgets.QLCDNumber):
-
+class ClockWidget(QtWidgets.QLCDNumber):
+    """Clock LCD Widget"""
     def __init__(self, parent):
+        """Constructor for the ClockWidget class."""
         super().__init__(parent)
         self.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.setFrameShadow(QtWidgets.QFrame.Plain)
@@ -42,11 +43,13 @@ class Clock(QtWidgets.QLCDNumber):
 class ZoomWidget(QtWidgets.QWidget):
     """Zoom slider bar with associated spinBox."""
 
+    valueChanged = QtCore.pyqtSignal(int)
+
     def __init__(self, parent=None):
         """Constructor for the ZoomWidget class."""
         super().__init__(parent)
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
-                           QtWidgets.QSizePolicy.Fixed)
+                          QtWidgets.QSizePolicy.Minimum)
         self.button = QtWidgets.QPushButton(self.tr("100%"), self)
 
         self.slider = QtWidgets.QSlider(Qt.Horizontal, self)
@@ -74,7 +77,7 @@ class ZoomWidget(QtWidgets.QWidget):
         hlayout.addWidget(self.spinBox)
         self.setLayout(hlayout)
 
-    valueChanged = QtCore.pyqtSignal(int)
+
 
     @QtCore.pyqtSlot()
     def setDefaultZoom(self):
@@ -88,32 +91,36 @@ class ZoomWidget(QtWidgets.QWidget):
         return QtCore.QSize(300, 50)
 
 
-class Panel(QtWidgets.QWidget):
-    """The panel is the display rectangle below the scene holding the widgets
+class ControlBarWidget(QtWidgets.QWidget):
+    """The ControlBarWidget is the display rectangle below the scene holding the widgets
     necessary to play the simulation (e.g. clock)."""
 
     def __init__(self, parent, simulationWindow):
-        """Constructor for the Panel class."""
+        """Constructor for the ControlBarWidget class."""
         super().__init__(parent)
         self.simulation = None
         self.simulationWindow = simulationWindow
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
                            QtWidgets.QSizePolicy.Fixed)
         # Clock
-        self.clock = Clock(self)
+        self.clock = ClockWidget(self)
+
         # Pause button
         self.pauseButton = QtWidgets.QPushButton(self.tr("Pause"), self)
         self.pauseButton.setCheckable(True)
+
         # Time factor spinBox
         self.timeFactorSpinBox = QtWidgets.QSpinBox(self)
         self.timeFactorSpinBox.setRange(0, 10)
         self.timeFactorSpinBox.setSingleStep(1)
         self.timeFactorSpinBox.setValue(1)
         self.timeFactorSpinBox.setSuffix("x")
+
         # Zoom spinBox
         self.zoomWidget = ZoomWidget(self)
         self.zoomWidget.valueChanged.connect(self.simulationWindow.zoom)
-        # score display
+
+        # Score display
         self.scoreDisplay = QtWidgets.QLCDNumber(self)
         self.scoreDisplay.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.scoreDisplay.setFrameShadow(QtWidgets.QFrame.Plain)
@@ -173,10 +180,11 @@ class Panel(QtWidgets.QWidget):
 
 
 class XGraphicsView(QtWidgets.QGraphicsView):
+    """QGraphicsView with wheel events"""
 
     wheelChanged = QtCore.pyqtSignal(int)
 
-    """Graphics View with watched wheel events"""
+
     def __init__(self, parent=None):
         """Constructor for the XGraphicsView class."""
         super().__init__(parent)

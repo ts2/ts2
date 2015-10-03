@@ -234,9 +234,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.view.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.view.setPalette(QtGui.QPalette(Qt.black))
         self.view.wheelChanged.connect(self.on_wheel_changed)
-        # Panel
+
+        # Control Panel
         # Loaded with simulation
-        self.panel = widgets.Panel(self.board, self)
+        self.panel = widgets.ControlBarWidget(self.board, self)
         self.panel.zoomChanged.connect(self.zoom)
 
         # Display
