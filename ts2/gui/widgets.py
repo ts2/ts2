@@ -191,3 +191,36 @@ class XGraphicsView(QtWidgets.QGraphicsView):
             self.wheelChanged.emit(+1)
         else:
             self.wheelChanged.emit(-1)
+
+
+class StatusBar(QtWidgets.QWidget):
+
+
+    def __init__(self, parent=None):
+        """Constructor for the StatusBar class."""
+        super().__init__(parent)
+
+        self.lay = QtWidgets.QHBoxLayout()
+        self.lay.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self.lay)
+
+        self.statusBar = QtWidgets.QStatusBar()
+        self.lay.addWidget(self.statusBar, 1)
+        self.statusBar.showMessage("IDLE")
+
+
+        self.progressBar = QtWidgets.QProgressBar()
+        self.lay.addWidget(self.progressBar, 1)
+        self.progressBar.hide()
+
+
+    def showMessage(self, txt, timeout=1):
+        self.statusBar.showMessage(txt)
+        # TODO set timeout
+
+    def showBusy(self, is_busy):
+        if is_busy:
+            self.progressBar.setRange(0,0)
+        else:
+            self.progressBar.setRange(0,1)
+        self.progressBar.setVisible(is_busy)

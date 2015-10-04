@@ -59,12 +59,9 @@ def cumsum(lis):
         summ += x
         yield summ
 
-
+"""
 def _getUserDataDirectory():
-    """Returns the folder in which to put the user data.
 
-    If the source folder is inside the home directory, then we use it because
-    it means that we have installed from sources. Otherwise we use ~/.ts2/"""
     homeDir = os.path.expanduser("~")
     if os.path.commonprefix((homeDir, os.getcwd())):
         return os.getcwd()
@@ -76,7 +73,7 @@ def _getUserDataDirectory():
 
 simulationsDirectory = os.path.join(_getUserDataDirectory(), "simulations")
 userDataDirectory = os.path.join(_getUserDataDirectory(), "data")
-
+"""
 
 class DurationProba(QtCore.QObject):
     """A DurationProba is a probability distribution for a duration in

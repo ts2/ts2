@@ -29,7 +29,7 @@ from ts2 import simulation, utils
 from ts2.gui import dialogs, trainlistview, servicelistview, widgets, opendialog
 from ts2.scenery import placeitem
 from ts2.editor import editorwindow
-from ts2.utils import settings, userDataDirectory, simulationsDirectory
+from ts2.utils import settings
 
 from ts2 import __PROJECT_WWW__, __ORG_CONTACT__, __VERSION__
 

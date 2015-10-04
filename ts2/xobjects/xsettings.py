@@ -17,6 +17,7 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
+import os
 
 from Qt import QtCore
 
@@ -94,3 +95,26 @@ class XSettings(QtCore.QSettings):
     @property
     def debug(self):
         return self._debug
+
+
+    def _getUserDataDirectory(self):
+        """Returns the folder in which to put the user data.
+
+        If the source folder is inside the home directory, then we use it because
+        it means that we have installed from sources. Otherwise we use ~/.ts2/
+        """
+        homeDir = os.path.expanduser("~")
+        if os.path.commonprefix((homeDir, os.getcwd())):
+            return os.getcwd()
+        else:
+            os.makedirs(os.path.join(homeDir, ".ts2", "data"), exist_ok=True)
+            os.makedirs(os.path.join(homeDir, ".ts2", "simulations"), exist_ok=True)
+            return os.path.join(homeDir, ".ts2")
+
+    @property
+    def simulationsDir(self):
+        return os.path.join(self._getUserDataDirectory(), "simulations")
+
+    @property
+    def userDataDir(self):
+        return os.path.join(self._getUserDataDirectory(), "data")

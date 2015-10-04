@@ -869,8 +869,8 @@ class SignalLibrary:
         tslGenFiles = [os.path.join("data", f) for f in os.listdir("data")
                        if f.endswith('.tsl')]
         # User data directory
-        tslUserFiles = [os.path.join(utils.userDataDirectory, f)
-                        for f in os.listdir(utils.userDataDirectory)
+        tslUserFiles = [os.path.join(utils.settings.userDataDir, f)
+                        for f in os.listdir(utils.settings.userDataDir)
                         if f.endswith('.tsl')]
 
         tslFiles = list(set(tslGenFiles + tslUserFiles))
