@@ -31,6 +31,8 @@ from ts2.scenery import placeitem
 from ts2.editor import editorwindow
 from ts2.utils import settings
 
+from ts2 import __PROJECT_WWW__, __ORG_CONTACT__, __VERSION__
+
 
 class MainWindow(QtWidgets.QMainWindow):
     """MainWindow Class"""
@@ -42,7 +44,6 @@ class MainWindow(QtWidgets.QMainWindow):
         MainWindow._self = self
         self.setObjectName("ts2_main_window")
         self.editorWindow = None
-        self.setWindowState(Qt.WindowMaximized)
         self.setGeometry(100, 100, 800, 600)
         self.setWindowTitle(self.tr("ts2 - Train Signalling Simulation"))
 
@@ -227,19 +228,21 @@ class MainWindow(QtWidgets.QMainWindow):
         self.board = QtWidgets.QWidget(self)
 
         # Canvas
-        self.view = QtWidgets.QGraphicsView(self.board)
+        self.view = widgets.XGraphicsView(self.board)
         self.view.setInteractive(True)
         self.view.setRenderHint(QtGui.QPainter.Antialiasing, False)
         self.view.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.view.setPalette(QtGui.QPalette(Qt.black))
+        self.view.wheelChanged.connect(self.on_wheel_changed)
 
-        # Panel
+        # Control Panel
         # Loaded with simulation
-        self.panel = widgets.Panel(self.board, self)
+        self.panel = widgets.ControlBarWidget(self.board, self)
         self.panel.zoomChanged.connect(self.zoom)
 
         # Display
         self.grid = QtWidgets.QVBoxLayout()
+        self.grid.setContentsMargins(0, 0, 0, 0)
         self.grid.addWidget(self.view)
         self.grid.addWidget(self.panel)
         self.grid.setSpacing(0)
@@ -454,10 +457,10 @@ class MainWindow(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.about(self, self.tr("About TS2"), self.tr(
             "TS2 is a train signalling simulation.\n\n"
             "Version %s\n\n"
-            "Copyright 2008-2013, NPi (npi@users.sourceforge.net)\n"
-            "http://ts2.sourceforge.net\n\n"
+            "Copyright 2008-%s, NPi (%s)\n"
+            "%s\n\n"
             "TS2 is licensed under the terms of the GNU GPL v2\n""") %
-            utils.TS2_VERSION)
+            (__VERSION__, QtCore.QDate.currentDate().year(), __ORG_CONTACT__,   __PROJECT_WWW__))
         if self.editorOpened:
             self.editorWindow.activateWindow()
 
@@ -509,15 +512,15 @@ class MainWindow(QtWidgets.QMainWindow):
         """Reload the recent menu"""
         menu = self.openRecentAction.menu()
         menu.clear()
-        act = None
+        act = []
         for file_name in settings.get_recent():
             if os.path.exists(file_name):
-                act = menu.addAction(file_name)
+                act.append(menu.addAction(file_name))
         if act:
-            self.on_recent(act)
+            self.on_recent(act[0])
 
     def on_recent(self, act):
-        """Open a  recent item"""
+        """Open a recent item"""
         self.loadSimulation(fileName=act.text())
 
     def closeEvent(self, event):
@@ -525,3 +528,8 @@ class MainWindow(QtWidgets.QMainWindow):
         settings.save_window(self)
         settings.sync()
         super().closeEvent(event)
+
+    def on_wheel_changed(self, direction):
+        """Handle scrollwheel on canvas"""
+        percent = self.panel.zoomWidget.spinBox.value()
+        self.panel.zoomWidget.spinBox.setValue(percent + (direction * 10))

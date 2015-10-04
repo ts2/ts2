@@ -134,6 +134,7 @@ class SignalAspect:
     def drawShape(self, p, shape, rect):
         """Draws the shape on painter p inside rect."""
         # TODO: Draw missing shapes
+
         if shape == SignalShape.CIRCLE:
             p.drawEllipse(rect)
         elif shape == SignalShape.SQUARE:
@@ -156,22 +157,26 @@ class SignalAspect:
         elif shape == SignalShape.BAR_E_W:
             tl = rect.topLeft() + QtCore.QPointF(3, 1)
             p.drawRect(QtCore.QRectF(tl, QtCore.QSizeF(2, 6)))
+
         if (shape == SignalShape.POLE_NE or
               shape == SignalShape.POLE_NS or
               shape == SignalShape.POLE_NSE or
               shape == SignalShape.POLE_NSW):
             tm = QtCore.QPointF(rect.right(), rect.center().y())
             p.drawLine(rect.center(), tm)
+
         if (shape == SignalShape.POLE_NS or
               shape == SignalShape.POLE_NSE or
               shape == SignalShape.POLE_NSW or
               shape == SignalShape.POLE_SW):
             bm = QtCore.QPointF(rect.left(), rect.center().y())
             p.drawLine(rect.center(), bm)
+
         if (shape == SignalShape.POLE_NE or
               shape == SignalShape.POLE_NSE):
             rm = QtCore.QPointF(rect.center().x(), rect.bottom())
             p.drawLine(rect.center(), rm)
+
         if (shape == SignalShape.POLE_NSW or
               shape == SignalShape.POLE_SW):
             lm = QtCore.QPointF(rect.center().x(), rect.top())

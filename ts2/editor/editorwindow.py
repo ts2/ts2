@@ -24,6 +24,7 @@ from Qt import QtGui, QtCore, QtWidgets, Qt
 from ts2 import scenery
 from ts2.editor import editor
 from ts2.gui import widgets
+from ts2.utils import settings
 import ts2.editor.views
 
 
@@ -33,6 +34,7 @@ class EditorWindow(QtWidgets.QMainWindow):
     def __init__(self, mainWindow):
         """Constructor for the EditorWindow class"""
         super().__init__(mainWindow)
+        self.setObjectName("editor_window")
         self.setGeometry(100, 100, 1024, 768)
         self.setWindowTitle(
             self.tr("ts2 - Train Signalling Simulation - Editor"))
@@ -169,6 +171,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         # Dock Widgets
         # >> TrackItems panel: TI Library
         self.toolsPanel = QtWidgets.QDockWidget(self.tr("Tools"), self)
+        self.toolsPanel.setObjectName("toolsPanel")
         self.toolsPanel.setFeatures(
             QtWidgets.QDockWidget.DockWidgetMovable |
             QtWidgets.QDockWidget.DockWidgetFloatable
@@ -194,6 +197,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         # >> Properties panel
         self.propertiesPanel = QtWidgets.QDockWidget(self.tr("Properties"),
                                                      self)
+        self.propertiesPanel.setObjectName("propertiesPanel")
         self.propertiesPanel.setFeatures(
             QtWidgets.QDockWidget.DockWidgetMovable |
             QtWidgets.QDockWidget.DockWidgetFloatable
@@ -417,6 +421,8 @@ class EditorWindow(QtWidgets.QMainWindow):
 
         self.setCentralWidget(self.tabWidget)
 
+        settings.restore_window(self)
+
     def simulationConnect(self):
         """Connects the signals and slots to the simulation."""
         self.titleTxt.setText(self.editor.option("title"))
@@ -486,6 +492,8 @@ class EditorWindow(QtWidgets.QMainWindow):
     def closeEvent(self, closeEvent):
         """Called when the editor window is closed. Emits the closed signal.
         """
+        settings.save_window(self)
+        settings.sync()
         super().closeEvent(closeEvent)
         if closeEvent.isAccepted():
             choice = QtWidgets.QMessageBox.question(
@@ -572,6 +580,9 @@ class EditorWindow(QtWidgets.QMainWindow):
                     "TS2 simulation files (*.ts2);;"
                     "JSON simulation files (*.json)"))
         if fileName != "":
+            # check user entered extension (and set to .ts2 as default)
+            if not fileName.endswith(".ts2") or not fileName.endswith(".json"):
+                fileName += ".ts2"
             self.editor.fileName = fileName
             self.saveSimulation()
 

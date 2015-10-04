@@ -18,7 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from Qt import QtCore
+from Qt import QtCore, Qt
 
 import ts2
 import ts2.utils
@@ -46,6 +46,8 @@ class XSettings(QtCore.QSettings):
             lst.remove(file_path)
         # insert at front
         lst.insert(0, file_path)
+        if len(lst) > 10:
+            lst = lst[:10]
         self.setValue("recent", ts2.utils.to_json(lst))
         return lst
 
@@ -57,14 +59,12 @@ class XSettings(QtCore.QSettings):
 
     def restore_window(self, window):
         v = self.value("window/%s/geometry" % window.objectName())
-        if not v:
-            return
-        window.restoreGeometry(v)
+        if v:
+            window.restoreGeometry(v)
 
         v = self.value("window/%s/state" % window.objectName())
-        if not v:
-            return
-        window.restoreState(v)
+        if v:
+            window.restoreState(v)
 
     def save_splitter(self, window, splitter):
         self.setValue("window/%s/splitter" % window.objectName(),
