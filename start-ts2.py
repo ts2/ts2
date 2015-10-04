@@ -20,11 +20,16 @@
 #
 
 import sys
+import optparse
 
 if __name__ == '__main__':
 
     if not sys.version_info >= (3, 0, 0):
         sys.exit("ERROR: TS2 requires python3")
 
+    parser = optparse.OptionParser()
+    parser.add_option("-d", "--debug", dest="debug", help="Start in debug mode", action="store_true", default=False)
+    (options, args) = parser.parse_args()
+
     import ts2.application
-    ts2.application.Main()
+    ts2.application.Main(debug=options.debug)

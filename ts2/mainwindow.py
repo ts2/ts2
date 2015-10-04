@@ -39,9 +39,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     simulationLoaded = QtCore.pyqtSignal(simulation.Simulation)
 
-    def __init__(self):
+    def __init__(self, debug=False):
         super().__init__()
         MainWindow._self = self
+
+        settings.setDebug(debug)
+
         self.setObjectName("ts2_main_window")
         self.editorWindow = None
         self.setGeometry(100, 100, 800, 600)

@@ -1,9 +1,13 @@
 
+import os
+import tempfile
+import zipfile
+from urllib import request
 
 from Qt import QtCore, QtWidgets, Qt
 
 import ts2
-from ts2.gui import servicelistview
+from ts2.utils import settings, userDataDirectory, simulationsDirectory
 
 translate = QtWidgets.qApp.translate
 
@@ -52,9 +56,13 @@ class OpenDialog(QtWidgets.QDialog):
 
     def onDownload(self):
 
-        print("onDownload")
+        #print("onDownload")
         QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
-        url = "%s/archive/master.zip" % serverDialog.url.text().strip('/')
+        if settings.debug:
+            url = "http://localhost/~ts2/ts2-data-master.zip"
+        else:
+            url = "%s/archive/master.zip" % self.txtUrl.text().strip('/')
+
         response = request.urlopen(url)
         with tempfile.TemporaryFile() as tmpFile:
             tmpFile.write(response.read())
@@ -81,3 +89,6 @@ class OpenDialog(QtWidgets.QDialog):
                                             zipArchive.read(fileName))
 
         QtWidgets.qApp.restoreOverrideCursor()
+
+
+

@@ -28,6 +28,8 @@ class XSettings(QtCore.QSettings):
     def __init__(self):
         super().__init__(ts2.__ORG_NAME__, ts2.__APP_SHORT__)
 
+        self._debug = False
+
     def getRecent(self):
         """List of recent files
         
@@ -52,12 +54,14 @@ class XSettings(QtCore.QSettings):
         return lst
 
     def saveWindow(self, window):
+        """Save window geometry and state"""
         self.setValue("window/%s/geometry" % window.objectName(),
                       window.saveGeometry())
         self.setValue("window/%s/state" % window.objectName(),
                       window.saveState())
 
     def restoreWindow(self, window):
+        """Restore window geometry and state"""
         v = self.value("window/%s/geometry" % window.objectName())
         if v:
             window.restoreGeometry(v)
@@ -81,3 +85,12 @@ class XSettings(QtCore.QSettings):
     def restoreTree(self, tree):
         tree.header().restoreState(
             self.settings.value("tree/%s" % tree._settings_ki).toByteArray())
+
+
+    def setDebug(self, debug):
+        """Set debug flag"""
+        self._debug = debug
+
+    @property
+    def debug(self):
+        return self._debug

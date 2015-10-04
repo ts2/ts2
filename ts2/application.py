@@ -28,7 +28,7 @@ from ts2.gui import dialogs
 
 from ts2 import __APP_SHORT__, __VERSION__
 
-def Main():
+def Main(debug=False):
     app = QtWidgets.QApplication(sys.argv)
     app.setApplicationName(__APP_SHORT__)
     app.setApplicationName(__VERSION__)
@@ -44,7 +44,7 @@ def Main():
     QtCore.qDebug(QtCore.QLocale.system().name())
     # TODO: Uncomment in production
     # try:
-    mw = mainwindow.MainWindow()
+    mw = mainwindow.MainWindow(debug=debug)
     mw.show()
     return app.exec_()
     # except:
