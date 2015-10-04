@@ -876,8 +876,7 @@ class SignalLibrary:
         tslFiles = list(set(tslGenFiles + tslUserFiles))
         tslFiles.sort()
         for tslFile in tslFiles:
-            fileName = "data" + os.sep + tslFile
-            with open(fileName) as fileStream:
+            with open(tslFile) as fileStream:
                 sl = json.load(fileStream, object_hook=json_hook,
                                encoding="utf-8")
                 builtinLibrary.update(sl)

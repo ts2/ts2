@@ -517,11 +517,11 @@ class MainWindow(QtWidgets.QMainWindow):
         menu = self.openRecentAction.menu()
         menu.clear()
         act = []
-        for file_name in settings.get_recent():
-            if os.path.exists(file_name):
-                act.append(menu.addAction(file_name))
+        for fileName in settings.getRecent():
+            if os.path.exists(fileName):
+                act.append(menu.addAction(fileName))
         if act:
-            self.on_recent(act[0])
+            self.onRecent(act[0])
 
     def onRecent(self, act):
         """Open a  recent item"""

@@ -492,7 +492,7 @@ class EditorWindow(QtWidgets.QMainWindow):
     def closeEvent(self, closeEvent):
         """Called when the editor window is closed. Emits the closed signal.
         """
-        settings.save_window(self)
+        settings.saveWindow(self)
         settings.sync()
         super().closeEvent(closeEvent)
         if closeEvent.isAccepted():
@@ -507,8 +507,6 @@ class EditorWindow(QtWidgets.QMainWindow):
                 self.saveSimulation()
             if choice == QtWidgets.QMessageBox.Yes or \
                choice == QtWidgets.QMessageBox.No:
-                settings.saveWindow(self)
-                settings.sync()
                 self.closed.emit()
             else:
                 closeEvent.ignore()
