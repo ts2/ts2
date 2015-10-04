@@ -580,9 +580,9 @@ class EditorWindow(QtWidgets.QMainWindow):
                     "TS2 simulation files (*.ts2);;"
                     "JSON simulation files (*.json)"))
         if fileName != "":
-            ## check user entered extension (and set to .json as default ??)
+            # check user entered extension (and set to .ts2 as default)
             if not fileName.endswith(".ts2") or not fileName.endswith(".json"):
-                fileName = fileName + ".json"
+                fileName += ".ts2"
             self.editor.fileName = fileName
             self.saveSimulation()
 
