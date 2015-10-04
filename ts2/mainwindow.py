@@ -26,7 +26,7 @@ from urllib import request
 from Qt import QtCore, QtGui, QtWidgets, Qt
 
 from ts2 import simulation, utils
-from ts2.gui import dialogs, trainlistview, servicelistview, widgets
+from ts2.gui import dialogs, trainlistview, servicelistview, widgets, opendialog
 from ts2.scenery import placeitem
 from ts2.editor import editorwindow
 from ts2.utils import settings, userDataDirectory, simulationsDirectory
@@ -256,7 +256,7 @@ class MainWindow(QtWidgets.QMainWindow):
         settings.restoreWindow(self)
 
         # DEBUG
-        # self.loadSimulation()
+        self.loadSimulation()
         # self.openEditor()
 
     @staticmethod
@@ -269,6 +269,10 @@ class MainWindow(QtWidgets.QMainWindow):
         # fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.ts2"
 
         if not fileName:
+            d = opendialog.OpenDialog(self)
+            d.exec_()
+
+            """
             fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
                 self,
                 self.tr("Open a simulation"),
@@ -277,8 +281,8 @@ class MainWindow(QtWidgets.QMainWindow):
                         "TS2 simulation files (*.ts2);;"
                         "TS2 saved game files (*.tsg);;"
                         "JSON simulation files (*.json)"))
-
-        if fileName != "":
+            """
+        if fileName != "" or fileName != None:
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
 
             if self.simulation is not None:
