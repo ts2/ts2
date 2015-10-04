@@ -60,7 +60,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.openRecentAction = QtWidgets.QAction(self.tr("Recent"), self)
         menu = QtWidgets.QMenu()
         self.openRecentAction.setMenu(menu)
-        menu.triggered.connect(self.on_recent)
+        menu.triggered.connect(self.onRecent)
 
         self.saveGameAsAction = QtWidgets.QAction(self.tr("&Save game"), self)
         self.saveGameAsAction.setShortcut(QtGui.QKeySequence.SaveAs)
@@ -252,8 +252,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Editor
         self.editorOpened = False
 
-        self.refresh_recent()
-        settings.restore_window(self)
+        self.refreshRecent()
+        settings.restoreWindow(self)
 
         # DEBUG
         # self.loadSimulation()
@@ -292,7 +292,7 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 with open(fileName) as file:
                     self.simulation = simulation.load(self, file)
-                    settings.add_recent(fileName)
+                    settings.addRecent(fileName)
             # except utils.FormatException as err:
             #     QtWidgets.QMessageBox.critical(
             #         self,
@@ -412,6 +412,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.simulation.saveGame(fileName)
                 # except:
                 #     dialogs.ExceptionDialog.popupException(self)
+                settings.addRecent(fileName)
                 QtWidgets.QApplication.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
@@ -508,7 +509,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.simulation, trainId
             )
 
-    def refresh_recent(self):
+    def refreshRecent(self):
         """Reload the recent menu"""
         menu = self.openRecentAction.menu()
         menu.clear()
@@ -519,13 +520,13 @@ class MainWindow(QtWidgets.QMainWindow):
         if act:
             self.on_recent(act[0])
 
-    def on_recent(self, act):
-        """Open a recent item"""
+    def onRecent(self, act):
+        """Open a  recent item"""
         self.loadSimulation(fileName=act.text())
 
     def closeEvent(self, event):
         """Save window postions on close"""
-        settings.save_window(self)
+        settings.saveWindow(self)
         settings.sync()
         super().closeEvent(event)
 

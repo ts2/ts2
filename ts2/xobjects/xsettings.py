@@ -18,7 +18,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from Qt import QtCore, Qt
+from Qt import QtCore
 
 import ts2
 import ts2.utils
@@ -28,7 +28,7 @@ class XSettings(QtCore.QSettings):
     def __init__(self):
         super().__init__(ts2.__ORG_NAME__, ts2.__APP_SHORT__)
 
-    def get_recent(self):
+    def getRecent(self):
         """List of recent files
         
         :rtype: lst of str's
@@ -38,26 +38,26 @@ class XSettings(QtCore.QSettings):
             return []
         return ts2.utils.from_json(s)
 
-    def add_recent(self, file_path):
+    def addRecent(self, filePath):
         """Add a recent file"""
-        lst = self.get_recent()
-        if file_path in lst:
+        lst = self.getRecent()
+        if filePath in lst:
             # already in so remove, so move to front
-            lst.remove(file_path)
+            lst.remove(filePath)
         # insert at front
-        lst.insert(0, file_path)
+        lst.insert(0, filePath)
         if len(lst) > 10:
             lst = lst[:10]
         self.setValue("recent", ts2.utils.to_json(lst))
         return lst
 
-    def save_window(self, window):
+    def saveWindow(self, window):
         self.setValue("window/%s/geometry" % window.objectName(),
                       window.saveGeometry())
         self.setValue("window/%s/state" % window.objectName(),
                       window.saveState())
 
-    def restore_window(self, window):
+    def restoreWindow(self, window):
         v = self.value("window/%s/geometry" % window.objectName())
         if v:
             window.restoreGeometry(v)
@@ -66,18 +66,18 @@ class XSettings(QtCore.QSettings):
         if v:
             window.restoreState(v)
 
-    def save_splitter(self, window, splitter):
+    def saveSplitter(self, window, splitter):
         self.setValue("window/%s/splitter" % window.objectName(),
                       splitter.saveState())
 
-    def restore_splitter(self, window, splitter):
+    def restoreSplitter(self, window, splitter):
         splitter.restoreState(self.value(
             "window/%s/splitter" % window.objectName()).toByteArray())
 
-    def save_tree(self, tree):
+    def saveTree(self, tree):
         self.settings.setValue("tree/%s" % tree._settings_ki,
                                tree.header().saveState())
 
-    def restore_tree(self, tree):
+    def restoreTree(self, tree):
         tree.header().restoreState(
             self.settings.value("tree/%s" % tree._settings_ki).toByteArray())

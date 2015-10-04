@@ -26,6 +26,7 @@ from ts2.editor import editor
 from ts2.gui import widgets
 from ts2.utils import settings
 import ts2.editor.views
+from ts2.utils import settings
 
 
 class EditorWindow(QtWidgets.QMainWindow):
@@ -420,8 +421,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.tabWidget.addTab(trainsTab, self.tr("Trains"))
 
         self.setCentralWidget(self.tabWidget)
-
-        settings.restore_window(self)
+        settings.restoreWindow(self)
 
     def simulationConnect(self):
         """Connects the signals and slots to the simulation."""
@@ -507,6 +507,8 @@ class EditorWindow(QtWidgets.QMainWindow):
                 self.saveSimulation()
             if choice == QtWidgets.QMessageBox.Yes or \
                choice == QtWidgets.QMessageBox.No:
+                settings.saveWindow(self)
+                settings.sync()
                 self.closed.emit()
             else:
                 closeEvent.ignore()
