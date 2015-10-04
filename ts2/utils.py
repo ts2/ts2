@@ -69,13 +69,13 @@ def _getUserDataDirectory():
     if os.path.commonprefix((homeDir, os.getcwd())):
         return os.getcwd()
     else:
-        os.makedirs("%s/.ts2/data" % homeDir, exist_ok=True)
-        os.makedirs("%s/.ts2/simulations" % homeDir, exist_ok=True)
-        return "%s/.ts2" % homeDir
+        os.makedirs(os.path.join(homeDir, ".ts2", "data"), exist_ok=True)
+        os.makedirs(os.path.join(homeDir, ".ts2", "simulations"), exist_ok=True)
+        return os.path.join(homeDir, ".ts2")
 
 
-simulationsDirectory = "%s/simulations" % _getUserDataDirectory()
-userDataDirectory = "%s/data" % _getUserDataDirectory()
+simulationsDirectory = os.path.join(_getUserDataDirectory(), "simulations")
+userDataDirectory = os.path.join(_getUserDataDirectory(), "data")
 
 
 class DurationProba(QtCore.QObject):
