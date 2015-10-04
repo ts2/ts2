@@ -89,7 +89,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.quitAction.setToolTip(self.tr("Quit TS2"))
         self.quitAction.triggered.connect(self.close)
 
-        self.editorAction = QtWidgets.QAction(self.tr("&Editor"), self)
+        self.editorAction = QtWidgets.QAction(self.tr("&Open"), self)
         self.editorAction.setShortcut(QtGui.QKeySequence(self.tr("Ctrl+E")))
         self.editorAction.setToolTip(self.tr("Open the simulation editor"))
         self.editorAction.triggered.connect(self.openEditor)
@@ -118,7 +118,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.fileMenu.addAction(self.quitAction)
 
         # Editor Menu
-        self.editorMenu = self.menuBar().addAction(self.editorAction)
+        self.editorMenu = self.menuBar().addMenu(self.tr("&Editor"))
+        self.editorMenu.addAction(self.editorAction)
         
         # Help Menu
         self.helpMenu = self.menuBar().addMenu(self.tr("&Help"))
