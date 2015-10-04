@@ -865,7 +865,15 @@ class SignalLibrary:
         defined in tsl files in the data directory."""
         builtinLibrary = json.loads(BUILTIN_SIGNAL_LIBRARY,
                                     object_hook=json_hook, encoding="utf-8")
-        tslFiles = [f for f in os.listdir("data") if f.endswith('.tsl')]
+        # General data directory
+        tslGenFiles = [os.path.join("data", f) for f in os.listdir("data")
+                       if f.endswith('.tsl')]
+        # User data directory
+        tslUserFiles = [os.path.join(utils.userDataDirectory, f)
+                        for f in os.listdir(utils.userDataDirectory)
+                        if f.endswith('.tsl')]
+
+        tslFiles = list(set(tslGenFiles + tslUserFiles))
         tslFiles.sort()
         for tslFile in tslFiles:
             fileName = "data" + os.sep + tslFile
@@ -873,6 +881,7 @@ class SignalLibrary:
                 sl = json.load(fileStream, object_hook=json_hook,
                                encoding="utf-8")
                 builtinLibrary.update(sl)
+
         builtinLibrary.initialize()
         return builtinLibrary
 

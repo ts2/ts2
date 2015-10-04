@@ -19,6 +19,7 @@
 #
 
 import random
+import os.path
 
 from Qt import QtCore
 import simplejson
@@ -30,6 +31,7 @@ TS2_FILE_FORMAT = 0.6
 
 settings = ts2.xobjects.xsettings.XSettings()
 """Settings instance"""
+
 
 class Context:
     """This class holds the different contexts for ts2."""
@@ -56,6 +58,24 @@ def cumsum(lis):
     for x in lis:
         summ += x
         yield summ
+
+
+def _getUserDataDirectory():
+    """Returns the folder in which to put the user data.
+
+    If the source folder is inside the home directory, then we use it because
+    it means that we have installed from sources. Otherwise we use ~/.ts2/"""
+    homeDir = os.path.expanduser("~")
+    if os.path.commonprefix((homeDir, os.getcwd())):
+        return os.getcwd()
+    else:
+        os.makedirs("%s/.ts2/data" % homeDir, exist_ok=True)
+        os.makedirs("%s/.ts2/simulations" % homeDir, exist_ok=True)
+        return "%s/.ts2" % homeDir
+
+
+simulationsDirectory = "%s/simulations" % _getUserDataDirectory()
+userDataDirectory = "%s/data" % _getUserDataDirectory()
 
 
 class DurationProba(QtCore.QObject):

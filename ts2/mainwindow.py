@@ -29,7 +29,7 @@ from ts2 import simulation, utils
 from ts2.gui import dialogs, trainlistview, servicelistview, widgets
 from ts2.scenery import placeitem
 from ts2.editor import editorwindow
-from ts2.utils import settings
+from ts2.utils import settings, userDataDirectory, simulationsDirectory
 
 from ts2 import __PROJECT_WWW__, __ORG_CONTACT__, __VERSION__
 
@@ -430,16 +430,19 @@ class MainWindow(QtWidgets.QMainWindow):
                         fs = fileName.split('/', 1)
                         fn = fs[1] if len(fs) > 1 else fs[0]
                         if fileName.endswith(".ts2"):
-                            fName = "simulations/%s" % fn
+                            fName = os.path.join(simulationsDirectory, fn)
+                            os.makedirs(os.path.dirname(fName), exist_ok=True)
                             with open(fName, 'wb') as f:
                                 f.write(zipArchive.read(fileName))
                         elif fileName.endswith(".tsl"):
-                            fName = "data/%s" % os.path.basename(fileName)
+                            fName = os.path.join(userDataDirectory,
+                                                 os.path.basename(fileName))
                             with open(fName, 'wb') as f:
                                 f.write(zipArchive.read(fileName))
                         elif fileName.endswith(".json"):
-                            fName = "simulations/%s" % fn.replace(".json",
-                                                                  ".ts2")
+                            fName = os.path.join(simulationsDirectory,
+                                                 fn.replace(".json", ".ts2"))
+                            os.makedirs(os.path.dirname(fName), exist_ok=True)
                             with zipfile.ZipFile(fName, "w") as ts2Zip:
                                 ts2Zip.writestr("simulation.json",
                                                 zipArchive.read(fileName))
