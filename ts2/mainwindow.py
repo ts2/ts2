@@ -511,15 +511,15 @@ class MainWindow(QtWidgets.QMainWindow):
         """Reload the recent menu"""
         menu = self.openRecentAction.menu()
         menu.clear()
-        act = None
+        act = []
         for file_name in settings.get_recent():
             if os.path.exists(file_name):
-                act = menu.addAction(file_name)
+                act.append(menu.addAction(file_name))
         if act:
-            self.on_recent(act)
+            self.on_recent(act[0])
 
     def on_recent(self, act):
-        """Open a  recent item"""
+        """Open a recent item"""
         self.loadSimulation(fileName=act.text())
 
     def closeEvent(self, event):
