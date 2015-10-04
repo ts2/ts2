@@ -46,6 +46,8 @@ class XSettings(QtCore.QSettings):
             lst.remove(file_path)
         # insert at front
         lst.insert(0, file_path)
+        if len(lst) > 10:
+            lst = lst[:10]
         self.setValue("recent", ts2.utils.to_json(lst))
         return lst
 
@@ -54,8 +56,6 @@ class XSettings(QtCore.QSettings):
                       window.saveGeometry())
         self.setValue("window/%s/state" % window.objectName(),
                       window.saveState())
-        self.setValue("window/%s/maximised" % window.objectName(),
-                      "1" if window.windowState() == Qt.WindowMaximized else "0")
 
     def restore_window(self, window):
         v = self.value("window/%s/geometry" % window.objectName())
@@ -65,11 +65,6 @@ class XSettings(QtCore.QSettings):
         v = self.value("window/%s/state" % window.objectName())
         if v:
             window.restoreState(v)
-
-        ## BUG: Window state, eg Maximised is not being saved!!
-        v = self.value("window/%s/maximised" % window.objectName())
-        if v and bool(v):
-            window.setWindowState(Qt.WindowMaximized)
 
     def save_splitter(self, window, splitter):
         self.setValue("window/%s/splitter" % window.objectName(),

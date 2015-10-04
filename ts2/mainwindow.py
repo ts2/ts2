@@ -44,7 +44,6 @@ class MainWindow(QtWidgets.QMainWindow):
         MainWindow._self = self
         self.setObjectName("ts2_main_window")
         self.editorWindow = None
-        self.setWindowState(Qt.WindowMaximized)
         self.setGeometry(100, 100, 800, 600)
         self.setWindowTitle(self.tr("ts2 - Train Signalling Simulation"))
 
@@ -257,7 +256,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # DEBUG
         # self.loadSimulation()
-        #self.openEditor()
+        # self.openEditor()
 
     @staticmethod
     def instance():

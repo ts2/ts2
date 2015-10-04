@@ -49,7 +49,7 @@ class ZoomWidget(QtWidgets.QWidget):
         """Constructor for the ZoomWidget class."""
         super().__init__(parent)
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
-                          QtWidgets.QSizePolicy.Minimum)
+                           QtWidgets.QSizePolicy.Minimum)
         self.button = QtWidgets.QPushButton(self.tr("100%"), self)
 
         self.slider = QtWidgets.QSlider(Qt.Horizontal, self)
@@ -76,8 +76,6 @@ class ZoomWidget(QtWidgets.QWidget):
         hlayout.addWidget(self.slider)
         hlayout.addWidget(self.spinBox)
         self.setLayout(hlayout)
-
-
 
     @QtCore.pyqtSlot()
     def setDefaultZoom(self):
@@ -184,15 +182,12 @@ class XGraphicsView(QtWidgets.QGraphicsView):
 
     wheelChanged = QtCore.pyqtSignal(int)
 
-
     def __init__(self, parent=None):
         """Constructor for the XGraphicsView class."""
         super().__init__(parent)
-
 
     def wheelEvent(self, ev):
         if ev.angleDelta().y() > 1:
             self.wheelChanged.emit(+1)
         else:
             self.wheelChanged.emit(-1)
-
