@@ -21,13 +21,15 @@ class C:
     file_path = 3
 
 class TAB:
-    browse = 0
+    sims = 0
     recent = 1
     filesystem = 2
 
 
 class OpenDialog(QtWidgets.QDialog):
     """Popup files for the user to open a sim"""
+
+    openFile = QtCore.pyqtSignal(str)
 
     def __init__(self, parent, tab=0):
         """Constructor for the DownloadSimulationsDialog."""
@@ -51,16 +53,17 @@ class OpenDialog(QtWidgets.QDialog):
         self.tabWidget = QtWidgets.QTabWidget()
         mainLayout.addWidget(self.tabWidget)
 
+
         # =====================================
-        # Browse Sims
-        self.browseWidget = QtWidgets.QWidget()
-        self.browseLayout = QtWidgets.QVBoxLayout()
-        self.browseLayout.setContentsMargins(0, 0, 0, 0)
-        self.browseWidget.setLayout(self.browseLayout)
-        self.tabWidget.addTab(self.browseWidget, "Downloaded")
+        # Downlaoded Sims
+        self.downloadWidget = QtWidgets.QWidget()
+        self.downloadLayout = QtWidgets.QVBoxLayout()
+        self.downloadLayout.setContentsMargins(0, 0, 0, 0)
+        self.downloadWidget.setLayout(self.downloadLayout)
+        self.tabWidget.addTab(self.downloadWidget, "Downloaded")
 
         tbBrowse = QtWidgets.QToolBar()
-        self.browseLayout.addWidget(tbBrowse)
+        self.downloadLayout.addWidget(tbBrowse)
 
         self.txtUrl = QtWidgets.QLineEdit(self)
         self.txtUrl.setText(ts2.get_info().get('simulations_repo'))
@@ -70,7 +73,7 @@ class OpenDialog(QtWidgets.QDialog):
 
 
         self.treeSims = QtWidgets.QTreeWidget()
-        self.browseLayout.addWidget(self.treeSims)
+        self.downloadLayout.addWidget(self.treeSims)
         hitem = self.treeSims.headerItem()
         hitem.setText(C.name, "Name")
         hitem.setText(C.description, "Description")
@@ -82,35 +85,23 @@ class OpenDialog(QtWidgets.QDialog):
 
         # =====================================
         # Recent
-        #self.recentWidget = QtWidgets.QWidget()
-        #self.recentLayout = QtWidgets.QVBoxLayout()
-        #self.recentLayout.setContentsMargins(0, 0, 0, 0)
-        #self.recentWidget.setLayout(self.browseLayout)
-
 
         self.treeRecent = QtWidgets.QTreeWidget()
         self.tabWidget.addTab(self.treeRecent, "Recent")
 
-        #self.recentLayout.addWidget(self.treeSims)
         hitem = self.treeRecent.headerItem()
-        #hitem.setText(C.name, "Name")
-        #hitem.setText(C.description, "Description")
-        #hitem.setText(C.file_name, "File")
         hitem.setText(0, "Path")
-        #self.treeRecent.setColumnHidden(C.file_path, True)
+
         self.treeRecent.itemDoubleClicked.connect(self.onTreeRecentItemDblClicked)
 
 
         # =====================================
         # Browse
-        self.fileModel = QtWidgets.QFileSystemModel()
-        print(QtCore.QDir.homePath())
-
+        self.filesModel = QtWidgets.QFileSystemModel()
+        self.filesModel.setRootPath( QtCore.QDir.homePath() )
 
         self.treeFiles = QtWidgets.QTreeView()
-        self.treeFiles.setModel(self.fileModel)
-
-        self.fileModel.setRootPath( QtCore.QDir.homePath() )
+        self.treeFiles.setModel(self.filesModel)
 
         self.tabWidget.addTab(self.treeFiles, "Browse")
 
@@ -121,7 +112,8 @@ class OpenDialog(QtWidgets.QDialog):
         if settings.debug:
             self.statusBar.showMessage(settings.simulationsDir)
 
-        self.onRefreshSims()
+        self.tabWidget.currentChanged.connect(self.onTabChanged)
+        self.onTabChanged()
 
     def onDownload(self):
 
@@ -169,11 +161,20 @@ class OpenDialog(QtWidgets.QDialog):
 
         self.statusBar.showBusy(False)
         self.statusBar.showMessage("Download done", timeout=2)
+
         self.onRefreshSims()
 
+    def onTabChanged(self):
+        idx = self.tabWidget.currentIndex()
+
+        if idx == TAB.sims:
+            self.onRefreshSims()
+
+        elif idx == TAB.recent:
+            self.onRefreshRecent()
 
     def onRefreshSims(self):
-
+        """Reloads the simulations dir"""
         self.statusBar.showMessage("Loading")
         self.treeSims.clear()
 
@@ -201,10 +202,22 @@ class OpenDialog(QtWidgets.QDialog):
         self.treeSims.resizeColumnToContents(C.name)
         self.statusBar.showMessage("")
 
+
+    def onRefreshRecent(self):
+        """Reloads teh recent items"""
+        self.treeRecent.clear()
+        for fn in settings.getRecent():
+            item = QtWidgets.QTreeWidgetItem()
+            item.setText(0, fn)
+            self.treeRecent.addTopLevelItem(item)
+
     def onTreeSimsItemDblClicked(self, item):
-        print(item)
+
         file_path = item.text(C.file_path)
+        self.openFile.emit(file_path)
+        self.accept()
 
     def onTreeRecentItemDblClicked(self, item):
         file_path = item.text(0)
-
+        self.openFile.emit(file_path)
+        self.accept()

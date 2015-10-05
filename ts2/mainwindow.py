@@ -58,7 +58,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.openAction.setShortcut(QtGui.QKeySequence.Open)
         self.openAction.setToolTip(self.tr("Open a simulation or a "
                                            "previously saved game"))
-        self.openAction.triggered.connect(self.loadSimulation)
+        self.openAction.triggered.connect(self.onOpenSimulation)
 
         self.openRecentAction = QtWidgets.QAction(self.tr("Recent"), self)
         menu = QtWidgets.QMenu()
@@ -259,32 +259,29 @@ class MainWindow(QtWidgets.QMainWindow):
         settings.restoreWindow(self)
 
         # DEBUG
-        self.loadSimulation()
+        #self.loadSimulation()
         # self.openEditor()
 
     @staticmethod
     def instance():
         return MainWindow._self
 
-    @QtCore.pyqtSlot()
+    def onOpenSimulation(self):
+        d = opendialog.OpenDialog(self)
+        d.openFile.connect(self.loadSimulation)
+        d.exec_()
+
+
+    @QtCore.pyqtSlot(str)
     def loadSimulation(self, fileName=None):
         # ## DEBUG
-        # fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.ts2"
+        #if settings.debug:
+        #   fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.ts2"
 
         if not fileName:
-            d = opendialog.OpenDialog(self)
-            d.exec_()
+            self.onOpenSimulation()
+            return
 
-            """
-            fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
-                self,
-                self.tr("Open a simulation"),
-                QtCore.QDir.currentPath(),
-                self.tr("TS2 files (*.ts2 *.tsg *.json);;"
-                        "TS2 simulation files (*.ts2);;"
-                        "TS2 saved game files (*.tsg);;"
-                        "JSON simulation files (*.json)"))
-            """
         if fileName != "" or fileName != None:
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
 
