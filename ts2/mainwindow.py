@@ -272,6 +272,8 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QDockWidget.DockWidgetMovable |
             QtWidgets.QDockWidget.DockWidgetFloatable
         )
+        
+
         self.serviceInfoView = QtWidgets.QTreeView(self)
         self.serviceInfoView.setItemsExpandable(False)
         self.serviceInfoView.setRootIsDecorated(False)
@@ -683,6 +685,6 @@ class MainWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(bool)
     def setPauseButtonText(self, paused):
         if paused:
-            self.buttPause.setText(self.tr("Continue"))
+            self.buttPause.setText(self.tr("Paused"))
         else:
             self.buttPause.setText(self.tr("Pause"))

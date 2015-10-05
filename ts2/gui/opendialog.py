@@ -201,26 +201,34 @@ class OpenDialog(QtWidgets.QDialog):
         self.statusBar.showMessage("Loading")
         self.treeSims.clear()
 
-        ts2_files = []
+        ts2_files = {}
         for root, dirnames, filenames in os.walk(settings.simulationsDir):
             for filename in fnmatch.filter(filenames, '*.ts2'):
-                ts2_files.append(os.path.join(root, filename))
+                d =  root.split(QtCore.QDir.separator())[-1]
+                if not d in ts2_files:
+                    ts2_files[d] = []
+                ts2_files[d].append(os.path.join(root, filename))
 
 
-        for file_path in ts2_files:
-            with zipfile.ZipFile(file_path, "r") as zippy:
+        for dir in sorted(ts2_files.keys()):
+            pitem = QtWidgets.QTreeWidgetItem()
+            pitem.setText(C.name, dir)
+            pitem.setFirstColumnSpanned(True)
+            self.treeSims.addTopLevelItem(pitem)
+            for file_path in ts2_files[dir]:
+                with zipfile.ZipFile(file_path, "r") as zippy:
 
-                # wtf, confused why bytes returned
-                bytes =  zippy.read("simulation.json")
-                data = json.loads( bytes.decode() )
-                nfo = data['options']
+                    # wtf, confused why bytes returned
+                    bytes =  zippy.read("simulation.json")
+                    data = json.loads( bytes.decode() )
+                    nfo = data['options']
 
-                item = QtWidgets.QTreeWidgetItem()
-                item.setText(C.name, nfo['title'])
-                item.setText(C.description, nfo['description'])
-                item.setText(C.file_name, os.path.basename(file_path))
-                item.setText(C.file_path, file_path)
-                self.treeSims.addTopLevelItem(item)
+                    item = QtWidgets.QTreeWidgetItem(pitem)
+                    item.setText(C.name, nfo['title'])
+                    item.setText(C.description, nfo['description'])
+                    item.setText(C.file_name, os.path.basename(file_path))
+                    item.setText(C.file_path, file_path)
+            pitem.setExpanded(True)
 
         self.treeSims.resizeColumnToContents(C.name)
         self.statusBar.showMessage("")
@@ -235,6 +243,8 @@ class OpenDialog(QtWidgets.QDialog):
             self.treeRecent.addTopLevelItem(item)
 
     def onTreeSimsItemDblClicked(self, item):
+        if self.treeSims.indexOfTopLevelItem(item) != -1:
+            return
         file_path = item.text(C.file_path)
         self.openFile.emit(file_path)
         self.accept()
