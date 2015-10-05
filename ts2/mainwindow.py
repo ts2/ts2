@@ -566,8 +566,20 @@ class MainWindow(QtWidgets.QMainWindow):
     def onWsMessage(self, mess):
         print(mess)
 
-        if mess['cmd'] == "pause":
-            self.panel.pauseButton.toggle()
+        cmd = mess.get("cmd")
+        if cmd:
+            if cmd == "pause":
+                self.panel.pauseButton.toggle()
 
-        if mess['cmd'] == "zoom":
-            self.panel.zoomWidget.slider.setValue( mess['value'] )
+            if cmd == "zoom":
+                self.panel.zoomWidget.slider.setValue( mess['value'] )
+
+        query = mess.get("query")
+        if query:
+            if query == "places":
+                # WTF: TypeError: dict_keys(['BNK', 'WTL', 'DPT']) is not JSON serializable
+                placecodes =  []
+                for k in self.simulation.places.keys():
+                    placecodes.append(k)
+                self.wsServer.sendMessage(dict(type="places", value=placecodes))
+
