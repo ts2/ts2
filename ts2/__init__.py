@@ -38,7 +38,7 @@ __PROJECT_DOMAIN__ = "ts2.github.io"
 __PROJECT_WWW__ = "http://ts2.github.io/"
 __PROJECT_HOME__ = "https://github.com/ts2"
 __PROJECT_BUGS__ = "https://github.com/ts2/ts2/issues"
-
+__PROJECT_API_DOCS__ = "http://docs-ts2.rhcloud.com/"
 
 __SIMULATIONS_REPO__ = "https://github.com/ts2/ts2-data"
 
@@ -57,5 +57,6 @@ def get_info():
         project_www = __PROJECT_WWW__,
         project_home = __PROJECT_HOME__,
         project_bugs = __PROJECT_BUGS__,
+        project_api_docs = __PROJECT_API_DOCS__,
         simulations_repo = __SIMULATIONS_REPO__
     )
