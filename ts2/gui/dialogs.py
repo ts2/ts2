@@ -25,6 +25,7 @@ from Qt import QtCore, QtWidgets, Qt
 
 import ts2
 from ts2.gui import servicelistview
+from ts2.utils import settings
 
 translate = QtWidgets.qApp.translate
 
@@ -105,6 +106,7 @@ class ServiceAssignDialog(QtWidgets.QDialog):
 
     def __init__(self, parent, simulation):
         super().__init__(parent)
+        self.setObjectName("service_assign_dialog")
         self.setWindowTitle(
             self.tr("Choose a service to assign to this train")
         )
@@ -120,6 +122,10 @@ class ServiceAssignDialog(QtWidgets.QDialog):
         self.resize(600, 300)
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
+
+        self.serviceListView.doubleClicked.connect(self.accept)
+
+        settings.restoreWindow(self)
 
     def getServiceCode(self):
         index = self.serviceListView.selectionModel().selection().indexes()[0]
@@ -139,6 +145,11 @@ class ServiceAssignDialog(QtWidgets.QDialog):
                 train = simulation.trains[trainId]
                 train.serviceCode = newServiceCode
 
+    def closeEvent(self, event):
+        """Save window postions on close"""
+        settings.saveWindow(self)
+        settings.sync()
+        super().closeEvent(event)
 
 class DownloadSimulationsDialog(QtWidgets.QDialog):
     """Popup window for the user to select download server."""

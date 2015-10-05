@@ -19,7 +19,7 @@
 #
 import os
 
-from Qt import QtCore
+from Qt import QtCore, QtWidgets
 
 import ts2
 import ts2.utils
@@ -58,6 +58,8 @@ class XSettings(QtCore.QSettings):
         """Save window geometry and state"""
         self.setValue("window/%s/geometry" % window.objectName(),
                       window.saveGeometry())
+        if isinstance(window, QtWidgets.QDialog):
+            return
         self.setValue("window/%s/state" % window.objectName(),
                       window.saveState())
 
@@ -67,6 +69,8 @@ class XSettings(QtCore.QSettings):
         if v:
             window.restoreGeometry(v)
 
+        if isinstance(window, QtWidgets.QDialog):
+            return
         v = self.value("window/%s/state" % window.objectName())
         if v:
             window.restoreState(v)
