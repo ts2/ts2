@@ -98,7 +98,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.editorAction.setToolTip(self.tr("Open the simulation editor"))
         self.editorAction.triggered.connect(self.openEditor)
 
-        ## Web Links
+        # Web Links
         self.actionGroupWwww = QtWidgets.QActionGroup(self)
         self.actionGroupWwww.triggered.connect(self.onWwwAction)
 
@@ -114,6 +114,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.aboutWwwBugs.setProperty("url", __PROJECT_BUGS__)
         self.actionGroupWwww.addAction(self.aboutWwwBugs)
 
+        # About
         self.aboutAction = QtWidgets.QAction(self.tr("&About TS2..."), self)
         self.aboutAction.setToolTip(self.tr("About TS2"))
         self.aboutAction.triggered.connect(self.showAboutBox)
@@ -152,7 +153,90 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.menuBar().setCursor(Qt.PointingHandCursor)
 
-        # ===========================================
+
+
+        # ==============================================================
+        # ToolBar
+        self.toolbar = QtWidgets.QToolBar()
+        self.addToolBar(self.toolbar)
+
+        # =========
+        # Actions
+        tb = widgets.ToolBarGroup(self, title="Actions")
+        self.toolbar.addWidget(tb)
+
+        tb.addAction(self.openAction)
+        tb.addAction(self.editorAction)
+        self.toolbar.addSeparator()
+
+        # =========
+        # Clock
+        tb = widgets.ToolBarGroup(self, title="Clock")
+        self.toolbar.addWidget(tb)
+
+        self.clockWidget = widgets.ClockWidget(self)
+        tb.addWidget(self.clockWidget)
+
+        # Pause button
+        self.buttPause = QtWidgets.QPushButton(self.tr("Pause"), self)
+        self.buttPause.setCheckable(True)
+        tb.addWidget(self.buttPause)
+        self.toolbar.addSeparator()
+
+        # =========
+        # Speed
+        tb = widgets.ToolBarGroup(self, title="Speed")
+        self.toolbar.addWidget(tb)
+
+        # Time factor spinBox
+        self.timeFactorSpinBox = QtWidgets.QSpinBox(self)
+        self.timeFactorSpinBox.setRange(0, 10)
+        self.timeFactorSpinBox.setSingleStep(1)
+        self.timeFactorSpinBox.setValue(1)
+        self.timeFactorSpinBox.setSuffix("x")
+        tb.addWidget(self.timeFactorSpinBox)
+        self.toolbar.addSeparator()
+
+        # =========
+        # Zoom
+        tb = widgets.ToolBarGroup(self, title="Zoom")
+        self.toolbar.addWidget(tb)
+        tb.setMaximumWidth(300)
+
+        self.zoomWidget = widgets.ZoomWidget(self)
+        self.zoomWidget.setMaximumWidth(300)
+        #self.zoomWidget.valueChanged.connect(self.simulationWindow.zoom)
+
+        tb.addWidget(self.zoomWidget)
+        self.toolbar.addSeparator()
+
+        # =========
+        # Score
+        tb = widgets.ToolBarGroup(self, title="Score")
+        self.toolbar.addWidget(tb)
+
+        # Score display
+        self.scoreDisplay = QtWidgets.QLCDNumber(self)
+        self.scoreDisplay.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.scoreDisplay.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.scoreDisplay.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
+        self.scoreDisplay.setNumDigits(5)
+        self.scoreDisplay.resize(70, 25)
+        tb.addWidget(self.scoreDisplay)
+
+        ## Sim Title
+        self.lblTitle = QtWidgets.QLabel()
+        lbl_sty = "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #fefefe, stop: 1 #CECECE);"
+        lbl_sty += " color: #333333; font-size: 16pt; padding: 1px;"
+        self.lblTitle.setStyleSheet(lbl_sty)
+        self.lblTitle.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
+        self.lblTitle.setText("no sim loaded")
+        sp = self.lblTitle.sizePolicy()
+        sp.setHorizontalPolicy(QtWidgets.QSizePolicy.Expanding)
+        self.lblTitle.setSizePolicy(sp)
+        self.toolbar.addWidget(self.lblTitle)
+
+        # ===============================================================
         # Dock Widgets
 
         # Train Info
@@ -332,9 +416,12 @@ class MainWindow(QtWidgets.QMainWindow):
             # else:
             self.setWindowTitle(self.tr(
                 "ts2 - Train Signalling Simulation - %s") % fileName)
+            self.lblTitle.setText( self.simulation.option("title") )
             self.simulationConnect()
             self.simulationLoaded.emit(self.simulation)
             QtWidgets.QApplication.restoreOverrideCursor()
+
+
 
     def simulationConnect(self):
         """Connects the signals and slots to the simulation."""
@@ -371,10 +458,12 @@ class MainWindow(QtWidgets.QMainWindow):
         )
         # Panel
         self.simulation.timeChanged.connect(self.panel.clock.setTime)
+        self.simulation.timeChanged.connect(self.clockWidget.setTime)
         self.simulation.scorer.scoreChanged.connect(
             self.panel.scoreDisplay.display
         )
         self.panel.scoreDisplay.display(self.simulation.scorer.score)
+        self.scoreDisplay.display(self.simulation.scorer.score)
         # Menus
         self.saveGameAsAction.setEnabled(True)
         self.propertiesAction.setEnabled(True)
@@ -562,6 +651,9 @@ class MainWindow(QtWidgets.QMainWindow):
         """Handle scrollwheel on canvas"""
         percent = self.panel.zoomWidget.spinBox.value()
         self.panel.zoomWidget.spinBox.setValue(percent + (direction * 10))
+
+        percent = self.zoomWidget.spinBox.value()
+        self.zoomWidget.spinBox.setValue(percent + (direction * 10))
 
     def onWwwAction(self, act):
         url = act.property("url")

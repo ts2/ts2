@@ -48,8 +48,8 @@ class ZoomWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         """Constructor for the ZoomWidget class."""
         super().__init__(parent)
-        self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
-                           QtWidgets.QSizePolicy.Minimum)
+        #self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
+        #                   QtWidgets.QSizePolicy.Minimum)
         self.button = QtWidgets.QPushButton(self.tr("100%"), self)
 
         self.slider = QtWidgets.QSlider(Qt.Horizontal, self)
@@ -72,6 +72,7 @@ class ZoomWidget(QtWidgets.QWidget):
         self.spinBox.valueChanged.connect(self.valueChanged)
 
         hlayout = QtWidgets.QHBoxLayout()
+        hlayout.setContentsMargins(0,0,0,0)
         hlayout.addWidget(self.button)
         hlayout.addWidget(self.slider)
         hlayout.addWidget(self.spinBox)
@@ -81,13 +82,13 @@ class ZoomWidget(QtWidgets.QWidget):
     def setDefaultZoom(self):
         """Sets the zoom to 100%."""
         self.spinBox.setValue(100)
-
+    """
     def sizeHint(self):
         return QtCore.QSize(300, 50)
 
     def minimumSizeHint(self):
         return QtCore.QSize(300, 50)
-
+    """
 
 class ControlBarWidget(QtWidgets.QWidget):
     """The ControlBarWidget is the display rectangle below the scene holding the widgets
@@ -224,3 +225,41 @@ class StatusBar(QtWidgets.QWidget):
         else:
             self.progressBar.setRange(0,1)
         self.progressBar.setVisible(is_busy)
+
+class ToolBarGroup(QtWidgets.QWidget):
+
+    def __init__(self, parent=None, title=None):
+        """Constructor for the ToolBarGroup class."""
+        super().__init__(parent)
+
+        # Main Layout
+        mainLayout = QtWidgets.QVBoxLayout()
+        mainLayout.setContentsMargins( 0, 0, 0, 0 )
+        mainLayout.setSpacing( 0 )
+        self.setLayout( mainLayout )
+
+        # Label
+        self.label = QtWidgets.QLabel()
+        lbl_sty = "background: #cccccc; " # qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #fefefe, stop: 1 #CECECE);"
+        lbl_sty += " color: #333333; font-size: 7pt; padding: 1px;" # border: 1px outset #cccccc;"
+        self.label.setStyleSheet( lbl_sty )
+        self.label.setAlignment( QtCore.Qt.AlignCenter )
+        mainLayout.addWidget( self.label )
+
+        # Toolbar
+        self.toolbar = QtWidgets.QToolBar()
+        self.toolbar.setToolButtonStyle( QtCore.Qt.ToolButtonTextBesideIcon )
+        self.toolbar.setFixedHeight( 30 )
+        mainLayout.addWidget( self.toolbar )
+
+        if title:
+            self.setTitle(title)
+
+    def setTitle(self, title):
+        self.label.setText( "%s" % title )
+
+    def addWidget(self, widget):
+        self.toolbar.addWidget(widget)
+
+    def addAction(self, action):
+        self.toolbar.addAction(action)
