@@ -20,12 +20,16 @@ class C:
     file_name = 2
     file_path = 3
 
+class TAB:
+    browse = 0
+    recent = 1
+    filesystem = 2
 
 
 class OpenDialog(QtWidgets.QDialog):
     """Popup files for the user to open a sim"""
 
-    def __init__(self, parent):
+    def __init__(self, parent, tab=0):
         """Constructor for the DownloadSimulationsDialog."""
         super().__init__(parent)
         self.setWindowTitle(
@@ -53,7 +57,7 @@ class OpenDialog(QtWidgets.QDialog):
         self.browseLayout = QtWidgets.QVBoxLayout()
         self.browseLayout.setContentsMargins(0, 0, 0, 0)
         self.browseWidget.setLayout(self.browseLayout)
-        self.tabWidget.addTab(self.browseWidget, "Browse Local")
+        self.tabWidget.addTab(self.browseWidget, "Downloaded")
 
         tbBrowse = QtWidgets.QToolBar()
         self.browseLayout.addWidget(tbBrowse)
@@ -73,8 +77,45 @@ class OpenDialog(QtWidgets.QDialog):
         hitem.setText(C.file_name, "File")
         hitem.setText(C.file_path, "Path")
         self.treeSims.setColumnHidden(C.file_path, True)
+        self.treeSims.itemDoubleClicked.connect(self.onTreeSimsItemDblClicked)
 
 
+        # =====================================
+        # Recent
+        #self.recentWidget = QtWidgets.QWidget()
+        #self.recentLayout = QtWidgets.QVBoxLayout()
+        #self.recentLayout.setContentsMargins(0, 0, 0, 0)
+        #self.recentWidget.setLayout(self.browseLayout)
+
+
+        self.treeRecent = QtWidgets.QTreeWidget()
+        self.tabWidget.addTab(self.treeRecent, "Recent")
+
+        #self.recentLayout.addWidget(self.treeSims)
+        hitem = self.treeRecent.headerItem()
+        #hitem.setText(C.name, "Name")
+        #hitem.setText(C.description, "Description")
+        #hitem.setText(C.file_name, "File")
+        hitem.setText(0, "Path")
+        #self.treeRecent.setColumnHidden(C.file_path, True)
+        self.treeRecent.itemDoubleClicked.connect(self.onTreeRecentItemDblClicked)
+
+
+        # =====================================
+        # Browse
+        self.fileModel = QtWidgets.QFileSystemModel()
+        print(QtCore.QDir.homePath())
+
+
+        self.treeFiles = QtWidgets.QTreeView()
+        self.treeFiles.setModel(self.fileModel)
+
+        self.fileModel.setRootPath( QtCore.QDir.homePath() )
+
+        self.tabWidget.addTab(self.treeFiles, "Browse")
+
+        # =================================
+        # Bottom status
         self.statusBar = widgets.StatusBar()
         containerLayout.addWidget(self.statusBar)
         if settings.debug:
@@ -130,9 +171,8 @@ class OpenDialog(QtWidgets.QDialog):
         self.statusBar.showMessage("Download done", timeout=2)
         self.onRefreshSims()
 
-    def onRefreshSims(self):
 
-        print("SIMS+", settings.simulationsDir)
+    def onRefreshSims(self):
 
         self.statusBar.showMessage("Loading")
         self.treeSims.clear()
@@ -141,20 +181,16 @@ class OpenDialog(QtWidgets.QDialog):
         for root, dirnames, filenames in os.walk(settings.simulationsDir):
             for filename in fnmatch.filter(filenames, '*.ts2'):
                 ts2_files.append(os.path.join(root, filename))
-        #print(ts2_files)
-        #return
-
 
 
         for file_path in ts2_files:
             with zipfile.ZipFile(file_path, "r") as zippy:
+
                 # wtf, confused why bytes returned
                 bytes =  zippy.read("simulation.json")
-                # print(bytes[0:50])
                 data = json.loads( bytes.decode() )
                 nfo = data['options']
-                #print(data.keys())
-                print(nfo)
+
                 item = QtWidgets.QTreeWidgetItem()
                 item.setText(C.name, nfo['title'])
                 item.setText(C.description, nfo['description'])
@@ -164,3 +200,11 @@ class OpenDialog(QtWidgets.QDialog):
 
         self.treeSims.resizeColumnToContents(C.name)
         self.statusBar.showMessage("")
+
+    def onTreeSimsItemDblClicked(self, item):
+        print(item)
+        file_path = item.text(C.file_path)
+
+    def onTreeRecentItemDblClicked(self, item):
+        file_path = item.text(0)
+
