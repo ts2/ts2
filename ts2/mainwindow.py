@@ -39,7 +39,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     simulationLoaded = QtCore.pyqtSignal(simulation.Simulation)
 
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, file=None):
         super().__init__()
         MainWindow._self = self
 
@@ -348,7 +348,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.view.setRenderHint(QtGui.QPainter.Antialiasing, False)
         self.view.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.view.setPalette(QtGui.QPalette(Qt.black))
-        self.view.wheelChanged.connect(self.on_wheel_changed)
+        self.view.wheelChanged.connect(self.onWheelChanged)
 
         # Control Panel
         # Loaded with simulation
@@ -370,6 +370,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.refreshRecent()
         settings.restoreWindow(self)
 
+        if file:
+            self.loadSimulation(file)
         # DEBUG
         # self.onOpenSimulation()
         # self.loadSimulation()
@@ -655,7 +657,7 @@ class MainWindow(QtWidgets.QMainWindow):
         settings.sync()
         super().closeEvent(event)
 
-    def on_wheel_changed(self, direction):
+    def onWheelChanged(self, direction):
         """Handle scrollwheel on canvas"""
         percent = self.panel.zoomWidget.spinBox.value()
         self.panel.zoomWidget.spinBox.setValue(percent + (direction * 10))

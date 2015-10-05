@@ -31,5 +31,9 @@ if __name__ == '__main__':
     parser.add_option("-d", "--debug", dest="debug", help="Start in debug mode", action="store_true", default=False)
     (options, args) = parser.parse_args()
 
+    file = None
+    if len(args) > 0:
+        file = args[0]
+
     import ts2.application
-    ts2.application.Main(debug=options.debug)
+    ts2.application.Main(debug=options.debug, file=file)
