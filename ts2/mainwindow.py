@@ -23,14 +23,14 @@ import zipfile
 import os
 from urllib import request
 
-from Qt import QtCore, QtGui, QtWidgets, Qt
+from Qt import QtCore, QtGui, QtWidgets, Qt, QtNetwork
 
 from ts2 import simulation, utils
 from ts2.gui import dialogs, trainlistview, servicelistview, widgets
 from ts2.scenery import placeitem
 from ts2.editor import editorwindow
 from ts2.utils import settings, userDataDirectory, simulationsDirectory
-
+from ts2.xobjects import websocket
 from ts2 import __PROJECT_WWW__, __ORG_CONTACT__, __VERSION__
 
 
@@ -49,6 +49,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Simulation
         self.simulation = None
+
+        self.wsServer = websocket.WebSocketServer("ts2", self)
+        self.wsServer.listen(QtNetwork.QHostAddress.Any, 5678)
+
 
         # Actions  ======================================
         self.openAction = QtWidgets.QAction(self.tr("&Open..."), self)
@@ -255,6 +259,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.refreshRecent()
         settings.restoreWindow(self)
 
+
+
         # DEBUG
         # self.loadSimulation()
         # self.openEditor()
@@ -346,6 +352,10 @@ class MainWindow(QtWidgets.QMainWindow):
         )
         # Panel
         self.simulation.timeChanged.connect(self.panel.clock.setTime)
+
+
+        self.simulation.timeChanged.connect(self.onClockTick)
+
         self.simulation.scorer.scoreChanged.connect(
             self.panel.scoreDisplay.display
         )
@@ -537,3 +547,17 @@ class MainWindow(QtWidgets.QMainWindow):
         """Handle scrollwheel on canvas"""
         percent = self.panel.zoomWidget.spinBox.value()
         self.panel.zoomWidget.spinBox.setValue(percent + (direction * 10))
+
+    @QtCore.pyqtSlot(QtCore.QTime)
+    def onClockTick(self, t):
+
+        self.wsServer.sendTime(t)
+
+        import random
+        colors = ["red", "yellow", "green"]
+        secs = t.second()
+        #print(t, secs, secs % 10 == 0)
+        if secs % 10 == 0:
+            x = random.randint(0, 2)
+            self.wsServer.sendMessage(dict(type="signal", state=colors[x], time= t.toString("hh:mm:ss")))
+

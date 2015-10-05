@@ -25,14 +25,13 @@
 # lets dream on..
 #
 # This pull the libs into a common name space
-# 
-# Constants and Enums etc..
-# In c++ `Qt::AlignLeft` is just there 
-# but in PyQt land its at `PyQt5.QtCore.Qt.AlignLeft` .. phew
-# So this imports for shortcut.. ta snake
+# such as using pyside in future
 
 from PyQt5.QtCore import Qt
 
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5 import QtWidgets
+
+from PyQt5 import QtNetwork
+from PyQt5 import QtWebSockets
