@@ -5,6 +5,8 @@ from Qt import QtCore, QtWebSockets
 
 class WebSocketServer(QtWebSockets.QWebSocketServer):
 
+    messageReceived = QtCore.pyqtSignal(dict)
+
     def __init__(self, name,  parent):
         super().__init__( name, QtWebSockets.QWebSocketServer.NonSecureMode, parent)
 
@@ -18,8 +20,10 @@ class WebSocketServer(QtWebSockets.QWebSocketServer):
 
         sock = self.nextPendingConnection()
         sock.sendTextMessage("Hello")
-        print("onNewCOnn", sock)
+        #print("onNewCOnn", sock)
         self.clients.append(sock)
+
+        sock.textMessageReceived.connect(self.onMessageReceived)
 
 
     def sendMessage(self, xx):
@@ -33,3 +37,9 @@ class WebSocketServer(QtWebSockets.QWebSocketServer):
     @QtCore.pyqtSlot(QtCore.QTime)
     def sendTime(self, t):
         self.sendMessage( {"type": "time", "time": t.toString("hh:mm:ss")} )
+
+    def onMessageReceived(self, s):
+        #print("onMess", s)
+        cmd = json.loads(s)
+
+        self.messageReceived.emit(cmd)

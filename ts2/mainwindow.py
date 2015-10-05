@@ -51,7 +51,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.simulation = None
 
         self.wsServer = websocket.WebSocketServer("ts2", self)
+        self.wsServer.messageReceived.connect(self.onWsMessage)
         self.wsServer.listen(QtNetwork.QHostAddress.Any, 5678)
+
 
 
         # Actions  ======================================
@@ -561,3 +563,11 @@ class MainWindow(QtWidgets.QMainWindow):
             x = random.randint(0, 2)
             self.wsServer.sendMessage(dict(type="signal", state=colors[x], time= t.toString("hh:mm:ss")))
 
+    def onWsMessage(self, mess):
+        print(mess)
+
+        if mess['cmd'] == "pause":
+            self.panel.pauseButton.toggle()
+
+        if mess['cmd'] == "zoom":
+            self.panel.zoomWidget.slider.setValue( mess['value'] )
