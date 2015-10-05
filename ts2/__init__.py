@@ -27,7 +27,7 @@
 
 __VERSION__ = "0.6.0"
 __FILE_FORMAT__ = 0.6
-__APP_SHORT__ = "TS2"
+__APP_SHORT__ = "ts2"
 __APP_LONG__ = "Train Signalling Simulation"
 __APP_DESCRIPTION__ = "A railway simulation game where you have to dispatch trains across an area and keep them on schedule"
 

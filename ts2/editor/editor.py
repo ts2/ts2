@@ -20,9 +20,11 @@
 
 import copy
 import zipfile
-import simplejson as json
 
+import simplejson as json
 from Qt import QtCore, QtWidgets, Qt
+
+from ts2 import __FILE_FORMAT__
 from ts2 import simulation
 from ts2 import utils, trains
 from ts2.routing import position, route
@@ -367,7 +369,7 @@ class Editor(simulation.Simulation):
     def save(self):
         """Saves the data of the simulation to the database"""
         # Set up database
-        self.setOption("version", utils.TS2_FILE_FORMAT)
+        self.setOption("version", __FILE_FORMAT__)
 
         if self.fileName.endswith(".ts2"):
             with zipfile.ZipFile(self.fileName, "w") as zipArchive:
