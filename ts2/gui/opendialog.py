@@ -20,47 +20,64 @@ class C:
     file_name = 2
     file_path = 3
 
-class TAB:
+class NAV:
     sims = 0
     recent = 1
     filesystem = 2
 
 
 class OpenDialog(QtWidgets.QDialog):
-    """Popup files for the user to open a sim"""
+    """Open sim file dialog"""
 
     openFile = QtCore.pyqtSignal(str)
 
     def __init__(self, parent, tab=0):
-        """Constructor for the DownloadSimulationsDialog."""
+        """Constructor for the OpenDialog."""
         super().__init__(parent)
         self.setWindowTitle(
-            self.tr("Open Dialog")
+            self.tr("Open Simulation")
         )
         self.setMinimumWidth(800)
         self.setMinimumHeight(800)
 
-        containerLayout = QtWidgets.QVBoxLayout()
-        containerLayout.setContentsMargins(0, 0, 0, 0)
+        m = 5
+        containerLayout = QtWidgets.QHBoxLayout()
+        containerLayout.setContentsMargins(m,m,m,m)
         self.setLayout(containerLayout)
-        containerLayout.addSpacing(10)
 
-        mainLayout = QtWidgets.QHBoxLayout()
+
+
+
+        # ========================================
+        # Left Bar + navigation
+        self.leftBar = QtWidgets.QVBoxLayout()
+        self.leftBar.setContentsMargins(0, 0, 0, 0)
+        containerLayout.addLayout(self.leftBar)
+
+        self.buttGroup = QtWidgets.QButtonGroup()
+        self.buttGroup.setExclusive(True)
+
+        self.leftBar.addWidget( self._make_nav_button("Sims", NAV.sims) )
+        self.leftBar.addWidget( self._make_nav_button("Recent", NAV.recent) )
+        self.leftBar.addWidget( self._make_nav_button("Browse", NAV.filesystem) )
+        self.leftBar.addStretch(20)
+
+        # ==================================================================================
+        # Stack widget for main
+        mainLayout = QtWidgets.QVBoxLayout()
         mainLayout.setContentsMargins(0, 0, 0, 0)
         containerLayout.addLayout(mainLayout)
 
-        # Tab Widget
-        self.tabWidget = QtWidgets.QTabWidget()
-        mainLayout.addWidget(self.tabWidget)
+        self.stackWidget = QtWidgets.QStackedWidget()
+        mainLayout.addWidget(self.stackWidget)
 
-
-        # =====================================
-        # Downlaoded Sims
+        # =================
+        # Downloaded Sims
         self.downloadWidget = QtWidgets.QWidget()
         self.downloadLayout = QtWidgets.QVBoxLayout()
         self.downloadLayout.setContentsMargins(0, 0, 0, 0)
         self.downloadWidget.setLayout(self.downloadLayout)
-        self.tabWidget.addTab(self.downloadWidget, "Downloaded")
+        self.stackWidget.addWidget(self.downloadWidget)
 
         tbBrowse = QtWidgets.QToolBar()
         self.downloadLayout.addWidget(tbBrowse)
@@ -87,7 +104,7 @@ class OpenDialog(QtWidgets.QDialog):
         # Recent
 
         self.treeRecent = QtWidgets.QTreeWidget()
-        self.tabWidget.addTab(self.treeRecent, "Recent")
+        self.stackWidget.addWidget(self.treeRecent)
 
         hitem = self.treeRecent.headerItem()
         hitem.setText(0, "Path")
@@ -103,20 +120,22 @@ class OpenDialog(QtWidgets.QDialog):
         self.treeFiles = QtWidgets.QTreeView()
         self.treeFiles.setModel(self.filesModel)
 
-        self.tabWidget.addTab(self.treeFiles, "Browse")
+        self.stackWidget.addWidget(self.treeFiles)
 
         # =================================
         # Bottom status
         self.statusBar = widgets.StatusBar()
-        containerLayout.addWidget(self.statusBar)
+        mainLayout.addWidget(self.statusBar)
         if settings.debug:
             self.statusBar.showMessage(settings.simulationsDir)
 
-        self.tabWidget.currentChanged.connect(self.onTabChanged)
-        self.onTabChanged()
+
+        self.buttGroup.buttonToggled.connect(self.onNavButtClicked)
+        self.buttGroup.button(tab).setChecked(True)
+
 
     def onDownload(self):
-
+        """Downloads zip when Download button clicked"""
         #print("onDownload")
         QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
 
@@ -127,6 +146,7 @@ class OpenDialog(QtWidgets.QDialog):
 
         self.statusBar.showBusy(True)
         self.statusBar.showMessage("Requesting %s" % url)
+        self.buttDownload.setDisabled(True)
 
         response = request.urlopen(url)
 
@@ -161,17 +181,20 @@ class OpenDialog(QtWidgets.QDialog):
 
         self.statusBar.showBusy(False)
         self.statusBar.showMessage("Download done", timeout=2)
-
+        self.buttDownload.setDisabled(False)
         self.onRefreshSims()
 
-    def onTabChanged(self):
-        idx = self.tabWidget.currentIndex()
+    def onNavButtClicked(self, butt):
 
-        if idx == TAB.sims:
+        idx = self.buttGroup.id(butt)
+
+        if idx == NAV.sims:
             self.onRefreshSims()
 
-        elif idx == TAB.recent:
+        elif idx == NAV.recent:
             self.onRefreshRecent()
+
+        self.stackWidget.setCurrentIndex(idx)
 
     def onRefreshSims(self):
         """Reloads the simulations dir"""
@@ -204,7 +227,7 @@ class OpenDialog(QtWidgets.QDialog):
 
 
     def onRefreshRecent(self):
-        """Reloads teh recent items"""
+        """Reloads the recent items"""
         self.treeRecent.clear()
         for fn in settings.getRecent():
             item = QtWidgets.QTreeWidgetItem()
@@ -212,7 +235,6 @@ class OpenDialog(QtWidgets.QDialog):
             self.treeRecent.addTopLevelItem(item)
 
     def onTreeSimsItemDblClicked(self, item):
-
         file_path = item.text(C.file_path)
         self.openFile.emit(file_path)
         self.accept()
@@ -221,3 +243,14 @@ class OpenDialog(QtWidgets.QDialog):
         file_path = item.text(0)
         self.openFile.emit(file_path)
         self.accept()
+
+    def _make_nav_button(self, txt, idx):
+        butt = QtWidgets.QToolButton()
+        butt.setText(txt)
+        butt.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        butt.setCheckable(True)
+        butt.setStyleSheet("font-weight: bold; text-align: center; font-size: 14pt;")
+        butt.setFixedWidth(100)
+        butt.setAutoRaise(True)
+        self.buttGroup.addButton(butt, idx)
+        return butt

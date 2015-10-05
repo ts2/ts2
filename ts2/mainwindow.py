@@ -259,7 +259,8 @@ class MainWindow(QtWidgets.QMainWindow):
         settings.restoreWindow(self)
 
         # DEBUG
-        #self.loadSimulation()
+        # self.onOpenSimulation()
+        # self.loadSimulation()
         # self.openEditor()
 
     @staticmethod
