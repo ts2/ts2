@@ -158,6 +158,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # ==============================================================
         # ToolBar
         self.toolbar = QtWidgets.QToolBar()
+        self.toolbar.setObjectName("main_toolbar")
         self.addToolBar(self.toolbar)
 
         # =========
@@ -167,20 +168,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         tb.addAction(self.openAction)
         tb.addAction(self.editorAction)
-        self.toolbar.addSeparator()
-
-        # =========
-        # Clock
-        tb = widgets.ToolBarGroup(self, title="Clock")
-        self.toolbar.addWidget(tb)
-
-        self.clockWidget = widgets.ClockWidget(self)
-        tb.addWidget(self.clockWidget)
-
-        # Pause button
-        self.buttPause = QtWidgets.QPushButton(self.tr("Pause"), self)
-        self.buttPause.setCheckable(True)
-        tb.addWidget(self.buttPause)
         self.toolbar.addSeparator()
 
         # =========
@@ -223,8 +210,29 @@ class MainWindow(QtWidgets.QMainWindow):
         self.scoreDisplay.setNumDigits(5)
         self.scoreDisplay.resize(70, 25)
         tb.addWidget(self.scoreDisplay)
+        self.toolbar.addSeparator()
 
-        ## Sim Title
+        # =========
+        # Clock
+        tb = widgets.ToolBarGroup(self, title="Clock")
+        self.toolbar.addWidget(tb)
+
+        # Pause button
+        self.buttPause = QtWidgets.QToolButton(self)
+        self.buttPause.setText( self.tr("Pause") )
+        self.buttPause.setCheckable(True)
+        self.buttPause.setAutoRaise(True)
+        self.buttPause.setMaximumWidth(50)
+        tb.addWidget(self.buttPause)
+
+
+        self.clockWidget = widgets.ClockWidget(self)
+        tb.addWidget(self.clockWidget)
+
+        self.toolbar.addSeparator()
+
+        # ====================
+        # Sim Title
         self.lblTitle = QtWidgets.QLabel()
         lbl_sty = "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #fefefe, stop: 1 #CECECE);"
         lbl_sty += " color: #333333; font-size: 16pt; padding: 1px;"

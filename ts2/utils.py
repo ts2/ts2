@@ -26,6 +26,7 @@ import simplejson
 
 import ts2.xobjects.xsettings
 
+# TODO npi = can these go as now in __init__ ??
 TS2_VERSION = "0.6"
 TS2_FILE_FORMAT = 0.6
 
