@@ -104,6 +104,7 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
         self.endResetModel()
 
 
+
 class ServiceListModel(QtCore.QAbstractTableModel):
     """Model for displaying services during the game. This model makes a
     copy of the services of the simulation at the time it is created.
