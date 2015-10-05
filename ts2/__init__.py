@@ -37,6 +37,8 @@ __ORG_CONTACT__ = "npiganeau@github.com"
 __PROJECT_DOMAIN__ = "ts2.github.io"
 __PROJECT_WWW__ = "http://ts2.github.io/"
 __PROJECT_HOME__ = "https://github.com/ts2"
+__PROJECT_BUGS__ = "https://github.com/ts2/ts2/issues"
+
 
 __SIMULATIONS_REPO__ = "https://github.com/ts2/ts2-data"
 
@@ -54,5 +56,6 @@ def get_info():
         project_domain = __PROJECT_DOMAIN__,
         project_www = __PROJECT_WWW__,
         project_home = __PROJECT_HOME__,
+        project_bugs = __PROJECT_BUGS__,
         simulations_repo = __SIMULATIONS_REPO__
     )

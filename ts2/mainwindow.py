@@ -31,7 +31,7 @@ from ts2.scenery import placeitem
 from ts2.editor import editorwindow
 from ts2.utils import settings
 
-from ts2 import __PROJECT_WWW__, __ORG_CONTACT__, __VERSION__
+from ts2 import __PROJECT_WWW__, __PROJECT_HOME__, __PROJECT_BUGS__, __ORG_CONTACT__, __VERSION__
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -48,7 +48,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setObjectName("ts2_main_window")
         self.editorWindow = None
         self.setGeometry(100, 100, 800, 600)
-        self.setWindowTitle(self.tr("ts2 - Train Signalling Simulation"))
+        self.setWindowTitle(self.tr("ts2 - Train Signalling Simulation") + " - %s" % __VERSION__)
 
         # Simulation
         self.simulation = None
@@ -98,6 +98,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.editorAction.setToolTip(self.tr("Open the simulation editor"))
         self.editorAction.triggered.connect(self.openEditor)
 
+        ## Web Links
+        self.actionGroupWwww = QtWidgets.QActionGroup(self)
+        self.actionGroupWwww.triggered.connect(self.onWwwAction)
+
+        self.aboutWwwHompage = QtWidgets.QAction(self.tr("&TS2 Homepage"), self)
+        self.aboutWwwHompage.setProperty("url", __PROJECT_WWW__)
+        self.actionGroupWwww.addAction(self.aboutWwwHompage)
+
+        self.aboutWwwProject = QtWidgets.QAction(self.tr("&TS2 Project"), self)
+        self.aboutWwwProject.setProperty("url", __PROJECT_HOME__)
+        self.actionGroupWwww.addAction(self.aboutWwwProject)
+
+        self.aboutWwwBugs = QtWidgets.QAction(self.tr("&TS2 Bugs && Feedback"), self)
+        self.aboutWwwBugs.setProperty("url", __PROJECT_BUGS__)
+        self.actionGroupWwww.addAction(self.aboutWwwBugs)
+
         self.aboutAction = QtWidgets.QAction(self.tr("&About TS2..."), self)
         self.aboutAction.setToolTip(self.tr("About TS2"))
         self.aboutAction.triggered.connect(self.showAboutBox)
@@ -127,6 +143,10 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # Help Menu
         self.helpMenu = self.menuBar().addMenu(self.tr("&Help"))
+        self.helpMenu.addAction(self.aboutWwwHompage)
+        self.helpMenu.addAction(self.aboutWwwProject)
+        self.helpMenu.addAction(self.aboutWwwBugs)
+        self.helpMenu.addSeparator()
         self.helpMenu.addAction(self.aboutAction)
         self.helpMenu.addAction(self.aboutQtAction)
 
@@ -542,3 +562,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """Handle scrollwheel on canvas"""
         percent = self.panel.zoomWidget.spinBox.value()
         self.panel.zoomWidget.spinBox.setValue(percent + (direction * 10))
+
+    def onWwwAction(self, act):
+        url = act.property("url")
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl(url))
