@@ -192,7 +192,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # =========
         # Score
-        tbar, tbg = self._make_toolbar_group("Score")
+        tbar, tbg = self._make_toolbar_group("Penalty")
         self.addToolBar(tbar)
 
         # Score display
@@ -211,11 +211,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Pause button
         self.buttPause = QtWidgets.QToolButton(self)
-        self.buttPause.setText( self.tr("Pause") )
+        self.buttPause.setText( "  " + self.tr("Pause") + "  ")
         self.buttPause.setCheckable(True)
         self.buttPause.setAutoRaise(True)
         self.buttPause.setMaximumWidth(50)
         tbg.addWidget(self.buttPause)
+
 
         # Clock Widget
         self.clockWidget = widgets.ClockWidget(self)
@@ -225,6 +226,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # ====================
         # Sim Title
         tbar = QtWidgets.QToolBar()
+        tbar.setObjectName("toolbar_label_title")
         tbar.setFloatable(False)
         tbar.setMovable(False)
         self.addToolBar(tbar)
@@ -345,16 +347,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.view.setPalette(QtGui.QPalette(Qt.black))
         self.view.wheelChanged.connect(self.onWheelChanged)
 
-        # Control Panel
-        # Loaded with simulation
-        self.panel = widgets.ControlBarWidget(self.board, self)
-        self.panel.zoomChanged.connect(self.zoom)
 
         # Display
         self.grid = QtWidgets.QVBoxLayout()
         self.grid.setContentsMargins(0, 0, 0, 0)
         self.grid.addWidget(self.view)
-        self.grid.addWidget(self.panel)
         self.grid.setSpacing(0)
         self.board.setLayout(self.grid)
         self.setCentralWidget(self.board)
@@ -424,6 +421,16 @@ class MainWindow(QtWidgets.QMainWindow):
             self.lblTitle.setText( self.simulation.option("title") )
             self.simulationConnect()
             self.simulationLoaded.emit(self.simulation)
+
+            self.buttPause.toggled.connect(self.simulation.pause)
+            self.buttPause.toggled.connect(self.setPauseButtonText)
+            self.timeFactorSpinBox.valueChanged.connect(
+                self.simulation.setTimeFactor
+            )
+            self.timeFactorSpinBox.setValue(
+                float(self.simulation.option("timeFactor"))
+            )
+
             QtWidgets.QApplication.restoreOverrideCursor()
 
 
@@ -462,13 +469,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.loggerView.scrollToBottom
         )
         # Panel
-        self.simulation.timeChanged.connect(self.panel.clock.setTime)
         self.simulation.timeChanged.connect(self.clockWidget.setTime)
         self.simulation.scorer.scoreChanged.connect(
-            self.panel.scoreDisplay.display
+            self.scoreDisplay.display
         )
-        self.panel.scoreDisplay.display(self.simulation.scorer.score)
         self.scoreDisplay.display(self.simulation.scorer.score)
+
         # Menus
         self.saveGameAsAction.setEnabled(True)
         self.propertiesAction.setEnabled(True)
@@ -654,8 +660,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def onWheelChanged(self, direction):
         """Handle scrollwheel on canvas"""
-        percent = self.panel.zoomWidget.spinBox.value()
-        self.panel.zoomWidget.spinBox.setValue(percent + (direction * 10))
 
         percent = self.zoomWidget.spinBox.value()
         self.zoomWidget.spinBox.setValue(percent + (direction * 10))
@@ -667,7 +671,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def _make_toolbar_group(self, title):
         """Creates a toolbar containing a `ToolBarGroup`"""
         tbar = QtWidgets.QToolBar()
-        tbar.setObjectName("tb_" + title )
+        tbar.setObjectName("toolbar_" + title )
         tbar.setFloatable(False)
         tbar.setMovable(True)
 
@@ -676,3 +680,9 @@ class MainWindow(QtWidgets.QMainWindow):
         return tbar, tbg
 
 
+    @QtCore.pyqtSlot(bool)
+    def setPauseButtonText(self, paused):
+        if paused:
+            self.buttPause.setText(self.tr("Continue"))
+        else:
+            self.buttPause.setText(self.tr("Pause"))
