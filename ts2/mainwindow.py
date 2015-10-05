@@ -273,35 +273,40 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QDockWidget.DockWidgetFloatable
         )
         ## Experimental to show code seperate >>>
-        sty = "background-color: #444444; color: white; padding: 2px; font-size: 10pt"
-        wid = QtWidgets.QWidget()
-        self.serviceInfoPanel.setWidget(wid)
-        grid = QtWidgets.QGridLayout()
-        wid.setLayout(grid)
-        self.lblServiceInfoCode = QtWidgets.QLabel()
-        self.lblServiceInfoCode.setStyleSheet(sty)
-        self.lblServiceInfoCode.setText("")
-        grid.addWidget(self.lblServiceInfoCode, 0, 0)
-        self.lblServiceInfoDescription = QtWidgets.QLabel()
-        self.lblServiceInfoDescription.setText("")
-        self.lblServiceInfoDescription.setStyleSheet(sty)
-        self.lblServiceInfoDescription.setScaledContents(False)
-        self.lblServiceInfoDescription.setMaximumWidth(200)
-        grid.addWidget(self.lblServiceInfoDescription, 0, 1)
+        EXP = True
+        if EXP:
+            sty = "background-color: #444444; color: white; padding: 2px; font-size: 10pt"
+            wid = QtWidgets.QWidget()
+            self.serviceInfoPanel.setWidget(wid)
+            grid = QtWidgets.QGridLayout()
+            wid.setLayout(grid)
+            self.lblServiceInfoCode = QtWidgets.QLabel()
+            self.lblServiceInfoCode.setStyleSheet(sty)
+            self.lblServiceInfoCode.setText("")
+            grid.addWidget(self.lblServiceInfoCode, 0, 0)
+            self.lblServiceInfoDescription = QtWidgets.QLabel()
+            self.lblServiceInfoDescription.setText("")
+            self.lblServiceInfoDescription.setStyleSheet(sty)
+            self.lblServiceInfoDescription.setScaledContents(False)
+            self.lblServiceInfoDescription.setMaximumWidth(200)
+            grid.addWidget(self.lblServiceInfoDescription, 0, 1)
         # <<<
         self.serviceInfoView = QtWidgets.QTreeView(self)
         self.serviceInfoView.setItemsExpandable(False)
         self.serviceInfoView.setRootIsDecorated(False)
-        grid.addWidget(self.serviceInfoView, 1, 0, 1, 2)
+        if EXP:
+            grid.addWidget(self.serviceInfoView, 1, 0, 1, 2)
+            self.serviceInfoPanel.setWidget(wid)
+            grid.setColumnStretch(0, 1)
+            grid.setColumnStretch(1, 4)
+            grid.setSpacing(0)
+            grid.setContentsMargins(0,0,0,0)
+        else:
+            self.serviceInfoPanel.setWidget(self.serviceInfoView)
 
-        #self.serviceInfoPanel.setWidget(self.serviceInfoView)
-        self.serviceInfoPanel.setWidget(wid)
         self.addDockWidget(Qt.RightDockWidgetArea, self.serviceInfoPanel)
 
-        grid.setColumnStretch(0, 1)
-        grid.setColumnStretch(1, 4)
-        grid.setSpacing(0)
-        grid.setContentsMargins(0,0,0,0)
+
 
         # Stations + Places Info
         self.placeInfoPanel = QtWidgets.QDockWidget(
