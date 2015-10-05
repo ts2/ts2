@@ -123,7 +123,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.aboutQtAction.setToolTip(self.tr("About Qt"))
         self.aboutQtAction.triggered.connect(QtWidgets.QApplication.aboutQt)
 
-        # Menus ======================================
+        # ===============================================
+        # Menus
 
         # FileMenu
         self.fileMenu = self.menuBar().addMenu(self.tr("&File"))
@@ -156,51 +157,43 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
         # ==============================================================
-        # ToolBar
-        self.toolbar = QtWidgets.QToolBar()
-        self.toolbar.setObjectName("main_toolbar")
-        self.addToolBar(self.toolbar)
+        # ToolBars
 
         # =========
         # Actions
-        tb = widgets.ToolBarGroup(self, title="Actions")
-        self.toolbar.addWidget(tb)
-
-        tb.addAction(self.openAction)
-        tb.addAction(self.editorAction)
-        self.toolbar.addSeparator()
+        tbar, tbg = self._make_toolbar_group("Actions")
+        self.addToolBar(tbar)
+        tbg.addAction(self.openAction)
+        tbg.addAction(self.editorAction)
 
         # =========
         # Speed
-        tb = widgets.ToolBarGroup(self, title="Speed")
-        self.toolbar.addWidget(tb)
+        tbar, tbg = self._make_toolbar_group("Speed")
+        self.addToolBar(tbar)
 
         # Time factor spinBox
         self.timeFactorSpinBox = QtWidgets.QSpinBox(self)
-        self.timeFactorSpinBox.setRange(0, 10)
+        self.timeFactorSpinBox.setRange(1, 10)
         self.timeFactorSpinBox.setSingleStep(1)
         self.timeFactorSpinBox.setValue(1)
         self.timeFactorSpinBox.setSuffix("x")
-        tb.addWidget(self.timeFactorSpinBox)
-        self.toolbar.addSeparator()
+        tbg.addWidget(self.timeFactorSpinBox)
 
         # =========
         # Zoom
-        tb = widgets.ToolBarGroup(self, title="Zoom")
-        self.toolbar.addWidget(tb)
-        tb.setMaximumWidth(300)
+        tbar, tbg = self._make_toolbar_group("Zoom")
+        self.addToolBar(tbar)
+        tbg.setMaximumWidth(300)
 
         self.zoomWidget = widgets.ZoomWidget(self)
         self.zoomWidget.setMaximumWidth(300)
-        #self.zoomWidget.valueChanged.connect(self.simulationWindow.zoom)
-
-        tb.addWidget(self.zoomWidget)
-        self.toolbar.addSeparator()
+        self.zoomWidget.valueChanged.connect(self.zoom)
+        tbg.addWidget(self.zoomWidget)
 
         # =========
         # Score
-        tb = widgets.ToolBarGroup(self, title="Score")
-        self.toolbar.addWidget(tb)
+        tbar, tbg = self._make_toolbar_group("Score")
+        self.addToolBar(tbar)
 
         # Score display
         self.scoreDisplay = QtWidgets.QLCDNumber(self)
@@ -209,13 +202,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.scoreDisplay.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
         self.scoreDisplay.setNumDigits(5)
         self.scoreDisplay.resize(70, 25)
-        tb.addWidget(self.scoreDisplay)
-        self.toolbar.addSeparator()
+        tbg.addWidget(self.scoreDisplay)
 
         # =========
         # Clock
-        tb = widgets.ToolBarGroup(self, title="Clock")
-        self.toolbar.addWidget(tb)
+        tbar, tbg = self._make_toolbar_group("Clock")
+        self.addToolBar(tbar)
 
         # Pause button
         self.buttPause = QtWidgets.QToolButton(self)
@@ -223,16 +215,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.buttPause.setCheckable(True)
         self.buttPause.setAutoRaise(True)
         self.buttPause.setMaximumWidth(50)
-        tb.addWidget(self.buttPause)
+        tbg.addWidget(self.buttPause)
 
-
+        # Clock Widget
         self.clockWidget = widgets.ClockWidget(self)
-        tb.addWidget(self.clockWidget)
+        tbg.addWidget(self.clockWidget)
 
-        self.toolbar.addSeparator()
 
         # ====================
         # Sim Title
+        tbar = QtWidgets.QToolBar()
+        tbar.setFloatable(False)
+        tbar.setMovable(False)
+        self.addToolBar(tbar)
         self.lblTitle = QtWidgets.QLabel()
         lbl_sty = "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #fefefe, stop: 1 #CECECE);"
         lbl_sty += " color: #333333; font-size: 16pt; padding: 1px;"
@@ -242,7 +237,7 @@ class MainWindow(QtWidgets.QMainWindow):
         sp = self.lblTitle.sizePolicy()
         sp.setHorizontalPolicy(QtWidgets.QSizePolicy.Expanding)
         self.lblTitle.setSizePolicy(sp)
-        self.toolbar.addWidget(self.lblTitle)
+        tbar.addWidget(self.lblTitle)
 
         # ===============================================================
         # Dock Widgets
@@ -668,3 +663,16 @@ class MainWindow(QtWidgets.QMainWindow):
     def onWwwAction(self, act):
         url = act.property("url")
         QtGui.QDesktopServices.openUrl(QtCore.QUrl(url))
+
+    def _make_toolbar_group(self, title):
+        """Creates a toolbar containing a `ToolBarGroup`"""
+        tbar = QtWidgets.QToolBar()
+        tbar.setObjectName("tb_" + title )
+        tbar.setFloatable(False)
+        tbar.setMovable(True)
+
+        tbg = widgets.ToolBarGroup(self, title=title)
+        tbar.addWidget(tbg)
+        return tbar, tbg
+
+

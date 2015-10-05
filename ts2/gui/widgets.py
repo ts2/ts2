@@ -226,6 +226,7 @@ class StatusBar(QtWidgets.QWidget):
             self.progressBar.setRange(0,1)
         self.progressBar.setVisible(is_busy)
 
+
 class ToolBarGroup(QtWidgets.QWidget):
 
     def __init__(self, parent=None, title=None):
@@ -246,7 +247,7 @@ class ToolBarGroup(QtWidgets.QWidget):
         self.label.setAlignment( QtCore.Qt.AlignCenter )
         mainLayout.addWidget( self.label )
 
-        # Toolbar
+        # Toolbar - were using a toolbar as we can addAction, Q*box dont allow
         self.toolbar = QtWidgets.QToolBar()
         self.toolbar.setToolButtonStyle( QtCore.Qt.ToolButtonTextBesideIcon )
         self.toolbar.setFixedHeight( 30 )
