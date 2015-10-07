@@ -173,7 +173,7 @@ class TrainType:
     def maxSpeed(self):
         """
         :return: the maximum speed that this rolling stock type is capable, in m/s
-        :rtype: int
+        :rtype: float
         """
         return self._maxSpeed
     
@@ -187,7 +187,7 @@ class TrainType:
     def stdAccel(self):
         """
         :return: the standard acceleration of this rolling stock type, in m/s2
-        :rtype: int
+        :rtype: float
         """
         return self._stdAccel
     
@@ -203,7 +203,7 @@ class TrainType:
         :return: The standard braking of this rolling stock type, in
                  m/s2. The standard braking is the normal rate at which speed will be
                  reduced when approaching a speed limit, a station, a signal, etc.
-        :rtype: int
+        :rtype: float
         """
         return self._stdBraking
     
@@ -219,7 +219,7 @@ class TrainType:
         :return: the emergency braking of this rolling stock type, in
                  m/s2. Emergency braking is the maximum rate at which a train can
                  reduce its speed in case of a danger ahead.
-        :rtype: int
+        :rtype: float
         """
         return self._emergBraking
     
@@ -231,7 +231,10 @@ class TrainType:
     
     @property
     def length(self):
-        """Returns the length of this rolling stock type in meters"""
+        """
+        :return: the length of this rolling stock type in meters
+        :rtype: int
+        """
         return self._length
     
     @length.setter
