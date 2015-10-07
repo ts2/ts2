@@ -143,7 +143,10 @@ class TrainType:
 
     @property
     def code(self):
-        """Returns the unique code of this rolling stock type"""
+        """
+        :return: the unique code of this rolling stock type
+        :rtype: str
+        """
         return self._code
     
     @code.setter
@@ -154,7 +157,10 @@ class TrainType:
     
     @property
     def description(self):
-        """Returns the description of this rolling stock type"""
+        """
+        :return: the description of this rolling stock type
+        :rtype: str
+        """
         return self._description
     
     @description.setter
@@ -165,8 +171,10 @@ class TrainType:
     
     @property
     def maxSpeed(self):
-        """Returns the maximum speed that this rolling stock type is capable,
-        in m/s"""
+        """
+        :return: the maximum speed that this rolling stock type is capable, in m/s
+        :rtype: int
+        """
         return self._maxSpeed
     
     @maxSpeed.setter
@@ -177,8 +185,10 @@ class TrainType:
     
     @property
     def stdAccel(self):
-        """Returns the standard acceleration of this rolling stock type, in
-        m/s2"""
+        """
+        :return: the standard acceleration of this rolling stock type, in m/s2
+        :rtype: int
+        """
         return self._stdAccel
     
     @stdAccel.setter
@@ -189,9 +199,12 @@ class TrainType:
     
     @property
     def stdBraking(self):
-        """Returns the standard braking of this rolling stock type, in
-        m/s2. The standard braking is the normal rate at which speed will be 
-        reduced when approaching a speed limit, a station, a signal, etc."""
+        """
+        :return: The standard braking of this rolling stock type, in
+                 m/s2. The standard braking is the normal rate at which speed will be
+                 reduced when approaching a speed limit, a station, a signal, etc.
+        :rtype: int
+        """
         return self._stdBraking
     
     @stdBraking.setter
@@ -202,9 +215,12 @@ class TrainType:
     
     @property
     def emergBraking(self):
-        """Returns the emergency braking of this rolling stock type, in
-        m/s2. Emergency braking is the maximum rate at which a train can 
-        reduce its speed in case of a danger ahead."""
+        """
+        :return: the emergency braking of this rolling stock type, in
+                 m/s2. Emergency braking is the maximum rate at which a train can
+                 reduce its speed in case of a danger ahead.
+        :rtype: int
+        """
         return self._emergBraking
     
     @emergBraking.setter

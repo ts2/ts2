@@ -29,19 +29,32 @@ translate = QtWidgets.qApp.translate
 
 
 class TrainStatus(QtCore.QObject):
-    """This class holds the enum describing the status of a train"""
+    """Holds the enum describing the status of a :class:`~ts2.trains.train.Train`"""
 
-    INACTIVE = 0         # Not yet entered on the scene
-    RUNNING = 10         # Running with a positive speed
-    STOPPED = 20         # Scheduled stop, e.g. at a station
-    WAITING = 30         # Unscheduled stop, e.g. at a red signal
-    OUT = 40             # Exited the area
-    END_OF_SERVICE = 50  # Ended its service and no new service assigned
+    INACTIVE = 0
+    """Not yet entered on the scene"""
+
+    RUNNING = 10
+    """Running with a positive speed"""
+
+    STOPPED = 20
+    """Scheduled stop, e.g. at a station"""
+
+    WAITING = 30
+    """Unscheduled stop, e.g. at a red signal"""
+
+    OUT = 40
+    """Exited the area"""
+
+    END_OF_SERVICE = 50
+    """Ended its service and no new service assigned"""
 
     @classmethod
     def text(cls, status):
-        """Returns the text corresponding to each status to display in the
-        application."""
+        """
+        :return: Text corresponding to each status to display in the application.
+        :rtype: str
+        """
         if status == cls.INACTIVE:
             return translate("TrainStatus", "Inactive")
         elif status == cls.RUNNING:
@@ -389,12 +402,14 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
 
 
 class Train(QtCore.QObject):
-    """A train is a stock running on a track at a certain speed and to which
-    is assigned a service.
+    """A ``Train`` is a stock running on a track at a certain speed and to which
+       is assigned a :class:`~ts2.trains.service.Service` .
     """
 
     def __init__(self, parameters):
-        """Constructor for the Train class"""
+        """
+        :param dict paramaters:
+        """
         super().__init__()
         self._parameters = parameters
         self.simulation = None
@@ -502,24 +517,36 @@ class Train(QtCore.QObject):
 
     @property
     def initialDelay(self):
-        """Returns the number of seconds of delay that this train had when it
-        was activated."""
+        """
+        :return: the number of seconds of delay that this train had when it
+                 was activated.
+        :rtype: int
+        """
         return self._initialDelay
 
     @property
     def minimumStopTime(self):
-        """Returns the minimum stopping time for next station."""
+        """
+        :return: the minimum stopping time for next station
+        :rtype: int
+        """
         return self._minimumStopTime
 
     @property
     def stoppedTime(self):
-        """Returns the number of seconds that this train is stopped at then
-        current station."""
+        """
+        :return: the number of seconds that this train is stopped at then
+                 current station.
+        :rtype: int
+        """
         return self._stoppedTime
 
     @property
     def serviceCode(self):
-        """Returns the service code of this train"""
+        """
+        :return: the service code of this train
+        :rtype: str
+        """
         return self._serviceCode
 
     @serviceCode.setter
@@ -534,7 +561,10 @@ class Train(QtCore.QObject):
 
     @property
     def status(self):
-        """Returns the status of the train"""
+        """
+        :return: the status of the train
+        :rtype: :class:`~ts2.trains.train.TrainStatus`
+        """
         return self._status
 
     @status.setter
@@ -585,12 +615,19 @@ class Train(QtCore.QObject):
 
     @property
     def trainType(self):
-        """Returns the TrainType of this Train"""
+        """
+        :return: The TrainType of this Train
+        :rtype: :class:`~ts2.trains.traintype.TrainType`
+        """
         return self._trainType
 
     @property
     def trainTypeCode(self):
         """Returns the code of the train type"""
+        """
+        :return: The code of this trains type
+        :rtype: str
+        """
         return self._trainType.code
 
     @trainTypeCode.setter
@@ -620,7 +657,9 @@ class Train(QtCore.QObject):
 
     @property
     def actionTime(self):
-        """Returns the time at which the current action has been achieved or 0.
+        """
+        :return: the time at which the current action has been achieved or 0.
+        :rtype: ``QTime`` or 0
         """
         return self._actionTime
 
@@ -640,8 +679,9 @@ class Train(QtCore.QObject):
 
     @property
     def trainHead(self):
-        """Returns the Position of the head of this train.
-        :rtype : position.Position
+        """
+        :return: the Position of the head of this train.
+        :rtype: :class:`~ts2.routing.position.Position`
         """
         return self._trainHead
 
@@ -652,7 +692,10 @@ class Train(QtCore.QObject):
             self._trainHead = value
 
     def _getTrainHeadStr(self):
-        """Returns the Position of the head of this train."""
+        """
+        :return: the Position of the head of this train.
+        :rtype: `str`
+        """
         return str(self._trainHead)
 
     def _setTrainHeadStr(self, value):
@@ -697,14 +740,18 @@ class Train(QtCore.QObject):
     # ## Methods ########################################################
 
     def isOut(self):
-        """Returns true if the train exited the area"""
+        """
+        :return: True if the train exited the area
+        :rtype: bool
+        """
         return \
             self._trainHead.isOut() and \
             self._trainHead.positionOnTI() > self._trainType.length()
 
     def isActive(self):
-        """Returns true if the train is in the area and its current service
-        is not finished"""
+        """
+        :return: ``True`` if the train is in the area and its current service  is not finished
+        :rtype: bool"""
         return \
             self._status != TrainStatus.INACTIVE and \
             self._status != TrainStatus.OUT and \
@@ -746,7 +793,9 @@ class Train(QtCore.QObject):
 
     @QtCore.pyqtSlot(QtCore.QTime)
     def activate(self, time):
-        """Activate this Train if time is after this Train appearTime."""
+        """Activate this Train if time is after this :class:`~ts2.trains.train.Train`'s
+           :meth:`~ts2.trains.train.Train.appearTime`.
+        """
         if self.status == TrainStatus.INACTIVE:
             realAppearTime = self._appearTime.addSecs(self.initialDelay)
             if self.simulation.startTime.addSecs(-3600) \
@@ -992,9 +1041,16 @@ class Train(QtCore.QObject):
         for ti in oldTrainTail.trackItemsToPosition(self.trainHead):
             ti.updateTrainHeadAndTail()
 
-    def getNextSignalInfo(self, pos=position.Position()):
-        """Returns the position and distance of first signal ahead of the
-        train head or ahead of the given position if specified"""
+    def getNextSignalInfo(self, pos=None):
+        """
+        :param pos:
+        :type pos: :class:`~ts2.routing.position.Position`
+        :return: - the position and distance of first signal ahead of the train head
+                 - or ahead of the given position if specified
+        :rtype: (:class:`~ts2.routing.position.Position`, int)
+        """
+        if pos == None:
+            pos = position.Position()
         retPos = position.Position()
         retDist = -1
         if pos == position.Position():
@@ -1103,9 +1159,13 @@ class Train(QtCore.QObject):
         return -1
 
     def getNextSpeedLimitInfo(self, maxDistance):
-        """Returns the next speed limit and the distance at which it starts,
-        looking at each trackitem forward of the trainHead up to a maximum
-        distance of maxDistance."""
+        """
+        :param int maxDistance: The maximum distance to look ahead
+        :return: the next speed limit and the distance at which it starts,
+                 looking at each trackitem forward of the trainHead up to a maximum
+                 distance of ``maxDistance``.
+        :rtype: (int, ?)
+        """
         pos = self._trainHead
         distance = pos.trackItem.realLength - self._trainHead.positionOnTI
         while (not isinstance(pos.trackItem, enditem.EndItem) and
@@ -1217,14 +1277,13 @@ class Train(QtCore.QObject):
         # str(applicableAction)))
 
     def targetSpeed(self, secs, targetDistance=-1, targetSpeedAtPos=0):
-        """ Defines the current target speed of the train depending on the
-        parameters:
-        - targetDistance : the distance at which the train should be at
-        targetSpeedAtPos
-        - targetSpeedAtPos : the target speed when the train will be at
-        targetDistance
-        Returns the current target speed for the train, including sampling
-        margin."""
+        """ Defines the current target speed of the train depending on the parameters:
+
+        :param targetDistance: the distance at which the train should be at  targetSpeedAtPos
+        :param targetSpeedAtPos: the target speed when the train will be at  targetDistance
+        :return: the current target speed for the train, including sampling margin.
+        :rtype: `float`
+        """
         maxSpeed = self.getMaximumSpeed()
         if targetDistance == -1:
             return maxSpeed
