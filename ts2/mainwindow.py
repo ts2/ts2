@@ -696,7 +696,7 @@ class MainWindow(QtWidgets.QMainWindow):
         super().closeEvent(event)
 
     def onWheelChanged(self, direction):
-        """Handle scrollwheel on canvas, sent from :ref:`~ts2.gui.widgets.XGraphicsView` """
+        """Handle scrollwheel on canvas, sent from :class:`~ts2.gui.widgets.XGraphicsView` """
 
         percent = self.zoomWidget.spinBox.value()
         self.zoomWidget.spinBox.setValue(percent + (direction * 10))

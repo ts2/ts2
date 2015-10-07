@@ -1,58 +1,58 @@
 #######################
-Scenery & Presentation
+scenery/
 #######################
 
 
-scenery.abstract.*
+abstract.*
 ==================================================
 .. automodule:: ts2.scenery.abstract
 
 
-scenery.enditem.*
+enditem.*
 ==================================================
 .. automodule:: ts2.scenery.enditem
 
 
-scenery.helper.*
+helper.*
 ==================================================
 .. automodule:: ts2.scenery.helper
  
  
-scenery.invisiblelinkitem.*
+invisiblelinkitem.*
 ==================================================
 .. automodule:: ts2.scenery.invisiblelinkitem
  
  
-scenery.lineitem.*
+lineitem.*
 ==================================================
 .. automodule:: ts2.scenery.lineitem
  
 
-scenery.placeitem.*
+placeitem.*
 ==================================================
 .. automodule:: ts2.scenery.placeitem
 
 
-scenery.platformitem.*
+platformitem.*
 ==================================================
 .. automodule:: ts2.scenery.platformitem
 
 
-scenery.pointsitem.*
+pointsitem.*
 ==================================================
 .. automodule:: ts2.scenery.pointsitem
  
 
-scenery.textitem.*
+textitem.*
 ==================================================
 .. automodule:: ts2.scenery.textitem
 
 
-scenery.signals.signalsaspect.*
+signals.signalsaspect.*
 ==================================================
 .. automodule:: ts2.scenery.signals.signalaspect
 
-scenery.signals.signalsaspect.*
+signals.signalitem.*
 ==================================================
 .. automodule:: ts2.scenery.signals.signalitem
 

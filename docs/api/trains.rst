@@ -1,17 +1,19 @@
 ######################
-Trains
+trains/
 ######################
 
-trains.train.*
+
+
+train.*
 ======================================
 .. automodule:: ts2.trains.train
 
    
-trains.service.*
+service.*
 ======================================
 .. automodule:: ts2.trains.service
 
    
-trains.traintype.*
+traintype.*
 ======================================
 .. automodule:: ts2.trains.traintype

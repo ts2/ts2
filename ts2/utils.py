@@ -32,13 +32,28 @@ settings = ts2.xobjects.xsettings.XSettings()
 class Context:
     """Different context's"""
     GAME = 10
+    """Game"""
+
     EDITORS = [20, 21, 22, 23, 24, 25]
+    """Editor Modes list """
+
     EDITOR_GENERAL = 20
+    """Editor General"""
+
     EDITOR_SCENERY = 21
+    """Editor Scenery"""
+
     EDITOR_ROUTES = 22
+    """Editor Routes"""
+
     EDITOR_TRAINTYPES = 23
+    """Editor TrainTypes"""
+
     EDITOR_SERVICES = 24
+    """Editor Services"""
+
     EDITOR_TRAINS = 25
+    """Editor Trains"""
 
 
 class FormatException(Exception):

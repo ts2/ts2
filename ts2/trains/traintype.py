@@ -111,7 +111,7 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
 
 
 class TrainType:
-    """The TrainType class holds information relating to rolling stock types.
+    """The ``TrainType`` class holds information relating to rolling stock types.
     """
     def __init__(self, parameters):
         """Constructor for the TrainType class"""
