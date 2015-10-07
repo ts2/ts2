@@ -25,14 +25,12 @@ from Qt import QtCore
 import simplejson
 
 import ts2.xobjects.xsettings
-
-
 settings = ts2.xobjects.xsettings.XSettings()
 """Settings instance"""
 
 
 class Context:
-    """This class holds the different contexts for ts2."""
+    """Different context's"""
     GAME = 10
     EDITORS = [20, 21, 22, 23, 24, 25]
     EDITOR_GENERAL = 20
@@ -44,14 +42,17 @@ class Context:
 
 
 class FormatException(Exception):
-    """Exception class for file format exception."""
+    """File format exception."""
     def __init__(self, arg):
         """Constructor of the Exception class."""
         super().__init__(arg)
 
 
 def cumsum(lis):
-    """Returns a list with the cumulated sum of lis."""
+    """cumulated sum of lis
+
+    :return: a list with the
+    """
     summ = 0
     for x in lis:
         summ += x

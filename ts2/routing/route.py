@@ -27,7 +27,7 @@ from . import position
 
 
 class RoutesModel(QtCore.QAbstractTableModel):
-    """The RoutesModel is a table model for routes that is used in the editor
+    """The ``RoutesModel`` is a table model for routes that is used in the editor
     """
     def __init__(self, editor):
         """Constructor for the RoutesModel class"""
@@ -35,8 +35,10 @@ class RoutesModel(QtCore.QAbstractTableModel):
         self._editor = editor
 
     def rowCount(self, parent=None, *args, **kwargs):
-        """Returns the number of rows of the model, corresponding to the
-        number of routes."""
+        """Returns the number of rows of the model, corresponding to the number of routes.
+
+        :return: `int`
+        """
         return len(self._editor.routes)
 
     def columnCount(self, parent=None, *args, **kwargs):
@@ -89,19 +91,20 @@ class RoutesModel(QtCore.QAbstractTableModel):
 
 
 class Route(QtCore.QObject):
-    """@brief Path between two signals
-    A route is a path between two signals. If a route is activated, the path
+    """A Path between two signals
+
+    A `route` is a path between two signals. If a route is activated, the path
     is selected, and the signals at the beginning and the end of the route are
     changed and the conflicting possible other routes are inhibited. Routes
     are static and defined in the game file. The player can only activate or
     deactivate them.
     """
     def __init__(self, parameters):
-        """Constructor of the Route class. After construction, the directions
+        """After construction, the directions
         dictionary must be filled and then the _positions list must be
-        populated by calling createPositionsList().
+        populated by calling :func:`~ts2.routing.route.Route.createPositionsList`
 
-        :param parameters: json dict with data to create the route
+        :param parameters: json `dict` with data to create the route
         """
         super().__init__()
         self.simulation = None
@@ -179,10 +182,13 @@ class Route(QtCore.QObject):
 
     @property
     def initialState(self):
-        """Returns the state of the route at the beginning of the simulation.
-        0 => Not activated
-        1 => Activated, non persistent
-        2 => Activated, persistent"""
+        """
+        :return: ``int`` - the state of the route at the beginning of the simulation.
+
+                    - 0 = Not activated
+                    - 1 = Activated, non persistent
+                    - 2 = Activated, persistent
+        """
         return self._initialState
 
     @initialState.setter
@@ -194,10 +200,13 @@ class Route(QtCore.QObject):
         self._initialState = value
 
     def getRouteState(self):
-        """Returns the current route state:
-        0 => Not activated
-        1 => Activated, non persistent
-        2 => Activated, persistent."""
+        """
+        :return: ``int`` - Returns the current route state:
+
+                - 0 = Not activated
+                - 1 = Activated, non persistent
+                - 2 = Activated, persistent
+        """
         if self.beginSignal.nextActiveRoute is not None and \
            self.beginSignal.nextActiveRoute == self:
             if self._persistent:
@@ -218,10 +227,11 @@ class Route(QtCore.QObject):
         return self._directions[tiId]
 
     def appendDirection(self, tiId, direction):
-        """ Appends a direction to a TrackItem on the Route.
-        @param tiId The trackItem number to which we add direction
-        @param direction The direction to append.
-        For points, 0 means normal and other values means reverse"""
+        """ Appends a direction to a :class:`~ts2.scenery.abstract.TrackItem` on the Route.
+
+        :param tiId: The trackItem number to which we add direction
+        :param direction: The direction to append.
+                For points, 0 means normal and other values means reverse"""
         self._directions[tiId] = direction
 
     def createPositionsList(self):
@@ -249,16 +259,18 @@ class Route(QtCore.QObject):
         return False
 
     def links(self, si1, si2):
-        """ Returns true if the route links SignalItem si1 to SignalItem si2.
-        @param si1 First SignalItem
-        @param si2 Last SignalItem"""
+        """
+        :param si1: First :class:`~ts2.scenery.signals.signalitem.SignalItem`
+        :param si2: Last :class:`~ts2.scenery.signals.signalitem.SignalItem`
+        :return: ``True`` - if the route links ``si1`` to  ``si2``.
+
+        """
         if self.beginSignal == si1 and self.endSignal == si2:
             return True
-        else:
-            return False
+        return False
 
     def activate(self, persistent=False):
-        """ This function is called by the simulation when the route is
+        """ Called by the simulation when the route is
         activated."""
         for pos in self._positions:
             pos.trackItem.setActiveRoute(self, pos.previousTI)
@@ -268,7 +280,7 @@ class Route(QtCore.QObject):
         self.routeSelected.emit()
 
     def desactivate(self):
-        """This function is called by the simulation when the route is
+        """Called by the simulation when the route is
         desactivated."""
         self.beginSignal.resetNextActiveRoute(self)
         self.endSignal.resetPreviousActiveRoute()
@@ -279,8 +291,10 @@ class Route(QtCore.QObject):
         self.routeUnselected.emit()
 
     def isActivable(self):
-        """Returns true if this route can be activated, i.e. that no other
-        active route is conflicting with this route."""
+        """
+        :return: ``True`` - if this route can be activated, i.e. that no other
+                    active route is conflicting with this route.
+        """
         flag = False
         for pos in self._positions:
             if pos.trackItem != self.beginSignal and \
@@ -319,17 +333,21 @@ class Route(QtCore.QObject):
 
     @property
     def persistent(self):
-        """Returns True if this route is persistent"""
+        """
+        :return: ``True``  if this route is persistent"""
         return self._persistent
 
     @persistent.setter
     def persistent(self, p=True):
-        """Setter function for the persistent property"""
+        """Setter function for the ``persistent`` property"""
         self._persistent = p
 
     def __eq__(self, other):
-        """Two routes are equal if they have the save routeNum or if both
-        beginSignal and endSignal are equal"""
+        """
+        :return: ``True`` if two routes are equal if they have the same
+                     :func:`~ts2.routing.route.Route.routeNum` routeNum or if both
+                     beginSignal and endSignal are equal
+        """
         if (self.routeNum == other.routeNum or
             (self.beginSignal == other.beginSignal and
              self.endSignal == other.endSignal)):

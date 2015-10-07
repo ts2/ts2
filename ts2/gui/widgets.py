@@ -94,15 +94,16 @@ class ZoomWidget(QtWidgets.QWidget):
 
 
 class XGraphicsView(QtWidgets.QGraphicsView):
-    """QGraphicsView with wheel events"""
+    """An extended QGraphicsView to handle wheel events"""
 
     wheelChanged = QtCore.pyqtSignal(int)
+    """Signal emited when wheel has changed, direction = +1 or -1 """
 
     def __init__(self, parent=None):
-        """Constructor for the XGraphicsView class."""
         super().__init__(parent)
 
     def wheelEvent(self, ev):
+        """Override the wheelEvent, and send signal with direction"""
         if ev.angleDelta().y() > 1:
             self.wheelChanged.emit(+1)
         else:
@@ -110,10 +111,11 @@ class XGraphicsView(QtWidgets.QGraphicsView):
 
 
 class StatusBar(QtWidgets.QWidget):
-
+    """A horizontal bar with enbedded progress bar
+    :todo: Embed refresh and cancel buttons
+    """
 
     def __init__(self, parent=None):
-        """Constructor for the StatusBar class."""
         super().__init__(parent)
 
         self.lay = QtWidgets.QHBoxLayout()
@@ -130,11 +132,17 @@ class StatusBar(QtWidgets.QWidget):
         self.progressBar.hide()
 
 
-    def showMessage(self, txt, timeout=1):
+    def showMessage(self, txt, timeout=3, info=False, warn=False):
+        """Shows a message
+
+
+
+        """
         self.statusBar.showMessage(txt)
         # TODO set timeout
 
     def showBusy(self, is_busy):
+        """Shows the progress bar and makes busy bee"""
         if is_busy:
             self.progressBar.setRange(0,0)
         else:

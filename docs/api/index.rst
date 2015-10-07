@@ -6,14 +6,15 @@ API
 
 .. toctree::
    :maxdepth: 0
-   
+
+   application.rst
+   mainwindow.rst
    simulation.rst
-   trains.rst
    scenery.rst
+   trains.rst
    routing.rst
-   
-   mainwindow.rst  
    gui.rst
    editor.rst
    game.rst
    utils.rst
+

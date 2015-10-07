@@ -106,18 +106,26 @@ class PositionGraphicsItem(QtWidgets.QGraphicsPolygonItem):
 
 
 class Position:
-    """A Position object is a point on a TrackItem.
+    """A ``Position`` object is a point on a :class:`~ts2.scenery.abstract.TrackItem`.
 
-    A Position is defined as being positionOnTI meters away from the end of
-    the TrackItem that is connected to TrackItem previousTI. Note that a
+    A ``Position`` is defined as being :func:`~ts2.routing.position.Position.positionOnTI` meters away from the end of
+    the ``TrackItem`` that is connected to ``TrackItem`` :func:`~ts2.routing.position.Position.previousTI`. Note that a
     Position has a direction, so that for any point on a TrackItem, there are
-    two Positions that can be defined: one starting from one end of the
-    TrackItem, the other starting from the other end. You can get the
-    other Position by calling reversed()."""
+    two Positions that can be defined:
+
+      - one starting from one end of the :class:`~ts2.scenery.abstract.TrackItem`
+      - the other starting from the other end.
+
+      You can get the other Position by calling :func:`~ts2.routing.position.Position.reversed`."""
 
     def __init__(self, trackItem=None, previousTI=None, positionOnTI=0.0,
                  parameters=None):
-        """Constructor for the Position class"""
+        """
+        :param trackItem:
+        :param previousTI:
+        :param positionOnTI:
+        :param parameters:
+        """
         if parameters:
             self._parameters = parameters
             self._trackItem = None
@@ -139,7 +147,9 @@ class Position:
         self._positionOnTI = params['positionOnTI']
 
     def for_json(self):
-        """Dumps the position to JSON."""
+        """Dumps the position to JSON.
+
+        :return: `dict` """
         return {
             "__type__": "Position",
             "trackItem": self.trackItem.tiId,
@@ -149,28 +159,33 @@ class Position:
 
     @property
     def trackItem(self):
-        """The TrackItem on which this Position is"""
+        """
+        :return: :class:`~ts2.scenery.abstract.TrackItem` on which this ``Position`` is"""
         return self._trackItem
 
     @property
     def previousTI(self):
-        """The TrackItem connected to this one from which to measure the
-        distance of the Position"""
+        """
+        :return:  :class:`~ts2.scenery.abstract.TrackItem`  connected to this one from which to measure the
+                  distance of the ``Position`` """
         return self._previousTI
 
     @property
     def positionOnTI(self):
-        """Distance of the Position from the end of the TrackItem connected to
-        previousTI"""
+        """
+        :return: `float` with distance of the :class:`~ts2.routing.position.Position` from the
+                end of the :class:`~ts2.scenery.abstract.TrackItem` connected
+                to   :class:`~ts2.routing.position.Position.previousTI`"""
         return float(self._positionOnTI)
 
     def next(self, pos=0, direction=-1):
-        """Returns a Position on the next TrackItem.
-
-        Returns a Position on the next TrackItem (i.e. the TrackItem
-        connected to this one which is not previousTI) at pos meters from
-        the connection of the next TrackItem to this one. By default,
-        pos is 0."""
+        """
+        :return: A Position on the next :class:`~ts2.scenery.abstract.TrackItem` (i.e. the TrackItem
+                 connected to this one which is not previousTI) at pos meters from
+                 the connection of the next TrackItem to this one. By default,
+                 pos is 0.
+        :rtype:
+        """
         return Position(self._trackItem.getFollowingItem(self._previousTI,
                                                          direction),
                         self._trackItem,

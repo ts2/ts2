@@ -6,6 +6,9 @@ gui.dialogs.*
 ======================================
 .. automodule:: ts2.gui.dialogs
 
+gui.opendialog.*
+======================================
+.. automodule:: ts2.gui.opendialog
    
 gui.servicelistview.*
 ======================================
