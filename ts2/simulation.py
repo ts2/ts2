@@ -170,11 +170,11 @@ class Simulation(QtCore.QObject):
             )
             raise Exception("Invalid simulation: Not all items are linked.")
 
-        for route in self.routes.values():
-            route.initialize(self)
-        for route in self.routes.values():
+        for rte in self.routes.values():
+            rte.initialize(self)
+        for rte in self.routes.values():
             # We need routes initialized before setting them up
-            route.setToInitialState()
+            rte.setToInitialState()
         for ti in self.trackItems.values():
             # We need trackItems linked and routes set before setting triggers
             ti.setupTriggers()
@@ -185,8 +185,8 @@ class Simulation(QtCore.QObject):
         for train in self.trains:
             train.initialize(self)
         self._trains.sort(key=lambda x: x.currentService.lines and
-                          x.currentService.lines[0].scheduledDepartureTimeStr
-                          or x.currentService.serviceCode)
+                          x.currentService.lines[0].scheduledDepartureTimeStr or
+                          x.currentService.serviceCode)
         self.messageLogger.initialize(self)
 
         self._scene.update()

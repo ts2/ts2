@@ -33,7 +33,7 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
 
     def rowCount(self, parent=None, *args, **kwargs):
         if self._place is not None:
-            return len(self._place.timetable) + 2
+            return len(self._place.timetable)
         else:
             return 0
 
@@ -45,28 +45,20 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
 
     def data(self, index, role=Qt.DisplayRole):
         if self._place is not None and role == Qt.DisplayRole:
-            if index.row() == 0:
-                if index.column() == 0:
-                    return self.tr("Station:")
-                if index.column() == 1:
-                    return self._place.placeName
-            elif index.row() == 1:
-                return ""
-            else:
-                line = self._place.timetable[index.row() - 2]
-                if index.column() == 0:
-                    return line.scheduledDepartureTime
-                elif index.column() == 1:
-                    return line.service.serviceCode
-                elif index.column() == 2:
-                    return line.service.exitPlaceName
-                elif index.column() == 3:
-                    return line.trackCode
-                elif index.column() == 4:
-                    if not line.mustStop:
-                        return self.tr("non-stop")
-                    else:
-                        return ""
+            line = self._place.timetable[index.row() - 2]
+            if index.column() == 0:
+                return line.scheduledDepartureTime
+            elif index.column() == 1:
+                return line.service.serviceCode
+            elif index.column() == 2:
+                return line.service.exitPlaceName
+            elif index.column() == 3:
+                return line.trackCode
+            elif index.column() == 4:
+                if not line.mustStop:
+                    return self.tr("Non-stop")
+                else:
+                    return ""
         return None
 
     def headerData(self, column, orientation, role=Qt.DisplayRole):

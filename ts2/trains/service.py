@@ -36,10 +36,9 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
 
     def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows of the model, corresponding to the
-        number of serviceLines of this service + lines for displaying general
-        service information."""
+        number of serviceLines of this service."""
         if self._service is not None:
-            return len(self._service.lines) + 3
+            return len(self._service.lines)
         else:
             return 0
 
@@ -53,28 +52,22 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
     def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if self._service is not None and role == Qt.DisplayRole:
-            if index.row() == 0:
-                if index.column() == 0:
-                    return self.tr("Service no:")
-                if index.column() == 1:
-                    return self._service.serviceCode
-            elif index.row() == 1:
-                if index.column() == 0:
-                    return self.tr("Description:")
-                if index.column() == 1:
-                    return self._service.description
-            elif index.row() == 2:
-                return None
-            else:
-                line = self._service.lines[index.row() - 3]
-                if index.column() == 0:
-                    return line.place.placeName
-                elif index.column() == 1:
-                    return line.trackCode
-                elif index.column() == 2:
+            line = self._service.lines[index.row()]
+            if index.column() == 0:
+                return line.place.placeName
+            elif index.column() == 1:
+                return line.trackCode
+            elif index.column() == 2:
+                if line.mustStop:
                     return line.scheduledArrivalTime
-                elif index.column() == 3:
+                else:
+                    return self.tr("Non-stop")
+            elif index.column() == 3:
+                if line.mustStop:
                     return line.scheduledDepartureTime
+                else:
+                    return line.scheduledDepartureTime or \
+                           line.scheduledArrivalTime
         return None
 
     def headerData(self, column, orientation, role=Qt.DisplayRole):
@@ -89,7 +82,7 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
             elif column == 2:
                 return self.tr("Arrival")
             elif column == 3:
-                return self.tr("Departure")
+                return self.tr("Departure / Pass")
         return None
 
     def flags(self, index):
@@ -102,7 +95,6 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
         self.beginResetModel()
         self._service = self.simulation.service(serviceCode)
         self.endResetModel()
-
 
 
 class ServiceListModel(QtCore.QAbstractTableModel):

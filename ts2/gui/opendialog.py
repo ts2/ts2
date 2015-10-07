@@ -14,11 +14,13 @@ from ts2.gui import widgets
 
 translate = QtWidgets.qApp.translate
 
+
 class C:
     name = 0
     description = 1
     file_name = 2
     file_path = 3
+
 
 class NAV:
     sims = 0
@@ -42,11 +44,8 @@ class OpenDialog(QtWidgets.QDialog):
 
         m = 5
         containerLayout = QtWidgets.QHBoxLayout()
-        containerLayout.setContentsMargins(m,m,m,m)
+        containerLayout.setContentsMargins(m, m, m, m)
         self.setLayout(containerLayout)
-
-
-
 
         # ========================================
         # Left Bar + navigation
@@ -57,9 +56,13 @@ class OpenDialog(QtWidgets.QDialog):
         self.buttGroup = QtWidgets.QButtonGroup()
         self.buttGroup.setExclusive(True)
 
-        self.leftBar.addWidget( self._make_nav_button("Sims", NAV.sims) )
-        self.leftBar.addWidget( self._make_nav_button("Recent", NAV.recent) )
-        self.leftBar.addWidget( self._make_nav_button("Browse", NAV.filesystem) )
+        self.leftBar.addWidget(self._make_nav_button(self.tr("Sims"), NAV.sims))
+        self.leftBar.addWidget(
+            self._make_nav_button(self.tr("Recent"), NAV.recent)
+        )
+        self.leftBar.addWidget(
+            self._make_nav_button(self.tr("Browse"), NAV.filesystem)
+        )
         self.leftBar.addStretch(20)
 
         # ==================================================================================
@@ -88,7 +91,6 @@ class OpenDialog(QtWidgets.QDialog):
 
         self.buttDownload = tbBrowse.addAction("Download", self.onDownload)
 
-
         self.treeSims = QtWidgets.QTreeWidget()
         self.downloadLayout.addWidget(self.treeSims)
         hitem = self.treeSims.headerItem()
@@ -99,7 +101,6 @@ class OpenDialog(QtWidgets.QDialog):
         self.treeSims.setColumnHidden(C.file_path, True)
         self.treeSims.itemDoubleClicked.connect(self.onTreeSimsItemDblClicked)
 
-
         # =====================================
         # Recent
 
@@ -109,18 +110,24 @@ class OpenDialog(QtWidgets.QDialog):
         hitem = self.treeRecent.headerItem()
         hitem.setText(0, "Path")
 
-        self.treeRecent.itemDoubleClicked.connect(self.onTreeRecentItemDblClicked)
-
+        self.treeRecent.itemDoubleClicked.connect(
+            self.onTreeRecentItemDblClicked
+        )
 
         # =====================================
         # Browse
         self.filesModel = QtWidgets.QFileSystemModel()
-        self.filesModel.setRootPath( QtCore.QDir.homePath() )
+        self.filesModel.setRootPath(QtCore.QDir.homePath())
+        self.filesModel.setNameFilters(["*.ts2", "*.json"])
 
         self.treeFiles = QtWidgets.QTreeView()
         self.treeFiles.setModel(self.filesModel)
 
         self.stackWidget.addWidget(self.treeFiles)
+
+        self.treeFiles.doubleClicked.connect(
+            self.onTreeBrowseItemDblClicked
+        )
 
         # =================================
         # Bottom status
@@ -129,14 +136,11 @@ class OpenDialog(QtWidgets.QDialog):
         if settings.debug:
             self.statusBar.showMessage(settings.simulationsDir)
 
-
         self.buttGroup.buttonToggled.connect(self.onNavButtClicked)
         self.buttGroup.button(tab).setChecked(True)
 
-
     def onDownload(self):
         """Downloads zip when Download button clicked"""
-        #print("onDownload")
         QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
 
         if settings.debug:
@@ -149,7 +153,6 @@ class OpenDialog(QtWidgets.QDialog):
         self.buttDownload.setDisabled(True)
 
         response = request.urlopen(url)
-
 
         with tempfile.TemporaryFile() as tmpFile:
             tmpFile.write(response.read())
@@ -204,23 +207,22 @@ class OpenDialog(QtWidgets.QDialog):
         ts2_files = {}
         for root, dirnames, filenames in os.walk(settings.simulationsDir):
             for filename in fnmatch.filter(filenames, '*.ts2'):
-                d =  root.split(QtCore.QDir.separator())[-1]
-                if not d in ts2_files:
+                d = root.split(QtCore.QDir.separator())[-1]
+                if d not in ts2_files:
                     ts2_files[d] = []
                 ts2_files[d].append(os.path.join(root, filename))
 
-
-        for dir in sorted(ts2_files.keys()):
+        for folder in sorted(ts2_files.keys()):
             pitem = QtWidgets.QTreeWidgetItem()
-            pitem.setText(C.name, dir)
+            pitem.setText(C.name, folder)
             pitem.setFirstColumnSpanned(True)
             self.treeSims.addTopLevelItem(pitem)
-            for file_path in ts2_files[dir]:
+            for file_path in ts2_files[folder]:
                 with zipfile.ZipFile(file_path, "r") as zippy:
 
                     # wtf, confused why bytes returned
-                    bytes =  zippy.read("simulation.json")
-                    data = json.loads( bytes.decode() )
+                    bytesData = zippy.read("simulation.json")
+                    data = json.loads(bytesData.decode())
                     nfo = data['options']
 
                     item = QtWidgets.QTreeWidgetItem(pitem)
@@ -233,7 +235,6 @@ class OpenDialog(QtWidgets.QDialog):
         self.treeSims.resizeColumnToContents(C.name)
         self.statusBar.showMessage("")
 
-
     def onRefreshRecent(self):
         """Reloads the recent items"""
         self.treeRecent.clear()
@@ -245,21 +246,29 @@ class OpenDialog(QtWidgets.QDialog):
     def onTreeSimsItemDblClicked(self, item):
         if self.treeSims.indexOfTopLevelItem(item) != -1:
             return
-        file_path = item.text(C.file_path)
-        self.openFile.emit(file_path)
+        filePath = item.text(C.file_path)
+        self.openFile.emit(filePath)
         self.accept()
 
     def onTreeRecentItemDblClicked(self, item):
-        file_path = item.text(0)
-        self.openFile.emit(file_path)
+        filePath = item.text(0)
+        self.openFile.emit(filePath)
         self.accept()
+
+    def onTreeBrowseItemDblClicked(self, index):
+        filePath = index.model().filePath(index)
+        if filePath.endswith(".ts2") or filePath.endswith(".json") or \
+                filePath.endswith(".tsg"):
+            self.openFile.emit(filePath)
+            self.accept()
 
     def _make_nav_button(self, txt, idx):
         butt = QtWidgets.QToolButton()
         butt.setText(txt)
         butt.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         butt.setCheckable(True)
-        butt.setStyleSheet("font-weight: bold; text-align: center; font-size: 14pt;")
+        butt.setStyleSheet("font-weight: bold; text-align: center;"
+                           " font-size: 14pt;")
         butt.setFixedWidth(100)
         butt.setAutoRaise(True)
         self.buttGroup.addButton(butt, idx)

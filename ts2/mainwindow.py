@@ -18,20 +18,19 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-import tempfile
 import zipfile
 import os
-from urllib import request
 
 from Qt import QtCore, QtGui, QtWidgets, Qt
 
-from ts2 import simulation, utils
+from ts2 import simulation
 from ts2.gui import dialogs, trainlistview, servicelistview, widgets, opendialog
 from ts2.scenery import placeitem
 from ts2.editor import editorwindow
 from ts2.utils import settings
 
-from ts2 import __PROJECT_WWW__, __PROJECT_HOME__, __PROJECT_BUGS__, __ORG_CONTACT__, __VERSION__
+from ts2 import __PROJECT_WWW__, __PROJECT_HOME__, __PROJECT_BUGS__, \
+    __ORG_CONTACT__, __VERSION__
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -48,7 +47,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setObjectName("ts2_main_window")
         self.editorWindow = None
         self.setGeometry(100, 100, 800, 600)
-        self.setWindowTitle(self.tr("ts2 - Train Signalling Simulation") + " - %s" % __VERSION__)
+        self.setWindowTitle(self.tr("ts2 - Train Signalling Simulation - %s")
+                            % __VERSION__)
 
         # Simulation
         self.simulation = None
@@ -70,14 +70,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.saveGameAsAction.setToolTip(self.tr("Save the current game"))
         self.saveGameAsAction.triggered.connect(self.saveGame)
         self.saveGameAsAction.setEnabled(False)
-
-        self.downloadAction = QtWidgets.QAction(
-            self.tr("&Download simulations..."), self
-        )
-        self.downloadAction.setToolTip(
-            self.tr("Download simulations from a server")
-        )
-        self.downloadAction.triggered.connect(self.downloadSimulations)
 
         self.propertiesAction = QtWidgets.QAction(self.tr("&Properties..."),
                                                   self)
@@ -110,7 +102,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.aboutWwwProject.setProperty("url", __PROJECT_HOME__)
         self.actionGroupWwww.addAction(self.aboutWwwProject)
 
-        self.aboutWwwBugs = QtWidgets.QAction(self.tr("&TS2 Bugs && Feedback"), self)
+        self.aboutWwwBugs = QtWidgets.QAction(self.tr("&TS2 Bugs && Feedback"),
+                                              self)
         self.aboutWwwBugs.setProperty("url", __PROJECT_BUGS__)
         self.actionGroupWwww.addAction(self.aboutWwwBugs)
 
@@ -133,8 +126,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.saveGameAsAction)
         self.fileMenu.addSeparator()
-        self.fileMenu.addAction(self.downloadAction)
-        self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.propertiesAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitAction)
@@ -153,8 +144,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.helpMenu.addAction(self.aboutQtAction)
 
         self.menuBar().setCursor(Qt.PointingHandCursor)
-
-
 
         # ==============================================================
         # ToolBars
@@ -211,17 +200,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Pause button
         self.buttPause = QtWidgets.QToolButton(self)
-        self.buttPause.setText( "  " + self.tr("Pause") + "  ")
+        self.buttPause.setText(self.tr("Pause"))
         self.buttPause.setCheckable(True)
         self.buttPause.setAutoRaise(True)
         self.buttPause.setMaximumWidth(50)
         tbg.addWidget(self.buttPause)
 
-
         # Clock Widget
         self.clockWidget = widgets.ClockWidget(self)
         tbg.addWidget(self.clockWidget)
-
 
         # ====================
         # Sim Title
@@ -231,10 +218,11 @@ class MainWindow(QtWidgets.QMainWindow):
         tbar.setMovable(False)
         self.addToolBar(tbar)
         self.lblTitle = QtWidgets.QLabel()
-        lbl_sty = "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #fefefe, stop: 1 #CECECE);"
+        lbl_sty = "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0," \
+                  " stop: 0 #fefefe, stop: 1 #CECECE);"
         lbl_sty += " color: #333333; font-size: 16pt; padding: 1px;"
         self.lblTitle.setStyleSheet(lbl_sty)
-        self.lblTitle.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
+        self.lblTitle.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.lblTitle.setText("no sim loaded")
         sp = self.lblTitle.sizePolicy()
         sp.setHorizontalPolicy(QtWidgets.QSizePolicy.Expanding)
@@ -272,41 +260,33 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QDockWidget.DockWidgetMovable |
             QtWidgets.QDockWidget.DockWidgetFloatable
         )
-        ## Experimental to show code seperate >>>
-        EXP = True
-        if EXP:
-            sty = "background-color: #444444; color: white; padding: 2px; font-size: 10pt"
-            wid = QtWidgets.QWidget()
-            self.serviceInfoPanel.setWidget(wid)
-            grid = QtWidgets.QGridLayout()
-            wid.setLayout(grid)
-            self.lblServiceInfoCode = QtWidgets.QLabel()
-            self.lblServiceInfoCode.setStyleSheet(sty)
-            self.lblServiceInfoCode.setText("")
-            grid.addWidget(self.lblServiceInfoCode, 0, 0)
-            self.lblServiceInfoDescription = QtWidgets.QLabel()
-            self.lblServiceInfoDescription.setText("")
-            self.lblServiceInfoDescription.setStyleSheet(sty)
-            self.lblServiceInfoDescription.setScaledContents(False)
-            self.lblServiceInfoDescription.setMaximumWidth(200)
-            grid.addWidget(self.lblServiceInfoDescription, 0, 1)
-        # <<<
+
+        sty = "background-color: #444444; color: white; padding: 2px;" \
+              " font-size: 10pt"
+        wid = QtWidgets.QScrollArea()
+        self.serviceInfoPanel.setWidget(wid)
+        grid = QtWidgets.QGridLayout()
+        wid.setLayout(grid)
+        self.lblServiceInfoCode = QtWidgets.QLabel()
+        self.lblServiceInfoCode.setStyleSheet(sty)
+        self.lblServiceInfoCode.setText("")
+        self.lblServiceInfoCode.setMaximumWidth(100)
+        grid.addWidget(self.lblServiceInfoCode, 0, 0)
+        self.lblServiceInfoDescription = QtWidgets.QLabel()
+        self.lblServiceInfoDescription.setText("")
+        self.lblServiceInfoDescription.setStyleSheet(sty)
+        self.lblServiceInfoDescription.setScaledContents(False)
+        grid.addWidget(self.lblServiceInfoDescription, 0, 1)
         self.serviceInfoView = QtWidgets.QTreeView(self)
         self.serviceInfoView.setItemsExpandable(False)
         self.serviceInfoView.setRootIsDecorated(False)
-        if EXP:
-            grid.addWidget(self.serviceInfoView, 1, 0, 1, 2)
-            self.serviceInfoPanel.setWidget(wid)
-            grid.setColumnStretch(0, 1)
-            grid.setColumnStretch(1, 4)
-            grid.setSpacing(0)
-            grid.setContentsMargins(0,0,0,0)
-        else:
-            self.serviceInfoPanel.setWidget(self.serviceInfoView)
-
+        grid.addWidget(self.serviceInfoView, 1, 0, 1, 2)
+        self.serviceInfoPanel.setWidget(wid)
+        grid.setColumnStretch(0, 1)
+        grid.setColumnStretch(1, 4)
+        grid.setSpacing(0)
+        grid.setContentsMargins(0, 0, 0, 0)
         self.addDockWidget(Qt.RightDockWidgetArea, self.serviceInfoPanel)
-
-
 
         # Stations + Places Info
         self.placeInfoPanel = QtWidgets.QDockWidget(
@@ -317,11 +297,25 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QDockWidget.DockWidgetMovable |
             QtWidgets.QDockWidget.DockWidgetFloatable
         )
+        wid = QtWidgets.QScrollArea()
+        self.placeInfoPanel.setWidget(wid)
+        hb = QtWidgets.QVBoxLayout()
+        wid.setLayout(hb)
+        self.lblPlaceInfoName = QtWidgets.QLabel()
+        self.lblPlaceInfoName.setStyleSheet(sty)
+        self.lblPlaceInfoName.setText("")
+        hb.addWidget(self.lblPlaceInfoName)
+
         self.placeInfoView = QtWidgets.QTreeView(self)
         self.placeInfoView.setItemsExpandable(False)
         self.placeInfoView.setRootIsDecorated(False)
         self.placeInfoView.setModel(placeitem.Place.selectedPlaceModel)
-        self.placeInfoPanel.setWidget(self.placeInfoView)
+        hb.addWidget(self.placeInfoView)
+
+        hb.setSpacing(0)
+        hb.setContentsMargins(0, 0, 0, 0)
+
+        self.placeInfoPanel.setWidget(wid)
         self.addDockWidget(Qt.RightDockWidgetArea, self.placeInfoPanel)
 
         # Trains
@@ -377,7 +371,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.view.setPalette(QtGui.QPalette(Qt.black))
         self.view.wheelChanged.connect(self.onWheelChanged)
 
-
         # Display
         self.grid = QtWidgets.QVBoxLayout()
         self.grid.setContentsMargins(0, 0, 0, 0)
@@ -408,18 +401,10 @@ class MainWindow(QtWidgets.QMainWindow):
         d.openFile.connect(self.loadSimulation)
         d.exec_()
 
-
     @QtCore.pyqtSlot(str)
     def loadSimulation(self, fileName=None):
-        # ## DEBUG
-        #if settings.debug:
-        #   fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.ts2"
 
-        if not fileName:
-            self.onOpenSimulation()
-            return
-
-        if fileName != "" or fileName != None:
+        if fileName:
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
 
             if self.simulation is not None:
@@ -433,7 +418,6 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 with open(fileName) as file:
                     self.simulation = simulation.load(self, file)
-                    settings.addRecent(fileName)
             # except utils.FormatException as err:
             #     QtWidgets.QMessageBox.critical(
             #         self,
@@ -448,7 +432,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # else:
             self.setWindowTitle(self.tr(
                 "ts2 - Train Signalling Simulation - %s") % fileName)
-            self.lblTitle.setText( self.simulation.option("title") )
+            self.lblTitle.setText(self.simulation.option("title"))
             self.simulationConnect()
             self.simulationLoaded.emit(self.simulation)
 
@@ -460,10 +444,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.timeFactorSpinBox.setValue(
                 float(self.simulation.option("timeFactor"))
             )
-
+            settings.addRecent(fileName)
+            self.refreshRecent()
             QtWidgets.QApplication.restoreOverrideCursor()
-
-
+        else:
+            self.onOpenSimulation()
 
     def simulationConnect(self):
         """Connects the signals and slots to the simulation."""
@@ -496,6 +481,10 @@ class MainWindow(QtWidgets.QMainWindow):
         )
         self.simulation.timeChanged.connect(
             self.trainInfoView.model().updateSpeed
+        )
+        # Place view
+        placeitem.Place.selectedPlaceModel.modelReset.connect(
+            self.onPlaceSelected
         )
         # MessageLogger
         self.simulation.messageLogger.rowsInserted.connect(
@@ -573,40 +562,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 settings.addRecent(fileName)
                 QtWidgets.QApplication.restoreOverrideCursor()
 
-    @QtCore.pyqtSlot()
-    def downloadSimulations(self):
-        """Download simulations from a GitHub repository"""
-        serverDialog = dialogs.DownloadSimulationsDialog(self)
-        if serverDialog.exec() == QtWidgets.QDialog.Accepted:
-            QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
-            url = "%s/archive/master.zip" % serverDialog.url.text().strip('/')
-            response = request.urlopen(url)
-            with tempfile.TemporaryFile() as tmpFile:
-                tmpFile.write(response.read())
-                with zipfile.ZipFile(tmpFile) as zipArchive:
-                    for fileName in zipArchive.namelist():
-                        fs = fileName.split('/', 1)
-                        fn = fs[1] if len(fs) > 1 else fs[0]
-                        if fileName.endswith(".ts2"):
-                            fName = os.path.join(simulationsDirectory, fn)
-                            os.makedirs(os.path.dirname(fName), exist_ok=True)
-                            with open(fName, 'wb') as f:
-                                f.write(zipArchive.read(fileName))
-                        elif fileName.endswith(".tsl"):
-                            fName = os.path.join(userDataDirectory,
-                                                 os.path.basename(fileName))
-                            with open(fName, 'wb') as f:
-                                f.write(zipArchive.read(fileName))
-                        elif fileName.endswith(".json"):
-                            fName = os.path.join(simulationsDirectory,
-                                                 fn.replace(".json", ".ts2"))
-                            os.makedirs(os.path.dirname(fName), exist_ok=True)
-                            with zipfile.ZipFile(fName, "w") as ts2Zip:
-                                ts2Zip.writestr("simulation.json",
-                                                zipArchive.read(fileName))
-
-            QtWidgets.qApp.restoreOverrideCursor()
-
     @QtCore.pyqtSlot(int)
     def zoom(self, percent):
         transform = QtGui.QTransform()
@@ -622,13 +577,14 @@ class MainWindow(QtWidgets.QMainWindow):
             "Copyright 2008-%s, NPi (%s)\n"
             "%s\n\n"
             "TS2 is licensed under the terms of the GNU GPL v2\n""") %
-            (__VERSION__, QtCore.QDate.currentDate().year(), __ORG_CONTACT__,   __PROJECT_WWW__))
+            (__VERSION__, QtCore.QDate.currentDate().year(), __ORG_CONTACT__,
+             __PROJECT_WWW__))
         if self.editorOpened:
             self.editorWindow.activateWindow()
 
     @QtCore.pyqtSlot(QtCore.QPoint)
     def showContextMenu(self, pos):
-        if self.sender() == self._trainInfoView:
+        if self.sender() == self.trainInfoView:
             train = self.trainInfoView.model().train
             if train is not None:
                 train.showTrainActionsMenu(self.trainInfoView,
@@ -678,7 +634,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for fileName in settings.getRecent():
             if os.path.exists(fileName):
                 act.append(menu.addAction(fileName))
-        if act:
+        if act and self.simulation is None:
             self.onRecent(act[0])
 
     def onRecent(self, act):
@@ -693,7 +649,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def onWheelChanged(self, direction):
         """Handle scrollwheel on canvas"""
-
         percent = self.zoomWidget.spinBox.value()
         self.zoomWidget.spinBox.setValue(percent + (direction * 10))
 
@@ -704,14 +659,13 @@ class MainWindow(QtWidgets.QMainWindow):
     def _make_toolbar_group(self, title):
         """Creates a toolbar containing a `ToolBarGroup`"""
         tbar = QtWidgets.QToolBar()
-        tbar.setObjectName("toolbar_" + title )
+        tbar.setObjectName("toolbar_" + title)
         tbar.setFloatable(False)
         tbar.setMovable(True)
 
         tbg = widgets.ToolBarGroup(self, title=title)
         tbar.addWidget(tbg)
         return tbar, tbg
-
 
     @QtCore.pyqtSlot(bool)
     def setPauseButtonText(self, paused):
@@ -721,7 +675,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.buttPause.setText(self.tr("Pause"))
 
     def onServiceSelected(self, serviceCode):
-        #print(serviceCode)
         serv = self.simulation.service(serviceCode)
         self.lblServiceInfoCode.setText(serviceCode)
         self.lblServiceInfoDescription.setText(serv.description)
+
+    def onPlaceSelected(self):
+        place = placeitem.Place.selectedPlaceModel.place
+        self.lblPlaceInfoName.setText(place.name)
