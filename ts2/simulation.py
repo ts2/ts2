@@ -103,12 +103,15 @@ def load(simulationWindow, jsonStream):
     """Loads the simulation from jsonStream and returns it.
 
     The logic of loading is the following:
-    1. We create the graph of objects from json.load(). When initialized,
-    each object stores its JSON data.
-    2. When all the objects are created, we call the initialize() method of the
-    simulation which calls in turn the initialize() method of each object.
+
+    1. We create the graph of objects from ``json.load()``. When initialized,
+       each object stores its JSON data.
+    1. When all the objects are created, we call the initialize() method of the
+       simulation which calls in turn the initialize() method of each object.
+
     This method will create all the missing links between the object and the
-    simulation (and other objects)."""
+    simulation (and other objects).
+    """
     simulation = json.load(jsonStream, object_hook=json_hook, encoding='utf-8')
     if not isinstance(simulation, Simulation):
         raise utils.FormatException(
