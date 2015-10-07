@@ -29,6 +29,11 @@ from ts2.gui import dialogs
 from ts2 import __APP_SHORT__, __VERSION__
 
 def Main(debug=False, file=None):
+    """Start the ts2 application and present :class:`~ts2.mainwindow.MainWindow`
+
+    :param bool debug: Enable debugging
+    :param str file: An optional ts2 sim file to load
+    """
     app = QtWidgets.QApplication(sys.argv)
     app.setApplicationName(__APP_SHORT__)
     app.setApplicationName(__VERSION__)

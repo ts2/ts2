@@ -24,12 +24,18 @@ translate = QtCore.QCoreApplication.translate
 
 
 class TrackGraphicsItem(QtWidgets.QGraphicsItem):
-    """@brief Graphical item of a trackItem
-    This class is the graphics of a TrackItem on the scene. Each instance
+    """Graphical item of a trackItem
+
+    This class is the graphics of a :class:`~ts2.scenery.abstract.TrackItem` on the scene. Each instance
     belongs to a trackItem which is defined in the constructor and which
     is responsible for all actions related to this graphical item."""
     def __init__(self, trackItem, itemId=0):
-        """Constructor for the TrackGraphicsItem Class"""
+        """
+        :param trackItem: The object to draw for
+        :type trackItem: :class:`~ts2.scenery.abstract.TrackItem`
+        :param itemId: Id of this item
+        :type int:
+        """
         super().__init__()
         self.trackItem = trackItem
         self.itemId = itemId
@@ -37,10 +43,12 @@ class TrackGraphicsItem(QtWidgets.QGraphicsItem):
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
 
     def boundingRect(self):
-        """Returns the bounding rectangle of the TrackGraphicsItem.
-        See QGraphicsItem::boundingRect() for more info.
-        Actually calls the graphicsBoundingRect() function of the owning
-        trackItem"""
+        """
+        :return: The bounding rectangle of this ``TrackGraphicsItem``.
+                 See ``QGraphicsItem::boundingRect()`` for more info.
+                 Actually calls the graphicsBoundingRect() function of the owning trackItem
+        :rtype: ``QRectF``
+        """
         return self.trackItem.graphicsBoundingRect(self.itemId)
 
     def shape(self):

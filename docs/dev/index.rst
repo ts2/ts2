@@ -21,6 +21,6 @@ The project currently consist of the following key repositories
    :maxdepth: 0
 
    setup.rst
-   how.rst
+   quick_guide.rst
    todo.rst
 
