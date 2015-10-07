@@ -1,25 +1,25 @@
 ######################
-Gui
+gui/
 ######################
 
-gui.dialogs.*
+dialogs.*
 ======================================
 .. automodule:: ts2.gui.dialogs
 
-gui.opendialog.*
+opendialog.*
 ======================================
 .. automodule:: ts2.gui.opendialog
    
-gui.servicelistview.*
+servicelistview.*
 ======================================
 .. automodule:: ts2.gui.servicelistview
 
    
-gui.trainlistview.*
+trainlistview.*
 ======================================
 .. automodule:: ts2.gui.trainlistview
 
-gui.widgets.*
+widgets.*
 ======================================
 .. automodule:: ts2.gui.widgets
 

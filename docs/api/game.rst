@@ -1,14 +1,13 @@
 ######################
-Game
+game/
 ######################
 
-game.logger.*
+logger.*
 ===============
 .. automodule:: ts2.game.logger
    :members:
   
-game.scorer.*
+scorer.*
 ===============
 .. automodule:: ts2.game.scorer
    :members:
-   

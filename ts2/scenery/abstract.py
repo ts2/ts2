@@ -64,7 +64,7 @@ def qPointFDetupler(attr):
 
 
 class TrackItem(QtCore.QObject):
-    """A ``TrackItem`` is a piece of scenery. Each item has defined coordinates in
+    """A ``TrackItem`` is a piece of scenery and is a **base class**. Each item has defined coordinates in
     the scenery layout and is connected to other items so that the trains can
     travel from one to another.
 
@@ -280,6 +280,10 @@ class TrackItem(QtCore.QObject):
 
     @property
     def nextItem(self):
+        """
+         :return: Next Item
+         :rtype: :class:`~ts2.scenery.abstract.TrackItem`
+        """
         return self._nextItem
 
     @nextItem.setter
@@ -288,6 +292,10 @@ class TrackItem(QtCore.QObject):
 
     @property
     def previousItem(self):
+        """
+        :return: Previous Item
+        :rtype: :class:`~ts2.scenery.abstract.TrackItem`
+        """
         return self._previousItem
 
     @previousItem.setter
@@ -387,7 +395,10 @@ class TrackItem(QtCore.QObject):
         self.updateGraphics()
 
     def registerTrain(self, trainId):
-        """Registers the train with the given trainId on this trackItem."""
+        """Registers the train with the given trainId on this trackItem.
+
+        :param str trainId:
+        """
         hadTrains = bool(self._trains)
         train = self.simulation.trains[trainId]
         if not train in self._trains:
@@ -397,7 +408,10 @@ class TrackItem(QtCore.QObject):
         self.updateTrainHeadAndTail()
 
     def unRegisterTrain(self, trainId):
-        """Removes the train given by trainId from the registry of this item."""
+        """Removes the train given by trainId from the registry of this item.
+
+        :param str trainId:
+        """
         train = self.simulation.trains[trainId]
         trainTail = train.trainHead - train.trainType.length
         if trainTail.trackItem != self and train in self._trains:
@@ -408,9 +422,10 @@ class TrackItem(QtCore.QObject):
 
     def updateTrainHeadAndTail(self):
         """Updates the _trainHeads and _trainTails lists from the _trains
-        data. _trainHeads are always the closest to nextItem whereas _trainTails
-        are always the closest to previousItem, whatever the trains' direction
-        and real trainHead and trainTail."""
+        data. _trainHeads are always the closest to :func:`~ts2.scenery.abstract.TrackItem.nextItem`
+        whereas _trainTails  are always the closest to :func:`~ts2.scenery.abstract.TrackItem.previousItem`,
+        whatever the trains' direction   and real trainHead and trainTail.
+        """
         self._trainHeads = []
         self._trainTails = []
         for train in self._trains:
@@ -433,12 +448,19 @@ class TrackItem(QtCore.QObject):
         self.updateTrain()
 
     def trainPresent(self):
-        """Returns True if at least one train is present on this TrackItem."""
+        """
+        :return: ``True`` if at least one train is present on this TrackItem.
+        :rtype: bool
+        """
         return self._trains
 
     def distanceToTrainEnd(self, pos):
-        """Returns the distance to the closest end (either trainHead or
-        trainTail) of the closest train when on pos."""
+        """
+        :param pos:
+        :type pos:
+        :return: the distance in metres to the closest end (either trainHead or trainTail) of the closest train when on pos.
+        :rtype: float
+        """
         if pos.previousTI == self.previousItem:
             return min([x - pos.positionOnTI for x in self._trainTails
                         if (x - pos.positionOnTI) > 0]
@@ -450,10 +472,15 @@ class TrackItem(QtCore.QObject):
                        or [-1])
 
     def isOnPosition(self, p):
+        """
+        :param p:
+        :type p:
+        :return: todo
+        :rtype: bool
+        """
         if p.trackItem() == self:
             return True
-        else:
-            return False
+        return False
 
     def trainHeadActions(self, trainId):
         """Performs the actions to be done when a train head reaches this
@@ -515,7 +542,10 @@ class TrackItem(QtCore.QObject):
     # ## Graphics Methods #################################################
 
     def getPen(self):
-        """Returns the standard pen for drawing trackItems"""
+        """
+        :return: the standard pen for drawing trackItems
+        :rtype: ``QPen``
+        """
         pen = QtGui.QPen()
         pen.setWidth(3)
         pen.setJoinStyle(Qt.RoundJoin)
@@ -527,8 +557,13 @@ class TrackItem(QtCore.QObject):
         return pen
 
     def drawConnectionRect(self, painter, point):
-        """Draws a connection rectangle on the given painter at the given
-        point."""
+        """Draws a connection rectangle on the given painter at the given point.
+
+        :param painter: the painter to paint on
+        :type painter: ``QPainter``
+        :param point: the point to draw on
+        :type point: ``QPointF``
+        """
         if self.selected:
             painter.setPen(Qt.magenta)
         else:
@@ -538,8 +573,10 @@ class TrackItem(QtCore.QObject):
         painter.drawRect(QtCore.QRectF(topLeft, QtCore.QSizeF(10, 10)))
 
     def graphicsBoundingRect(self, itemId):
-        """This function is called by the owned TrackGraphicsItem to return
-        its bounding rectangle"""
+        """
+        :return: The bounding rectangle of the owned :class:`~ts2.scenery.helper.TrackGraphicsItem`.
+        :rtype: ``QRectF``
+        """
         return QtCore.QRectF(0, 0, 1, 1)
 
     def graphicsShape(self, shape, itemId):

@@ -1,24 +1,23 @@
 ######################
-Editor
+editor/
 ######################
 
-editor.delegates.*
+delegates.*
 ============================================
 .. automodule:: ts2.editor.delegates
    
-editor.editor.*
+editor.*
 ============================================
 .. automodule:: ts2.editor.editor
 
-editor.editorscenebackground.*
+editorscenebackground.*
 ============================================
 .. automodule:: ts2.editor.editorscenebackground
 
-editor.editorwindow.*
+editorwindow.*
 ============================================
 .. automodule:: ts2.editor.editorwindow
 
-editor.views.*
+views.*
 ============================================
 .. automodule:: ts2.editor.views
-   

@@ -7,7 +7,7 @@ Quick code guide
 - A file is opened with the :class:`~ts2.gui.opendialog.OpenDialog`
 - and a :class:`~ts2.simulation.Simulation` is loaded in :func:`~ts2.mainwindow.MainWindow.loadSimulation`
 
-
+TODO: more stuff here
 
 
 
