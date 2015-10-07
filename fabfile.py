@@ -16,17 +16,17 @@ DOCS_WWW_GIT = "ssh://5570e9ce5973ca4a1a000006@docs-ts2.rhcloud.com/~/git/docs.g
 DOCS_WWW_DIR =  "docs-ts2.rhcloud.comz"
 DOCS_TEMP_DIR = TEMP_LOCAL + "/" + DOCS_WWW_DIR
 
-def serve_docs(port=8080):
+def docs_server(port=8080):
 	"""Run local HTTP server with docs"""
 	with lcd(TEMP_LOCAL + "/docs_build"):
 		local("python -m SimpleHTTPServer %s" % port)
 
-def clean():
-	"""Clean current docs-build"""
+def docs_clean():
+	"""Clean current docs-build """
 	local("rm ./docs/_static/favicon.*")
 	local("rm -f -r temp/*")
 
-def build_docs():
+def docs_build():
 	"""Build the documentation to temp/docs_build"""
 	
 	# copy some stuff
@@ -37,7 +37,7 @@ def build_docs():
 	## run build
 	local("/usr/bin/python3 /usr/local/bin/sphinx-build -b html ./docs/ ./temp/docs_build")
 	
-def update_www():
+def docs_update_www():
 	"""Copies build over to http://docs-ts2.rhcloud.com/.git and push online"""
 	
 	# nuke all stuff in openshift dir as its olde eg dead files et all

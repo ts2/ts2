@@ -26,12 +26,12 @@ from urllib import request
 from Qt import QtCore, QtGui, QtWidgets, Qt
 
 from ts2 import simulation, utils
-from ts2.gui import dialogs, trainlistview, servicelistview, widgets
+from ts2.gui import dialogs, trainlistview, servicelistview, widgets, opendialog
 from ts2.scenery import placeitem
 from ts2.editor import editorwindow
-from ts2.utils import settings, userDataDirectory, simulationsDirectory
+from ts2.utils import settings
 
-from ts2 import __PROJECT_WWW__, __ORG_CONTACT__, __VERSION__
+from ts2 import __PROJECT_WWW__, __PROJECT_HOME__, __PROJECT_BUGS__, __ORG_CONTACT__, __VERSION__
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -39,13 +39,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
     simulationLoaded = QtCore.pyqtSignal(simulation.Simulation)
 
-    def __init__(self):
+    def __init__(self, debug=False, file=None):
         super().__init__()
         MainWindow._self = self
+
+        settings.setDebug(debug)
+
         self.setObjectName("ts2_main_window")
         self.editorWindow = None
         self.setGeometry(100, 100, 800, 600)
-        self.setWindowTitle(self.tr("ts2 - Train Signalling Simulation"))
+        self.setWindowTitle(self.tr("ts2 - Train Signalling Simulation") + " - %s" % __VERSION__)
 
         # Simulation
         self.simulation = None
@@ -55,7 +58,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.openAction.setShortcut(QtGui.QKeySequence.Open)
         self.openAction.setToolTip(self.tr("Open a simulation or a "
                                            "previously saved game"))
-        self.openAction.triggered.connect(self.loadSimulation)
+        self.openAction.triggered.connect(self.onOpenSimulation)
 
         self.openRecentAction = QtWidgets.QAction(self.tr("Recent"), self)
         menu = QtWidgets.QMenu()
@@ -95,6 +98,23 @@ class MainWindow(QtWidgets.QMainWindow):
         self.editorAction.setToolTip(self.tr("Open the simulation editor"))
         self.editorAction.triggered.connect(self.openEditor)
 
+        # Web Links
+        self.actionGroupWwww = QtWidgets.QActionGroup(self)
+        self.actionGroupWwww.triggered.connect(self.onWwwAction)
+
+        self.aboutWwwHompage = QtWidgets.QAction(self.tr("&TS2 Homepage"), self)
+        self.aboutWwwHompage.setProperty("url", __PROJECT_WWW__)
+        self.actionGroupWwww.addAction(self.aboutWwwHompage)
+
+        self.aboutWwwProject = QtWidgets.QAction(self.tr("&TS2 Project"), self)
+        self.aboutWwwProject.setProperty("url", __PROJECT_HOME__)
+        self.actionGroupWwww.addAction(self.aboutWwwProject)
+
+        self.aboutWwwBugs = QtWidgets.QAction(self.tr("&TS2 Bugs && Feedback"), self)
+        self.aboutWwwBugs.setProperty("url", __PROJECT_BUGS__)
+        self.actionGroupWwww.addAction(self.aboutWwwBugs)
+
+        # About
         self.aboutAction = QtWidgets.QAction(self.tr("&About TS2..."), self)
         self.aboutAction.setToolTip(self.tr("About TS2"))
         self.aboutAction.triggered.connect(self.showAboutBox)
@@ -103,7 +123,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.aboutQtAction.setToolTip(self.tr("About Qt"))
         self.aboutQtAction.triggered.connect(QtWidgets.QApplication.aboutQt)
 
-        # Menus ======================================
+        # ===============================================
+        # Menus
 
         # FileMenu
         self.fileMenu = self.menuBar().addMenu(self.tr("&File"))
@@ -124,12 +145,103 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # Help Menu
         self.helpMenu = self.menuBar().addMenu(self.tr("&Help"))
+        self.helpMenu.addAction(self.aboutWwwHompage)
+        self.helpMenu.addAction(self.aboutWwwProject)
+        self.helpMenu.addAction(self.aboutWwwBugs)
+        self.helpMenu.addSeparator()
         self.helpMenu.addAction(self.aboutAction)
         self.helpMenu.addAction(self.aboutQtAction)
 
         self.menuBar().setCursor(Qt.PointingHandCursor)
 
-        # ===========================================
+
+
+        # ==============================================================
+        # ToolBars
+
+        # =========
+        # Actions
+        tbar, tbg = self._make_toolbar_group("Actions")
+        self.addToolBar(tbar)
+        tbg.addAction(self.openAction)
+        tbg.addAction(self.editorAction)
+
+        # =========
+        # Speed
+        tbar, tbg = self._make_toolbar_group("Speed")
+        self.addToolBar(tbar)
+
+        # Time factor spinBox
+        self.timeFactorSpinBox = QtWidgets.QSpinBox(self)
+        self.timeFactorSpinBox.setRange(1, 10)
+        self.timeFactorSpinBox.setSingleStep(1)
+        self.timeFactorSpinBox.setValue(1)
+        self.timeFactorSpinBox.setSuffix("x")
+        tbg.addWidget(self.timeFactorSpinBox)
+
+        # =========
+        # Zoom
+        tbar, tbg = self._make_toolbar_group("Zoom")
+        self.addToolBar(tbar)
+        tbg.setMaximumWidth(300)
+
+        self.zoomWidget = widgets.ZoomWidget(self)
+        self.zoomWidget.setMaximumWidth(300)
+        self.zoomWidget.valueChanged.connect(self.zoom)
+        tbg.addWidget(self.zoomWidget)
+
+        # =========
+        # Score
+        tbar, tbg = self._make_toolbar_group("Penalty")
+        self.addToolBar(tbar)
+
+        # Score display
+        self.scoreDisplay = QtWidgets.QLCDNumber(self)
+        self.scoreDisplay.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.scoreDisplay.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.scoreDisplay.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
+        self.scoreDisplay.setNumDigits(5)
+        self.scoreDisplay.resize(70, 25)
+        tbg.addWidget(self.scoreDisplay)
+
+        # =========
+        # Clock
+        tbar, tbg = self._make_toolbar_group("Clock")
+        self.addToolBar(tbar)
+
+        # Pause button
+        self.buttPause = QtWidgets.QToolButton(self)
+        self.buttPause.setText( "  " + self.tr("Pause") + "  ")
+        self.buttPause.setCheckable(True)
+        self.buttPause.setAutoRaise(True)
+        self.buttPause.setMaximumWidth(50)
+        tbg.addWidget(self.buttPause)
+
+
+        # Clock Widget
+        self.clockWidget = widgets.ClockWidget(self)
+        tbg.addWidget(self.clockWidget)
+
+
+        # ====================
+        # Sim Title
+        tbar = QtWidgets.QToolBar()
+        tbar.setObjectName("toolbar_label_title")
+        tbar.setFloatable(False)
+        tbar.setMovable(False)
+        self.addToolBar(tbar)
+        self.lblTitle = QtWidgets.QLabel()
+        lbl_sty = "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #fefefe, stop: 1 #CECECE);"
+        lbl_sty += " color: #333333; font-size: 16pt; padding: 1px;"
+        self.lblTitle.setStyleSheet(lbl_sty)
+        self.lblTitle.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
+        self.lblTitle.setText("no sim loaded")
+        sp = self.lblTitle.sizePolicy()
+        sp.setHorizontalPolicy(QtWidgets.QSizePolicy.Expanding)
+        self.lblTitle.setSizePolicy(sp)
+        tbar.addWidget(self.lblTitle)
+
+        # ===============================================================
         # Dock Widgets
 
         # Train Info
@@ -160,11 +272,41 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QDockWidget.DockWidgetMovable |
             QtWidgets.QDockWidget.DockWidgetFloatable
         )
+        ## Experimental to show code seperate >>>
+        EXP = True
+        if EXP:
+            sty = "background-color: #444444; color: white; padding: 2px; font-size: 10pt"
+            wid = QtWidgets.QWidget()
+            self.serviceInfoPanel.setWidget(wid)
+            grid = QtWidgets.QGridLayout()
+            wid.setLayout(grid)
+            self.lblServiceInfoCode = QtWidgets.QLabel()
+            self.lblServiceInfoCode.setStyleSheet(sty)
+            self.lblServiceInfoCode.setText("")
+            grid.addWidget(self.lblServiceInfoCode, 0, 0)
+            self.lblServiceInfoDescription = QtWidgets.QLabel()
+            self.lblServiceInfoDescription.setText("")
+            self.lblServiceInfoDescription.setStyleSheet(sty)
+            self.lblServiceInfoDescription.setScaledContents(False)
+            self.lblServiceInfoDescription.setMaximumWidth(200)
+            grid.addWidget(self.lblServiceInfoDescription, 0, 1)
+        # <<<
         self.serviceInfoView = QtWidgets.QTreeView(self)
         self.serviceInfoView.setItemsExpandable(False)
         self.serviceInfoView.setRootIsDecorated(False)
-        self.serviceInfoPanel.setWidget(self.serviceInfoView)
+        if EXP:
+            grid.addWidget(self.serviceInfoView, 1, 0, 1, 2)
+            self.serviceInfoPanel.setWidget(wid)
+            grid.setColumnStretch(0, 1)
+            grid.setColumnStretch(1, 4)
+            grid.setSpacing(0)
+            grid.setContentsMargins(0,0,0,0)
+        else:
+            self.serviceInfoPanel.setWidget(self.serviceInfoView)
+
         self.addDockWidget(Qt.RightDockWidgetArea, self.serviceInfoPanel)
+
+
 
         # Stations + Places Info
         self.placeInfoPanel = QtWidgets.QDockWidget(
@@ -233,18 +375,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.view.setRenderHint(QtGui.QPainter.Antialiasing, False)
         self.view.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.view.setPalette(QtGui.QPalette(Qt.black))
-        self.view.wheelChanged.connect(self.on_wheel_changed)
+        self.view.wheelChanged.connect(self.onWheelChanged)
 
-        # Control Panel
-        # Loaded with simulation
-        self.panel = widgets.ControlBarWidget(self.board, self)
-        self.panel.zoomChanged.connect(self.zoom)
 
         # Display
         self.grid = QtWidgets.QVBoxLayout()
         self.grid.setContentsMargins(0, 0, 0, 0)
         self.grid.addWidget(self.view)
-        self.grid.addWidget(self.panel)
         self.grid.setSpacing(0)
         self.board.setLayout(self.grid)
         self.setCentralWidget(self.board)
@@ -255,7 +392,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.refreshRecent()
         settings.restoreWindow(self)
 
+        if file:
+            self.loadSimulation(file)
         # DEBUG
+        # self.onOpenSimulation()
         # self.loadSimulation()
         # self.openEditor()
 
@@ -263,22 +403,23 @@ class MainWindow(QtWidgets.QMainWindow):
     def instance():
         return MainWindow._self
 
-    @QtCore.pyqtSlot()
+    def onOpenSimulation(self):
+        d = opendialog.OpenDialog(self)
+        d.openFile.connect(self.loadSimulation)
+        d.exec_()
+
+
+    @QtCore.pyqtSlot(str)
     def loadSimulation(self, fileName=None):
         # ## DEBUG
-        # fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.ts2"
+        #if settings.debug:
+        #   fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.ts2"
 
         if not fileName:
-            fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
-                self,
-                self.tr("Open a simulation"),
-                QtCore.QDir.currentPath(),
-                self.tr("TS2 files (*.ts2 *.tsg *.json);;"
-                        "TS2 simulation files (*.ts2);;"
-                        "TS2 saved game files (*.tsg);;"
-                        "JSON simulation files (*.json)"))
+            self.onOpenSimulation()
+            return
 
-        if fileName != "":
+        if fileName != "" or fileName != None:
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
 
             if self.simulation is not None:
@@ -307,9 +448,22 @@ class MainWindow(QtWidgets.QMainWindow):
             # else:
             self.setWindowTitle(self.tr(
                 "ts2 - Train Signalling Simulation - %s") % fileName)
+            self.lblTitle.setText( self.simulation.option("title") )
             self.simulationConnect()
             self.simulationLoaded.emit(self.simulation)
+
+            self.buttPause.toggled.connect(self.simulation.pause)
+            self.buttPause.toggled.connect(self.setPauseButtonText)
+            self.timeFactorSpinBox.valueChanged.connect(
+                self.simulation.setTimeFactor
+            )
+            self.timeFactorSpinBox.setValue(
+                float(self.simulation.option("timeFactor"))
+            )
+
             QtWidgets.QApplication.restoreOverrideCursor()
+
+
 
     def simulationConnect(self):
         """Connects the signals and slots to the simulation."""
@@ -333,6 +487,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.serviceListView.serviceSelected.connect(
             self.simulation.selectedServiceModel.setServiceCode
         )
+        self.serviceListView.serviceSelected.connect(
+            self.onServiceSelected
+        )
         # TrainInfoView
         self.simulation.trainStatusChanged.connect(
             self.trainInfoView.model().update
@@ -345,11 +502,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.loggerView.scrollToBottom
         )
         # Panel
-        self.simulation.timeChanged.connect(self.panel.clock.setTime)
+        self.simulation.timeChanged.connect(self.clockWidget.setTime)
         self.simulation.scorer.scoreChanged.connect(
-            self.panel.scoreDisplay.display
+            self.scoreDisplay.display
         )
-        self.panel.scoreDisplay.display(self.simulation.scorer.score)
+        self.scoreDisplay.display(self.simulation.scorer.score)
+
         # Menus
         self.saveGameAsAction.setEnabled(True)
         self.propertiesAction.setEnabled(True)
@@ -533,7 +691,37 @@ class MainWindow(QtWidgets.QMainWindow):
         settings.sync()
         super().closeEvent(event)
 
-    def on_wheel_changed(self, direction):
+    def onWheelChanged(self, direction):
         """Handle scrollwheel on canvas"""
-        percent = self.panel.zoomWidget.spinBox.value()
-        self.panel.zoomWidget.spinBox.setValue(percent + (direction * 10))
+
+        percent = self.zoomWidget.spinBox.value()
+        self.zoomWidget.spinBox.setValue(percent + (direction * 10))
+
+    def onWwwAction(self, act):
+        url = act.property("url")
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl(url))
+
+    def _make_toolbar_group(self, title):
+        """Creates a toolbar containing a `ToolBarGroup`"""
+        tbar = QtWidgets.QToolBar()
+        tbar.setObjectName("toolbar_" + title )
+        tbar.setFloatable(False)
+        tbar.setMovable(True)
+
+        tbg = widgets.ToolBarGroup(self, title=title)
+        tbar.addWidget(tbg)
+        return tbar, tbg
+
+
+    @QtCore.pyqtSlot(bool)
+    def setPauseButtonText(self, paused):
+        if paused:
+            self.buttPause.setText(self.tr("Paused"))
+        else:
+            self.buttPause.setText(self.tr("Pause"))
+
+    def onServiceSelected(self, serviceCode):
+        #print(serviceCode)
+        serv = self.simulation.service(serviceCode)
+        self.lblServiceInfoCode.setText(serviceCode)
+        self.lblServiceInfoDescription.setText(serv.description)

@@ -17,8 +17,9 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
+import os
 
-from Qt import QtCore
+from Qt import QtCore, QtWidgets
 
 import ts2
 import ts2.utils
@@ -27,6 +28,8 @@ import ts2.utils
 class XSettings(QtCore.QSettings):
     def __init__(self):
         super().__init__(ts2.__ORG_NAME__, ts2.__APP_SHORT__)
+
+        self._debug = False
 
     def getRecent(self):
         """List of recent files
@@ -52,16 +55,22 @@ class XSettings(QtCore.QSettings):
         return lst
 
     def saveWindow(self, window):
+        """Save window geometry and state"""
         self.setValue("window/%s/geometry" % window.objectName(),
                       window.saveGeometry())
+        if isinstance(window, QtWidgets.QDialog):
+            return
         self.setValue("window/%s/state" % window.objectName(),
                       window.saveState())
 
     def restoreWindow(self, window):
+        """Restore window geometry and state"""
         v = self.value("window/%s/geometry" % window.objectName())
         if v:
             window.restoreGeometry(v)
 
+        if isinstance(window, QtWidgets.QDialog):
+            return
         v = self.value("window/%s/state" % window.objectName())
         if v:
             window.restoreState(v)
@@ -81,3 +90,35 @@ class XSettings(QtCore.QSettings):
     def restoreTree(self, tree):
         tree.header().restoreState(
             self.settings.value("tree/%s" % tree._settings_ki).toByteArray())
+
+
+    def setDebug(self, debug):
+        """Set debug flag"""
+        self._debug = debug
+
+    @property
+    def debug(self):
+        return self._debug
+
+
+    def _getUserDataDirectory(self):
+        """Returns the folder in which to put the user data.
+
+        If the source folder is inside the home directory, then we use it because
+        it means that we have installed from sources. Otherwise we use ~/.ts2/
+        """
+        homeDir = os.path.expanduser("~")
+        if os.path.commonprefix((homeDir, os.getcwd())):
+            return os.getcwd()
+        else:
+            os.makedirs(os.path.join(homeDir, ".ts2", "data"), exist_ok=True)
+            os.makedirs(os.path.join(homeDir, ".ts2", "simulations"), exist_ok=True)
+            return os.path.join(homeDir, ".ts2")
+
+    @property
+    def simulationsDir(self):
+        return os.path.join(self._getUserDataDirectory(), "simulations")
+
+    @property
+    def userDataDir(self):
+        return os.path.join(self._getUserDataDirectory(), "data")

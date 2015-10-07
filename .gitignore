@@ -1,3 +1,7 @@
+## Ignore storage locations local ??
+data/
+simulations/
+
 /.directory
 /.eric5project/ts2.e4t
 /.eric5project/ts2.e4q

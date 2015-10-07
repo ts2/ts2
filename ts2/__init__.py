@@ -27,7 +27,7 @@
 
 __VERSION__ = "0.6.0"
 __FILE_FORMAT__ = 0.6
-__APP_SHORT__ = "TS2"
+__APP_SHORT__ = "ts2"
 __APP_LONG__ = "Train Signalling Simulation"
 __APP_DESCRIPTION__ = "A railway simulation game where you have to dispatch trains across an area and keep them on schedule"
 
@@ -37,6 +37,8 @@ __ORG_CONTACT__ = "npiganeau@github.com"
 __PROJECT_DOMAIN__ = "ts2.github.io"
 __PROJECT_WWW__ = "http://ts2.github.io/"
 __PROJECT_HOME__ = "https://github.com/ts2"
+__PROJECT_BUGS__ = "https://github.com/ts2/ts2/issues"
+__PROJECT_API_DOCS__ = "http://docs-ts2.rhcloud.com/"
 
 __SIMULATIONS_REPO__ = "https://github.com/ts2/ts2-data"
 
@@ -54,5 +56,7 @@ def get_info():
         project_domain = __PROJECT_DOMAIN__,
         project_www = __PROJECT_WWW__,
         project_home = __PROJECT_HOME__,
+        project_bugs = __PROJECT_BUGS__,
+        project_api_docs = __PROJECT_API_DOCS__,
         simulations_repo = __SIMULATIONS_REPO__
     )

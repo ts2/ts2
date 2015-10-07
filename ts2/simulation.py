@@ -25,6 +25,7 @@ import simplejson as json
 
 from Qt import QtCore, QtWidgets
 
+from ts2 import __FILE_FORMAT__
 from ts2 import utils, trains
 from ts2.routing import route, position
 from ts2.game import logger, scorer
@@ -38,7 +39,7 @@ translate = QtWidgets.qApp.translate
 BUILTIN_OPTIONS = {
     "title": "",
     "description": "",
-    "version": utils.TS2_FILE_FORMAT,
+    "version": __FILE_FORMAT__,
     "timeFactor": 5,
     "currentTime": "06:00:00",
     "warningSpeed": 8.3,
