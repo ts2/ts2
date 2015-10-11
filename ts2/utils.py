@@ -25,33 +25,49 @@ from Qt import QtCore
 import simplejson
 
 import ts2.xobjects.xsettings
-
-
 settings = ts2.xobjects.xsettings.XSettings()
 """Settings instance"""
 
 
 class Context:
-    """This class holds the different contexts for ts2."""
+    """Different context's"""
     GAME = 10
+    """Game"""
+
     EDITORS = [20, 21, 22, 23, 24, 25]
+    """Editor Modes list """
+
     EDITOR_GENERAL = 20
+    """Editor General"""
+
     EDITOR_SCENERY = 21
+    """Editor Scenery"""
+
     EDITOR_ROUTES = 22
+    """Editor Routes"""
+
     EDITOR_TRAINTYPES = 23
+    """Editor TrainTypes"""
+
     EDITOR_SERVICES = 24
+    """Editor Services"""
+
     EDITOR_TRAINS = 25
+    """Editor Trains"""
 
 
 class FormatException(Exception):
-    """Exception class for file format exception."""
+    """File format exception."""
     def __init__(self, arg):
         """Constructor of the Exception class."""
         super().__init__(arg)
 
 
 def cumsum(lis):
-    """Returns a list with the cumulated sum of lis."""
+    """cumulated sum of lis
+
+    :return: a list with the
+    """
     summ = 0
     for x in lis:
         summ += x

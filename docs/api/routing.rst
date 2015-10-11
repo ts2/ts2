@@ -1,14 +1,14 @@
 ######################
-Routing
+routing/
 ######################
 
-routing.postion.*
+
+postion.*
 =====================
 .. automodule:: ts2.routing.position
-   :members:
-   
-routing.route.*
+
+
+route.*
 ========================
 .. automodule:: ts2.routing.route
-   :members:
-   
+

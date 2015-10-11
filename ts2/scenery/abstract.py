@@ -64,17 +64,19 @@ def qPointFDetupler(attr):
 
 
 class TrackItem(QtCore.QObject):
-    """A TrackItem is a piece of scenery. Each item has defined coordinates in
+    """A ``TrackItem`` is a piece of scenery and is a **base class**. Each item has defined coordinates in
     the scenery layout and is connected to other items so that the trains can
-    travel from one to another. The coordinates are expressed in pixels.
-    The origin is the top left most corner of the scene.
-    The X-axis is from left to right and the Y-axis is from top to bottom.
+    travel from one to another.
+
+    - The coordinates are expressed in pixels
+    - The :attr:`~ts2.scenery.abstract.TrackItem.origin` is the top left most corner of the scene
+    - The X-axis is from left to right
+    - The Y-axis is from top to bottom.
     """
     def __init__(self, parameters):
-        """Constructor for the TrackItem class.
-
+        """
         :param parameters: JSON object holding the parameters to create the
-        TrackItem
+                            :class:`~ts2.scenery.abstract.TrackItem`
         """
         super().__init__()
         self.simulation = None
@@ -148,7 +150,10 @@ class TrackItem(QtCore.QObject):
                                             "Maximum speed (m/s)"))]
 
     def for_json(self):
-        """Dumps the trackItem to JSON."""
+        """
+        :return: Dumps this item to JSON.
+        :rtype: dict
+        """
         if self.previousItem is not None:
             previousTiId = self.previousItem.tiId
         else:
@@ -172,8 +177,11 @@ class TrackItem(QtCore.QObject):
     # ## Properties #########################################################
 
     def _getOrigin(self):
-        """Returns the origin QPointF of the TrackItem. The origin is
-        generally the left end of the track represented on the TrackItem"""
+        """
+        :return: The origin of  :class:`~ts2.scenery.abstract.TrackItem`  is
+                 generally the left end of the track represented on the :class:`~ts2.scenery.abstract.TrackItem`
+        :rtype: QPointF
+        """
         return self._origin
 
     def _setOrigin(self, pos):
@@ -191,14 +199,20 @@ class TrackItem(QtCore.QObject):
                          qPointFDestrizer("origin"))
 
     def _getEnd(self):
-        """Returns the end QPointF of the TrackItem. The end is
-        generally the right end of the track represented on the TrackItem"""
+        """
+        :return: The end  of the :class:`~ts2.scenery.abstract.TrackItem` is
+                generally the right end of the track represented on the :class:`~ts2.scenery.abstract.TrackItem`
+        :rtype: QPointF
+        """
         return self._end
 
     end = property(_getEnd)
 
     def _getName(self):
-        """Returns the unique name of the trackItem"""
+        """
+        :return: the unique name of the trackItem
+        :rtype: str
+        """
         return self._name
 
     def _setName(self, value):
@@ -211,8 +225,10 @@ class TrackItem(QtCore.QObject):
 
     @property
     def maxSpeed(self):
-        """Returns the maximum speed allowed on this LineItem, in metres per
-        second"""
+        """
+        :return: The maximum speed allowed on this LineItem, in metres per  second
+        :rtype: float
+        """
         if self.simulation.context == utils.Context.GAME and \
            self._maxSpeed == 0:
             return float(self.simulation.option("defaultMaxSpeed"))
@@ -229,23 +245,31 @@ class TrackItem(QtCore.QObject):
 
     @property
     def toolTipText(self):
-        """Returns the string to show on the tool tip."""
+        """
+        :return: the text to show on the tool tip.
+        :rtype: str
+        """
         return ""
 
     @property
     def tiTypeStr(self):
-        """Returns the type of this TrackItem as a string to be displayed"""
+        """
+        :return: the type of this TrackItem as a txt to be displayed
+        :rtype: str
+        """
         return str(self.__class__.__name__)
 
     @property
     def highlighted(self):
         if self.activeRoute is None:
             return False
-        else:
-            return True
+        return True
 
     def _getRealLength(self):
-        """Length of this track item in real life."""
+        """
+        :return: Length of this track item in real life metres.
+        :rtype: int
+        """
         return self._realLength
 
     realLength = property(_getRealLength)
@@ -256,6 +280,10 @@ class TrackItem(QtCore.QObject):
 
     @property
     def nextItem(self):
+        """
+         :return: Next Item
+         :rtype: :class:`~ts2.scenery.abstract.TrackItem`
+        """
         return self._nextItem
 
     @nextItem.setter
@@ -264,6 +292,10 @@ class TrackItem(QtCore.QObject):
 
     @property
     def previousItem(self):
+        """
+        :return: Previous Item
+        :rtype: :class:`~ts2.scenery.abstract.TrackItem`
+        """
         return self._previousItem
 
     @previousItem.setter
@@ -277,7 +309,10 @@ class TrackItem(QtCore.QObject):
     graphicsItem = property(_getGraphicsItem)
 
     def _getSelected(self):
-        """Returns True if the item is selected."""
+        """
+        :return: True if the item is selected.
+        :rtype: bool
+        """
         return self._selected
 
     def _setSelected(self, value):
@@ -294,11 +329,18 @@ class TrackItem(QtCore.QObject):
 
     @property
     def conflictTI(self):
+        """
+        :return: The conflicting item
+        :rtype: :class:`~ts2.scenery.abstract.TrackItem`
+        """
         return self._conflictTrackItem
 
     @property
     def conflictTiId(self):
-        """Returns the conflict trackitem ID."""
+        """
+        :return: the conflict trackitem ID.
+        :rtype: str
+        """
         if hasattr(self._conflictTrackItem, "tiId"):
             return self._conflictTrackItem.tiId
         else:
@@ -316,11 +358,15 @@ class TrackItem(QtCore.QObject):
     # ## Methods #########################################################
 
     def getFollowingItem(self, precedingItem, direction=-1):
-        """Returns the following TrackItem linked to this one, knowing we come
-        from precedingItem
-        @param precedingItem TrackItem where we come from (along a route)
-        @return Either _nextItem or _previousItem,depending which way we come
-        from."""
+        """
+        :param precedingItem: TrackItem where we come from (along a route)
+        :param direction: The direction
+        :return: the following :class:`~ts2.scenery.abstract.TrackItem` linked to this one,
+                knowing we come from ``precedingItem``.
+
+                Returned isEither _nextItem or _previousItem,depending which way we come from.
+        :rtype: :class:`~ts2.scenery.abstract.TrackItem`
+        """
         if precedingItem == self._previousItem:
             return self._nextItem
         elif precedingItem == self._nextItem:
@@ -333,9 +379,10 @@ class TrackItem(QtCore.QObject):
         """Sets the activeRoute and activeRoutePreviousItem informations. It
         is called upon Route activation. These information are used when other
         routes are activated in order to check the potential conflicts.
-        @param r The newly active Route on this TrackItem.
-        @param previous The previous TrackItem on this route (to know the
-        direction)."""
+
+        :param r: The newly active Route on this TrackItem.
+        :param previous: The previous :class:`~ts2.scenery.abstract.TrackItem` on this route (to know the
+               direction)."""
         self.activeRoute = r
         self.activeRoutePreviousItem = previous
         self.updateGraphics()
@@ -348,7 +395,10 @@ class TrackItem(QtCore.QObject):
         self.updateGraphics()
 
     def registerTrain(self, trainId):
-        """Registers the train with the given trainId on this trackItem."""
+        """Registers the train with the given trainId on this trackItem.
+
+        :param str trainId:
+        """
         hadTrains = bool(self._trains)
         train = self.simulation.trains[trainId]
         if not train in self._trains:
@@ -358,7 +408,10 @@ class TrackItem(QtCore.QObject):
         self.updateTrainHeadAndTail()
 
     def unRegisterTrain(self, trainId):
-        """Removes the train given by trainId from the registry of this item."""
+        """Removes the train given by trainId from the registry of this item.
+
+        :param str trainId:
+        """
         train = self.simulation.trains[trainId]
         trainTail = train.trainHead - train.trainType.length
         if trainTail.trackItem != self and train in self._trains:
@@ -369,9 +422,10 @@ class TrackItem(QtCore.QObject):
 
     def updateTrainHeadAndTail(self):
         """Updates the _trainHeads and _trainTails lists from the _trains
-        data. _trainHeads are always the closest to nextItem whereas _trainTails
-        are always the closest to previousItem, whatever the trains' direction
-        and real trainHead and trainTail."""
+        data. _trainHeads are always the closest to :func:`~ts2.scenery.abstract.TrackItem.nextItem`
+        whereas _trainTails  are always the closest to :func:`~ts2.scenery.abstract.TrackItem.previousItem`,
+        whatever the trains' direction   and real trainHead and trainTail.
+        """
         self._trainHeads = []
         self._trainTails = []
         for train in self._trains:
@@ -394,12 +448,19 @@ class TrackItem(QtCore.QObject):
         self.updateTrain()
 
     def trainPresent(self):
-        """Returns True if at least one train is present on this TrackItem."""
+        """
+        :return: ``True`` if at least one train is present on this TrackItem.
+        :rtype: bool
+        """
         return self._trains
 
     def distanceToTrainEnd(self, pos):
-        """Returns the distance to the closest end (either trainHead or
-        trainTail) of the closest train when on pos."""
+        """
+        :param pos:
+        :type pos:
+        :return: the distance in metres to the closest end (either trainHead or trainTail) of the closest train when on pos.
+        :rtype: float
+        """
         if pos.previousTI == self.previousItem:
             return min([x - pos.positionOnTI for x in self._trainTails
                         if (x - pos.positionOnTI) > 0]
@@ -411,10 +472,15 @@ class TrackItem(QtCore.QObject):
                        or [-1])
 
     def isOnPosition(self, p):
+        """
+        :param p:
+        :type p:
+        :return: todo
+        :rtype: bool
+        """
         if p.trackItem() == self:
             return True
-        else:
-            return False
+        return False
 
     def trainHeadActions(self, trainId):
         """Performs the actions to be done when a train head reaches this
@@ -476,7 +542,10 @@ class TrackItem(QtCore.QObject):
     # ## Graphics Methods #################################################
 
     def getPen(self):
-        """Returns the standard pen for drawing trackItems"""
+        """
+        :return: the standard pen for drawing trackItems
+        :rtype: ``QPen``
+        """
         pen = QtGui.QPen()
         pen.setWidth(3)
         pen.setJoinStyle(Qt.RoundJoin)
@@ -488,8 +557,13 @@ class TrackItem(QtCore.QObject):
         return pen
 
     def drawConnectionRect(self, painter, point):
-        """Draws a connection rectangle on the given painter at the given
-        point."""
+        """Draws a connection rectangle on the given painter at the given point.
+
+        :param painter: the painter to paint on
+        :type painter: ``QPainter``
+        :param point: the point to draw on
+        :type point: ``QPointF``
+        """
         if self.selected:
             painter.setPen(Qt.magenta)
         else:
@@ -499,8 +573,10 @@ class TrackItem(QtCore.QObject):
         painter.drawRect(QtCore.QRectF(topLeft, QtCore.QSizeF(10, 10)))
 
     def graphicsBoundingRect(self, itemId):
-        """This function is called by the owned TrackGraphicsItem to return
-        its bounding rectangle"""
+        """
+        :return: The bounding rectangle of the owned :class:`~ts2.scenery.helper.TrackGraphicsItem`.
+        :rtype: ``QRectF``
+        """
         return QtCore.QRectF(0, 0, 1, 1)
 
     def graphicsShape(self, shape, itemId):
@@ -583,11 +659,14 @@ class TrackItem(QtCore.QObject):
 
 
 class ResizableItem(TrackItem):
-    """ResizableItem is the base class for all TrackItems which can be
-    resized by the user in the editor, such as line items or platform items.
+    """``ResizableItem`` is the base class for all :class:`~ts2.scenery.abstract.TrackItem`'s which can be
+    resized by the user in the editor, such as
+    :class:`~ts2.scenery.lineitem.LineItem`'s or :class:`~ts2.scenery.platformitem.PlatformItem`'s.
     """
     def __init__(self, parameters):
-        """Constructor for the ResizableItem class."""
+        """
+        :param dict parameters:
+        """
         super().__init__(parameters)
         xf = float(parameters['xf'])
         yf = float(parameters['yf'])
@@ -595,6 +674,10 @@ class ResizableItem(TrackItem):
 
     @staticmethod
     def getProperties():
+        """
+        :return: a ``list`` of properties
+        :rtype: list
+        """
         return [
             helper.TIProperty("tiTypeStr", translate("LineItem", "Type"), True),
             helper.TIProperty("tiId", translate("LineItem", "id"), True),
@@ -608,7 +691,10 @@ class ResizableItem(TrackItem):
         ]
 
     def for_json(self):
-        """Dumps this resizeable item to JSON."""
+        """
+        :return: Dumps this resizeable item to JSON.
+        :rtype: dict
+        """
         jsonData = super().for_json()
         jsonData.update({
             "xf": self._end.x(),
@@ -647,9 +733,11 @@ class ResizableItem(TrackItem):
                       qPointFDestrizer("end"))
 
     def _getStart(self):
-        """Returns the start QPointF of the TrackItem. The start is
-        a point that is in the same place than origin, but resizes
-        the item when moved instead of moving the item."""
+        """
+        :return: The start of a :class:`~ts2.scenery.abstract.TrackItem` is a point that is in the
+                same place than origin, but resizes  the item when moved instead of moving the item.
+        :rtype: QPointF
+        """
         return self.origin
 
     def _setStart(self, pos):
@@ -662,7 +750,9 @@ class ResizableItem(TrackItem):
     # ## Graphics Methods #################################################
 
     def graphicsBoundingRect(self, itemId):
-        """Returns the bounding rectangle of this ResizableItem."""
+        """
+        :return:  the bounding rectangle of this ``ResizableItem``.
+        :rtype: QRect """
         x1 = self.origin.x()
         y1 = self.origin.y()
         x2 = self.end.x()
@@ -673,8 +763,8 @@ class ResizableItem(TrackItem):
             return QtCore.QRectF(0, 0, x2 - x1, y2 - y1)
 
     def graphicsMouseMoveEvent(self, event, itemId=0):
-        """This function is called by the owned TrackGraphicsItem to handle
-        its mouseMoveEvent. Reimplemented in the ResizableItem class to begin
+        """This function is called by the owned :class:`~ts2.scenery.helper.TrackGraphicsItem` to handle
+        its :meth:`~ts2.scenery.helper.TrackGraphicsItem.mouseMoveEvent`. Reimplemented in the ResizableItem class to begin
         a drag operation on corners."""
         if event.buttons() == Qt.LeftButton and \
            self.simulation.context == utils.Context.EDITOR_SCENERY:

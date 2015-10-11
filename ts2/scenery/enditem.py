@@ -28,12 +28,18 @@ BIG = 1000000000
 
 class EndItem(abstract.TrackItem):
     """End items are invisible items to which the free ends of other
-    trackitems must be connected to prevent the simulation from crashing TS2.
-    End items are defined by their titype which is “E” and their position
-    (x, y). They are single point items.
+    trackitems must be connected to prevent the simulation from crashing.
+
+    End items are defined by:
+
+    - their titype which is “E”
+    - and their position (x, y)
+    - They are single point items
     """
     def __init__(self, parameters):
-        """Constructor for the EndItem class"""
+        """
+        :param dict paramaters:
+        """
         super().__init__(parameters)
         self._realLength = BIG
         egi = helper.TrackGraphicsItem(self)
@@ -55,22 +61,32 @@ class EndItem(abstract.TrackItem):
         return jsonData
 
     def _getEnd(self):
-        """Returns a point far away of the scene"""
+        """
+        :return: a point far away of the scene
+        :rtype: ``QPointF``
+        """
         return QtCore.QPointF(-BIG, -BIG)
 
     end = property(_getEnd)
 
     def getFollowingItem(self, precedingItem, direction=-1):
-        """Reimplemented from TrackItem to return None if going to the free
-        end."""
+        """
+        Reimplemented from :class:`~ts2.scenery.abstract.TrackItem` . :func:`~ts2.scenery.abstract.TrackItem.getFollowingItem`
+
+        :return: ``None`` if going to the free end
+        :rtype: ``None`` or :class:`~ts2.scenery.abstract.TrackItem`
+        """
         if precedingItem == self._previousItem:
             return None
         else:
             return self._previousItem
 
     def graphicsBoundingRect(self, itemId):
-        """Reimplemented from TrackItem.graphicsBoundingRect to return the
-        bounding rectangle of the owned TrackGraphicsItem."""
+        """Reimplemented from :class:`~ts2.scenery.abstract.TrackItem` . :func:`~ts2.scenery.abstract.TrackItem.graphicsBoundingRect`
+
+        :return: The bounding rectangle of the owned :class:`~ts2.scenery.helper.TrackGraphicsItem`.
+        :rtype: ``QRectF``
+        """
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             if self.tiId < 0:
                 # Toolbox itemId

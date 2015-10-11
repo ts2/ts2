@@ -116,7 +116,11 @@ BUILTIN_SIGNAL_LIBRARY = """{
 
 
 def json_hook(dct):
-    """Hook method for json loading of signal library."""
+    """Hook method for json loading of signal library.
+    :param dict dct: the dictionary to load
+    :return: An class of ``__type__``
+    :rtype: Class instance
+    """
     if not dct.get('__type__'):
         return dct
     elif dct['__type__'] == "SignalLibrary":
@@ -142,15 +146,20 @@ class ConditionCode:
 
 
 class SignalItem(abstract.TrackItem):
-    """ @brief Logical item for signals
-    This class holds the logics of a signal defined by its SignalType.
-    A signal is the item from and to which routes are created."""
+    """Logical item for signals.
+
+    - This class holds the logic of a signal defined by its
+      :class:`~ts2.scenery.signals.signalitem.SignalType`.
+    - A signal is the item from and to which routes are created.
+    """
 
     SIGNAL_GRAPHIC_ITEM = 0
     BERTH_GRAPHIC_ITEM = 1
 
     def __init__(self, parameters):
-        """ Constructor for the SignalItem class."""
+        """
+        :param dict paramaters:
+        """
         super().__init__(parameters)
         reverse = bool(parameters.get("reverse", 0))
         self._signalType = None
@@ -243,9 +252,16 @@ class SignalItem(abstract.TrackItem):
         return jsonData
 
     signalSelected = QtCore.pyqtSignal(int, bool, bool)
+    """pyqtSignal(int, bool, bool)"""
+
     signalUnselected = QtCore.pyqtSignal(int)
+    """pyqtSignal(int)"""
+
     trainSelected = QtCore.pyqtSignal(int)
+    """pyqtSignal(int)"""
+
     aspectChanged = QtCore.pyqtSignal()
+    """pyqtSignal()"""
 
     # ## Properties #########################################################
 
@@ -263,8 +279,10 @@ class SignalItem(abstract.TrackItem):
     end = property(_getEnd)
 
     def _getReverse(self):
-        """Returns True if the SignalItem is from right to left, false
-        otherwise"""
+        """
+        :return: True if the SignalItem is from right to left, otherwise False
+        :rtype: bool
+        """
         return bool(self._reverse)
 
     def _setReverse(self, value):
@@ -752,16 +770,20 @@ class SignalState:
 
 
 class SignalType:
-    """A SignalType describes a type of signals which can have different
+    """A ``SignalType`` describes a type of signals which can have different
     aspects and the logic for displaying aspects."""
 
     def __init__(self, parameters):
-        """Constructor for the SignalType class."""
+        """
+        :param dict paramaters:
+        """
         self.name = "__UNNAMED__"
         self.states = parameters["states"]
 
     def initialize(self, signalLib):
-        """Initializes this SignalType once the SignalLibrary is loaded."""
+        """Initializes this SignalType once
+        the :class:`~ts2.scenery.signals.signalitem.SignalLibrary` is loaded.
+        """
         for state in self.states:
             state.initialize(signalLib)
 
@@ -773,13 +795,19 @@ class SignalType:
         }
 
     def getDefaultAspect(self):
-        """Returns the default aspect for this signal type."""
+        """
+        :return: The default aspect for this :class:`~ts2.scenery.signals.signalitem.SignalType`.
+        :rtype: :class:`~ts2.scenery.signals.signalitem.SignalState`
+        """
         return self.states[-1].aspect
 
     def getCustomParams(self, signalItem):
-        """Returns a dict of the custom parameters of signalItem.
-        The params dict has keys which are condition names and values which are
-        dict with signal aspect name as keys and a list of parameters as values.
+        """
+        :param signalItem: A :class:`~ts2.scenery.signals.signalitem.SignalItem` instance
+        :return: The custom parameters of :class:`~ts2.scenery.signals.signalitem.SignalItem`.
+                 The params dict has keys which are condition names and values which are
+                 dict with signal aspect name as keys and a list of parameters as values.
+        :rtype: dict
         """
         params = {}
         conditionNames = {c for state in self.states for c in state.conditions}

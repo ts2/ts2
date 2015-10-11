@@ -403,7 +403,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(str)
     def loadSimulation(self, fileName=None):
+        """This is where stuff happens and the simulation is loaded
 
+
+        """
         if fileName:
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
 
@@ -648,7 +651,8 @@ class MainWindow(QtWidgets.QMainWindow):
         super().closeEvent(event)
 
     def onWheelChanged(self, direction):
-        """Handle scrollwheel on canvas"""
+        """Handle scrollwheel on canvas, sent from
+        :class:`~ts2.gui.widgets.XGraphicsView` """
         percent = self.zoomWidget.spinBox.value()
         self.zoomWidget.spinBox.setValue(percent + (direction * 10))
 

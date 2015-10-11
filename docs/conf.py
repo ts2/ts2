@@ -44,14 +44,15 @@ autodoc_member_order = "alphabetical"
 
 ## Flags for the stuff to document..
 autodoc_default_flags = [
-	'members', 
-	'undoc-members', 
-	'private-members', 
-	#'special-members', 
-	#'inherited-members', 
+	'members',
+	#'undoc-members',
+	#'private-members',
+	'special-members',
+	#'inherited-members',
+    #"exclude-members ",
 	'show-inheritance'
 ]
-autoclass_content = "both"
+autoclass_content = "class"
 
 ## assign template var {{INFO.foo}} 
 ## variables/Constants,  version. www etc, git.repos  from ts2 

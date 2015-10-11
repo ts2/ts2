@@ -106,18 +106,26 @@ class PositionGraphicsItem(QtWidgets.QGraphicsPolygonItem):
 
 
 class Position:
-    """A Position object is a point on a TrackItem.
+    """A ``Position`` object is a point on a :class:`~ts2.scenery.abstract.TrackItem`.
 
-    A Position is defined as being positionOnTI meters away from the end of
-    the TrackItem that is connected to TrackItem previousTI. Note that a
+    A ``Position`` is defined as being :func:`~ts2.routing.position.Position.positionOnTI` meters away from the end of
+    the ``TrackItem`` that is connected to ``TrackItem`` :func:`~ts2.routing.position.Position.previousTI`. Note that a
     Position has a direction, so that for any point on a TrackItem, there are
-    two Positions that can be defined: one starting from one end of the
-    TrackItem, the other starting from the other end. You can get the
-    other Position by calling reversed()."""
+    two Positions that can be defined:
+
+      - one starting from one end of the :class:`~ts2.scenery.abstract.TrackItem`
+      - the other starting from the other end.
+
+      You can get the other Position by calling :func:`~ts2.routing.position.Position.reversed`."""
 
     def __init__(self, trackItem=None, previousTI=None, positionOnTI=0.0,
                  parameters=None):
-        """Constructor for the Position class"""
+        """
+        :param trackItem:
+        :param previousTI:
+        :param positionOnTI:
+        :param parameters:
+        """
         if parameters:
             self._parameters = parameters
             self._trackItem = None
@@ -139,7 +147,9 @@ class Position:
         self._positionOnTI = params['positionOnTI']
 
     def for_json(self):
-        """Dumps the position to JSON."""
+        """Dumps the position to JSON.
+
+        :return: `dict` """
         return {
             "__type__": "Position",
             "trackItem": self.trackItem.tiId,
@@ -149,41 +159,51 @@ class Position:
 
     @property
     def trackItem(self):
-        """The TrackItem on which this Position is"""
+        """
+        :return: :class:`~ts2.scenery.abstract.TrackItem` on which this ``Position`` is"""
         return self._trackItem
 
     @property
     def previousTI(self):
-        """The TrackItem connected to this one from which to measure the
-        distance of the Position"""
+        """
+        :return:  :class:`~ts2.scenery.abstract.TrackItem`  connected to this one from which to measure the
+                  distance of the ``Position`` """
         return self._previousTI
 
     @property
     def positionOnTI(self):
-        """Distance of the Position from the end of the TrackItem connected to
-        previousTI"""
+        """
+        :return: `float` with distance of the :class:`~ts2.routing.position.Position` from the
+                end of the :class:`~ts2.scenery.abstract.TrackItem` connected
+                to   :class:`~ts2.routing.position.Position.previousTI`"""
         return float(self._positionOnTI)
 
     def next(self, pos=0, direction=-1):
-        """Returns a Position on the next TrackItem.
-
-        Returns a Position on the next TrackItem (i.e. the TrackItem
-        connected to this one which is not previousTI) at pos meters from
-        the connection of the next TrackItem to this one. By default,
-        pos is 0."""
+        """
+        :param pos: metre position
+        :param int direction:
+        :return: A Position on the next :class:`~ts2.scenery.abstract.TrackItem` (i.e. the TrackItem
+                 connected to this one which is not previousTI) at pos meters from
+                 the connection of the next TrackItem to this one. By default,
+                 pos is 0.
+        :rtype: :class:`~ts2.routing.position.Position`
+        """
         return Position(self._trackItem.getFollowingItem(self._previousTI,
                                                          direction),
                         self._trackItem,
                         pos)
 
     def previous(self, pos=None):
-        """Returns a Position on the previous TrackItem.
-
-        Returns a Position on the previous TrackItem (i.e. previousTI),
-        running backwards, at pos meters from the end behind (i.e. the end
-        not connected to this TrackItem). By default, pos is equal to the
-        length of the previous Item, so that the position is on the
-        connection point with this TrackItem."""
+        """
+        :param pos: metre position
+        :param int direction:
+        :return: a Position on the previous :class:`~ts2.scenery.abstract.TrackItem`  (i.e. previousTI),
+                 running backwards, at pos meters from the end behind (i.e. the end
+                 not connected to this TrackItem). By default, pos is equal to the
+                 length of the previous Item, so that the position is on the
+                 connection point with this TrackItem.
+        :rtype: :class:`~ts2.routing.position.Position`
+        """
         # try:
         if pos is None:
             pos = self._previousTI.realLength
@@ -195,8 +215,13 @@ class Position:
         return res
 
     def distanceToPosition(self, p):
-        """Returns the distance between the current position and p if p is
-        ahead of current position. Returns 0 otherwise."""
+        """
+        :param p:
+        :type p: :class:`~ts2.routing.position.Position`
+        :return: The distance between the current position and p. if p is
+                 ahead of current position, otherwise zero
+        :rtype: float
+        """
         if self.trackItem != p.trackItem:
             res = self.trackItem.realLength - self.positionOnTI
             cur = self.next()
@@ -211,9 +236,14 @@ class Position:
         return max(res, 0)
 
     def trackItemsToPosition(self, p):
-        """Returns a list of all the trackItems between this position and
-        position p including the trackItem of this position and the trackItem
-        of position p."""
+        """
+        :param p:
+        :type p: :class:`~ts2.routing.position.Position`
+        :return: a list of all the trackItems between this position and
+                 position p including the trackItem of this position and the trackItem
+                 of position p.
+        :rtype: a ``list`` of :class:`~ts2.scenery.abstract.TrackItem`'s
+        """
         til = []
         cur = self
         while cur.trackItem != p.trackItem and not cur.isOut():
@@ -223,8 +253,11 @@ class Position:
         return til
 
     def isOut(self):
-        """Returns True if this position is out of the scenery, going outwards
-        i.e. on an EndItem with a previous item that is not None."""
+        """
+        :return: ``True`` if this position is out of the scenery, going outwards
+                   i.e. on an :class:`~ts2.scenery.enditem.EndItem`  with a previous item that is not None.
+        :rtype: bool
+        """
         import ts2.scenery.enditem
         if isinstance(self.trackItem, ts2.scenery.enditem.EndItem) and \
                 self.previousTI is not None:
@@ -233,7 +266,11 @@ class Position:
             return False
 
     def isValid(self):
-        """Returns True if this Position is valid."""
+        """
+        :return: ``True`` if this Position is valid.
+        :rtype: bool
+        """
+        ## TODO This import here needs to go (pedro)
         import ts2.scenery.enditem
         import ts2.scenery.pointsitem
         if self.isNull():
@@ -256,34 +293,49 @@ class Position:
         return True
 
     def isNull(self):
-        """Returns True if this Position is Null."""
+        """
+        :return: ``True`` if this Position is Null.
+        :rtype: bool
+        """
         return (self.trackItem is None and
                 self.previousTI is None and
                 self.positionOnTI == 0)
 
     def reversed(self):
-        """Returns a position that is physically on the exact same place, but
-        coming from the opposite direction"""
+        """
+        :return: a position that is physically on the exact same place, but
+                 coming from the opposite direction
+        :rtype: :class:`~ts2.routing.position.Position`
+        """
         positionOnTI = self._trackItem.realLength - self._positionOnTI
         previousTI = self._trackItem.getFollowingItem(self._previousTI)
         return Position(self._trackItem, previousTI, positionOnTI)
 
     def __eq__(self, p):
-        """Returns True if p is the same Position as this one."""
+        """
+        :param p:
+        :type p: :class:`~ts2.routing.position.Position`
+        :return: `True` if p is the same Position as this one.
+        :rtype: bool
+        """
         return (self._trackItem == p.trackItem and
                 self._previousTI == p.previousTI and
                 self._positionOnTI == p.positionOnTI)
 
     def __ne__(self, p):
-        """Returns True if p is not the same Position as this one."""
+        """
+        :param p:
+        :type p: :class:`~ts2.routing.position.Position`
+        :return: `True` if p is not the same Position as this one..
+        :rtype: bool
+        """
         return not (self == p)
 
     def __add__(self, length):
-        """Returns the position that is length meters ahead of this
-        position.
-        :rtype : Position
-        :param length: length in meters to add to this position
-        :return: The new position
+        """
+        :param float length:  meters to add to this position
+        :return: the position that is length meters ahead of this position.
+        :rtype: :class:`~ts2.routing.position.Position`
         """
         if self._positionOnTI + length < self._trackItem.realLength:
             return Position(self._trackItem,
@@ -295,11 +347,11 @@ class Position:
                                   self._trackItem.realLength)
 
     def __sub__(self, length):
-        """Returns the position that is length meters behind this
-        Position.
-        :rtype : Position
-        :param length: length in meters to add to this position
+        """Returns the position that is length meters behind this Position.
+
+        :param float length: length in meters to add to this position
         :return: The new position
+        :rtype: :class:`~ts2.routing.position.Position`
         """
         if self._positionOnTI - length > 0:
             return Position(self._trackItem,
@@ -312,7 +364,9 @@ class Position:
     # noinspection PyMethodFirstArgAssignment
     def __iadd__(self, length):
         """Implements Position += length operator.
-        :rtype : Position
+
+        :return: new position
+        :rtype: :class:`~ts2.routing.position.Position`
         """
         self = self + length
         return self
@@ -320,14 +374,20 @@ class Position:
     # noinspection PyMethodFirstArgAssignment
     def __isub__(self, length):
         """Implements Position -= length operator.
-        :rtype : Position
+
+        :return: new position
+        :rtype: :class:`~ts2.routing.position.Position`
         """
         self = self - length
         return self
 
     def __str__(self):
-        """Returns the string representation of the position, which is
-        "(trackItem.tiId, previousTI.tiId, positionOnTI)"."""
+        """
+        :return: a string representation of the position, which is
+                 ``(trackItem.tiId, previousTI.tiId, positionOnTI)``
+        :rtype: str
+        """
+
         if self.trackItem is None and \
            self.previousTI is None and \
            self.positionOnTI == 0:

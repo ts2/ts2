@@ -2,16 +2,21 @@
 TS2 Developer Zone
 =============================
 
-**Train Signalling Simulation (TS2)** is an open source railway simulation game where you have to dispatch trains across an area and keep them on schedule.
+**[TS2] Train Signalling Simulation** is an open source railway signalling simulation game
+where you have to dispatch trains across an area and try to keep the schedule.
 
-This is the developers website and information about code, API autogen docs with sphinx
-    
-- The application simulates at present block signalling.. 
+- The application in written in Python3 and used the PyQt5 toolkit
+   - Multi-platform on Windows, Linux, OSX and others even...
+- The application simulates at present block signalling
 - Real-time simulation of a train signalling control centre
 - Simulations are file based and can be edited by users within the editor included in the software
-- Everything can be changed through the editor, including scenery layout, allowed routes, timetables and train characteristics (speed, acceleration, braking, length, ...)
+- Everything can be changed through the editor, including
+    - scenery layout
+    - allowed routes
+    - timetables
+    - train characteristics such as speed, acceleration, braking, length..
 - Simulation scenes have no limitation in size or arrangement
-- Multi-platform (MS Windows, MAC OS X, Linux and other UNIX variants)
+
 
 .. note::
 
@@ -24,7 +29,7 @@ This is the developers website and information about code, API autogen docs with
 .. toctree::
    :maxdepth: 1
    
-   dev_guide.rst
+   dev/index.rst
    api/index.rst
 
 
