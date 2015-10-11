@@ -39,7 +39,7 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
     
     def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
-        return 7
+        return 8
     
     def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
@@ -59,6 +59,8 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
                 return trainTypes[index.row()].emergBraking
             elif index.column() == 6:
                 return trainTypes[index.row()].length
+            elif index.column() == 7:
+                return trainTypes[index.row()].elementsStr
         return None
     
     def setData(self, index, value, role=None):
@@ -77,6 +79,8 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
                 self._editor.trainTypes[code].emergBraking = value
             elif index.column() == 6:
                 self._editor.trainTypes[code].length = value
+            elif index.column() == 7:
+                self._editor.trainTypes[code].elementsStr = value
             else:
                 return False
             self.dataChanged.emit(index, index)
@@ -100,6 +104,8 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
                 return self.tr("Emerg. braking (m/s2)")
             elif section == 6:
                 return self.tr("Length (m)")
+            elif section == 7:
+                return self.tr("Elements (codes list)")
         return None
     
     def flags(self, index):
@@ -122,6 +128,7 @@ class TrainType:
         self._stdBraking = float(parameters["stdBraking"])
         self._emergBraking = float(parameters["emergBraking"])
         self._length = float(parameters["length"])
+        self._elements = eval(str(parameters.get("elements", [])))
         self.simulation = None
 
     def initialize(self, simulation):
@@ -138,7 +145,8 @@ class TrainType:
             "stdAccel": self.stdAccel,
             "stdBraking": self.stdBraking,
             "emergBraking": self.emergBraking,
-            "length": self.length
+            "length": self.length,
+            "elements": self.elementsStr
         }
 
     @property
@@ -223,3 +231,31 @@ class TrainType:
         """Setter function for the length property"""
         if self.simulation.context == utils.Context.EDITOR_TRAINTYPES:
             self._length = value
+
+    @property
+    def elementsStr(self):
+        """
+        :return: A string representation of the list of other
+        :class:`~ts2.trains.traintype.TrainType` that constitute this rolling
+        stock. Returns "[]" if this :class:`~ts2.trains.traintype.TrainType`
+        cannot be divided.
+        :rtype: str
+        """
+        return str(self._elements)
+
+    @elementsStr.setter
+    def elementsStr(self, value):
+        """
+        Setter function for the elementsStr property in editor context.
+        :param value: The value to set as string
+        :return: None
+        """
+        if self.simulation.context == utils.Context.EDITOR_TRAINTYPES:
+            if value:
+                value = value.strip("[]")
+                trainTypes = self.simulation.trainTypes.keys()
+                lst = [el.strip('"\' ') for el in value.split(',')
+                       if el.strip('"\' ') in [tt for tt in trainTypes]]
+                self._elements = lst
+            else:
+                self._elements = []

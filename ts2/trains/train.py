@@ -20,7 +20,7 @@
 from math import sqrt
 
 from Qt import QtCore, QtGui, QtWidgets, Qt
-from ts2 import routing, utils
+from ts2 import utils
 from ts2.routing import position
 from ts2.scenery import lineitem, enditem
 from ts2.scenery.signals import signalaspect, signalitem
@@ -978,7 +978,6 @@ class Train(QtCore.QObject):
 
         :param advanceLength : The length that the train has advanced since
         the last call to this function."""
-        oldTrainHead = self.trainHead - advanceLength
         trainTail = self.trainHead - self.trainType.length
         oldTrainTail = trainTail - advanceLength
         # Register train on new items (even if to be unregistered just behind)
@@ -1158,7 +1157,7 @@ class Train(QtCore.QObject):
             # We emulate a distance to next signal to get a stdBraking
             distanceToNextSignal = (
                 ((self.speed - self.trainType.stdBraking * secs)**2 -
-                applicableAction[1]**2) / (2 * self.trainType.stdBraking) +
+                 applicableAction[1]**2) / (2 * self.trainType.stdBraking) +
                 (self.speed * secs / 2)
             )
 
