@@ -5,17 +5,16 @@ version 0.6
 **== IMPORTANT ==**
 - This 0.6 branch and current `develop`
 - abandons PyQt4 for PyQt5
-- python3 only 
-- Sorry guys but its a step we have to do..
-- Also saved data in json instead of sqlite
-- And also relocation of project to github
+- Python3 only 
+  - Sorry guys but its a step we have to do..
+- Data saved in json instead of sqlite.db
+- Relocation of project to github (from sf.. sorr sfo.. get your act together.. doh!!!)
    - http://ts2.github.io/
-
-
 
 
 ## Overview
 **Train Signalling Simulation (TS2)** is a railways simulation game where you have to dispatch trains across an area and keep them on schedule. 
+
 
 ## Links
 * TS2 Homepage - [ts2.github.io](http://ts2.github.io/)

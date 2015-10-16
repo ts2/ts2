@@ -57,16 +57,22 @@ class TrainStatus(QtCore.QObject):
         """
         if status == cls.INACTIVE:
             return translate("TrainStatus", "Inactive")
+
         elif status == cls.RUNNING:
             return translate("TrainStatus", "Running")
+
         elif status == cls.STOPPED:
             return translate("TrainStatus", "Stopped at station")
+
         elif status == cls.WAITING:
             return translate("TrainStatus", "Waiting at red signal")
+
         elif status == cls.OUT:
             return translate("TrainStatus", "Exited the area")
+
         elif status == cls.END_OF_SERVICE:
             return translate("TrainStatus", "End of service")
+
         else:
             return ""
 
@@ -85,7 +91,10 @@ class TrainListModel(QtCore.QAbstractTableModel):
         return len(self.simulation.trains)
 
     def columnCount(self, parent=QtCore.QModelIndex(), *args):
-        """Returns the number of columns of the model"""
+        """Returns the number of columns of the model
+        @TODO ?? wtf
+        """
+
         return 8
 
     def data(self, index, role=Qt.DisplayRole):
