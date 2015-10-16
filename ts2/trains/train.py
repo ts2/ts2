@@ -1057,7 +1057,7 @@ class Train(QtCore.QObject):
                  - or ahead of the given position if specified
         :rtype: (:class:`~ts2.routing.position.Position`, int)
         """
-        if pos == None:
+        if pos is None:
             pos = position.Position()
         retPos = position.Position()
         retDist = -1
