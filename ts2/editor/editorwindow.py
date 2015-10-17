@@ -33,8 +33,12 @@ from ts2.utils import settings
 class EditorWindow(QtWidgets.QMainWindow):
     """The EditorWindow class holds the main window of the editor"""
 
-    def __init__(self, mainWindow):
-        """Constructor for the EditorWindow class"""
+    def __init__(self, mainWindow, fileName=None):
+        """
+
+        :params QMainWindow mainWindow: the parent main window
+        :params string fileName: Optiosal filename to open
+        """
         super().__init__(mainWindow)
         self.setObjectName("editor_window")
         self.setGeometry(100, 100, 1024, 768)
@@ -424,6 +428,9 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.tabWidget)
         settings.restoreWindow(self)
 
+        if fileName:
+            self.loadSimulation(fileName=fileName)
+
     def simulationConnect(self):
         """Connects the signals and slots to the simulation."""
         self.titleTxt.setText(self.editor.option("title"))
@@ -524,18 +531,20 @@ class EditorWindow(QtWidgets.QMainWindow):
             self.propertiesView.setModel(None)
 
     @QtCore.pyqtSlot()
-    def loadSimulation(self):
-        """Loads the simulation from the database"""
+    def loadSimulation(self, fileName=None):
+        """Loads the simulation from ts2 file"""
         # DEBUG
         # fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.ts2"
 
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self,
-            self.tr("Open a simulation"),
-            QtCore.QDir.currentPath(),
-            self.tr("TS2 files (*.ts2 *.json);;"
-                    "TS2 simulation files (*.ts2);;"
-                    "JSON simulation files (*.json)"))
+        if fileName == None:
+            fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
+                self,
+                self.tr("Open a simulation"),
+                QtCore.QDir.currentPath(),
+                self.tr("TS2 files (*.ts2 *.json);;"
+                        "TS2 simulation files (*.ts2);;"
+                        "JSON simulation files (*.json)"))
+
         if fileName != "":
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
 

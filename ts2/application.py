@@ -47,6 +47,7 @@ def Main(args=None):
     app.installTranslator(ts2Translator)
     QtCore.qDebug(QtCore.QLocale.system().name())
     # TODO: Uncomment in production
+    # @npi ? do we need this debug.. we expet to catch exceptions before here or another way to output??
     # try:
     mw = mainwindow.MainWindow(args=args)
     mw.show()

@@ -387,7 +387,10 @@ class MainWindow(QtWidgets.QMainWindow):
         settings.restoreWindow(self)
 
         if args and args.file:
-            self.loadSimulation(args.file)
+            if args.edit:
+                self.openEditor(args.file)
+            else:
+                self.loadSimulation(args.file)
         # DEBUG
         # self.onOpenSimulation()
         # self.loadSimulation()
@@ -595,10 +598,10 @@ class MainWindow(QtWidgets.QMainWindow):
                                            self.trainInfoView.mapToGlobal(pos))
 
     @QtCore.pyqtSlot()
-    def openEditor(self):
+    def openEditor(self, fileName=None):
         """This slot opens the editor window if it is not already opened"""
         if not self.editorOpened:
-            self.editorWindow = editorwindow.EditorWindow(self)
+            self.editorWindow = editorwindow.EditorWindow(self, fileName)
             self.editorWindow.simulationConnect()
             self.editorWindow.closed.connect(self.editorIsClosed)
             self.editorOpened = True
