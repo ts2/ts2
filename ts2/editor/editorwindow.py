@@ -553,6 +553,8 @@ class EditorWindow(QtWidgets.QMainWindow):
                     self.closed.emit()
                 else:
                     closeEvent.ignore()
+            else:
+                self.closed.emit()
 
     @QtCore.pyqtSlot(int)
     def setPropertiesModel(self):
@@ -580,7 +582,7 @@ class EditorWindow(QtWidgets.QMainWindow):
                         "TS2 simulation files (*.ts2);;"
                         "JSON simulation files (*.json)"))
 
-        if fileName != "":
+        if fileName:
             self.statusBar().showMessage("Loading", info=True, timeout=2)
             self.statusBar().showBusy(True)
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)

@@ -112,20 +112,26 @@ class XGraphicsView(QtWidgets.QGraphicsView):
 
 class StatusBar(QtWidgets.QStatusBar):
     """A horizontal bar with enbedded progress bar
-    :todo: Embed refresh and cancel buttons
+
+    .. todo: The progressBar is not showing progress !!
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.progressTimer = QtCore.QTimer()
+        self.progressTimer.setInterval(100)
+        self.progressTimer.timeout.connect(self.onProgressTimeout)
 
         self.progressContainerWidget = HBoxWidget()
         self.progressContainerWidget.setFixedWidth(100)
+        self.progressContainerWidget.setFixedHeight(15)
         self.addPermanentWidget(self.progressContainerWidget)
-        self.progressBar = QtWidgets.QProgressBar()
-        self.progressContainerWidget.addWidget(self.progressBar, 1)
 
-        self.progressBar.hide()
+        self.progressBar = QtWidgets.QProgressBar()
+        self.progressBar.setTextVisible(False)
+        self.progressContainerWidget.addWidget(self.progressBar, 1)
+        self.progressBar.setVisible(False)
 
 
     def showMessage(self, txt, timeout=0, info=False, warn=False):
@@ -148,15 +154,19 @@ class StatusBar(QtWidgets.QStatusBar):
         else:
             super().showMessage(txt)
 
-
-
+    @QtCore.pyqtSlot()
+    def onProgressTimeout(self):
+        print("onTimer")
+        QtCore.QApplication.processEvents()
 
     def showBusy(self, is_busy):
         """Shows the progress bar and makes busy bee"""
         if is_busy:
             self.progressBar.setRange(0,0)
+            self.progressTimer.start()
         else:
-            self.progressBar.setRange(0,1)
+            self.progressBar.setRange(0,0)
+            self.progressTimer.stop()
         self.progressBar.setVisible(is_busy)
 
 
