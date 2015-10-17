@@ -617,13 +617,13 @@ class MainWindow(QtWidgets.QMainWindow):
     def openPropertiesDialog(self):
         """Pops-up the simulation properties dialog."""
         if self.simulation is not None:
-            paused = self.panel.pauseButton.isChecked()
+            paused = self.buttPause.isChecked()
             if not paused:
-                self.panel.pauseButton.click()
+                self.buttPause.click()
             propertiesDialog = dialogs.PropertiesDialog(self, self.simulation)
             propertiesDialog.exec_()
             if not paused:
-                self.panel.pauseButton.click()
+                self.buttPause.click()
 
     @QtCore.pyqtSlot(int)
     def openReassignServiceWindow(self, trainId):
