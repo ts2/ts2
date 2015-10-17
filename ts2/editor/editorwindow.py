@@ -447,6 +447,11 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.tabWidget.addTab(trainsTab, self.tr("Trains"))
 
         self.setCentralWidget(self.tabWidget)
+
+        sbar = widgets.StatusBar()
+        self.setStatusBar(sbar)
+
+
         settings.restoreWindow(self)
 
         if fileName:
@@ -592,6 +597,8 @@ class EditorWindow(QtWidgets.QMainWindow):
             self.optionsView.resizeColumnsToContents()
 
             QtWidgets.qApp.restoreOverrideCursor()
+
+            self.statusBar().showMessage("Loaded", info=True, timeout=2)
 
     @QtCore.pyqtSlot()
     def saveSimulation(self):
@@ -755,6 +762,9 @@ class EditorWindow(QtWidgets.QMainWindow):
             self.routesView.scrollTo(idx)
             self.dirty = True
         else:
+            self.statusBar().showMessage(self.tr("No route selected, or already exists"), timeout=3, warn=True)
+            # TODO need to check why its failed, eg exists
+            return
             QtWidgets.QMessageBox.warning(
                 self,
                 self.tr("Add route"),

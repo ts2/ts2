@@ -110,7 +110,7 @@ class XGraphicsView(QtWidgets.QGraphicsView):
             self.wheelChanged.emit(-1)
 
 
-class StatusBar(QtWidgets.QWidget):
+class StatusBar(QtWidgets.QStatusBar):
     """A horizontal bar with enbedded progress bar
     :todo: Embed refresh and cancel buttons
     """
@@ -122,24 +122,37 @@ class StatusBar(QtWidgets.QWidget):
         self.lay.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.lay)
 
-        self.statusBar = QtWidgets.QStatusBar()
-        self.lay.addWidget(self.statusBar, 1)
-        self.statusBar.showMessage("IDLE")
+        #self.statusBar = QtWidgets.QStatusBar()
+        #self.lay.addWidget(self.statusBar, 1)
+        #self.statusBar.showMessage("IDLE")
 
-
+        self.progressContainerWidget = HBoxWidget()
+        self.progressContainerWidget.setFixedWidth(100)
+        self.addPermanentWidget(self.progressContainerWidget)
         self.progressBar = QtWidgets.QProgressBar()
-        self.lay.addWidget(self.progressBar, 1)
-        self.progressBar.hide()
+        self.progressContainerWidget.addWidget(self.progressBar, 1)
+
+        #self.progressBar.hide()
 
 
-    def showMessage(self, txt, timeout=3, info=False, warn=False):
+    def showMessage(self, txt, timeout=0, info=False, warn=False):
         """Shows a message
 
-
-
         """
-        self.statusBar.showMessage(txt)
-        # TODO set timeout
+        color = "black"
+        if warn:
+            color = "#AC3636"
+        elif info:
+            color = "#204292"
+        self.setStyleSheet("color: %s" % color )
+
+        if timeout > 0:
+            super().showMessage(txt, timeout * 1000)
+        else:
+            super().showMessage(txt)
+
+
+
 
     def showBusy(self, is_busy):
         """Shows the progress bar and makes busy bee"""
