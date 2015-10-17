@@ -321,6 +321,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.routesWidget.setEnabled(False)
         self.tabWidget.addTab(self.routesWidget, self.tr("Routes"))
 
+        # ==========================================
         # Train types tab
         trainTypesTab = QtWidgets.QWidget()
         self.trainTypesView = \
@@ -741,10 +742,17 @@ class EditorWindow(QtWidgets.QMainWindow):
     def addRouteBtnClicked(self):
         """Adds a route in routesView when the add route button is clicked."""
         model = self.editor.routesModel
+        ridx =  model.rowCount()
         model.beginInsertRows(QtCore.QModelIndex(),
-                              model.rowCount(), model.rowCount())
+                             ridx, ridx)
         if self.editor.addRoute():
             model.endInsertRows()
+            # scroll to new entry # TODO still not working ;-(
+            idx = model.index(ridx, 0)
+            selection = QtCore.QItemSelection(model.index(ridx, 0), \
+                                                 model.index(ridx, model.rowCount() -1 ))
+            self.routesView.selectionModel().select(selection, QtCore.QItemSelectionModel.SelectCurrent)
+            self.routesView.scrollTo(idx)
         else:
             QtWidgets.QMessageBox.warning(
                 self,
