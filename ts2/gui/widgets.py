@@ -118,13 +118,6 @@ class StatusBar(QtWidgets.QStatusBar):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.lay = QtWidgets.QHBoxLayout()
-        self.lay.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(self.lay)
-
-        #self.statusBar = QtWidgets.QStatusBar()
-        #self.lay.addWidget(self.statusBar, 1)
-        #self.statusBar.showMessage("IDLE")
 
         self.progressContainerWidget = HBoxWidget()
         self.progressContainerWidget.setFixedWidth(100)

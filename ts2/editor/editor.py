@@ -653,7 +653,10 @@ class Editor(simulation.Simulation):
         self.sceneryIsValidated.emit(False)
 
     def addRoute(self):
-        """Adds the route that is selected on the scene to the routes."""
+        """Adds the route that is selected on the scene to the routes.
+
+        .. todo:: Maybe this should return Error string or None
+        """
         if self.context == utils.Context.EDITOR_ROUTES:
             if (self._preparedRoute is not None) and \
                (self._preparedRoute not in self._routes.values()):

@@ -322,27 +322,30 @@ class EditorWindow(QtWidgets.QMainWindow):
 
         # ==========================================
         # Train types tab
-        trainTypesTab = QtWidgets.QWidget()
-        self.trainTypesView = \
-            ts2.editor.views.TrainTypesEditorView(trainTypesTab)
+        self.trainTypesWidget = widgets.VBoxWidget()
+
+        tbar = QtWidgets.QToolBar()
+        self.trainTypesWidget.addWidget(tbar)
+
         self.addTrainTypeBtn = QtWidgets.QPushButton(
-            self.tr("Add new train type"), trainTypesTab
+            self.tr("Add new train type"), self.trainTypesWidget
         )
         self.addTrainTypeBtn.clicked.connect(self.addTrainTypeBtnClicked)
+        tbar.addWidget(self.addTrainTypeBtn)
+
         self.delTrainTypeBtn = QtWidgets.QPushButton(
-            self.tr("Remove train type"), trainTypesTab
+            self.tr("Remove train type"), self.trainTypesWidget
         )
         self.delTrainTypeBtn.clicked.connect(self.delTrainTypeBtnClicked)
-        hgrid = QtWidgets.QHBoxLayout()
-        hgrid.addWidget(self.addTrainTypeBtn)
-        hgrid.addWidget(self.delTrainTypeBtn)
-        hgrid.addStretch()
-        grid = QtWidgets.QVBoxLayout()
-        grid.addWidget(self.trainTypesView)
-        grid.addLayout(hgrid)
-        trainTypesTab.setLayout(grid)
-        self.tabWidget.addTab(trainTypesTab, self.tr("Train types"))
+        tbar.addWidget(self.delTrainTypeBtn)
 
+        self.trainTypesView = ts2.editor.views.TrainTypesEditorView(self.trainTypesWidget)
+
+
+        self.trainTypesWidget.addWidget(self.trainTypesView)
+        self.tabWidget.addTab(self.trainTypesWidget, self.tr("Rolling Stock"))
+
+        # ==========================================
         # Services tab
         servicesTab = QtWidgets.QWidget()
         self.exportServicesBtn = QtWidgets.QPushButton(
@@ -595,6 +598,7 @@ class EditorWindow(QtWidgets.QMainWindow):
             self.simulationConnect()
 
             self.optionsView.resizeColumnsToContents()
+            self.trainTypesView.resizeColumnsToContents()
 
             QtWidgets.qApp.restoreOverrideCursor()
 
