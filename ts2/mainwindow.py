@@ -85,7 +85,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.quitAction.setToolTip(self.tr("Quit TS2"))
         self.quitAction.triggered.connect(self.close)
 
-        self.editorAction = QtWidgets.QAction(self.tr("&Open"), self)
+        self.editorAction = QtWidgets.QAction(self.tr("&Open Editor"), self)
         self.editorAction.setShortcut(QtGui.QKeySequence(self.tr("Ctrl+E")))
         self.editorAction.setToolTip(self.tr("Open the simulation editor"))
         self.editorAction.triggered.connect(self.openEditor)
@@ -627,6 +627,14 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.simulation is not None:
             dialogs.ServiceAssignDialog.reassignServiceToTrain(
                 self.simulation, trainId
+            )
+
+    @QtCore.pyqtSlot(int)
+    def openSplitTrainWindow(self, trainId):
+        """Opens the split train dialog window."""
+        if self.simulation is not None:
+            dialogs.SplitTrainDialog.getSplitIndexPopUp(
+                self.simulation.trains[trainId]
             )
 
     def refreshRecent(self):

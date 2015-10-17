@@ -29,7 +29,8 @@ translate = QtWidgets.qApp.translate
 
 
 class TrainStatus(QtCore.QObject):
-    """Holds the enum describing the status of a :class:`~ts2.trains.train.Train`"""
+    """Holds the enum describing the status of a
+    :class:`~ts2.trains.train.Train`"""
 
     INACTIVE = 0
     """Not yet entered on the scene"""
@@ -451,6 +452,8 @@ class Train(QtCore.QObject):
         self.resetServiceAction.triggered.connect(self.resetService)
         self.reverseAction = QtWidgets.QAction(self.tr("Reverse"), self)
         self.reverseAction.triggered.connect(self.reverse)
+        self.splitAction = QtWidgets.QAction(self.tr("Split train"), self)
+        self.splitAction.triggered.connect(self.splitTrainPopUp)
 
     def initialize(self, simulation):
         """Initialize the train once everything else is loaded."""
@@ -474,6 +477,9 @@ class Train(QtCore.QObject):
         self.trainExitedArea.connect(simulation.scorer.trainExitedArea)
         self.reassignServiceRequested.connect(
             simulation.simulationWindow.openReassignServiceWindow
+        )
+        self.splitTrainRequested.connect(
+            simulation.simulationWindow.openSplitTrainWindow
         )
         self._parameters = None
 
@@ -511,6 +517,7 @@ class Train(QtCore.QObject):
     trainStatusChanged = QtCore.pyqtSignal(int)
     trainExitedArea = QtCore.pyqtSignal(int)
     reassignServiceRequested = QtCore.pyqtSignal(int)
+    splitTrainRequested = QtCore.pyqtSignal(int)
 
     # ## Properties ######################################################
 
@@ -777,6 +784,7 @@ class Train(QtCore.QObject):
         contextMenu.addAction(self.assignAction)
         contextMenu.addAction(self.resetServiceAction)
         contextMenu.addAction(self.reverseAction)
+        contextMenu.addAction(self.splitAction)
         contextMenu.exec_(pos)
 
     def setInitialDelay(self):
@@ -879,6 +887,27 @@ class Train(QtCore.QObject):
                 QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel
                 ) == QtWidgets.QMessageBox.Ok:
             self.nextPlaceIndex = 0
+
+    @QtCore.pyqtSlot()
+    def splitTrainPopUp(self):
+        """Pops up a dialog for the user to choose where to split the train and
+        then split it."""
+        if len(self.trainType.elements) < 2:
+            QtWidgets.QMessageBox.warning(
+                self.simulation.simulationWindow,
+                self.tr("Unable to split train"),
+                self.tr("This train cannot be split"),
+                QtWidgets.QMessageBox.Ok
+            )
+        else:
+            self.splitTrainRequested.emit(self.trainId)
+
+    def splitTrain(self, splitIndex):
+        """Splits this train at the given index.
+        :param splitIndex: The index at which to split the train. 0 is between
+        the first and second element, 1 between the second and third, etc.
+        counting from the train head."""
+        print ("Split at index: %s" % splitIndex)
 
     def jumpToNextPlace(self):
         """Set the nextPlaceIndex to the next serviceLine. If there is no

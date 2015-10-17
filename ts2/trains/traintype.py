@@ -278,3 +278,11 @@ class TrainType:
                 self._elements = lst
             else:
                 self._elements = []
+
+    @property
+    def elements(self):
+        """
+        :return: The list of :class:`~ts2.trains.traintype.TrainType` elements
+        that constitute this train type.
+        """
+        return [self.simulation.trainTypes[code] for code in self._elements]

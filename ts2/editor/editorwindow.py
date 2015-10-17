@@ -964,3 +964,8 @@ class EditorWindow(QtWidgets.QMainWindow):
     def openReassignServiceWindow(self, trainId):
         """To conform to Mainwindow morphism."""
         pass
+
+    @QtCore.pyqtSlot(int)
+    def openSplitTrainWindow(self, trainId):
+        """To conform to Mainwindow morphism."""
+        pass

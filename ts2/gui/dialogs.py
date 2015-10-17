@@ -151,6 +151,70 @@ class ServiceAssignDialog(QtWidgets.QDialog):
         settings.sync()
         super().closeEvent(event)
 
+
+class SplitTrainDialog(QtWidgets.QDialog):
+    """Popup window for the user to select where to split a train."""
+
+    def __init__(self, parent, train):
+        """Constructor for the SplitTrainDialog."""
+        super().__init__(parent)
+        self.setObjectName("split_train_dialog")
+        self.setWindowTitle(
+            self.tr("Split a train")
+        )
+        layout = QtWidgets.QVBoxLayout()
+
+        label0 = QtWidgets.QLabel(self)
+        label0.setText(train.trainType.elements[0].description)
+        layout.addWidget(label0)
+        self.radioButtons = []
+        for element in train.trainType.elements[1:]:
+            self.radioButtons.append(QtWidgets.QRadioButton(
+                self.tr("Split here"), self)
+            )
+            layout.addWidget(self.radioButtons[-1])
+            label = QtWidgets.QLabel(self)
+            label.setText(element.description)
+            layout.addWidget(label)
+        self.radioButtons[0].setChecked(True)
+        buttonBox = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
+        layout.addWidget(buttonBox)
+        self.setLayout(layout)
+        self.setMinimumWidth(300)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+        settings.restoreWindow(self)
+
+    def getSplitIndex(self):
+        """
+        :return: The index of the selected radio button
+        """
+        for button in self.radioButtons:
+            if button.isChecked():
+                return self.radioButtons.index(button)
+        return 0
+
+    @staticmethod
+    def getSplitIndexPopUp(train):
+        """Pops up a split train dialog and returns the index at which to split
+        the given train.
+        :param train: The train instance to split
+        """
+        simWindow = train.simulation.simulationWindow
+        std = SplitTrainDialog(simWindow, train)
+        if std.exec_() == QtWidgets.QDialog.Accepted:
+            train.splitTrain(std.getSplitIndex())
+
+    def closeEvent(self, event):
+        """Save window postions on close"""
+        settings.saveWindow(self)
+        settings.sync()
+        super().closeEvent(event)
+
+
 class DownloadSimulationsDialog(QtWidgets.QDialog):
     """Popup window for the user to select download server."""
     def __init__(self, parent):
