@@ -50,7 +50,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.dirty = False
 
         # Editor
-        self.editor = editor.Editor()
+        self.editor = editor.Editor(fileName=fileName)
         self.editor.initialize(self)
 
         # Actions
@@ -458,7 +458,12 @@ class EditorWindow(QtWidgets.QMainWindow):
         settings.restoreWindow(self)
 
         if fileName:
-            self.loadSimulation(fileName=fileName)
+            QtCore.QTimer.singleShot(100, self.onStartupTimeout)
+
+
+    def onStartupTimeout(self):
+        if self.editor.fileName:
+            self.loadSimulation(fileName=self.editor.fileName)
 
     def simulationConnect(self):
         """Connects the signals and slots to the simulation."""
@@ -576,6 +581,8 @@ class EditorWindow(QtWidgets.QMainWindow):
                         "JSON simulation files (*.json)"))
 
         if fileName != "":
+            self.statusBar().showMessage("Loading", info=True, timeout=2)
+            self.statusBar().showBusy(True)
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
 
             if self.editor is not None:
@@ -603,6 +610,7 @@ class EditorWindow(QtWidgets.QMainWindow):
             QtWidgets.qApp.restoreOverrideCursor()
 
             self.statusBar().showMessage("Loaded", info=True, timeout=2)
+            self.statusBar().showBusy(False)
 
     @QtCore.pyqtSlot()
     def saveSimulation(self):

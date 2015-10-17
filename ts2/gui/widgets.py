@@ -125,12 +125,16 @@ class StatusBar(QtWidgets.QStatusBar):
         self.progressBar = QtWidgets.QProgressBar()
         self.progressContainerWidget.addWidget(self.progressBar, 1)
 
-        #self.progressBar.hide()
+        self.progressBar.hide()
 
 
     def showMessage(self, txt, timeout=0, info=False, warn=False):
         """Shows a message
 
+        :param str txt: Text to display
+        :param int timeout: Timeout in seconds
+        :param bool info: shows blue
+        :param bool warn: shows red
         """
         color = "black"
         if warn:

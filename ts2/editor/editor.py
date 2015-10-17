@@ -137,7 +137,8 @@ class Editor(simulation.Simulation):
     is a subclass of the Simulation class.
     """
     def __init__(self, options=None, trackItems=None, routes=None,
-                 trainTypes=None, services=None, trns=None, messageLogger=None):
+                 trainTypes=None, services=None, trns=None, messageLogger=None,
+                 fileName=None):
         """Constructor for the Editor class"""
         options = options or simulation.BUILTIN_OPTIONS
         trackItems = trackItems or {}
@@ -211,7 +212,7 @@ class Editor(simulation.Simulation):
         self._trainsModel = trains.TrainsModel(self)
         self._optionsModel = OptionsModel(self)
         self._placesModel = placeitem.PlacesModel(self)
-        self.fileName = ""
+        self.fileName = fileName
         self._nextId = 1
         self._nextRouteId = 1
         self._grid = 5.0
