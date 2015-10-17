@@ -38,11 +38,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     simulationLoaded = QtCore.pyqtSignal(simulation.Simulation)
 
-    def __init__(self, debug=False, file=None):
+    def __init__(self, args=None):
         super().__init__()
         MainWindow._self = self
 
-        settings.setDebug(debug)
+        if args:
+            settings.setDebug(args.debug)
 
         self.setObjectName("ts2_main_window")
         self.editorWindow = None
@@ -385,8 +386,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.refreshRecent()
         settings.restoreWindow(self)
 
-        if file:
-            self.loadSimulation(file)
+        if args and args.file:
+            self.loadSimulation(args.file)
         # DEBUG
         # self.onOpenSimulation()
         # self.loadSimulation()
