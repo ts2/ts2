@@ -250,14 +250,16 @@ class EditorWindow(QtWidgets.QMainWindow):
         fgrid.setRowStretch(2, 2)
         self.tabWidget.addTab(generalTab, self.tr("General"))
 
+        # ==========================================
         # Scenery tab
         sceneryTab = QtWidgets.QWidget()
-        self.sceneryView = QtWidgets.QGraphicsView(sceneryTab)
+        self.sceneryView = widgets.XGraphicsView(sceneryTab)
         self.sceneryView.setInteractive(True)
         self.sceneryView.setRenderHint(QtGui.QPainter.Antialiasing, False)
         self.sceneryView.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.sceneryView.setAcceptDrops(True)
         self.sceneryView.setBackgroundBrush(QtGui.QBrush(Qt.black))
+        self.sceneryView.wheelChanged.connect(self.onSceneryViewWheelChanged)
         self.unlockSceneryBtn = QtWidgets.QPushButton(self.tr("Unlock Scenery"),
                                                       sceneryTab)
         self.unlockSceneryBtn.setEnabled(False)
@@ -268,25 +270,29 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.zoomWidget = widgets.ZoomWidget(sceneryTab)
         self.zoomWidget.valueChanged.connect(self.zoom)
         hgrid = QtWidgets.QHBoxLayout()
+        hgrid.setContentsMargins(0,0,0,0)
         hgrid.addWidget(self.unlockSceneryBtn)
         hgrid.addWidget(self.validateSceneryBtn)
         hgrid.addStretch()
         hgrid2 = QtWidgets.QHBoxLayout()
+        hgrid2.setContentsMargins(0,0,0,0)
         hgrid2.addWidget(self.zoomWidget)
         hgrid2.addStretch()
         vgrid = QtWidgets.QVBoxLayout()
+        vgrid.setContentsMargins(0,0,0,0)
         vgrid.addLayout(hgrid)
         vgrid.addWidget(self.sceneryView)
         vgrid.addLayout(hgrid2)
         sceneryTab.setLayout(vgrid)
         self.tabWidget.addTab(sceneryTab, self.tr("Scenery"))
 
+        # ==========================================
         # Routes tab
-        routesTab = QtWidgets.QWidget()
+        self.routesWidget = widgets.VBoxWidget()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
                                            QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
-        self.routesGraphicView = QtWidgets.QGraphicsView(routesTab)
+        self.routesGraphicView = QtWidgets.QGraphicsView(self.routesWidget)
         self.routesGraphicView.setInteractive(True)
         self.routesGraphicView.setRenderHint(QtGui.QPainter.Antialiasing,
                                              False)
@@ -297,24 +303,23 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.routesGraphicView.setBackgroundBrush(QtGui.QBrush(Qt.black))
         self.routesGraphicView.setSizePolicy(sizePolicy)
         self.addRouteBtn = QtWidgets.QPushButton(self.tr("Add Route"),
-                                                 routesTab)
+                                                 self.routesWidget)
         self.addRouteBtn.clicked.connect(self.addRouteBtnClicked)
         self.delRouteBtn = QtWidgets.QPushButton(self.tr("Delete Route"),
-                                                 routesTab)
+                                                 self.routesWidget)
         self.delRouteBtn.clicked.connect(self.delRouteBtnClicked)
         hgrid = QtWidgets.QHBoxLayout()
+        hgrid.setContentsMargins(0,0,0,0)
         hgrid.addWidget(self.addRouteBtn)
         hgrid.addWidget(self.delRouteBtn)
         hgrid.addStretch()
-        self.routesView = ts2.editor.views.RoutesEditorView(routesTab)
-        grid = QtWidgets.QVBoxLayout()
-        grid.addWidget(self.routesGraphicView)
-        grid.addLayout(hgrid)
-        grid.addWidget(self.routesView)
-        routesTab.setLayout(grid)
-        routesTab.setEnabled(False)
-        self.tabWidget.addTab(routesTab, self.tr("Routes"))
-        self.routesTab = routesTab
+        self.routesView = ts2.editor.views.RoutesEditorView(self.routesWidget)
+
+        self.routesWidget.addWidget(self.routesGraphicView)
+        self.routesWidget.addLayout(hgrid)
+        self.routesWidget.addWidget(self.routesView)
+        self.routesWidget.setEnabled(False)
+        self.tabWidget.addTab(self.routesWidget, self.tr("Routes"))
 
         # Train types tab
         trainTypesTab = QtWidgets.QWidget()
@@ -480,7 +485,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.editor.sceneryIsValidated.connect(
             self.validateSceneryBtn.setDisabled
         )
-        self.editor.sceneryIsValidated.connect(self.routesTab.setEnabled)
+        self.editor.sceneryIsValidated.connect(self.routesWidget.setEnabled)
         self.unlockSceneryBtn.clicked.connect(
             self.editor.invalidateScenery
         )
@@ -514,7 +519,7 @@ class EditorWindow(QtWidgets.QMainWindow):
     closed = QtCore.pyqtSignal()
 
     def closeEvent(self, closeEvent):
-        """Called when the editor window is closed. Emits the closed signal.
+        """Called when the editor window is closed. Emits the `closed` signal.
         """
         settings.saveWindow(self)
         settings.sync()
@@ -529,8 +534,8 @@ class EditorWindow(QtWidgets.QMainWindow):
             )
             if choice == QtWidgets.QMessageBox.Yes:
                 self.saveSimulation()
-            if choice == QtWidgets.QMessageBox.Yes or \
-               choice == QtWidgets.QMessageBox.No:
+
+            if choice in[ QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No]:
                 self.closed.emit()
             else:
                 closeEvent.ignore()
@@ -992,3 +997,9 @@ class EditorWindow(QtWidgets.QMainWindow):
     def openReassignServiceWindow(self, trainId):
         """To conform to Mainwindow morphism."""
         pass
+
+    def onSceneryViewWheelChanged(self, direction):
+        """Handle scrollwheel on canvas, sent from
+        :class:`~ts2.gui.widgets.XGraphicsView` """
+        percent = self.zoomWidget.spinBox.value()
+        self.zoomWidget.spinBox.setValue(percent + (direction * 10))

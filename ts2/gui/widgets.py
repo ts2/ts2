@@ -187,3 +187,33 @@ class ToolBarGroup(QtWidgets.QWidget):
 
     def addAction(self, action):
         self.toolbar.addAction(action)
+
+class VBoxWidget(QtWidgets.QWidget):
+    """Widget with a Vertical Box"""
+    def __init__(self, parent=None, margin=0):
+        super().__init__(parent)
+
+        lay = QtWidgets.QVBoxLayout()
+        lay.setContentsMargins(margin,margin,margin,margin)
+        self.setLayout(lay)
+
+    def addWidget(self, widget, stretch=0):
+        self.layout().addWidget(widget, stretch)
+
+    def addLayout(self, layout, stretch=0):
+        self.layout().addLayout(layout, stretch)
+
+class HBoxWidget(QtWidgets.QWidget):
+    """Widget with a Horizontal Box"""
+    def __init__(self, parent=None, margin=0):
+        super().__init__(parent)
+
+        lay = QtWidgets.QVBoxLayout()
+        lay.setContentsMargins(margin,margin,margin,margin)
+        self.setLayout(lay)
+
+    def addWidget(self, widget, stretch=0):
+        self.layout().addWidget(widget, stretch)
+
+    def addLayout(self, layout, stretch=0):
+        self.layout().addLayout(layout, stretch)

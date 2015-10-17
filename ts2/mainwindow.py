@@ -459,6 +459,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def simulationConnect(self):
         """Connects the signals and slots to the simulation."""
+
         # Set models
         self.trainInfoView.setModel(self.simulation.selectedTrainModel)
         self.serviceInfoView.setModel(self.simulation.selectedServiceModel)
