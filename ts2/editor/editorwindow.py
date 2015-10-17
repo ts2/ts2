@@ -40,11 +40,14 @@ class EditorWindow(QtWidgets.QMainWindow):
         :params string fileName: Optional filename to open on start
         """
         super().__init__(mainWindow)
+
         self.setObjectName("editor_window")
         self.setGeometry(100, 100, 1024, 768)
         self.setWindowTitle(
             self.tr("ts2 - Train Signalling Simulation - Editor"))
         self._mainWindow = mainWindow
+
+        self.dirty = False
 
         # Editor
         self.editor = editor.Editor()
@@ -252,39 +255,35 @@ class EditorWindow(QtWidgets.QMainWindow):
 
         # ==========================================
         # Scenery tab
-        sceneryTab = QtWidgets.QWidget()
-        self.sceneryView = widgets.XGraphicsView(sceneryTab)
+        self.sceneryWidget = widgets.VBoxWidget()
+
+        toolbarScenery = QtWidgets.QToolBar()
+        self.sceneryWidget.addWidget(toolbarScenery)
+        self.unlockSceneryBtn = QtWidgets.QPushButton(self.tr("Unlock Scenery"),
+                                                      self.sceneryWidget)
+        self.unlockSceneryBtn.setEnabled(False)
+        toolbarScenery.addWidget(self.unlockSceneryBtn)
+
+        self.validateSceneryBtn = QtWidgets.QPushButton(
+            self.tr("Validate Scenery"), self.sceneryWidget
+        )
+        self.validateSceneryBtn.clicked.connect(self.validateSceneryBtnClicked)
+        toolbarScenery.addWidget(self.validateSceneryBtn)
+
+        self.zoomWidget = widgets.ZoomWidget(self.sceneryWidget)
+        self.zoomWidget.valueChanged.connect(self.zoom)
+        toolbarScenery.addWidget(self.zoomWidget)
+
+        self.sceneryView = widgets.XGraphicsView(self.sceneryWidget)
         self.sceneryView.setInteractive(True)
         self.sceneryView.setRenderHint(QtGui.QPainter.Antialiasing, False)
         self.sceneryView.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.sceneryView.setAcceptDrops(True)
         self.sceneryView.setBackgroundBrush(QtGui.QBrush(Qt.black))
         self.sceneryView.wheelChanged.connect(self.onSceneryViewWheelChanged)
-        self.unlockSceneryBtn = QtWidgets.QPushButton(self.tr("Unlock Scenery"),
-                                                      sceneryTab)
-        self.unlockSceneryBtn.setEnabled(False)
-        self.validateSceneryBtn = QtWidgets.QPushButton(
-            self.tr("Validate Scenery"), sceneryTab
-        )
-        self.validateSceneryBtn.clicked.connect(self.validateSceneryBtnClicked)
-        self.zoomWidget = widgets.ZoomWidget(sceneryTab)
-        self.zoomWidget.valueChanged.connect(self.zoom)
-        hgrid = QtWidgets.QHBoxLayout()
-        hgrid.setContentsMargins(0,0,0,0)
-        hgrid.addWidget(self.unlockSceneryBtn)
-        hgrid.addWidget(self.validateSceneryBtn)
-        hgrid.addStretch()
-        hgrid2 = QtWidgets.QHBoxLayout()
-        hgrid2.setContentsMargins(0,0,0,0)
-        hgrid2.addWidget(self.zoomWidget)
-        hgrid2.addStretch()
-        vgrid = QtWidgets.QVBoxLayout()
-        vgrid.setContentsMargins(0,0,0,0)
-        vgrid.addLayout(hgrid)
-        vgrid.addWidget(self.sceneryView)
-        vgrid.addLayout(hgrid2)
-        sceneryTab.setLayout(vgrid)
-        self.tabWidget.addTab(sceneryTab, self.tr("Scenery"))
+        self.sceneryWidget.addWidget(self.sceneryView)
+
+        self.tabWidget.addTab(self.sceneryWidget, self.tr("Scenery"))
 
         # ==========================================
         # Routes tab
@@ -526,20 +525,21 @@ class EditorWindow(QtWidgets.QMainWindow):
         settings.sync()
         super().closeEvent(closeEvent)
         if closeEvent.isAccepted():
-            choice = QtWidgets.QMessageBox.question(
-                self,
-                self.tr("Close editor"),
-                self.tr("Do you want to save your changes ?"),
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No |
-                QtWidgets.QMessageBox.Cancel
-            )
-            if choice == QtWidgets.QMessageBox.Yes:
-                self.saveSimulation()
+            if self.dirty:
+                choice = QtWidgets.QMessageBox.question(
+                    self,
+                    self.tr("Close editor"),
+                    self.tr("Do you want to save your changes ?"),
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No |
+                    QtWidgets.QMessageBox.Cancel
+                )
+                if choice == QtWidgets.QMessageBox.Yes:
+                    self.saveSimulation()
 
-            if choice in[ QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No]:
-                self.closed.emit()
-            else:
-                closeEvent.ignore()
+                if choice in[ QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No]:
+                    self.closed.emit()
+                else:
+                    closeEvent.ignore()
 
     @QtCore.pyqtSlot(int)
     def setPropertiesModel(self):
@@ -753,6 +753,7 @@ class EditorWindow(QtWidgets.QMainWindow):
                                                  model.index(ridx, model.rowCount() -1 ))
             self.routesView.selectionModel().select(selection, QtCore.QItemSelectionModel.SelectCurrent)
             self.routesView.scrollTo(idx)
+            self.dirty = True
         else:
             QtWidgets.QMessageBox.warning(
                 self,
