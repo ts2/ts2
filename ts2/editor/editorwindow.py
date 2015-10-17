@@ -37,7 +37,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         """
 
         :params QMainWindow mainWindow: the parent main window
-        :params string fileName: Optiosal filename to open
+        :params string fileName: Optional filename to open on start
         """
         super().__init__(mainWindow)
         self.setObjectName("editor_window")
@@ -215,6 +215,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         # Central tab widget
         self.tabWidget = QtWidgets.QTabWidget(self)
 
+        # ==========================================
         # General tab
         generalTab = QtWidgets.QWidget()
         titleLabel = QtWidgets.QLabel(self.tr("Simulation title: "),
@@ -227,11 +228,26 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.descriptionTxt.textChanged.connect(self.updateDescription)
         optionsLabel = QtWidgets.QLabel(self.tr("Options: "))
         self.optionsView = QtWidgets.QTableView(generalTab)
-        fgrid = QtWidgets.QFormLayout()
-        fgrid.addRow(titleLabel, self.titleTxt)
-        fgrid.addRow(descriptionLabel, self.descriptionTxt)
-        fgrid.addRow(optionsLabel, self.optionsView)
+
+        fgrid = QtWidgets.QGridLayout()
+        row = 0
+        fgrid.addWidget(titleLabel, row, 0, Qt.AlignRight|Qt.AlignTop)
+        fgrid.addWidget(self.titleTxt, row, 1)
+
+        row += 1
+        fgrid.addWidget(descriptionLabel, row, 0, Qt.AlignRight|Qt.AlignTop)
+        fgrid.addWidget(self.descriptionTxt, row, 1)
+
+        row += 1
+        fgrid.addWidget(optionsLabel, row, 0, Qt.AlignRight|Qt.AlignTop)
+        fgrid.addWidget(self.optionsView, row, 1)
+
         generalTab.setLayout(fgrid)
+        fgrid.setColumnStretch(0,0)
+        fgrid.setColumnStretch(1,4)
+        fgrid.setRowStretch(0, 0)
+        fgrid.setRowStretch(1, 1)
+        fgrid.setRowStretch(2, 2)
         self.tabWidget.addTab(generalTab, self.tr("General"))
 
         # Scenery tab
@@ -566,6 +582,9 @@ class EditorWindow(QtWidgets.QMainWindow):
                 % fileName
             )
             self.simulationConnect()
+
+            self.optionsView.resizeColumnsToContents()
+
             QtWidgets.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
