@@ -194,6 +194,9 @@ class ToolBarGroup(QtWidgets.QWidget):
         self.toolbar = QtWidgets.QToolBar()
         self.toolbar.setToolButtonStyle( QtCore.Qt.ToolButtonTextBesideIcon )
         self.toolbar.setFixedHeight( 30 )
+        # Stop toolbar from minimize and show arrow
+        #self.toolbar.setSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Expanding);
+        self.toolbar.layout().setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
         mainLayout.addWidget( self.toolbar )
 
         if title:

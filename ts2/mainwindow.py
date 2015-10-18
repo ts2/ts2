@@ -248,10 +248,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lblTitle.setStyleSheet(lbl_sty)
         self.lblTitle.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.lblTitle.setText("no sim loaded")
-        sp = self.lblTitle.sizePolicy()
-        sp.setHorizontalPolicy(QtWidgets.QSizePolicy.MinimumExpanding)
-        self.lblTitle.setSizePolicy(sp)
-
+        ## TODO: Why does this not expand to fill space ?
+        self.lblTitle.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         tbar.addWidget(self.lblTitle)
 
         # ===============================================================
@@ -429,7 +427,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def onAfterShow(self):
-        if settings.b(settings.INITIAL_SETUP, False):
+        """Fires a few moments after window shows"""
+        if not settings.b(settings.INITIAL_SETUP, False):
             self.openSettingsDialog()
 
         if self.fileName:
