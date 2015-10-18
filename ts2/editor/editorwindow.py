@@ -349,39 +349,47 @@ class EditorWindow(QtWidgets.QMainWindow):
         # Services tab
         # ===============================================================
         self.servicesTabWidget = widgets.VBoxWidget()
-
-        # ================
-        # Services Toolbar
         tbarServices = QtWidgets.QToolBar()
         self.servicesTabWidget.addWidget(tbarServices)
+
+
+        # ================
+        # Service CRUD
+        tbg = widgets.ToolBarGroup(title=self.tr("Services"))
+        tbarServices.addWidget(tbg)
 
         # Add Service
         self.addServiceBtn = QtWidgets.QPushButton(self.tr("Add new service"),
                                                    self.servicesTabWidget)
         self.addServiceBtn.clicked.connect(self.addServiceBtnClicked)
-        tbarServices.addWidget(self.addServiceBtn)
+        tbg.addWidget(self.addServiceBtn)
 
         # Remove Service
         self.delServiceBtn = QtWidgets.QPushButton(self.tr("Remove service"),
                                                    self.servicesTabWidget)
         self.delServiceBtn.clicked.connect(self.delServiceBtnClicked)
-        tbarServices.addWidget(self.delServiceBtn)
+        tbg.addWidget(self.delServiceBtn)
 
+        # ================
         # Export CSV
+        tbg = widgets.ToolBarGroup(title=self.tr("CSV"))
+        tbarServices.addWidget(tbg)
         self.exportServicesBtn = QtWidgets.QPushButton(
-            self.tr("Export services as CSV file..."),
+            self.tr("Export."),
             self.servicesTabWidget
         )
+
+        # export  scv
         self.exportServicesBtn.clicked.connect(self.exportServicesBtnClicked)
-        tbarServices.addWidget(self.exportServicesBtn)
+        tbg.addWidget(self.exportServicesBtn)
 
         # Import CSV
         self.importServicesBtn = QtWidgets.QPushButton(
-            self.tr("Import services from CSV file..."),
+            self.tr("Import"),
             self.servicesTabWidget
         )
         self.importServicesBtn.clicked.connect(self.importServicesBtnClicked)
-        tbarServices.addWidget(self.importServicesBtn)
+        tbg.addWidget(self.importServicesBtn)
 
 
         # Services Table
