@@ -27,7 +27,7 @@ import ts2.utils
 
 class XSettings(QtCore.QSettings):
 
-    DEFAULT_ZOOM = "default_zoom"
+    DEFAULT_SPEED = "default_speed"
     LOAD_LAST = "load_last"
 
     def __init__(self):
@@ -126,3 +126,13 @@ class XSettings(QtCore.QSettings):
     @property
     def userDataDir(self):
         return os.path.join(self._getUserDataDirectory(), "data")
+
+    def i(self, ki, default=None):
+        """Return value as int"""
+        v = self.value(ki, default)
+        no = default
+        try:
+            no = int(v)
+        except:
+            pass
+        return no

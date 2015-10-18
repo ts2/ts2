@@ -187,7 +187,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timeFactorSpinBox = QtWidgets.QSpinBox(self)
         self.timeFactorSpinBox.setRange(1, 10)
         self.timeFactorSpinBox.setSingleStep(1)
-        self.timeFactorSpinBox.setValue(1)
+        self.timeFactorSpinBox.setValue( settings.i(settings.DEFAULT_SPEED, 1) )
+        print("SPEED+", settings.i(settings.DEFAULT_SPEED, 1), type(settings.i(settings.DEFAULT_SPEED, 1)))
         self.timeFactorSpinBox.setSuffix("x")
         tbg.addWidget(self.timeFactorSpinBox)
 
@@ -422,7 +423,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.onOpenSimulation()
         # self.loadSimulation()
         # self.openEditor()
-        self.openSettingsDialog()
 
     @staticmethod
     def instance():
@@ -487,9 +487,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.timeFactorSpinBox.valueChanged.connect(
                 self.simulation.setTimeFactor
             )
-            self.timeFactorSpinBox.setValue(
-                float(self.simulation.option("timeFactor"))
-            )
+            # TODO: this is now a settings, so maybe this not required
+            #self.timeFactorSpinBox.setValue(
+            #    float(self.simulation.option("timeFactor"))
+            #)
             settings.addRecent(fileName)
             self.refreshRecent()
             self.setControlsDisabled(False)

@@ -56,12 +56,12 @@ class SettingsDialog(QtWidgets.QDialog):
 
         # Zoom
         row += 1
-        grid.addWidget(QtWidgets.QLabel("Zoom Level"), row, 0, 1, 1, Qt.AlignRight)
-        self.comboZoom = QtWidgets.QComboBox(self)
+        grid.addWidget(QtWidgets.QLabel("Sim Speed"), row, 0, 1, 1, Qt.AlignRight)
+        self.comboSpeed = QtWidgets.QComboBox(self)
         for z in range(1, 6):
-            self.comboZoom.addItem("%s" % z, "%s" % z)
-        self.comboZoom.currentIndexChanged.connect(self.onZoomChanged)
-        grid.addWidget(self.comboZoom, row, 1, 1, 1)
+            self.comboSpeed.addItem("%s" % z, "%s" % z)
+        self.comboSpeed.currentIndexChanged.connect(self.onSpeedChanged)
+        grid.addWidget(self.comboSpeed, row, 1, 1, 1)
 
         grid.setColumnStretch(0, 0)
         grid.setColumnStretch(1, 10)
@@ -76,10 +76,10 @@ class SettingsDialog(QtWidgets.QDialog):
         self.chkLoadLast.setChecked(v)
 
 
-        z = settings.value(settings.DEFAULT_ZOOM, "1")
-        idx = self.comboZoom.findData(z)
+        z = settings.value(settings.DEFAULT_SPEED, "1")
+        idx = self.comboSpeed.findData(z)
         if idx != -1:
-            self.comboZoom.setCurrentIndex(idx)
+            self.comboSpeed.setCurrentIndex(idx)
 
     def onLoadLast(self, chk=None):
 
@@ -88,7 +88,7 @@ class SettingsDialog(QtWidgets.QDialog):
         settings.sync()
 
 
-    def onZoomChanged(self):
-        v = self.comboZoom.itemData(self.comboZoom.currentIndex())
-        settings.setValue(settings.DEFAULT_ZOOM, v )
+    def onSpeedChanged(self):
+        v = self.comboSpeed.itemData(self.comboSpeed.currentIndex())
+        settings.setValue(settings.DEFAULT_SPEED, v )
         settings.sync()
