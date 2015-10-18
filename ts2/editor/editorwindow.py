@@ -614,7 +614,9 @@ class EditorWindow(QtWidgets.QMainWindow):
             if self.editor is not None:
                 self.simulationDisconnect()
                 self.editor = None
-            # try:
+
+            # TODO: This is same code used elsewhere
+            # maybe there is a clever way to share this in utils or alike
             if zipfile.is_zipfile(fileName):
                 with zipfile.ZipFile(fileName) as zipArchive:
                     with zipArchive.open("simulation.json") as file:
@@ -625,20 +627,20 @@ class EditorWindow(QtWidgets.QMainWindow):
 
             self.editor.fileName = fileName
             self.setWindowTitle(
-                self.tr("ts2 - Train Signalling Simulation - Editor - %s")
+                self.tr("ts2 - Editor - %s")
                 % fileName
             )
             self.simulationConnect()
 
             self.optionsView.resizeColumnsToContents()
             self.trainTypesView.resizeColumnsToContents()
-            self.servicesView.resizeColumnsToContents()
 
-            QtWidgets.qApp.restoreOverrideCursor()
 
-            self.statusBar().showMessage("Loaded", info=True, timeout=2)
+            self.statusBar().showMessage(self.tr("Ready") + " :-)", info=True, timeout=2)
             self.statusBar().showBusy(False)
             self._dirty = False
+
+            QtWidgets.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def saveSimulation(self):

@@ -93,6 +93,7 @@ class ServicesEditorView(QtWidgets.QTableView):
         self.setItemDelegateForColumn(4, delegates.TrainTypesDelegate(self))
 
     serviceSelected = QtCore.pyqtSignal(str)
+    """Signal emitted when a Row selected"""
 
     def selectionChanged(self, selected, deselected):
         """Called when the user changes the selection. Emits the
@@ -103,6 +104,13 @@ class ServicesEditorView(QtWidgets.QTableView):
             self.serviceSelected.emit(index.data())
         else:
             self.serviceSelected.emit(None)
+
+    def setModel(self, model):
+        """Sets model and also setup cols"""
+        super().setModel(model)
+        # self.header().setStretchLastSection(True) .. umm
+        self.resizeColumnsToContents()
+
 
 class ServiceLinesEditorView(QtWidgets.QTableView):
     """Table view with specific options for editing service lines in the editor.

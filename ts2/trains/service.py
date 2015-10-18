@@ -169,6 +169,13 @@ class ServiceListModel(QtCore.QAbstractTableModel):
 class ServicesModel(QtCore.QAbstractTableModel):
     """Model for Service class used in the editor
     """
+    class C:
+        serviceCode = 0
+        nextServiceCode = 1
+        autoReverse = 2
+        plannedTrainType = 3
+        description = 4
+
     def __init__(self, editor):
         """Constructor for the ServicesModel class"""
         super().__init__(editor)
@@ -191,31 +198,43 @@ class ServicesModel(QtCore.QAbstractTableModel):
     def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole or role == Qt.EditRole:
+
             service = list(self._editor.services.values())[index.row()]
-            if index.column() == 0:
+
+            if index.column() == self.C.serviceCode:
                 return str(service.serviceCode)
-            elif index.column() == 1:
-                return service.description
-            elif index.column() == 2:
+
+            elif index.column() == self.C.nextServiceCode:
                 return service.nextServiceCode
-            elif index.column() == 3:
-                return bool(service.autoReverse)
-            elif index.column() == 4:
-                return service.plannedTrainType
+
+            elif index.column() == self.C.autoReverse:
+                return service.autoReverse
+
+            elif index.column() == self.C.plannedTrainType:
+                return bool(service.plannedTrainType)
+
+            elif index.column() == self.C.description:
+                return service.description
+
         return None
 
     def setData(self, index, value, role=None):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
-            code = index.sibling(index.row(), 0).data()
-            if index.column() == 1:
-                self._editor.services[code].description = value
-            elif index.column() == 2:
+            code = index.sibling(index.row(), self.C.serviceCode).data()
+
+            if index.column() == self.C.nextServiceCode:
                 self._editor.services[code].nextServiceCode = value
-            elif index.column() == 3:
+
+            elif index.column() == self.C.autoReverse:
                 self._editor.services[code].autoReverse = value
-            elif index.column() == 4:
+
+            elif index.column() == self.C.plannedTrainType:
                 self._editor.services[code].plannedTrainType = value
+
+            elif index.column() == self.C.description:
+                self._editor.services[code].description = value
+
             else:
                 return False
             self.dataChanged.emit(index, index)
@@ -225,22 +244,31 @@ class ServicesModel(QtCore.QAbstractTableModel):
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Returns the header labels"""
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
-            if section == 0:
+
+            if section == self.C.serviceCode:
                 return self.tr("Code")
-            elif section == 1:
-                return self.tr("Description")
-            elif section == 2:
+
+            elif section == self.C.nextServiceCode:
                 return self.tr("Next service code")
-            elif section == 3:
+
+            elif section == self.C.autoReverse:
                 return self.tr("Auto reverse")
-            elif section == 4:
+
+            elif section == self.C.plannedTrainType:
                 return self.tr("Planned Train Type")
+
+            elif section == self.C.description:
+                return self.tr("Description")
+
+        if role == Qt.TextAlignmentRole:
+            return Qt.AlignLeft
+
         return None
 
     def flags(self, index):
         """Returns the flags of the model"""
         flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
-        if index.column() != 0:
+        if index.column() != self.C.serviceCode:
             flags |= Qt.ItemIsEditable
         return flags
 
