@@ -17,6 +17,7 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
+
 import os
 
 from Qt import QtCore, QtWidgets
@@ -75,23 +76,6 @@ class XSettings(QtCore.QSettings):
         if v:
             window.restoreState(v)
 
-    def saveSplitter(self, window, splitter):
-        self.setValue("window/%s/splitter" % window.objectName(),
-                      splitter.saveState())
-
-    def restoreSplitter(self, window, splitter):
-        splitter.restoreState(self.value(
-            "window/%s/splitter" % window.objectName()).toByteArray())
-
-    def saveTree(self, tree):
-        self.settings.setValue("tree/%s" % tree._settings_ki,
-                               tree.header().saveState())
-
-    def restoreTree(self, tree):
-        tree.header().restoreState(
-            self.settings.value("tree/%s" % tree._settings_ki).toByteArray())
-
-
     def setDebug(self, debug):
         """Set debug flag"""
         self._debug = debug
@@ -100,19 +84,21 @@ class XSettings(QtCore.QSettings):
     def debug(self):
         return self._debug
 
-
-    def _getUserDataDirectory(self):
+    @staticmethod
+    def _getUserDataDirectory():
         """Returns the folder in which to put the user data.
 
-        If the source folder is inside the home directory, then we use it because
-        it means that we have installed from sources. Otherwise we use ~/.ts2/
+        If the source folder is inside the home directory, then we use it
+        because it means that we have installed from sources. Otherwise we use
+        ~/.ts2/
         """
         homeDir = os.path.expanduser("~")
         if os.path.commonprefix((homeDir, os.getcwd())):
             return os.getcwd()
         else:
             os.makedirs(os.path.join(homeDir, ".ts2", "data"), exist_ok=True)
-            os.makedirs(os.path.join(homeDir, ".ts2", "simulations"), exist_ok=True)
+            os.makedirs(os.path.join(homeDir, ".ts2", "simulations"),
+                        exist_ok=True)
             return os.path.join(homeDir, ".ts2")
 
     @property
