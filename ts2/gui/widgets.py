@@ -237,3 +237,23 @@ class HBoxWidget(QtWidgets.QWidget):
 
     def addLayout(self, layout, stretch=0):
         self.layout().addLayout(layout, stretch)
+
+class HeaderLabel(QtWidgets.QLabel):
+
+    def __init__(self, parent=None, text="", start=None, end=None, align=None):
+        super().__init__(parent)
+
+
+        self.setText(text)
+
+        align = align if align else Qt.AlignCenter
+        self.setAlignment(align | Qt.AlignVCenter)
+
+
+        start = start if start else "#ffffff"
+        end = end if end else "#aaaaaa"
+
+        sty = "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0," \
+                  " stop: 0 %s, stop: 1 %s);" % (start, end)
+        sty += " color: #333333; font-size: 14pt; padding: 5px;"
+        self.setStyleSheet(sty)

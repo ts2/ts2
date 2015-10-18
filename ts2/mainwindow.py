@@ -24,7 +24,7 @@ import os
 from Qt import QtCore, QtGui, QtWidgets, Qt
 
 from ts2 import simulation
-from ts2.gui import dialogs, trainlistview, servicelistview, widgets, opendialog
+from ts2.gui import dialogs, trainlistview, servicelistview, widgets, opendialog, settingsdialog
 from ts2.scenery import placeitem
 from ts2.editor import editorwindow
 from ts2.utils import settings
@@ -77,7 +77,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.saveGameAsAction.triggered.connect(self.saveGame)
         self.saveGameAsAction.setEnabled(False)
 
-        self.propertiesAction = QtWidgets.QAction(self.tr("&Properties..."),
+        # Properties
+        self.propertiesAction = QtWidgets.QAction(self.tr("Sim &Properties..."),
                                                   self)
         self.propertiesAction.setShortcut(
             QtGui.QKeySequence(self.tr("Ctrl+P"))
@@ -85,6 +86,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.propertiesAction.setToolTip(self.tr("Edit simulation properties"))
         self.propertiesAction.triggered.connect(self.openPropertiesDialog)
         self.propertiesAction.setEnabled(False)
+
+
+        # Settings
+        self.settingsAction = QtWidgets.QAction(self.tr("Settings..."),
+                                                  self)
+        #self.settingsAction.setShortcut( QtGui.QKeySequence(self.tr("Ctrl+P")) )
+        self.settingsAction.setToolTip(self.tr("User Settings"))
+        self.settingsAction.triggered.connect(self.openSettingsDialog)
+
 
         self.quitAction = QtWidgets.QAction(self.tr("&Quit"), self)
         self.quitAction.setShortcut(QtGui.QKeySequence(self.tr("Ctrl+Q")))
@@ -138,6 +148,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.fileMenu.addAction(self.saveGameAsAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.propertiesAction)
+        self.fileMenu.addAction(self.settingsAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitAction)
 
@@ -411,6 +422,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.onOpenSimulation()
         # self.loadSimulation()
         # self.openEditor()
+        self.openSettingsDialog()
 
     @staticmethod
     def instance():
@@ -731,3 +743,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.editorCurrAction.setDisabled(state)
         self.zoomWidget.setDisabled(state)
 
+    def openSettingsDialog(self):
+
+        d = settingsdialog.SettingsDialog(self)
+        d.exec_()

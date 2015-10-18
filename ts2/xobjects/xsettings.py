@@ -26,6 +26,10 @@ import ts2.utils
 
 
 class XSettings(QtCore.QSettings):
+
+    DEFAULT_ZOOM = "default_zoom"
+    LOAD_LAST = "load_last"
+
     def __init__(self):
         super().__init__(ts2.__ORG_NAME__, ts2.__APP_SHORT__)
 

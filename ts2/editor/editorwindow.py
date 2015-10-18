@@ -905,6 +905,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         model.beginInsertRows(QtCore.QModelIndex(), index, index)
         self.editor.addServiceLine(service, index)
         model.endInsertRows()
+        # TODO select newly created row
 
     @QtCore.pyqtSlot()
     def insertServiceLineBtnClicked(self):
@@ -918,10 +919,11 @@ class EditorWindow(QtWidgets.QMainWindow):
         if len(service.lines) != 0:
             rows = self.serviceLinesView.selectionModel().selectedRows()
             if len(rows) != 0:
-                index = rows[0].row()
-        model.beginInsertRows(QtCore.QModelIndex(), index, index)
-        self.editor.addServiceLine(service, index)
+                row_idx = rows[0].row()
+        model.beginInsertRows(QtCore.QModelIndex(), row_idx, row_idx)
+        self.editor.addServiceLine(service, row_idx)
         model.endInsertRows()
+        # TODO select newly created row
 
     @QtCore.pyqtSlot()
     def delServiceLineBtnClicked(self):
@@ -1067,7 +1069,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.zoomWidget.spinBox.setValue(percent + (direction * 10))
 
     def onServiceViewSelectionChanged(self):
-
+        # TODO implement this, maybe
         disabled = not self.servicesView.selectionModel().hasSelection()
         self.addServiceBtn.setDisabled(disabled)
         self.insertServiceLineBtn.setDisabled(disabled)
