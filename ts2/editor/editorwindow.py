@@ -384,7 +384,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         # Table of Services
         self.servicesView = ts2.editor.views.ServicesEditorView(self.servicesTabWidget)
         self.servicesTabWidget.addWidget(self.servicesView)
-        # TODO selectionChanged
+        # TODO selectionChanged but cant as its overriden !!!
         #self.servicesView.selectionChanged.connect(self.onServiceViewSelectionChanged)
 
 
@@ -896,6 +896,9 @@ class EditorWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def appendServiceLineBtnClicked(self):
         """Appends a service line to this service at the end of the list"""
+        if not self.servicesView.selectionModel().hasSelection():
+            self.statusBar().showMessage("No service selected", timeout=2, warn=True)
+            return
         model = self.editor.serviceLinesModel
         service = model.service
         index = model.rowCount()
@@ -906,6 +909,9 @@ class EditorWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def insertServiceLineBtnClicked(self):
         """Add a service line to this service after the currently selected"""
+        if not self.servicesView.selectionModel().hasSelection():
+            self.statusBar().showMessage("No service selected", timeout=2, warn=True)
+            return
         model = self.editor.serviceLinesModel
         service = model.service
         index = 0
@@ -920,6 +926,9 @@ class EditorWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def delServiceLineBtnClicked(self):
         """Removes the currently selected service line of this service"""
+        if not self.serviceLinesView.selectionModel().hasSelection():
+            self.statusBar().showMessage("Select a serviceline to remove", timeout=2, warn=True)
+            return
         service = self.serviceLinesView.model().service
         rowIndexes = self.serviceLinesView.selectionModel().selectedRows()
         if len(rowIndexes) != 0:
