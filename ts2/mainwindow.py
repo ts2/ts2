@@ -188,7 +188,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timeFactorSpinBox.setRange(1, 10)
         self.timeFactorSpinBox.setSingleStep(1)
         self.timeFactorSpinBox.setValue( settings.i(settings.DEFAULT_SPEED, 1) )
-        print("SPEED+", settings.i(settings.DEFAULT_SPEED, 1), type(settings.i(settings.DEFAULT_SPEED, 1)))
         self.timeFactorSpinBox.setSuffix("x")
         tbg.addWidget(self.timeFactorSpinBox)
 
@@ -415,9 +414,9 @@ class MainWindow(QtWidgets.QMainWindow):
         if args and args.file:
             if args.edit:
                 self.openEditor(args.file)
-            else:
-                #self.loadSimulation(args.file)
-                QtCore.QTimer.singleShot(100, self.onLoadSimulation)
+            #else:
+                # here we call after window is shown
+        QtCore.QTimer.singleShot(100, self.onAfterShow)
 
         # DEBUG
         # self.onOpenSimulation()
@@ -429,8 +428,11 @@ class MainWindow(QtWidgets.QMainWindow):
         return MainWindow._self
 
     @QtCore.pyqtSlot()
-    def onLoadSimulation(self):
-        print("onLoadSimulation", self.fileName)
+    def onAfterShow(self):
+        print("onAfterShow")
+        if not settings.b(settings.INITIAL_SETUP, False):
+            self.openSettingsDialog()
+
         if self.fileName:
             self.loadSimulation(self.fileName)
 

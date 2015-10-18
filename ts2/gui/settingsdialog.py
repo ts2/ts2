@@ -37,7 +37,7 @@ class SettingsDialog(QtWidgets.QDialog):
         middleLayout.setContentsMargins(m,m,m,m)
         containerLayout.addLayout(middleLayout)
 
-
+        # ======================
         # Startup Options
         grp = QtWidgets.QGroupBox()
         grp.setTitle("Startup")
@@ -66,6 +66,38 @@ class SettingsDialog(QtWidgets.QDialog):
         grid.setColumnStretch(0, 0)
         grid.setColumnStretch(1, 10)
 
+
+        # ======================
+        # Path Options
+        grp = QtWidgets.QGroupBox()
+        grp.setTitle("Directories - TODO")
+        grp.setFlat(True)
+        middleLayout.addWidget(grp)
+
+        grid = QtWidgets.QGridLayout()
+        grp.setLayout(grid)
+
+        # Data dir
+        row = 0
+        grid.addWidget(QtWidgets.QLabel("Data Dir"), row, 0, 1, 1, Qt.AlignRight)
+
+        self.txtDataDir = QtWidgets.QLineEdit()
+        grid.addWidget(self.txtDataDir, row, 1, 1, 1)
+
+        butt = QtWidgets.QToolButton()
+        butt.setText("Default")
+        grid.addWidget(butt, row, 2, 1, 1)
+
+        # Sims dir
+        row += 1
+        grid.addWidget(QtWidgets.QLabel("Simulations Dir"), row, 0, 1, 1, Qt.AlignRight)
+        self.txtSimsDir = QtWidgets.QLineEdit()
+        grid.addWidget(self.txtSimsDir, row, 1, 1, 1)
+
+        butt = QtWidgets.QToolButton()
+        butt.setText("Default")
+        grid.addWidget(butt, row, 2, 1, 1)
+
         containerLayout.addStretch(20)
 
         self.loadSettings()
@@ -75,11 +107,13 @@ class SettingsDialog(QtWidgets.QDialog):
         v = bool(settings.value(settings.LOAD_LAST, "0"))
         self.chkLoadLast.setChecked(v)
 
-
         z = settings.value(settings.DEFAULT_SPEED, "1")
         idx = self.comboSpeed.findData(z)
         if idx != -1:
             self.comboSpeed.setCurrentIndex(idx)
+
+        self.txtDataDir.setText("TODO data")
+        self.txtSimsDir.setText("TODO sim")
 
     def onLoadLast(self, chk=None):
 
@@ -91,4 +125,8 @@ class SettingsDialog(QtWidgets.QDialog):
     def onSpeedChanged(self):
         v = self.comboSpeed.itemData(self.comboSpeed.currentIndex())
         settings.setValue(settings.DEFAULT_SPEED, v )
+        settings.sync()
+
+    def closeEvent(self, ev):
+        settings.setValue(settings.INITIAL_SETUP, "1" )
         settings.sync()

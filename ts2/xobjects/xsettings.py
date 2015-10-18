@@ -28,6 +28,7 @@ import ts2.utils
 class XSettings(QtCore.QSettings):
 
     DEFAULT_SPEED = "default_speed"
+    INITIAL_SETUP = "initial_setup"
     LOAD_LAST = "load_last"
 
     def __init__(self):
@@ -128,9 +129,19 @@ class XSettings(QtCore.QSettings):
         return os.path.join(self._getUserDataDirectory(), "data")
 
     def i(self, ki, default=None):
-        """Return value as int"""
+        """Return a value as int"""
         v = self.value(ki, default)
         no = default
+        try:
+            no = int(v)
+        except:
+            pass
+        return no
+
+    def b(self, ki, default=None):
+        """Return a value as bool"""
+        v = self.value(ki, default)
+        return bool(v)
         try:
             no = int(v)
         except:
