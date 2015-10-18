@@ -18,7 +18,6 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-import copy
 from Qt import QtCore, Qt
 
 from ts2 import utils
@@ -180,7 +179,8 @@ class TrainType:
     @property
     def maxSpeed(self):
         """
-        :return: the maximum speed that this rolling stock type is capable, in m/s
+        :return: the maximum speed that this rolling stock type is capable, in
+        m/s
         :rtype: float
         """
         return self._maxSpeed
@@ -208,9 +208,10 @@ class TrainType:
     @property
     def stdBraking(self):
         """
-        :return: The standard braking of this rolling stock type, in
-                 m/s2. The standard braking is the normal rate at which speed will be
-                 reduced when approaching a speed limit, a station, a signal, etc.
+        :return: The standard braking of this rolling stock type, in m/s2. The
+                 standard braking is the normal rate at which speed will be
+                 reduced when approaching a speed limit, a station, a signal,
+                 etc.
         :rtype: float
         """
         return self._stdBraking
@@ -225,8 +226,8 @@ class TrainType:
     def emergBraking(self):
         """
         :return: the emergency braking of this rolling stock type, in
-                 m/s2. Emergency braking is the maximum rate at which a train can
-                 reduce its speed in case of a danger ahead.
+                 m/s2. Emergency braking is the maximum rate at which a train
+                 can reduce its speed in case of a danger ahead.
         :rtype: float
         """
         return self._emergBraking
