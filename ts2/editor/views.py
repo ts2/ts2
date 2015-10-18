@@ -78,7 +78,7 @@ class PropertiesView(QtWidgets.QTableView):
 
 
 class ServicesEditorView(QtWidgets.QTableView):
-    """Table view with specific options for editing services in the editor
+    """QTable view with specific options for editing services in the editor
     """
     def __init__(self, parent):
         """Constructor for the ServicesEditorView class"""
@@ -101,7 +101,8 @@ class ServicesEditorView(QtWidgets.QTableView):
         index = selected.indexes()[0]
         if index.isValid():
             self.serviceSelected.emit(index.data())
-
+        else:
+            self.serviceSelected.emit(None)
 
 class ServiceLinesEditorView(QtWidgets.QTableView):
     """Table view with specific options for editing service lines in the editor.

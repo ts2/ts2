@@ -381,39 +381,38 @@ class EditorWindow(QtWidgets.QMainWindow):
         tbarServices.addWidget(self.importServicesBtn)
 
 
-        # Table of Services
+        # Services Table
         self.servicesView = ts2.editor.views.ServicesEditorView(self.servicesTabWidget)
         self.servicesTabWidget.addWidget(self.servicesView)
-        # TODO selectionChanged but cant as its overriden !!!
-        #self.servicesView.selectionChanged.connect(self.onServiceViewSelectionChanged)
-
 
         tbarServiceLines = QtWidgets.QToolBar()
         self.servicesTabWidget.addWidget(tbarServiceLines)
 
+        tbg = widgets.ToolBarGroup()
+        tbg.setTitle(self.tr("Lines"))
+        tbarServiceLines.addWidget(tbg)
+
         # Append line button
-        self.appendServiceLineBtn = QtWidgets.QPushButton(
-            self.tr("Append new line"), self.servicesTabWidget
-        )
+        self.appendServiceLineBtn = QtWidgets.QToolButton(self.servicesTabWidget )
+        self.appendServiceLineBtn.setText(self.tr("Append New"))
         self.appendServiceLineBtn.clicked.connect(
             self.appendServiceLineBtnClicked
         )
-        tbarServiceLines.addWidget(self.appendServiceLineBtn)
+        tbg.addWidget(self.appendServiceLineBtn)
 
         # Insert line  button
-        self.insertServiceLineBtn = QtWidgets.QPushButton(
-            self.tr("Insert new line"), self.servicesTabWidget
-        )
+        self.insertServiceLineBtn = QtWidgets.QToolButton(self.servicesTabWidget)
+        self.insertServiceLineBtn.setText(self.tr("Insert New"))
         self.insertServiceLineBtn.clicked.connect(
             self.insertServiceLineBtnClicked
         )
-        tbarServiceLines.addWidget(self.insertServiceLineBtn)
+        tbg.addWidget(self.insertServiceLineBtn)
 
         # Delete line  button
-        self.deleteServiceLineBtn = QtWidgets.QPushButton(self.tr("Remove line"),
-                                                       self.servicesTabWidget)
+        self.deleteServiceLineBtn = QtWidgets.QToolButton(self.servicesTabWidget)
+        self.deleteServiceLineBtn.setText(self.tr("Remove"))
         self.deleteServiceLineBtn.clicked.connect(self.delServiceLineBtnClicked)
-        tbarServiceLines.addWidget(self.deleteServiceLineBtn)
+        tbg.addWidget(self.deleteServiceLineBtn)
 
         # ServiceLines table
         self.serviceLinesView = ts2.editor.views.ServiceLinesEditorView(
@@ -475,6 +474,7 @@ class EditorWindow(QtWidgets.QMainWindow):
 
 
         settings.restoreWindow(self)
+        self.onServiceViewSelectionChanged(None)
 
         if fileName:
             QtCore.QTimer.singleShot(100, self.onStartupTimeout)
@@ -525,9 +525,14 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.servicesView.serviceSelected.connect(
             self.editor.serviceLinesModel.setServiceCode
         )
+        self.servicesView.serviceSelected.connect(
+            self.onServiceViewSelectionChanged
+        )
         self.trainsView.trainSelected.connect(self.editor.selectTrain)
         self.trainsView.trainsUnselected.connect(self.editor.unselectTrains)
 
+        if settings.debug:
+            self.tabWidget.setCurrentIndex(4)
         self.tabWidget.currentChanged.emit(self.tabWidget.currentIndex())
 
     def simulationDisconnect(self):
@@ -901,9 +906,9 @@ class EditorWindow(QtWidgets.QMainWindow):
             return
         model = self.editor.serviceLinesModel
         service = model.service
-        index = model.rowCount()
-        model.beginInsertRows(QtCore.QModelIndex(), index, index)
-        self.editor.addServiceLine(service, index)
+        row_idx = model.rowCount()
+        model.beginInsertRows(QtCore.QModelIndex(), row_idx, row_idx)
+        self.editor.addServiceLine(service, row_idx)
         model.endInsertRows()
         # TODO select newly created row
 
@@ -915,7 +920,7 @@ class EditorWindow(QtWidgets.QMainWindow):
             return
         model = self.editor.serviceLinesModel
         service = model.service
-        index = 0
+        row_idx = 0
         if len(service.lines) != 0:
             rows = self.serviceLinesView.selectionModel().selectedRows()
             if len(rows) != 0:
@@ -1068,9 +1073,8 @@ class EditorWindow(QtWidgets.QMainWindow):
         percent = self.zoomWidget.spinBox.value()
         self.zoomWidget.spinBox.setValue(percent + (direction * 10))
 
-    def onServiceViewSelectionChanged(self):
-        # TODO implement this, maybe
-        disabled = not self.servicesView.selectionModel().hasSelection()
-        self.addServiceBtn.setDisabled(disabled)
+    def onServiceViewSelectionChanged(self, obj):
+        disabled = obj == None
+        self.appendServiceLineBtn.setDisabled(disabled)
         self.insertServiceLineBtn.setDisabled(disabled)
         self.deleteServiceLineBtn.setDisabled(disabled)

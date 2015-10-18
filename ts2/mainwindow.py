@@ -235,12 +235,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # ====================
         # Sim Title
-
         tbar = QtWidgets.QToolBar()
         tbar.setObjectName("toolbar_label_title")
         tbar.setFloatable(False)
         tbar.setMovable(False)
         self.addToolBar(tbar)
+
         self.lblTitle = QtWidgets.QLabel()
         lbl_sty = "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0," \
                   " stop: 0 #fefefe, stop: 1 #CECECE);"
@@ -249,8 +249,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lblTitle.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.lblTitle.setText("no sim loaded")
         ## TODO: Why does this not expand to fill space ?
-        self.lblTitle.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        #self.lblTitle.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         tbar.addWidget(self.lblTitle)
+        tbar.layout().setSizeConstraint(QtWidgets.QLayout.SetMaximumSize)
+
 
         # ===============================================================
         # Dock Widgets
