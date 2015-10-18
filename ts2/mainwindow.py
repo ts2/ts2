@@ -429,12 +429,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def onAfterShow(self):
-        print("onAfterShow")
-        if not settings.b(settings.INITIAL_SETUP, False):
+        if settings.b(settings.INITIAL_SETUP, False):
             self.openSettingsDialog()
 
         if self.fileName:
             self.loadSimulation(self.fileName)
+        else:
+            #TODO load last used
+            pass
 
     def onOpenSimulation(self):
         d = opendialog.OpenDialog(self)

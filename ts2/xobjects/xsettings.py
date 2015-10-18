@@ -129,7 +129,7 @@ class XSettings(QtCore.QSettings):
         return os.path.join(self._getUserDataDirectory(), "data")
 
     def i(self, ki, default=None):
-        """Return a value as int"""
+        """Return  value as int"""
         v = self.value(ki, default)
         no = default
         try:
@@ -139,7 +139,7 @@ class XSettings(QtCore.QSettings):
         return no
 
     def b(self, ki, default=None):
-        """Return a value as bool"""
+        """Return  value as bool"""
         v = self.value(ki, default)
         return bool(v)
         try:

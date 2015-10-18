@@ -21,7 +21,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.setWindowTitle(
             self.tr("Settings")
         )
-        self.setMinimumWidth(400)
+        self.setMinimumWidth(550)
         #self.setMinimumHeight(500)
 
         containerLayout = QtWidgets.QVBoxLayout()
@@ -29,7 +29,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.setLayout(containerLayout)
 
         # Header
-        headerLabel = widgets.HeaderLabel(text="User Settings", align=Qt.AlignRight)
+        headerLabel = widgets.HeaderLabel(text=self.tr("User Settings"), align=Qt.AlignRight)
         containerLayout.addWidget(headerLabel)
 
         m = 20
@@ -40,7 +40,7 @@ class SettingsDialog(QtWidgets.QDialog):
         # ======================
         # Startup Options
         grp = QtWidgets.QGroupBox()
-        grp.setTitle("Startup")
+        grp.setTitle(self.tr("Startup"))
         grp.setFlat(True)
         middleLayout.addWidget(grp)
 
@@ -50,13 +50,13 @@ class SettingsDialog(QtWidgets.QDialog):
         # Load Last
         row = 0
         self.chkLoadLast = QtWidgets.QCheckBox(self)
-        self.chkLoadLast.setText("Load last sim")
+        self.chkLoadLast.setText(self.tr("Load last used sim"))
         self.chkLoadLast.toggled.connect(self.onLoadLast)
         grid.addWidget(self.chkLoadLast, row, 1, 1, 1)
 
-        # Zoom
+        # Speeeed
         row += 1
-        grid.addWidget(QtWidgets.QLabel("Sim Speed"), row, 0, 1, 1, Qt.AlignRight)
+        grid.addWidget(QtWidgets.QLabel(self.tr("Sim Speed")), row, 0, 1, 1, Qt.AlignRight)
         self.comboSpeed = QtWidgets.QComboBox(self)
         for z in range(1, 6):
             self.comboSpeed.addItem("%s" % z, "%s" % z)
@@ -79,25 +79,30 @@ class SettingsDialog(QtWidgets.QDialog):
 
         # Data dir
         row = 0
-        grid.addWidget(QtWidgets.QLabel("Data Dir"), row, 0, 1, 1, Qt.AlignRight)
+        grid.addWidget(QtWidgets.QLabel(self.tr("Data Dir")), row, 0, 1, 1, Qt.AlignRight)
 
         self.txtDataDir = QtWidgets.QLineEdit()
         grid.addWidget(self.txtDataDir, row, 1, 1, 1)
 
         butt = QtWidgets.QToolButton()
-        butt.setText("Default")
+        butt.setText(self.tr("Default"))
         grid.addWidget(butt, row, 2, 1, 1)
 
         # Sims dir
         row += 1
-        grid.addWidget(QtWidgets.QLabel("Simulations Dir"), row, 0, 1, 1, Qt.AlignRight)
+        grid.addWidget(QtWidgets.QLabel(self.tr("Simulations Dir")), row, 0, 1, 1, Qt.AlignRight)
         self.txtSimsDir = QtWidgets.QLineEdit()
         grid.addWidget(self.txtSimsDir, row, 1, 1, 1)
 
         butt = QtWidgets.QToolButton()
-        butt.setText("Default")
+        butt.setText(self.tr("Default"))
         grid.addWidget(butt, row, 2, 1, 1)
 
+        grid.setColumnStretch(0, 0)
+        grid.setColumnStretch(1, 10)
+        grid.setColumnStretch(2, 0)
+
+        ## ======
         containerLayout.addStretch(20)
 
         self.loadSettings()
@@ -112,8 +117,8 @@ class SettingsDialog(QtWidgets.QDialog):
         if idx != -1:
             self.comboSpeed.setCurrentIndex(idx)
 
-        self.txtDataDir.setText("TODO data")
-        self.txtSimsDir.setText("TODO sim")
+        self.txtDataDir.setText( settings.userDataDir )
+        self.txtSimsDir.setText( settings.simulationsDir )
 
     def onLoadLast(self, chk=None):
 
