@@ -157,6 +157,8 @@ class ServiceListModel(QtCore.QAbstractTableModel):
                 return self.tr("Exit point")
             else:
                 return ""
+        if role == Qt.TextAlignmentRole:
+            return Qt.AlignLeft
         return None
 
     def flags(self, index):
@@ -400,6 +402,7 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
                 return line.scheduledDepartureTimeStr
             elif index.column() == 4:
                 return bool(line.mustStop)
+
         return None
 
     def setData(self, index, value, role=None):
@@ -435,6 +438,8 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
                 return self.tr("Departure time")
             elif section == 4:
                 return self.tr("Stop")
+        if role == Qt.TextAlignmentRole:
+            return Qt.AlignLeft
         return None
 
     def flags(self, index):

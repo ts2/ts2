@@ -347,68 +347,87 @@ class EditorWindow(QtWidgets.QMainWindow):
 
         # ==========================================
         # Services tab
-        servicesTab = QtWidgets.QWidget()
+        self.servicesTabWidget = widgets.VBoxWidget()
+
+        tbarServices = QtWidgets.QToolBar()
+        self.servicesTabWidget.addWidget(tbarServices)
+
+        # Add Service
+        self.addServiceBtn = QtWidgets.QPushButton(self.tr("Add new service"),
+                                                   self.servicesTabWidget)
+        self.addServiceBtn.clicked.connect(self.addServiceBtnClicked)
+        tbarServices.addWidget(self.addServiceBtn)
+
+        # Remove Service
+        self.delServiceBtn = QtWidgets.QPushButton(self.tr("Remove service"),
+                                                   self.servicesTabWidget)
+        self.delServiceBtn.clicked.connect(self.delServiceBtnClicked)
+        tbarServices.addWidget(self.delServiceBtn)
+
+        # Export CSV
         self.exportServicesBtn = QtWidgets.QPushButton(
             self.tr("Export services as CSV file..."),
-            servicesTab
+            self.servicesTabWidget
         )
         self.exportServicesBtn.clicked.connect(self.exportServicesBtnClicked)
+        tbarServices.addWidget(self.exportServicesBtn)
+
+        # Import CSV
         self.importServicesBtn = QtWidgets.QPushButton(
             self.tr("Import services from CSV file..."),
-            servicesTab
+            self.servicesTabWidget
         )
         self.importServicesBtn.clicked.connect(self.importServicesBtnClicked)
-        hgride = QtWidgets.QHBoxLayout()
-        hgride.addWidget(self.exportServicesBtn)
-        hgride.addWidget(self.importServicesBtn)
-        hgride.addStretch()
-        self.servicesView = ts2.editor.views.ServicesEditorView(servicesTab)
-        self.addServiceBtn = QtWidgets.QPushButton(self.tr("Add new service"),
-                                                   servicesTab)
-        self.addServiceBtn.clicked.connect(self.addServiceBtnClicked)
-        self.delServiceBtn = QtWidgets.QPushButton(self.tr("Remove service"),
-                                                   servicesTab)
-        self.delServiceBtn.clicked.connect(self.delServiceBtnClicked)
-        hgrids = QtWidgets.QHBoxLayout()
-        hgrids.addWidget(self.addServiceBtn)
-        hgrids.addWidget(self.delServiceBtn)
-        hgrids.addStretch()
+        tbarServices.addWidget(self.importServicesBtn)
+
+
+        # Table of Services
+        self.servicesView = ts2.editor.views.ServicesEditorView(self.servicesTabWidget)
+        self.servicesTabWidget.addWidget(self.servicesView)
+        # TODO selectionChanged
+        #self.servicesView.selectionChanged.connect(self.onServiceViewSelectionChanged)
+
+
+        tbarServiceLines = QtWidgets.QToolBar()
+        self.servicesTabWidget.addWidget(tbarServiceLines)
+
+        # Append line button
+        self.appendServiceLineBtn = QtWidgets.QPushButton(
+            self.tr("Append new line"), self.servicesTabWidget
+        )
+        self.appendServiceLineBtn.clicked.connect(
+            self.appendServiceLineBtnClicked
+        )
+        tbarServiceLines.addWidget(self.appendServiceLineBtn)
+
+        # Insert line  button
+        self.insertServiceLineBtn = QtWidgets.QPushButton(
+            self.tr("Insert new line"), self.servicesTabWidget
+        )
+        self.insertServiceLineBtn.clicked.connect(
+            self.insertServiceLineBtnClicked
+        )
+        tbarServiceLines.addWidget(self.insertServiceLineBtn)
+
+        # Delete line  button
+        self.deleteServiceLineBtn = QtWidgets.QPushButton(self.tr("Remove line"),
+                                                       self.servicesTabWidget)
+        self.deleteServiceLineBtn.clicked.connect(self.delServiceLineBtnClicked)
+        tbarServiceLines.addWidget(self.deleteServiceLineBtn)
+
+        # ServiceLines table
         self.serviceLinesView = ts2.editor.views.ServiceLinesEditorView(
-            servicesTab
+            self.servicesTabWidget
         )
         self.serviceLinesView.setSelectionBehavior(
             QtWidgets.QAbstractItemView.SelectRows)
         self.serviceLinesView.setSelectionMode(
             QtWidgets.QAbstractItemView.SingleSelection)
-        self.appendServiceLineBtn = QtWidgets.QPushButton(
-            self.tr("Append new line"), servicesTab
-        )
-        self.appendServiceLineBtn.clicked.connect(
-            self.appendServiceLineBtnClicked
-        )
-        self.insertServiceLineBtn = QtWidgets.QPushButton(
-            self.tr("Insert new line"), servicesTab
-        )
-        self.insertServiceLineBtn.clicked.connect(
-            self.insertServiceLineBtnClicked
-        )
-        self.delServiceLineBtn = QtWidgets.QPushButton(self.tr("Remove line"),
-                                                       servicesTab)
-        self.delServiceLineBtn.clicked.connect(self.delServiceLineBtnClicked)
-        hgridl = QtWidgets.QHBoxLayout()
-        hgridl.addWidget(self.appendServiceLineBtn)
-        hgridl.addWidget(self.insertServiceLineBtn)
-        hgridl.addWidget(self.delServiceLineBtn)
-        hgridl.addStretch()
-        grid = QtWidgets.QVBoxLayout()
-        grid.addLayout(hgride)
-        grid.addWidget(self.servicesView)
-        grid.addLayout(hgrids)
-        grid.addWidget(self.serviceLinesView)
-        grid.addLayout(hgridl)
-        servicesTab.setLayout(grid)
-        self.tabWidget.addTab(servicesTab, self.tr("Services"))
+        self.servicesTabWidget.addWidget(self.serviceLinesView)
 
+        self.tabWidget.addTab(self.servicesTabWidget, self.tr("Services"))
+
+        # ======================================================
         # Train tab
         trainsTab = QtWidgets.QWidget()
         self.setupTrainsBtn = QtWidgets.QPushButton(
@@ -608,6 +627,7 @@ class EditorWindow(QtWidgets.QMainWindow):
 
             self.optionsView.resizeColumnsToContents()
             self.trainTypesView.resizeColumnsToContents()
+            self.servicesView.resizeColumnsToContents()
 
             QtWidgets.qApp.restoreOverrideCursor()
 
@@ -1036,3 +1056,10 @@ class EditorWindow(QtWidgets.QMainWindow):
         :class:`~ts2.gui.widgets.XGraphicsView` """
         percent = self.zoomWidget.spinBox.value()
         self.zoomWidget.spinBox.setValue(percent + (direction * 10))
+
+    def onServiceViewSelectionChanged(self):
+
+        disabled = not self.servicesView.selectionModel().hasSelection()
+        self.addServiceBtn.setDisabled(disabled)
+        self.insertServiceLineBtn.setDisabled(disabled)
+        self.deleteServiceLineBtn.setDisabled(disabled)
