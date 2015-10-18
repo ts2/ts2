@@ -47,7 +47,7 @@ class EditorWindow(QtWidgets.QMainWindow):
             self.tr("ts2 - Train Signalling Simulation - Editor"))
         self._mainWindow = mainWindow
 
-        self.dirty = False
+        self._dirty = False
 
         # Editor
         self.editor = editor.Editor(fileName=fileName)
@@ -562,7 +562,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         settings.sync()
         super().closeEvent(closeEvent)
         if closeEvent.isAccepted():
-            if self.dirty:
+            if self._dirty:
                 choice = QtWidgets.QMessageBox.question(
                     self,
                     self.tr("Close editor"),
@@ -638,6 +638,7 @@ class EditorWindow(QtWidgets.QMainWindow):
 
             self.statusBar().showMessage("Loaded", info=True, timeout=2)
             self.statusBar().showBusy(False)
+            self._dirty = False
 
     @QtCore.pyqtSlot()
     def saveSimulation(self):
@@ -799,7 +800,7 @@ class EditorWindow(QtWidgets.QMainWindow):
                                                  model.index(ridx, model.rowCount() -1 ))
             self.routesView.selectionModel().select(selection, QtCore.QItemSelectionModel.SelectCurrent)
             self.routesView.scrollTo(idx)
-            self.dirty = True
+            self.setDirty("add route")
         else:
             self.statusBar().showMessage(self.tr("No route selected, or already exists"), timeout=3, warn=True)
             # TODO need to check why its failed, eg exists
@@ -827,6 +828,7 @@ class EditorWindow(QtWidgets.QMainWindow):
                                       model.rowCount(), model.rowCount())
                 self.editor.addTrainType(code)
                 model.endInsertRows()
+                self.setDirty("add train type")
             else:
                 QtWidgets.QMessageBox.warning(
                     self,
@@ -854,6 +856,7 @@ class EditorWindow(QtWidgets.QMainWindow):
                                       rowIndex.row())
                 self.editor.deleteTrainType(code)
                 model.endRemoveRows()
+                self.setDirty("delete train type")
 
     @QtCore.pyqtSlot()
     def addServiceBtnClicked(self):
@@ -870,7 +873,10 @@ class EditorWindow(QtWidgets.QMainWindow):
                                       model.rowCount())
                 self.editor.addService(code)
                 model.endInsertRows()
+                self.setDirty("add service")
             else:
+                self.statusBar().showMessage(self.tr("Cannot add, service code exists"), timeout=2, warn=True)
+                return
                 QtWidgets.QMessageBox.warning(
                     self,
                     self.tr("Add service"),
@@ -897,6 +903,7 @@ class EditorWindow(QtWidgets.QMainWindow):
                                       rowIndex.row())
                 self.editor.deleteService(code)
                 model.endRemoveRows()
+                self.setDirty("delete service")
 
     @QtCore.pyqtSlot()
     def appendServiceLineBtnClicked(self):
@@ -910,6 +917,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         model.beginInsertRows(QtCore.QModelIndex(), row_idx, row_idx)
         self.editor.addServiceLine(service, row_idx)
         model.endInsertRows()
+        self.setDirty("append service")
         # TODO select newly created row
 
     @QtCore.pyqtSlot()
@@ -928,6 +936,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         model.beginInsertRows(QtCore.QModelIndex(), row_idx, row_idx)
         self.editor.addServiceLine(service, row_idx)
         model.endInsertRows()
+        self.setDirty("insert service")
         # TODO select newly created row
 
     @QtCore.pyqtSlot()
@@ -953,6 +962,7 @@ class EditorWindow(QtWidgets.QMainWindow):
                                       rowIndex.row())
                 self.editor.deleteServiceLine(service, rowIndex.row())
                 model.endRemoveRows()
+                self.setDirty("delete service")
 
     @QtCore.pyqtSlot()
     def importServicesBtnClicked(self):
@@ -1025,6 +1035,7 @@ class EditorWindow(QtWidgets.QMainWindow):
                               model.rowCount())
         self.editor.addTrain()
         model.endInsertRows()
+        self.setDirty("add train")
 
     @QtCore.pyqtSlot()
     def delTrainBtnClicked(self):
@@ -1043,11 +1054,13 @@ class EditorWindow(QtWidgets.QMainWindow):
                 model.beginRemoveRows(QtCore.QModelIndex(), row, row)
                 self.editor.deleteTrain(row)
                 model.endRemoveRows()
+                self.setDirty("delete train")
 
     @QtCore.pyqtSlot()
     def updateTitle(self):
         """Updates the title in the options hash when input is modified."""
         self.editor.setOption("title", self.titleTxt.text())
+        self.setDirty("update title")
 
     @QtCore.pyqtSlot()
     def updateDescription(self):
@@ -1055,6 +1068,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         """
         self.editor.setOption("description",
                               self.descriptionTxt.toPlainText())
+        self.setDirty("update description")
 
     @QtCore.pyqtSlot(int)
     def zoom(self, percent):
@@ -1077,4 +1091,10 @@ class EditorWindow(QtWidgets.QMainWindow):
         disabled = obj == None
         self.appendServiceLineBtn.setDisabled(disabled)
         self.insertServiceLineBtn.setDisabled(disabled)
-        self.deleteServiceLineBtn.setDisabled(disabled)
+        #self.deleteServiceLineBtn.setDisabled(disabled)
+
+    def setDirty(self, obj=None):
+        """Sets the diry flag to `True`, obj is for testing"""
+        if settings.debug:
+            print("setDirty", obj)
+        self._dirty = True
