@@ -345,10 +345,13 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.trainTypesWidget.addWidget(self.trainTypesView)
         self.tabWidget.addTab(self.trainTypesWidget, self.tr("Rolling Stock"))
 
-        # ==========================================
+        # ===============================================================
         # Services tab
+        # ===============================================================
         self.servicesTabWidget = widgets.VBoxWidget()
 
+        # ================
+        # Services Toolbar
         tbarServices = QtWidgets.QToolBar()
         self.servicesTabWidget.addWidget(tbarServices)
 
@@ -426,8 +429,9 @@ class EditorWindow(QtWidgets.QMainWindow):
 
         self.tabWidget.addTab(self.servicesTabWidget, self.tr("Services"))
 
-        # ======================================================
+        # ===============================================================
         # Train tab
+        # ===============================================================
         trainsTab = QtWidgets.QWidget()
         self.setupTrainsBtn = QtWidgets.QPushButton(
             self.tr("Setup trains from services"), trainsTab
@@ -644,7 +648,7 @@ class EditorWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def saveSimulation(self):
-        """Saves the simulation to the database"""
+        """Saves the simulation"""
         if not self.editor.fileName:
             self.saveAsSimulation()
         QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
