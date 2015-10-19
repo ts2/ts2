@@ -359,35 +359,31 @@ class EditorWindow(QtWidgets.QMainWindow):
         tbarServices.addWidget(tbg)
 
         # Add Service
-        self.addServiceBtn = QtWidgets.QPushButton(self.tr("Add new service"),
-                                                   self.servicesTabWidget)
+        self.addServiceBtn = QtWidgets.QToolButton(self.servicesTabWidget)
+        self.addServiceBtn.setText( self.tr("Add new") )
         self.addServiceBtn.clicked.connect(self.addServiceBtnClicked)
         tbg.addWidget(self.addServiceBtn)
 
         # Remove Service
-        self.delServiceBtn = QtWidgets.QPushButton(self.tr("Remove service"),
-                                                   self.servicesTabWidget)
+        self.delServiceBtn = QtWidgets.QToolButton(self.servicesTabWidget)
+        self.delServiceBtn.setText( self.tr("Remove") )
         self.delServiceBtn.clicked.connect(self.delServiceBtnClicked)
         tbg.addWidget(self.delServiceBtn)
 
         # ================
-        # Export CSV
+        # CSV
         tbg = widgets.ToolBarGroup(title=self.tr("CSV"))
         tbarServices.addWidget(tbg)
-        self.exportServicesBtn = QtWidgets.QPushButton(
-            self.tr("Export."),
-            self.servicesTabWidget
-        )
 
-        # export  scv
+        # Export CSV
+        self.exportServicesBtn = QtWidgets.QToolButton(self.servicesTabWidget)
+        self.exportServicesBtn.setText(self.tr("Export"))
         self.exportServicesBtn.clicked.connect(self.exportServicesBtnClicked)
         tbg.addWidget(self.exportServicesBtn)
 
         # Import CSV
-        self.importServicesBtn = QtWidgets.QPushButton(
-            self.tr("Import"),
-            self.servicesTabWidget
-        )
+        self.importServicesBtn = QtWidgets.QToolButton(self.servicesTabWidget)
+        self.importServicesBtn.setText( self.tr("Import") )
         self.importServicesBtn.clicked.connect(self.importServicesBtnClicked)
         tbg.addWidget(self.importServicesBtn)
 
@@ -487,6 +483,7 @@ class EditorWindow(QtWidgets.QMainWindow):
 
         settings.restoreWindow(self)
         self.onServiceViewSelectionChanged(None)
+        self.onServiceLinesViewSelectionChanged()
 
         if fileName:
             QtCore.QTimer.singleShot(100, self.onStartupTimeout)
@@ -534,12 +531,18 @@ class EditorWindow(QtWidgets.QMainWindow):
             self.editor.invalidateScenery
         )
         self.routesView.routeSelected.connect(self.editor.selectRoute)
+
+        # Services
         self.servicesView.serviceSelected.connect(
             self.editor.serviceLinesModel.setServiceCode
         )
         self.servicesView.serviceSelected.connect(
             self.onServiceViewSelectionChanged
         )
+        self.serviceLinesView.selectionModel().selectionChanged.connect(
+            self.onServiceLinesViewSelectionChanged
+        )
+
         self.trainsView.trainSelected.connect(self.editor.selectTrain)
         self.trainsView.trainsUnselected.connect(self.editor.unselectTrains)
 
@@ -1102,10 +1105,23 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.zoomWidget.spinBox.setValue(percent + (direction * 10))
 
     def onServiceViewSelectionChanged(self, obj):
+
         disabled = obj == None
+
+        self.delServiceBtn.setDisabled(disabled)
+
         self.appendServiceLineBtn.setDisabled(disabled)
         self.insertServiceLineBtn.setDisabled(disabled)
         #self.deleteServiceLineBtn.setDisabled(disabled)
+
+
+    def onServiceLinesViewSelectionChanged(self, sel=None, desel=None):
+
+        # TODO: argh.... I dont understand why there is no selectionModel said pedro..
+        return
+        disabled = self.serviceLinesView.selectionModel().hasSelection() == False
+
+        self.deleteServiceLineBtn.setDisabled(disabled)
 
     def setDirty(self, obj=None):
         """Sets the diry flag to `True`, obj is for testing"""
