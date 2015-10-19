@@ -477,6 +477,8 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
     @QtCore.pyqtSlot(str)
     def setServiceCode(self, serviceCode):
         """Sets the service linked with this model from its serviceCode."""
+        if serviceCode == None:
+            return
         self.beginResetModel()
         self._service = self._editor.service(serviceCode)
         self.endResetModel()
@@ -516,7 +518,7 @@ class Service:
             line.place.addTimetable(line)
 
     def for_json(self):
-        """Dumps this service to JSON."""
+        """Data fror JSON dump."""
         return {
             "__type__": "Service",
             "serviceCode": self.serviceCode,

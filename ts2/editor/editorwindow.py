@@ -502,15 +502,19 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.titleTxt.setText(self.editor.option("title"))
         self.descriptionTxt.setPlainText(self.editor.option("description"))
         self.optionsView.setModel(self.editor.optionsModel)
+
         self.sceneryView.setScene(self.editor.scene)
         self.trackItemsLibraryView.setScene(self.editor.libraryScene)
         self.routesGraphicView.setScene(self.editor.scene)
         self.routesView.setModel(self.editor.routesModel)
+
         self.trainTypesView.setModel(self.editor.trainTypesModel)
+
         servicesSortedModel = QtCore.QSortFilterProxyModel()
         servicesSortedModel.setSourceModel(self.editor.servicesModel)
         self.servicesView.setModel(servicesSortedModel)
         self.serviceLinesView.setModel(self.editor.serviceLinesModel)
+
         self.trainsGraphicsView.setScene(self.editor.scene)
         trainsSortedModel = QtCore.QSortFilterProxyModel()
         trainsSortedModel.setSourceModel(self.editor.trainsModel)
@@ -856,12 +860,15 @@ class EditorWindow(QtWidgets.QMainWindow):
                 model.endInsertRows()
                 self.setDirty("add train type")
             else:
+                self.statusBar().showMessage(self.tr("Cannot add new train type, code already exists"), timeout=3, warn=True)
+                """
                 QtWidgets.QMessageBox.warning(
                     self,
                     self.tr("Add train type"),
                     self.tr("Unable to add train type: \n"
                             "This train type code already exists.")
                 )
+                """
 
     @QtCore.pyqtSlot()
     def delTrainTypeBtnClicked(self):
@@ -900,15 +907,17 @@ class EditorWindow(QtWidgets.QMainWindow):
                 self.editor.addService(code)
                 model.endInsertRows()
                 self.setDirty("add service")
+                # TODO select newly created row
             else:
                 self.statusBar().showMessage(self.tr("Cannot add, service code exists"), timeout=2, warn=True)
-                return
+                """
                 QtWidgets.QMessageBox.warning(
                     self,
                     self.tr("Add service"),
                     self.tr("Unable to add service: \n"
                             "This service code already exists.")
                 )
+                """
 
     @QtCore.pyqtSlot()
     def delServiceBtnClicked(self):
@@ -922,7 +931,7 @@ class EditorWindow(QtWidgets.QMainWindow):
                 self,
                 self.tr("Delete service"),
                 self.tr("Are you sure you want "
-                        "to delete service %s?") % code,
+                        "to delete service %s ?") % code,
                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
             ) == QtWidgets.QMessageBox.Yes:
                 model.beginRemoveRows(QtCore.QModelIndex(), rowIndex.row(),
@@ -1133,6 +1142,8 @@ class EditorWindow(QtWidgets.QMainWindow):
 
 
     def onTrainTypesSelectionChanged(self, sel=None, desel=None):
+        ## TODO fix me
+        return
         disabled = self.trainTypesView.selectionModel().hasSelection() == False
         self.delTrainTypeBtn.setDisabled(disabled)
 
