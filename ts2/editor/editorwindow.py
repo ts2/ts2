@@ -327,22 +327,24 @@ class EditorWindow(QtWidgets.QMainWindow):
         tbar = QtWidgets.QToolBar()
         self.trainTypesWidget.addWidget(tbar)
 
-        self.addTrainTypeBtn = QtWidgets.QPushButton(
-            self.tr("Add new train type"), self.trainTypesWidget
-        )
-        self.addTrainTypeBtn.clicked.connect(self.addTrainTypeBtnClicked)
-        tbar.addWidget(self.addTrainTypeBtn)
+        tbg = widgets.ToolBarGroup(title="Train Types")
+        tbar.addWidget(tbg)
 
-        self.delTrainTypeBtn = QtWidgets.QPushButton(
-            self.tr("Remove train type"), self.trainTypesWidget
-        )
+        ## add train
+        self.addTrainTypeBtn = QtWidgets.QToolButton(self.trainTypesWidget)
+        self.addTrainTypeBtn.setText( self.tr("Add new") )
+        self.addTrainTypeBtn.clicked.connect(self.addTrainTypeBtnClicked)
+        tbg.addWidget(self.addTrainTypeBtn)
+
+        # remove train
+        self.delTrainTypeBtn = QtWidgets.QToolButton(self.trainTypesWidget)
+        self.delTrainTypeBtn.setText( self.tr("Remove") )
         self.delTrainTypeBtn.clicked.connect(self.delTrainTypeBtnClicked)
-        tbar.addWidget(self.delTrainTypeBtn)
+        tbg.addWidget(self.delTrainTypeBtn)
 
         self.trainTypesView = ts2.editor.views.TrainTypesEditorView(self.trainTypesWidget)
-
-
         self.trainTypesWidget.addWidget(self.trainTypesView)
+
         self.tabWidget.addTab(self.trainTypesWidget, self.tr("Rolling Stock"))
 
         # ===============================================================
@@ -370,6 +372,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.delServiceBtn.clicked.connect(self.delServiceBtnClicked)
         tbg.addWidget(self.delServiceBtn)
 
+        tbarServices.addSeparator()
         # ================
         # CSV
         tbg = widgets.ToolBarGroup(title=self.tr("CSV"))
@@ -484,6 +487,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         settings.restoreWindow(self)
         self.onServiceViewSelectionChanged(None)
         self.onServiceLinesViewSelectionChanged()
+        self.onTrainTypesSelectionChanged()
 
         if fileName:
             QtCore.QTimer.singleShot(100, self.onStartupTimeout)
@@ -532,6 +536,11 @@ class EditorWindow(QtWidgets.QMainWindow):
         )
         self.routesView.routeSelected.connect(self.editor.selectRoute)
 
+        # Trains
+        self.trainTypesView.selectionModel().selectionChanged.connect(
+            self.onTrainTypesSelectionChanged
+        )
+
         # Services
         self.servicesView.serviceSelected.connect(
             self.editor.serviceLinesModel.setServiceCode
@@ -547,7 +556,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.trainsView.trainsUnselected.connect(self.editor.unselectTrains)
 
         if settings.debug:
-            self.tabWidget.setCurrentIndex(4)
+            self.tabWidget.setCurrentIndex(3)
         self.tabWidget.currentChanged.emit(self.tabWidget.currentIndex())
 
     def simulationDisconnect(self):
@@ -1120,8 +1129,12 @@ class EditorWindow(QtWidgets.QMainWindow):
         # TODO: argh.... I dont understand why there is no selectionModel said pedro..
         return
         disabled = self.serviceLinesView.selectionModel().hasSelection() == False
-
         self.deleteServiceLineBtn.setDisabled(disabled)
+
+
+    def onTrainTypesSelectionChanged(self, sel=None, desel=None):
+        disabled = self.trainTypesView.selectionModel().hasSelection() == False
+        self.delTrainTypeBtn.setDisabled(disabled)
 
     def setDirty(self, obj=None):
         """Sets the diry flag to `True`, obj is for testing"""
