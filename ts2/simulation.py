@@ -366,6 +366,17 @@ class Simulation(QtCore.QObject):
         """
         return self._trains
 
+    def addTrain(self, train):
+        """Adds a train to the trains list.
+
+        :param train: The train instance to add to the list
+        """
+        model = self.trainListModel
+        model.beginInsertRows(QtCore.QModelIndex(),
+                              model.rowCount(), model.rowCount())
+        self._trains.append(train)
+        self.trainListModel.endInsertRows()
+
     @property
     def trackItems(self):
         """

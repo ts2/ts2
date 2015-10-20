@@ -206,7 +206,7 @@ class SplitTrainDialog(QtWidgets.QDialog):
         simWindow = train.simulation.simulationWindow
         std = SplitTrainDialog(simWindow, train)
         if std.exec_() == QtWidgets.QDialog.Accepted:
-            train.splitTrain(std.getSplitIndex())
+            train.splitTrain(std.getSplitIndex() + 1)
 
     def closeEvent(self, event):
         """Save window postions on close"""

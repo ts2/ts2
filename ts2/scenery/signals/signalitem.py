@@ -691,7 +691,7 @@ class SignalItem(abstract.TrackItem):
                 font.setPixelSize(11)
                 p.setFont(font)
                 if self.simulation.context == utils.Context.GAME:
-                    text = self.trainServiceCode
+                    text = self.trainServiceCode or "*****"
                 else:
                     text = "XXXXX"
                 p.drawText(QtCore.QPointF(0, 0), text.rjust(5))

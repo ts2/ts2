@@ -53,7 +53,7 @@ class TrainStatus(QtCore.QObject):
     @classmethod
     def text(cls, status):
         """
-        :return: Text corresponding to each status to display in the application.
+        :return: Text corresponding to each status to display in the application
         :rtype: str
         """
         if status == cls.INACTIVE:
@@ -110,9 +110,9 @@ class TrainListModel(QtCore.QAbstractTableModel):
                 return train.serviceCode
             elif index.column() == 1:
                 return TrainStatus.text(train.status)
-            elif index.column() == 2:
+            elif index.column() == 2 and train.currentService:
                 return train.currentService.entryPlaceName
-            elif index.column() == 3:
+            elif index.column() == 3 and train.currentService:
                 return train.currentService.exitPlaceName
             elif index.column() == 4 and line is not None:
                 return line.place.placeName
@@ -456,7 +456,9 @@ class Train(QtCore.QObject):
         self.splitAction.triggered.connect(self.splitTrainPopUp)
 
     def initialize(self, simulation):
-        """Initialize the train once everything else is loaded."""
+        """Initialize the train once everything else is loaded.
+        :param simulation: The simulation on which to initialize this Train
+        :type simulation: simulation.Simulation"""
         if not self._parameters:
             raise Exception("Internal error: Train already initialized !")
         params = self._parameters
@@ -571,6 +573,10 @@ class Train(QtCore.QObject):
         if serviceCode not in self.simulation.services:
             raise Exception(self.tr("No service with code %s") % serviceCode)
         self._serviceCode = serviceCode
+        if self._stoppedTime != 0:
+            self.status = TrainStatus.STOPPED
+        else:
+            self.status = TrainStatus.RUNNING
         self.nextPlaceIndex = 0
         self.drawTrain(0)
         self.findNextSignal().trainId = self.trainId
@@ -766,7 +772,8 @@ class Train(QtCore.QObject):
 
     def isActive(self):
         """
-        :return: ``True`` if the train is in the area and its current service  is not finished
+        :return: ``True`` if the train is in the area and its current service
+                 is not finished
         :rtype: bool"""
         return \
             self._status != TrainStatus.INACTIVE and \
@@ -830,11 +837,12 @@ class Train(QtCore.QObject):
                 if oppositeSignalAhead is not None:
                     oppositeSignalAhead.updateSignalState()
                 # Status update
-                if self._stoppedTime != 0:
+                if self._stoppedTime != 0 or not self.currentService:
                     self.status = TrainStatus.STOPPED
                 else:
                     self.status = TrainStatus.RUNNING
-                self.nextPlaceIndex = 0
+                if self.currentService:
+                    self.nextPlaceIndex = 0
                 self.drawTrain()
                 self.executeActions(0)
                 # Print messages
@@ -904,10 +912,54 @@ class Train(QtCore.QObject):
 
     def splitTrain(self, splitIndex):
         """Splits this train at the given index.
-        :param splitIndex: The index at which to split the train. 0 is between
-        the first and second element, 1 between the second and third, etc.
+        :param splitIndex: The index at which to split the train. 1 is between
+        the first and second element, 2 between the second and third, etc.
         counting from the train head."""
-        print ("Split at index: %s" % splitIndex)
+        headElements = self.trainType.elements[:splitIndex]
+        tailElements = self.trainType.elements[splitIndex:]
+        headTrainType = None
+        tailTrainType = None
+        for trainType in self.simulation.trainTypes.values():
+            if headElements == trainType.elements or \
+                    (len(headElements) == 1 and
+                     headElements[0] == trainType):
+                headTrainType = trainType
+            if tailElements == trainType.elements or \
+                    (len(tailElements) == 1 and
+                     tailElements[0] == trainType):
+                tailTrainType = trainType
+            if headTrainType and tailTrainType:
+                break
+
+        # Check if there exists a new train type for the head and tail trains
+        if not headTrainType or not tailTrainType:
+            QtWidgets.QMessageBox.warning(
+                self.simulation.simulationWindow,
+                self.tr("Unable to split train"),
+                self.tr("This train cannot be split"),
+                QtWidgets.QMessageBox.Ok
+            )
+            return
+        # Change our own train type to the head type
+        self._trainType = headTrainType
+        # Create a new train for the tail
+        parameters = {
+            "__type__": "Train",
+            "serviceCode": None,
+            "trainTypeCode": tailTrainType.code,
+            "status": TrainStatus.INACTIVE,
+            "speed": 0.0,
+            "initialSpeed": 0.0,
+            "trainHead": self.trainHead - headTrainType.length - 1.0,
+            "appearTime": self.simulation.currentTime.toString(),
+            "initialDelay": 0,
+            "nextPlaceIndex": None,
+            "stoppedTime": 1.0
+        }
+        newTrain = Train(parameters)
+        self.simulation.addTrain(newTrain)
+        newTrain.initialize(self.simulation)
+        newTrain.reassignService()
 
     def jumpToNextPlace(self):
         """Set the nextPlaceIndex to the next serviceLine. If there is no
