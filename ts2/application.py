@@ -28,11 +28,11 @@ from ts2.gui import dialogs
 
 from ts2 import __APP_SHORT__, __VERSION__
 
-def Main(debug=False, file=None):
+
+def Main(args=None):
     """Start the ts2 application and present :class:`~ts2.mainwindow.MainWindow`
 
-    :param bool debug: Enable debugging
-    :param str file: An optional ts2 sim file to load
+    :param object args: Command line args from argparse
     """
     app = QtWidgets.QApplication(sys.argv)
     app.setApplicationName(__APP_SHORT__)
@@ -49,7 +49,7 @@ def Main(debug=False, file=None):
     QtCore.qDebug(QtCore.QLocale.system().name())
     # TODO: Uncomment in production
     # try:
-    mw = mainwindow.MainWindow(debug=debug, file=file)
+    mw = mainwindow.MainWindow(args=args)
     mw.show()
     return app.exec_()
     # except:

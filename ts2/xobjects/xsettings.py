@@ -27,6 +27,14 @@ import ts2.utils
 
 
 class XSettings(QtCore.QSettings):
+
+    INITIAL_SETUP = "initial_setup"
+    LOAD_LAST = "load_last"
+
+    class HACKERS:
+        npi = "npi"
+        pedro = "pedromorgan"
+
     def __init__(self):
         super().__init__(ts2.__ORG_NAME__, ts2.__APP_SHORT__)
 
@@ -108,3 +116,18 @@ class XSettings(QtCore.QSettings):
     @property
     def userDataDir(self):
         return os.path.join(self._getUserDataDirectory(), "data")
+
+    def i(self, ki, default=None):
+        """Return  value as int"""
+        v = self.value(ki, default)
+        no = default
+        try:
+            no = int(v)
+        except ValueError:
+            pass
+        return no
+
+    def b(self, ki, default=None):
+        """Return value as bool"""
+        v = self.i(ki, default)
+        return bool(v)

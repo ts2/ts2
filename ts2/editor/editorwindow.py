@@ -25,7 +25,6 @@ from Qt import QtGui, QtCore, QtWidgets, Qt
 from ts2 import scenery
 from ts2.editor import editor
 from ts2.gui import widgets
-from ts2.utils import settings
 import ts2.editor.views
 from ts2.utils import settings
 
@@ -33,17 +32,24 @@ from ts2.utils import settings
 class EditorWindow(QtWidgets.QMainWindow):
     """The EditorWindow class holds the main window of the editor"""
 
-    def __init__(self, mainWindow):
-        """Constructor for the EditorWindow class"""
+    def __init__(self, mainWindow, fileName=None):
+        """Constructor for the editor window
+
+        :params QMainWindow mainWindow: the parent main window
+        :params string fileName: Optional filename to open on start
+        """
         super().__init__(mainWindow)
+
         self.setObjectName("editor_window")
         self.setGeometry(100, 100, 1024, 768)
         self.setWindowTitle(
             self.tr("ts2 - Train Signalling Simulation - Editor"))
         self._mainWindow = mainWindow
 
+        self._dirty = False
+
         # Editor
-        self.editor = editor.Editor()
+        self.editor = editor.Editor(fileName=fileName)
         self.editor.initialize(self)
 
         # Actions
@@ -211,6 +217,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         # Central tab widget
         self.tabWidget = QtWidgets.QTabWidget(self)
 
+        # ==========================================
         # General tab
         generalTab = QtWidgets.QWidget()
         titleLabel = QtWidgets.QLabel(self.tr("Simulation title: "),
@@ -223,50 +230,67 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.descriptionTxt.textChanged.connect(self.updateDescription)
         optionsLabel = QtWidgets.QLabel(self.tr("Options: "))
         self.optionsView = QtWidgets.QTableView(generalTab)
-        fgrid = QtWidgets.QFormLayout()
-        fgrid.addRow(titleLabel, self.titleTxt)
-        fgrid.addRow(descriptionLabel, self.descriptionTxt)
-        fgrid.addRow(optionsLabel, self.optionsView)
+
+        fgrid = QtWidgets.QGridLayout()
+        row = 0
+        fgrid.addWidget(titleLabel, row, 0, Qt.AlignRight | Qt.AlignTop)
+        fgrid.addWidget(self.titleTxt, row, 1)
+
+        row += 1
+        fgrid.addWidget(descriptionLabel, row, 0, Qt.AlignRight | Qt.AlignTop)
+        fgrid.addWidget(self.descriptionTxt, row, 1)
+
+        row += 1
+        fgrid.addWidget(optionsLabel, row, 0, Qt.AlignRight | Qt.AlignTop)
+        fgrid.addWidget(self.optionsView, row, 1)
+
         generalTab.setLayout(fgrid)
+        fgrid.setColumnStretch(0, 0)
+        fgrid.setColumnStretch(1, 4)
+        fgrid.setRowStretch(0, 0)
+        fgrid.setRowStretch(1, 1)
+        fgrid.setRowStretch(2, 2)
         self.tabWidget.addTab(generalTab, self.tr("General"))
 
+        # ==========================================
         # Scenery tab
-        sceneryTab = QtWidgets.QWidget()
-        self.sceneryView = QtWidgets.QGraphicsView(sceneryTab)
+        self.sceneryWidget = widgets.VBoxWidget()
+
+        toolbarScenery = QtWidgets.QToolBar()
+        self.sceneryWidget.addWidget(toolbarScenery)
+        self.unlockSceneryBtn = QtWidgets.QPushButton(self.tr("Unlock Scenery"),
+                                                      self.sceneryWidget)
+        self.unlockSceneryBtn.setEnabled(False)
+        toolbarScenery.addWidget(self.unlockSceneryBtn)
+
+        self.validateSceneryBtn = QtWidgets.QPushButton(
+            self.tr("Validate Scenery"), self.sceneryWidget
+        )
+        self.validateSceneryBtn.clicked.connect(self.validateSceneryBtnClicked)
+        toolbarScenery.addWidget(self.validateSceneryBtn)
+
+        self.zoomWidget = widgets.ZoomWidget(self.sceneryWidget)
+        self.zoomWidget.valueChanged.connect(self.zoom)
+        toolbarScenery.addWidget(self.zoomWidget)
+
+        self.sceneryView = widgets.XGraphicsView(self.sceneryWidget)
         self.sceneryView.setInteractive(True)
         self.sceneryView.setRenderHint(QtGui.QPainter.Antialiasing, False)
         self.sceneryView.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.sceneryView.setAcceptDrops(True)
         self.sceneryView.setBackgroundBrush(QtGui.QBrush(Qt.black))
-        self.unlockSceneryBtn = QtWidgets.QPushButton(self.tr("Unlock Scenery"),
-                                                      sceneryTab)
-        self.unlockSceneryBtn.setEnabled(False)
-        self.validateSceneryBtn = QtWidgets.QPushButton(
-            self.tr("Validate Scenery"), sceneryTab
-        )
-        self.validateSceneryBtn.clicked.connect(self.validateSceneryBtnClicked)
-        self.zoomWidget = widgets.ZoomWidget(sceneryTab)
-        self.zoomWidget.valueChanged.connect(self.zoom)
-        hgrid = QtWidgets.QHBoxLayout()
-        hgrid.addWidget(self.unlockSceneryBtn)
-        hgrid.addWidget(self.validateSceneryBtn)
-        hgrid.addStretch()
-        hgrid2 = QtWidgets.QHBoxLayout()
-        hgrid2.addWidget(self.zoomWidget)
-        hgrid2.addStretch()
-        vgrid = QtWidgets.QVBoxLayout()
-        vgrid.addLayout(hgrid)
-        vgrid.addWidget(self.sceneryView)
-        vgrid.addLayout(hgrid2)
-        sceneryTab.setLayout(vgrid)
-        self.tabWidget.addTab(sceneryTab, self.tr("Scenery"))
+        self.sceneryView.wheelChanged.connect(self.onSceneryViewWheelChanged)
+        self.sceneryWidget.addWidget(self.sceneryView)
 
+        self.tabWidget.addTab(self.sceneryWidget, self.tr("Scenery"))
+
+        # ==========================================
         # Routes tab
-        routesTab = QtWidgets.QWidget()
+        self.routesWidget = widgets.VBoxWidget()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
                                            QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setVerticalStretch(1)
-        self.routesGraphicView = QtWidgets.QGraphicsView(routesTab)
+        self.routesGraphicView = QtWidgets.QGraphicsView(self.routesWidget)
         self.routesGraphicView.setInteractive(True)
         self.routesGraphicView.setRenderHint(QtGui.QPainter.Antialiasing,
                                              False)
@@ -277,111 +301,151 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.routesGraphicView.setBackgroundBrush(QtGui.QBrush(Qt.black))
         self.routesGraphicView.setSizePolicy(sizePolicy)
         self.addRouteBtn = QtWidgets.QPushButton(self.tr("Add Route"),
-                                                 routesTab)
+                                                 self.routesWidget)
         self.addRouteBtn.clicked.connect(self.addRouteBtnClicked)
         self.delRouteBtn = QtWidgets.QPushButton(self.tr("Delete Route"),
-                                                 routesTab)
+                                                 self.routesWidget)
         self.delRouteBtn.clicked.connect(self.delRouteBtnClicked)
         hgrid = QtWidgets.QHBoxLayout()
+        hgrid.setContentsMargins(0, 0, 0, 0)
         hgrid.addWidget(self.addRouteBtn)
         hgrid.addWidget(self.delRouteBtn)
         hgrid.addStretch()
-        self.routesView = ts2.editor.views.RoutesEditorView(routesTab)
-        grid = QtWidgets.QVBoxLayout()
-        grid.addWidget(self.routesGraphicView)
-        grid.addLayout(hgrid)
-        grid.addWidget(self.routesView)
-        routesTab.setLayout(grid)
-        routesTab.setEnabled(False)
-        self.tabWidget.addTab(routesTab, self.tr("Routes"))
-        self.routesTab = routesTab
+        self.routesView = ts2.editor.views.RoutesEditorView(self.routesWidget)
 
+        self.routesWidget.addWidget(self.routesGraphicView)
+        self.routesWidget.addLayout(hgrid)
+        self.routesWidget.addWidget(self.routesView)
+        self.routesWidget.setEnabled(False)
+        self.tabWidget.addTab(self.routesWidget, self.tr("Routes"))
+
+        # ==========================================
         # Train types tab
-        trainTypesTab = QtWidgets.QWidget()
-        self.trainTypesView = \
-            ts2.editor.views.TrainTypesEditorView(trainTypesTab)
-        self.addTrainTypeBtn = QtWidgets.QPushButton(
-            self.tr("Add new train type"), trainTypesTab
-        )
-        self.addTrainTypeBtn.clicked.connect(self.addTrainTypeBtnClicked)
-        self.delTrainTypeBtn = QtWidgets.QPushButton(
-            self.tr("Remove train type"), trainTypesTab
-        )
-        self.delTrainTypeBtn.clicked.connect(self.delTrainTypeBtnClicked)
-        hgrid = QtWidgets.QHBoxLayout()
-        hgrid.addWidget(self.addTrainTypeBtn)
-        hgrid.addWidget(self.delTrainTypeBtn)
-        hgrid.addStretch()
-        grid = QtWidgets.QVBoxLayout()
-        grid.addWidget(self.trainTypesView)
-        grid.addLayout(hgrid)
-        trainTypesTab.setLayout(grid)
-        self.tabWidget.addTab(trainTypesTab, self.tr("Train types"))
+        self.trainTypesWidget = widgets.VBoxWidget()
 
+        tbar = QtWidgets.QToolBar()
+        self.trainTypesWidget.addWidget(tbar)
+
+        tbg = widgets.ToolBarGroup(title="Train Types")
+        tbar.addWidget(tbg)
+
+        # add train
+        self.addTrainTypeBtn = QtWidgets.QToolButton(self.trainTypesWidget)
+        self.addTrainTypeBtn.setText(self.tr("Add new"))
+        self.addTrainTypeBtn.clicked.connect(self.addTrainTypeBtnClicked)
+        tbg.addWidget(self.addTrainTypeBtn)
+
+        # remove train
+        self.delTrainTypeBtn = QtWidgets.QToolButton(self.trainTypesWidget)
+        self.delTrainTypeBtn.setText(self.tr("Remove"))
+        self.delTrainTypeBtn.clicked.connect(self.delTrainTypeBtnClicked)
+        tbg.addWidget(self.delTrainTypeBtn)
+
+        self.trainTypesView = ts2.editor.views.TrainTypesEditorView(
+            self.trainTypesWidget
+        )
+        self.trainTypesWidget.addWidget(self.trainTypesView)
+
+        self.tabWidget.addTab(self.trainTypesWidget, self.tr("Rolling Stock"))
+
+        # ===============================================================
         # Services tab
-        servicesTab = QtWidgets.QWidget()
-        self.exportServicesBtn = QtWidgets.QPushButton(
-            self.tr("Export services as CSV file..."),
-            servicesTab
-        )
-        self.exportServicesBtn.clicked.connect(self.exportServicesBtnClicked)
-        self.importServicesBtn = QtWidgets.QPushButton(
-            self.tr("Import services from CSV file..."),
-            servicesTab
-        )
-        self.importServicesBtn.clicked.connect(self.importServicesBtnClicked)
-        hgride = QtWidgets.QHBoxLayout()
-        hgride.addWidget(self.exportServicesBtn)
-        hgride.addWidget(self.importServicesBtn)
-        hgride.addStretch()
-        self.servicesView = ts2.editor.views.ServicesEditorView(servicesTab)
-        self.addServiceBtn = QtWidgets.QPushButton(self.tr("Add new service"),
-                                                   servicesTab)
+        # ===============================================================
+        self.servicesTabWidget = widgets.VBoxWidget()
+        tbarServices = QtWidgets.QToolBar()
+        self.servicesTabWidget.addWidget(tbarServices)
+
+        # ================
+        # Service CRUD
+        tbg = widgets.ToolBarGroup(title=self.tr("Services"))
+        tbarServices.addWidget(tbg)
+
+        # Add Service
+        self.addServiceBtn = QtWidgets.QToolButton(self.servicesTabWidget)
+        self.addServiceBtn.setText(self.tr("Add new"))
         self.addServiceBtn.clicked.connect(self.addServiceBtnClicked)
-        self.delServiceBtn = QtWidgets.QPushButton(self.tr("Remove service"),
-                                                   servicesTab)
+        tbg.addWidget(self.addServiceBtn)
+
+        # Remove Service
+        self.delServiceBtn = QtWidgets.QToolButton(self.servicesTabWidget)
+        self.delServiceBtn.setText(self.tr("Remove"))
         self.delServiceBtn.clicked.connect(self.delServiceBtnClicked)
-        hgrids = QtWidgets.QHBoxLayout()
-        hgrids.addWidget(self.addServiceBtn)
-        hgrids.addWidget(self.delServiceBtn)
-        hgrids.addStretch()
+        tbg.addWidget(self.delServiceBtn)
+
+        tbarServices.addSeparator()
+        # ================
+        # CSV
+        tbg = widgets.ToolBarGroup(title=self.tr("CSV"))
+        tbarServices.addWidget(tbg)
+
+        # Export CSV
+        self.exportServicesBtn = QtWidgets.QToolButton(self.servicesTabWidget)
+        self.exportServicesBtn.setText(self.tr("Export"))
+        self.exportServicesBtn.clicked.connect(self.exportServicesBtnClicked)
+        tbg.addWidget(self.exportServicesBtn)
+
+        # Import CSV
+        self.importServicesBtn = QtWidgets.QToolButton(self.servicesTabWidget)
+        self.importServicesBtn.setText(self.tr("Import"))
+        self.importServicesBtn.clicked.connect(self.importServicesBtnClicked)
+        tbg.addWidget(self.importServicesBtn)
+
+        # Services Table
+        self.servicesView = ts2.editor.views.ServicesEditorView(
+            self.servicesTabWidget
+        )
+        self.servicesTabWidget.addWidget(self.servicesView)
+
+        tbarServiceLines = QtWidgets.QToolBar()
+        self.servicesTabWidget.addWidget(tbarServiceLines)
+
+        tbg = widgets.ToolBarGroup()
+        tbg.setTitle(self.tr("Lines"))
+        tbarServiceLines.addWidget(tbg)
+
+        # Append line button
+        self.appendServiceLineBtn = QtWidgets.QToolButton(
+            self.servicesTabWidget
+        )
+        self.appendServiceLineBtn.setText(self.tr("Append New"))
+        self.appendServiceLineBtn.clicked.connect(
+            self.appendServiceLineBtnClicked
+        )
+        tbg.addWidget(self.appendServiceLineBtn)
+
+        # Insert line  button
+        self.insertServiceLineBtn = QtWidgets.QToolButton(
+            self.servicesTabWidget
+        )
+        self.insertServiceLineBtn.setText(self.tr("Insert New"))
+        self.insertServiceLineBtn.clicked.connect(
+            self.insertServiceLineBtnClicked
+        )
+        tbg.addWidget(self.insertServiceLineBtn)
+
+        # Delete line  button
+        self.deleteServiceLineBtn = QtWidgets.QToolButton(
+            self.servicesTabWidget
+        )
+        self.deleteServiceLineBtn.setText(self.tr("Remove"))
+        self.deleteServiceLineBtn.clicked.connect(self.delServiceLineBtnClicked)
+        tbg.addWidget(self.deleteServiceLineBtn)
+
+        # ServiceLines table
         self.serviceLinesView = ts2.editor.views.ServiceLinesEditorView(
-            servicesTab
+            self.servicesTabWidget
         )
         self.serviceLinesView.setSelectionBehavior(
             QtWidgets.QAbstractItemView.SelectRows)
         self.serviceLinesView.setSelectionMode(
             QtWidgets.QAbstractItemView.SingleSelection)
-        self.appendServiceLineBtn = QtWidgets.QPushButton(
-            self.tr("Append new line"), servicesTab
-        )
-        self.appendServiceLineBtn.clicked.connect(
-            self.appendServiceLineBtnClicked
-        )
-        self.insertServiceLineBtn = QtWidgets.QPushButton(
-            self.tr("Insert new line"), servicesTab
-        )
-        self.insertServiceLineBtn.clicked.connect(
-            self.insertServiceLineBtnClicked
-        )
-        self.delServiceLineBtn = QtWidgets.QPushButton(self.tr("Remove line"),
-                                                       servicesTab)
-        self.delServiceLineBtn.clicked.connect(self.delServiceLineBtnClicked)
-        hgridl = QtWidgets.QHBoxLayout()
-        hgridl.addWidget(self.appendServiceLineBtn)
-        hgridl.addWidget(self.insertServiceLineBtn)
-        hgridl.addWidget(self.delServiceLineBtn)
-        hgridl.addStretch()
-        grid = QtWidgets.QVBoxLayout()
-        grid.addLayout(hgride)
-        grid.addWidget(self.servicesView)
-        grid.addLayout(hgrids)
-        grid.addWidget(self.serviceLinesView)
-        grid.addLayout(hgridl)
-        servicesTab.setLayout(grid)
-        self.tabWidget.addTab(servicesTab, self.tr("Services"))
+        self.servicesTabWidget.addWidget(self.serviceLinesView)
 
+        self.tabWidget.addTab(self.servicesTabWidget, self.tr("Services"))
+
+        # ===============================================================
         # Train tab
+        # ===============================================================
         trainsTab = QtWidgets.QWidget()
         self.setupTrainsBtn = QtWidgets.QPushButton(
             self.tr("Setup trains from services"), trainsTab
@@ -422,22 +486,40 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.tabWidget.addTab(trainsTab, self.tr("Trains"))
 
         self.setCentralWidget(self.tabWidget)
+
+        sbar = widgets.StatusBar()
+        self.setStatusBar(sbar)
+
         settings.restoreWindow(self)
+        self.onServiceViewSelectionChanged(None)
+        self.onServiceLinesViewSelectionChanged()
+        self.onTrainTypesSelectionChanged()
+
+        if fileName:
+            QtCore.QTimer.singleShot(100, self.onStartupTimeout)
+
+    def onStartupTimeout(self):
+        if self.editor.fileName:
+            self.loadSimulation(fileName=self.editor.fileName)
 
     def simulationConnect(self):
         """Connects the signals and slots to the simulation."""
         self.titleTxt.setText(self.editor.option("title"))
         self.descriptionTxt.setPlainText(self.editor.option("description"))
         self.optionsView.setModel(self.editor.optionsModel)
+
         self.sceneryView.setScene(self.editor.scene)
         self.trackItemsLibraryView.setScene(self.editor.libraryScene)
         self.routesGraphicView.setScene(self.editor.scene)
         self.routesView.setModel(self.editor.routesModel)
+
         self.trainTypesView.setModel(self.editor.trainTypesModel)
+
         servicesSortedModel = QtCore.QSortFilterProxyModel()
         servicesSortedModel.setSourceModel(self.editor.servicesModel)
         self.servicesView.setModel(servicesSortedModel)
         self.serviceLinesView.setModel(self.editor.serviceLinesModel)
+
         self.trainsGraphicsView.setScene(self.editor.scene)
         trainsSortedModel = QtCore.QSortFilterProxyModel()
         trainsSortedModel.setSourceModel(self.editor.trainsModel)
@@ -457,17 +539,33 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.editor.sceneryIsValidated.connect(
             self.validateSceneryBtn.setDisabled
         )
-        self.editor.sceneryIsValidated.connect(self.routesTab.setEnabled)
+        self.editor.sceneryIsValidated.connect(self.routesWidget.setEnabled)
         self.unlockSceneryBtn.clicked.connect(
             self.editor.invalidateScenery
         )
+        self.unlockSceneryBtn.clicked.connect(self.setDirty)
         self.routesView.routeSelected.connect(self.editor.selectRoute)
+
+        # Trains
+        self.trainTypesView.selectionModel().currentChanged.connect(
+            self.onTrainTypesSelectionChanged
+        )
+
+        # Services
         self.servicesView.serviceSelected.connect(
             self.editor.serviceLinesModel.setServiceCode
         )
+        self.servicesView.serviceSelected.connect(
+            self.onServiceViewSelectionChanged
+        )
+        self.serviceLinesView.selectionModel().currentChanged.connect(
+            self.onServiceLinesViewSelectionChanged
+        )
+
         self.trainsView.trainSelected.connect(self.editor.selectTrain)
         self.trainsView.trainsUnselected.connect(self.editor.unselectTrains)
 
+        self.validateSceneryBtnClicked()
         self.tabWidget.currentChanged.emit(self.tabWidget.currentIndex())
 
     def simulationDisconnect(self):
@@ -491,26 +589,30 @@ class EditorWindow(QtWidgets.QMainWindow):
     closed = QtCore.pyqtSignal()
 
     def closeEvent(self, closeEvent):
-        """Called when the editor window is closed. Emits the closed signal.
+        """Called when the editor window is closed. Emits the `closed` signal.
         """
         settings.saveWindow(self)
         settings.sync()
         super().closeEvent(closeEvent)
         if closeEvent.isAccepted():
-            choice = QtWidgets.QMessageBox.question(
-                self,
-                self.tr("Close editor"),
-                self.tr("Do you want to save your changes ?"),
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No |
-                QtWidgets.QMessageBox.Cancel
-            )
-            if choice == QtWidgets.QMessageBox.Yes:
-                self.saveSimulation()
-            if choice == QtWidgets.QMessageBox.Yes or \
-               choice == QtWidgets.QMessageBox.No:
-                self.closed.emit()
+            if self._dirty:
+                choice = QtWidgets.QMessageBox.question(
+                    self,
+                    self.tr("Close editor"),
+                    self.tr("Do you want to save your changes ?"),
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No |
+                    QtWidgets.QMessageBox.Cancel
+                )
+                if choice == QtWidgets.QMessageBox.Yes:
+                    self.saveSimulation()
+
+                if choice in[QtWidgets.QMessageBox.Yes,
+                             QtWidgets.QMessageBox.No]:
+                    self.closed.emit()
+                else:
+                    closeEvent.ignore()
             else:
-                closeEvent.ignore()
+                self.closed.emit()
 
     @QtCore.pyqtSlot(int)
     def setPropertiesModel(self):
@@ -524,25 +626,28 @@ class EditorWindow(QtWidgets.QMainWindow):
             self.propertiesView.setModel(None)
 
     @QtCore.pyqtSlot()
-    def loadSimulation(self):
-        """Loads the simulation from the database"""
-        # DEBUG
-        # fileName = "C:\\Users\\nicolas\\Documents\\Progs\\GitHub\\ts2\\data\\drain.ts2"
+    def loadSimulation(self, fileName=None):
+        """Loads the simulation from ts2 file"""
+        if not fileName:
+            fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
+                self,
+                self.tr("Open a simulation"),
+                QtCore.QDir.currentPath(),
+                self.tr("TS2 files (*.ts2 *.json);;"
+                        "TS2 simulation files (*.ts2);;"
+                        "JSON simulation files (*.json)"))
 
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self,
-            self.tr("Open a simulation"),
-            QtCore.QDir.currentPath(),
-            self.tr("TS2 files (*.ts2 *.json);;"
-                    "TS2 simulation files (*.ts2);;"
-                    "JSON simulation files (*.json)"))
-        if fileName != "":
+        if fileName:
+            self.statusBar().showMessage("Loading", info=True, timeout=2)
+            self.statusBar().showBusy(True)
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
 
             if self.editor is not None:
                 self.simulationDisconnect()
                 self.editor = None
-            # try:
+
+            # TODO: This is same code used elsewhere
+            # maybe there is a clever way to share this in utils or alike
             if zipfile.is_zipfile(fileName):
                 with zipfile.ZipFile(fileName) as zipArchive:
                     with zipArchive.open("simulation.json") as file:
@@ -553,15 +658,24 @@ class EditorWindow(QtWidgets.QMainWindow):
 
             self.editor.fileName = fileName
             self.setWindowTitle(
-                self.tr("ts2 - Train Signalling Simulation - Editor - %s")
+                self.tr("ts2 - Editor - %s")
                 % fileName
             )
             self.simulationConnect()
+
+            self.optionsView.resizeColumnsToContents()
+            self.trainTypesView.resizeColumnsToContents()
+
+            self.statusBar().showMessage(self.tr("Ready") + " :-)", info=True,
+                                         timeout=2)
+            self.statusBar().showBusy(False)
+            self._dirty = False
+
             QtWidgets.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def saveSimulation(self):
-        """Saves the simulation to the database"""
+        """Saves the simulation"""
         if not self.editor.fileName:
             self.saveAsSimulation()
         QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
@@ -681,6 +795,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         """Validates the scenery by calling the editor to perform the task."""
         QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
         self.editor.validateScenery()
+        self.setDirty("Validated scenery")
         QtWidgets.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
@@ -708,17 +823,23 @@ class EditorWindow(QtWidgets.QMainWindow):
     def addRouteBtnClicked(self):
         """Adds a route in routesView when the add route button is clicked."""
         model = self.editor.routesModel
-        model.beginInsertRows(QtCore.QModelIndex(),
-                              model.rowCount(), model.rowCount())
+        ridx = model.rowCount()
+        model.beginInsertRows(QtCore.QModelIndex(), ridx, ridx)
         if self.editor.addRoute():
             model.endInsertRows()
+            # scroll to new entry
+            idx = model.index(ridx, 0)
+            self.routesView.selectionModel().select(
+                idx,
+                QtCore.QItemSelectionModel.Rows |
+                QtCore.QItemSelectionModel.ClearAndSelect
+            )
+            self.routesView.scrollToBottom()
+            self.setDirty("Added route")
         else:
-            QtWidgets.QMessageBox.warning(
-                self,
-                self.tr("Add route"),
-                self.tr("No route added:\n"
-                        "No route selected or a route between "
-                        "these two signals already exists.")
+            self.statusBar().showMessage(
+                self.tr("No route selected, or already exists"), timeout=3,
+                warn=True
             )
 
     @QtCore.pyqtSlot()
@@ -736,12 +857,11 @@ class EditorWindow(QtWidgets.QMainWindow):
                                       model.rowCount(), model.rowCount())
                 self.editor.addTrainType(code)
                 model.endInsertRows()
+                self.setDirty("Added train type")
             else:
-                QtWidgets.QMessageBox.warning(
-                    self,
-                    self.tr("Add train type"),
-                    self.tr("Unable to add train type: \n"
-                            "This train type code already exists.")
+                self.statusBar().showMessage(
+                    self.tr("Cannot add new train type, code already exists"),
+                    timeout=3, warn=True
                 )
 
     @QtCore.pyqtSlot()
@@ -763,6 +883,7 @@ class EditorWindow(QtWidgets.QMainWindow):
                                       rowIndex.row())
                 self.editor.deleteTrainType(code)
                 model.endRemoveRows()
+                self.setDirty("Deleted train type")
 
     @QtCore.pyqtSlot()
     def addServiceBtnClicked(self):
@@ -775,16 +896,22 @@ class EditorWindow(QtWidgets.QMainWindow):
         if ok:
             if code not in self.editor.services:
                 model = self.editor.servicesModel
-                model.beginInsertRows(QtCore.QModelIndex(), model.rowCount(),
-                                      model.rowCount())
+                newRow = model.rowCount()
+                model.beginInsertRows(QtCore.QModelIndex(), newRow, newRow)
                 self.editor.addService(code)
                 model.endInsertRows()
+                leftCell = model.index(newRow, 0)
+                self.servicesView.selectionModel().select(
+                    leftCell,
+                    QtCore.QItemSelectionModel.Rows |
+                    QtCore.QItemSelectionModel.ClearAndSelect
+                )
+                self.servicesView.scrollToBottom()
+                self.setDirty("Added service")
             else:
-                QtWidgets.QMessageBox.warning(
-                    self,
-                    self.tr("Add service"),
-                    self.tr("Unable to add service: \n"
-                            "This service code already exists.")
+                self.statusBar().showMessage(
+                    self.tr("Cannot add, service code exists"), timeout=2,
+                    warn=True
                 )
 
     @QtCore.pyqtSlot()
@@ -799,41 +926,71 @@ class EditorWindow(QtWidgets.QMainWindow):
                 self,
                 self.tr("Delete service"),
                 self.tr("Are you sure you want "
-                        "to delete service %s?") % code,
+                        "to delete service %s ?") % code,
                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
             ) == QtWidgets.QMessageBox.Yes:
                 model.beginRemoveRows(QtCore.QModelIndex(), rowIndex.row(),
                                       rowIndex.row())
                 self.editor.deleteService(code)
                 model.endRemoveRows()
+                self.setDirty("Deleted service")
 
     @QtCore.pyqtSlot()
     def appendServiceLineBtnClicked(self):
         """Appends a service line to this service at the end of the list"""
+        if not self.servicesView.selectionModel().hasSelection():
+            self.statusBar().showMessage(
+                self.tr("No service selected"), timeout=2, warn=True
+            )
+            return
         model = self.editor.serviceLinesModel
         service = model.service
-        index = model.rowCount()
-        model.beginInsertRows(QtCore.QModelIndex(), index, index)
-        self.editor.addServiceLine(service, index)
+        row_idx = model.rowCount()
+        model.beginInsertRows(QtCore.QModelIndex(), row_idx, row_idx)
+        self.editor.addServiceLine(service, row_idx)
         model.endInsertRows()
+        leftCell = model.index(row_idx, 0)
+        self.serviceLinesView.selectionModel().select(
+            leftCell,
+            QtCore.QItemSelectionModel.Rows |
+            QtCore.QItemSelectionModel.ClearAndSelect
+        )
+        self.setDirty("Appended service line")
 
     @QtCore.pyqtSlot()
     def insertServiceLineBtnClicked(self):
         """Add a service line to this service after the currently selected"""
+        if not self.servicesView.selectionModel().hasSelection():
+            self.statusBar().showMessage(
+                self.tr("No service selected"), timeout=2, warn=True
+            )
+            return
         model = self.editor.serviceLinesModel
         service = model.service
-        index = 0
+        row_idx = 0
         if len(service.lines) != 0:
             rows = self.serviceLinesView.selectionModel().selectedRows()
             if len(rows) != 0:
-                index = rows[0].row()
-        model.beginInsertRows(QtCore.QModelIndex(), index, index)
-        self.editor.addServiceLine(service, index)
+                row_idx = rows[0].row()
+        model.beginInsertRows(QtCore.QModelIndex(), row_idx, row_idx)
+        self.editor.addServiceLine(service, row_idx)
         model.endInsertRows()
+        leftCell = model.index(row_idx, 0)
+        self.serviceLinesView.selectionModel().select(
+            leftCell,
+            QtCore.QItemSelectionModel.Rows |
+            QtCore.QItemSelectionModel.ClearAndSelect
+        )
+        self.setDirty("Inserted service line")
 
     @QtCore.pyqtSlot()
     def delServiceLineBtnClicked(self):
         """Removes the currently selected service line of this service"""
+        if not self.serviceLinesView.selectionModel().hasSelection():
+            self.statusBar().showMessage(
+                self.tr("Select a service line to remove"), timeout=2, warn=True
+            )
+            return
         service = self.serviceLinesView.model().service
         rowIndexes = self.serviceLinesView.selectionModel().selectedRows()
         if len(rowIndexes) != 0:
@@ -851,22 +1008,19 @@ class EditorWindow(QtWidgets.QMainWindow):
                                       rowIndex.row())
                 self.editor.deleteServiceLine(service, rowIndex.row())
                 model.endRemoveRows()
+                self.setDirty("Deleted service line")
 
     @QtCore.pyqtSlot()
     def importServicesBtnClicked(self):
         """Calls an open file dialog for the user to select the file to import
         services from and asks the editor to actually do the import"""
-
-        # ### DEBUG
-        # fileName = "/home/nicolas/drain.csv"
-
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
             self.tr("Import services"),
             QtCore.QDir.currentPath(),
             self.tr("CSV files (*.csv)")
         )
-        if fileName != "":
+        if fileName:
             if QtWidgets.QMessageBox.warning(
                 self,
                 self.tr("Import services"),
@@ -889,7 +1043,7 @@ class EditorWindow(QtWidgets.QMainWindow):
             QtCore.QDir.currentPath(),
             self.tr("CSV files (*.csv)")
         )
-        if fileName != "":
+        if fileName:
             self.editor.exportServicesToFile(fileName)
 
     @QtCore.pyqtSlot()
@@ -921,8 +1075,9 @@ class EditorWindow(QtWidgets.QMainWindow):
         model = self.editor.trainsModel
         model.beginInsertRows(QtCore.QModelIndex(), model.rowCount(),
                               model.rowCount())
-        self.editor.addTrain()
+        self.editor.addNewTrain()
         model.endInsertRows()
+        self.setDirty("Added train")
 
     @QtCore.pyqtSlot()
     def delTrainBtnClicked(self):
@@ -941,11 +1096,13 @@ class EditorWindow(QtWidgets.QMainWindow):
                 model.beginRemoveRows(QtCore.QModelIndex(), row, row)
                 self.editor.deleteTrain(row)
                 model.endRemoveRows()
+                self.setDirty("Deleted train")
 
     @QtCore.pyqtSlot()
     def updateTitle(self):
         """Updates the title in the options hash when input is modified."""
         self.editor.setOption("title", self.titleTxt.text())
+        self.setDirty("Updated title")
 
     @QtCore.pyqtSlot()
     def updateDescription(self):
@@ -953,6 +1110,7 @@ class EditorWindow(QtWidgets.QMainWindow):
         """
         self.editor.setOption("description",
                               self.descriptionTxt.toPlainText())
+        self.setDirty("Updated description")
 
     @QtCore.pyqtSlot(int)
     def zoom(self, percent):
@@ -969,3 +1127,36 @@ class EditorWindow(QtWidgets.QMainWindow):
     def openSplitTrainWindow(self, trainId):
         """To conform to Mainwindow morphism."""
         pass
+
+    def onSceneryViewWheelChanged(self, direction):
+        """Handle scrollwheel on canvas, sent from
+        :class:`~ts2.gui.widgets.XGraphicsView` """
+        percent = self.zoomWidget.spinBox.value()
+        self.zoomWidget.spinBox.setValue(percent + (direction * 10))
+
+    def onServiceViewSelectionChanged(self, serviceCode):
+        """Enable/Disable service delete button and service line append/insert
+        buttons.
+        """
+        disabled = serviceCode is None
+        self.delServiceBtn.setDisabled(disabled)
+        self.appendServiceLineBtn.setDisabled(disabled)
+        self.insertServiceLineBtn.setDisabled(disabled)
+        # Reset service lines view when service has changed
+        self.onServiceLinesViewSelectionChanged()
+
+    def onServiceLinesViewSelectionChanged(self, current=None):
+        """Enable/Disable service line delete button."""
+        disabled = not current
+        self.deleteServiceLineBtn.setDisabled(disabled)
+
+    def onTrainTypesSelectionChanged(self, current=None):
+        """Enables/disables train type delete button."""
+        disabled = not current
+        self.delTrainTypeBtn.setDisabled(disabled)
+
+    def setDirty(self, obj=None):
+        """Sets the diry flag to `True`, obj is for testing"""
+        if settings.debug:
+            print("setDirty", obj)
+        self._dirty = True

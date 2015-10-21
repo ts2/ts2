@@ -69,7 +69,7 @@ def load(editorWindow, jsonStream):
 
 
 class WhiteLineItem(QtWidgets.QGraphicsLineItem):
-    """Shortcut class to make white line items"""
+    """Shortcut class to make a white line item and add to scene"""
     def __init__(self, x1, y1, x2, y2, parent, scene):
         """Constructor for the WhiteLineItem class"""
         super().__init__(x1, y1, x2, y2, parent)
@@ -137,7 +137,8 @@ class Editor(simulation.Simulation):
     is a subclass of the Simulation class.
     """
     def __init__(self, options=None, trackItems=None, routes=None,
-                 trainTypes=None, services=None, trns=None, messageLogger=None):
+                 trainTypes=None, services=None, trns=None, messageLogger=None,
+                 fileName=None):
         """Constructor for the Editor class"""
         options = options or simulation.BUILTIN_OPTIONS
         trackItems = trackItems or {}
@@ -148,6 +149,7 @@ class Editor(simulation.Simulation):
         messageLogger = messageLogger or logger.MessageLogger({})
         super().__init__(options, trackItems, routes, trainTypes, services,
                          trns, messageLogger)
+
         self._context = utils.Context.EDITOR_GENERAL
         self._libraryScene = QtWidgets.QGraphicsScene(0, 0, 200, 250, self)
         self._sceneBackground = editorscenebackground.EditorSceneBackground(
@@ -155,6 +157,7 @@ class Editor(simulation.Simulation):
         )
         self._sceneBackground.setZValue(-100)
         self._scene.addItem(self._sceneBackground)
+
         # Lines
         WhiteLineItem(0, 0, 0, 300, None, self._libraryScene)
         WhiteLineItem(100, 0, 100, 300, None, self._libraryScene)
@@ -166,6 +169,7 @@ class Editor(simulation.Simulation):
         WhiteLineItem(0, 200, 200, 200, None, self._libraryScene)
         WhiteLineItem(0, 250, 200, 250, None, self._libraryScene)
         WhiteLineItem(0, 300, 200, 300, None, self._libraryScene)
+
         # Items
         self.librarySignalItem = signalitem.SignalItem({
             "tiId": -1, "name": "Signal", "x": 65, "y": 25, "reverse": 0,
@@ -203,7 +207,8 @@ class Editor(simulation.Simulation):
             "xf": 180, "yf": 175, "maxSpeed": 0.0, "realLength": 1.0,
             "placeCode": None, "trackCode": None
         })
-        self._sceneryValidated = False
+
+        # Setup Models
         self._routesModel = route.RoutesModel(self)
         self._trainTypesModel = trains.TrainTypesModel(self)
         self._servicesModel = trains.ServicesModel(self)
@@ -211,7 +216,9 @@ class Editor(simulation.Simulation):
         self._trainsModel = trains.TrainsModel(self)
         self._optionsModel = OptionsModel(self)
         self._placesModel = placeitem.PlacesModel(self)
-        self.fileName = ""
+
+        self._sceneryValidated = False
+        self.fileName = fileName
         self._nextId = 1
         self._nextRouteId = 1
         self._grid = 5.0
@@ -220,6 +227,7 @@ class Editor(simulation.Simulation):
         self._selectedTrain = None
         self._selectedItems = []
         self._clipbooard = []
+
         self._displayedPositionGI = position.PositionGraphicsItem(self)
         self.registerGraphicsItem(self._displayedPositionGI)
         self.trainsChanged.connect(self.unselectTrains)
@@ -237,6 +245,7 @@ class Editor(simulation.Simulation):
             self._nextId = max(self._trackItems.keys()) + 1
         except ValueError:
             self._nextId = 1
+
         # Initialize library items
         self.librarySignalItem.initialize(self)
         self.libraryLineItem.initialize(self)
@@ -653,7 +662,10 @@ class Editor(simulation.Simulation):
         self.sceneryIsValidated.emit(False)
 
     def addRoute(self):
-        """Adds the route that is selected on the scene to the routes."""
+        """Adds the route that is selected on the scene to the routes.
+
+        .. todo:: Maybe this should return Error string or None
+        """
         if self.context == utils.Context.EDITOR_ROUTES:
             if (self._preparedRoute is not None) and \
                (self._preparedRoute not in self._routes.values()):
@@ -832,7 +844,7 @@ class Editor(simulation.Simulation):
                     QtCore.qDebug("nextServiceCode: %s does not exist" %
                                   s.nextServiceCode)
         for sc in serviceList:
-            train = self.addTrain()
+            train = self.addNewTrain()
             train.serviceCode = sc
             service = self.service(sc)
             placeCode, trackCode = service.getEntryPlaceData()
@@ -864,7 +876,7 @@ class Editor(simulation.Simulation):
                 self._selectedTrain.trainHead = reversedHead
                 self.selectTrain(self.trains.index(self._selectedTrain))
 
-    def addTrain(self):
+    def addNewTrain(self):
         """Adds an empty train to the editor and returns that train"""
         if self.context == utils.Context.EDITOR_TRAINS:
             pos = self.getValidPosition()

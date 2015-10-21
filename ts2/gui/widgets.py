@@ -20,11 +20,10 @@
 
 from Qt import QtCore, QtWidgets, Qt
 
-from ts2 import simulation
-
 
 class ClockWidget(QtWidgets.QLCDNumber):
     """Clock LCD Widget"""
+
     def __init__(self, parent):
         """Constructor for the ClockWidget class."""
         super().__init__(parent)
@@ -49,8 +48,6 @@ class ZoomWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         """Constructor for the ZoomWidget class."""
         super().__init__(parent)
-        #self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
-        #                   QtWidgets.QSizePolicy.Minimum)
         self.button = QtWidgets.QPushButton(self.tr("100%"), self)
 
         self.slider = QtWidgets.QSlider(Qt.Horizontal, self)
@@ -73,7 +70,7 @@ class ZoomWidget(QtWidgets.QWidget):
         self.spinBox.valueChanged.connect(self.valueChanged)
 
         hlayout = QtWidgets.QHBoxLayout()
-        hlayout.setContentsMargins(0,0,0,0)
+        hlayout.setContentsMargins(0, 0, 0, 0)
         hlayout.addWidget(self.button)
         hlayout.addWidget(self.slider)
         hlayout.addWidget(self.spinBox)
@@ -83,14 +80,6 @@ class ZoomWidget(QtWidgets.QWidget):
     def setDefaultZoom(self):
         """Sets the zoom to 100%."""
         self.spinBox.setValue(100)
-    """
-    def sizeHint(self):
-        return QtCore.QSize(300, 50)
-
-    def minimumSizeHint(self):
-        return QtCore.QSize(300, 50)
-    """
-
 
 
 class XGraphicsView(QtWidgets.QGraphicsView):
@@ -110,80 +99,151 @@ class XGraphicsView(QtWidgets.QGraphicsView):
             self.wheelChanged.emit(-1)
 
 
-class StatusBar(QtWidgets.QWidget):
-    """A horizontal bar with enbedded progress bar
-    :todo: Embed refresh and cancel buttons
+class StatusBar(QtWidgets.QStatusBar):
+    """A horizontal bar with embedded progress bar
+
+    .. todo: The progressBar is not showing progress !!
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.lay = QtWidgets.QHBoxLayout()
-        self.lay.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(self.lay)
+        self.progressTimer = QtCore.QTimer()
+        self.progressTimer.setInterval(100)
+        self.progressTimer.timeout.connect(self.onProgressTimeout)
 
-        self.statusBar = QtWidgets.QStatusBar()
-        self.lay.addWidget(self.statusBar, 1)
-        self.statusBar.showMessage("IDLE")
-
+        self.progressContainerWidget = HBoxWidget()
+        self.progressContainerWidget.setFixedWidth(100)
+        self.progressContainerWidget.setFixedHeight(15)
+        self.addPermanentWidget(self.progressContainerWidget)
 
         self.progressBar = QtWidgets.QProgressBar()
-        self.lay.addWidget(self.progressBar, 1)
-        self.progressBar.hide()
+        self.progressBar.setTextVisible(False)
+        self.progressContainerWidget.addWidget(self.progressBar, 1)
+        self.progressBar.setVisible(False)
 
-
-    def showMessage(self, txt, timeout=3, info=False, warn=False):
+    def showMessage(self, txt, timeout=0, info=False, warn=False):
         """Shows a message
 
-
-
+        :param str txt: Text to display
+        :param int timeout: Timeout in seconds
+        :param bool info: shows blue
+        :param bool warn: shows red
         """
-        self.statusBar.showMessage(txt)
-        # TODO set timeout
+        color = "black"
+        if warn:
+            color = "#AC3636"
+        elif info:
+            color = "#204292"
+        self.setStyleSheet("color: %s" % color)
+
+        if timeout > 0:
+            super().showMessage(txt, timeout * 1000)
+        else:
+            super().showMessage(txt)
+
+    @QtCore.pyqtSlot()
+    def onProgressTimeout(self):
+        print("onTimer")
+        QtWidgets.qApp.processEvents()
 
     def showBusy(self, is_busy):
         """Shows the progress bar and makes busy bee"""
         if is_busy:
-            self.progressBar.setRange(0,0)
+            self.progressBar.setRange(0, 0)
+            self.progressTimer.start()
         else:
-            self.progressBar.setRange(0,1)
+            self.progressBar.setRange(0, 0)
+            self.progressTimer.stop()
         self.progressBar.setVisible(is_busy)
 
 
 class ToolBarGroup(QtWidgets.QWidget):
-
     def __init__(self, parent=None, title=None):
         """Constructor for the ToolBarGroup class."""
         super().__init__(parent)
 
         # Main Layout
         mainLayout = QtWidgets.QVBoxLayout()
-        mainLayout.setContentsMargins( 0, 0, 0, 0 )
-        mainLayout.setSpacing( 0 )
-        self.setLayout( mainLayout )
+        mainLayout.setContentsMargins(0, 0, 0, 0)
+        mainLayout.setSpacing(0)
+        self.setLayout(mainLayout)
 
         # Label
         self.label = QtWidgets.QLabel()
-        lbl_sty = "background: #cccccc; " # qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #fefefe, stop: 1 #CECECE);"
-        lbl_sty += " color: #333333; font-size: 7pt; padding: 1px;" # border: 1px outset #cccccc;"
-        self.label.setStyleSheet( lbl_sty )
-        self.label.setAlignment( QtCore.Qt.AlignCenter )
-        mainLayout.addWidget( self.label )
+        lbl_sty = "background: #cccccc; "
+        lbl_sty += " color: #333333; font-size: 7pt; padding: 1px;"
+        self.label.setStyleSheet(lbl_sty)
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
+        mainLayout.addWidget(self.label)
 
         # Toolbar - were using a toolbar as we can addAction, Q*box dont allow
         self.toolbar = QtWidgets.QToolBar()
-        self.toolbar.setToolButtonStyle( QtCore.Qt.ToolButtonTextBesideIcon )
-        self.toolbar.setFixedHeight( 30 )
-        mainLayout.addWidget( self.toolbar )
+        self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.toolbar.setFixedHeight(30)
+        self.toolbar.layout().setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
+        mainLayout.addWidget(self.toolbar)
 
         if title:
             self.setTitle(title)
 
     def setTitle(self, title):
-        self.label.setText( "%s" % title )
+        self.label.setText("%s" % title)
 
     def addWidget(self, widget):
         self.toolbar.addWidget(widget)
 
     def addAction(self, action):
         self.toolbar.addAction(action)
+
+
+class VBoxWidget(QtWidgets.QWidget):
+    """Widget with a Vertical Box"""
+
+    def __init__(self, parent=None, margin=0):
+        super().__init__(parent)
+
+        lay = QtWidgets.QVBoxLayout()
+        lay.setContentsMargins(margin, margin, margin, margin)
+        self.setLayout(lay)
+
+    def addWidget(self, widget, stretch=0):
+        self.layout().addWidget(widget, stretch)
+
+    def addLayout(self, layout, stretch=0):
+        self.layout().addLayout(layout, stretch)
+
+
+class HBoxWidget(QtWidgets.QWidget):
+    """Widget with a Horizontal Box"""
+
+    def __init__(self, parent=None, margin=0):
+        super().__init__(parent)
+
+        lay = QtWidgets.QVBoxLayout()
+        lay.setContentsMargins(margin, margin, margin, margin)
+        self.setLayout(lay)
+
+    def addWidget(self, widget, stretch=0):
+        self.layout().addWidget(widget, stretch)
+
+    def addLayout(self, layout, stretch=0):
+        self.layout().addLayout(layout, stretch)
+
+
+class HeaderLabel(QtWidgets.QLabel):
+    def __init__(self, parent=None, text="", start=None, end=None, align=None):
+        super().__init__(parent)
+
+        self.setText(text)
+
+        align = align if align else Qt.AlignCenter
+        self.setAlignment(align | Qt.AlignVCenter)
+
+        start = start if start else "#ffffff"
+        end = end if end else "#aaaaaa"
+
+        sty = "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0," \
+              " stop: 0 %s, stop: 1 %s);" % (start, end)
+        sty += " color: #333333; font-size: 14pt; padding: 5px;"
+        self.setStyleSheet(sty)

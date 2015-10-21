@@ -35,7 +35,6 @@ from ts2.scenery.signals import signalitem
 
 translate = QtWidgets.qApp.translate
 
-
 BUILTIN_OPTIONS = {
     "title": "",
     "description": "",
@@ -106,9 +105,10 @@ def load(simulationWindow, jsonStream):
 
     1. We create the graph of objects from ``json.load()``. When initialized,
        each object stores its JSON data.
-    2. When all the objects are created, we call the :meth:`~ts2.simulation.Simulation.initialize`
-       method of the :class:`~ts2.simulation.Simulation`
-       which calls in turn the ``initialize()`` method of each object.
+    2. When all the objects are created, we call the
+       :meth:`~ts2.simulation.Simulation.initialize` method of the
+       :class:`~ts2.simulation.Simulation` which calls in turn the
+       ``initialize()`` method of each object.
 
     This method will create all the missing links between the object and the
     simulation (and other objects).
@@ -202,7 +202,8 @@ class Simulation(QtCore.QObject):
             service.initialize(self)
         for train in self.trains:
             train.initialize(self)
-        self._trains.sort(key=lambda x: x.currentService.lines and
+        self._trains.sort(key=lambda x:
+                          x.currentService.lines and
                           x.currentService.lines[0].scheduledDepartureTimeStr or
                           x.currentService.serviceCode)
         self.messageLogger.initialize(self)
@@ -256,7 +257,9 @@ class Simulation(QtCore.QObject):
     @property
     def scene(self):
         """
-        :return: the ``QGraphicsScene`` on which the simulation scenery is displayed"""
+        :return: the ``QGraphicsScene`` on which the simulation scenery is
+        displayed
+        """
         return self._scene
 
     @property
@@ -354,8 +357,9 @@ class Simulation(QtCore.QObject):
     @property
     def trainTypes(self):
         """
-        :return: the list of rolling stock types of the simulation
-        :rtype:  :class:`~ts2.trains.traintype.TrainType`
+        :return: a dict of the :class:`~ts2.trains.traintype.TrainType` of
+        the simulation
+        :rtype: dict
         """
         return self._trainTypes
 
@@ -436,10 +440,8 @@ class Simulation(QtCore.QObject):
 
     noRouteBetweenSignals = QtCore.pyqtSignal(signalitem.SignalItem,
                                               signalitem.SignalItem)
-    """pyqtSignal(:class:`~ts2.scenery.signals.signalitem.SignalItem`, :class:`~ts2.scenery.signals.signalitem.SignalItem`)"""
-
-    # routeSelected = QtCore.pyqtSignal(route.Route)
-    # routeDeleted = QtCore.pyqtSignal(route.Route)
+    """pyqtSignal(:class:`~ts2.scenery.signals.signalitem.SignalItem`,
+    :class:`~ts2.scenery.signals.signalitem.SignalItem`)"""
 
     timeChanged = QtCore.pyqtSignal(QtCore.QTime)
     """pyqtSignal(QtCore.QTime)"""
@@ -466,16 +468,17 @@ class Simulation(QtCore.QObject):
     def activateRoute(self, siId, persistent=False, force=False):
         """This slot is normally connected to a
         :class:`~ts2.scenery.signals.signalitem.SignalItem`
-        :attr:`~ts2.scenery.signals.signalitem.SignalItem.signalSelected` signal, which itself is emitted when a
-        signal is left-clicked.
+        :attr:`~ts2.scenery.signals.signalitem.SignalItem.signalSelected`
+        signal, which itself is emitted when a signal is left-clicked.
 
         It is in charge of:
 
         - Checking whether this is the first signal to be selected, if it the
-          case, ``_selectedSignal`` is set to this signal and the function returns.
+          case, ``_selectedSignal`` is set to this signal and the function
+          returns.
         - Otherwise, it checks whether there exists a possible route between
-          _``_selectedSignal`` and this signal. If it is the case, and that no other
-          active route conflicts with this route, it is activated.
+          _``_selectedSignal`` and this signal. If it is the case, and that no
+          other active route conflicts with this route, it is activated.
 
         The following signals are emitted depending of the situation:
 
@@ -483,8 +486,10 @@ class Simulation(QtCore.QObject):
         - noRouteBetweenSignals
         - conflictingRoute
 
-        :param str siId: ID of the :class:`~ts2.scenery.signals.signalitem.SignalItem`
-                         owner of the :class:`~ts2.scenery.signals.signalitem.SignalGraphicItem` that has been left-clicked.
+        :param str siId: ID of the
+        :class:`~ts2.scenery.signals.signalitem.SignalItem` owner of the
+        :class:`~ts2.scenery.signals.signalitem.SignalGraphicItem` that has been
+        left-clicked.
         """
         si = self._trackItems[siId]
         if self._selectedSignal is None or self._selectedSignal == si:
@@ -521,10 +526,11 @@ class Simulation(QtCore.QObject):
 
     @QtCore.pyqtSlot(int)
     def desactivateRoute(self, siId):
-        """ This slot is normally connected to the  :class:`~ts2.scenery.signals.signalitem.SignalItem`'s
-        :attr:`~ts2.scenery.signals.signalitem.SignalItem.signalUnSelected`, which itself is emitted when
-        a signal is right-clicked. It is in charge of deactivating the routes
-        starting from this signal.
+        """ This slot is normally connected to the
+        :class:`~ts2.scenery.signals.signalitem.SignalItem`'s
+        :attr:`~ts2.scenery.signals.signalitem.SignalItem.signalUnSelected`,
+        which itself is emitted when a signal is right-clicked. It is in charge
+        of deactivating the routes starting from this signal.
 
         :param siId: The ID of the signalItem owner of the signalGraphicsItem
                      that has been right-clicked.
@@ -565,7 +571,7 @@ class Simulation(QtCore.QObject):
         timeElapsed signals
         This function is normally connected to the timer timeout signal."""
         timeFactor = float(self.option("timeFactor"))
-        self._time = self._time.addMSecs((self._timer.interval())*timeFactor)
+        self._time = self._time.addMSecs((self._timer.interval()) * timeFactor)
         self.timeChanged.emit(self._time)
         secs = self._timer.interval() * timeFactor / 1000
         self.timeElapsed.emit(secs)
@@ -585,9 +591,12 @@ class Simulation(QtCore.QObject):
     def findRoute(self, si1, si2):
         """Checks whether a route exists between two signals.
 
-        :param si1: The :class:`~ts2.scenery.signals.signalitem.SignalItem` of the first signal
-        :param si2: The :class:`~ts2.scenery.signals.signalitem.SignalItem` of the second signal
-        :return:  The route between signal si1 and si2 if it exists, otherwise None
+        :param si1: The :class:`~ts2.scenery.signals.signalitem.SignalItem` of
+        the first signal
+        :param si2: The :class:`~ts2.scenery.signals.signalitem.SignalItem` of
+        the second signal
+        :return: The route between signal si1 and si2 if it exists, otherwise
+        None
         :rtype: :class:`~ts2.routing.route.Route` or None
         """
         for r in self._routes.values():
@@ -633,7 +642,8 @@ class Simulation(QtCore.QObject):
 
     def checkTrackItemsLinks(self):
         """
-        :return: Checks that all :class:`~ts2.scenery.abstract.TrackItem`'s  are linked together
+        :return: Checks that all :class:`~ts2.scenery.abstract.TrackItem`'s are
+        linked together
         :rtype: bool
 
         """
@@ -672,7 +682,8 @@ class Simulation(QtCore.QObject):
         """
         :param placeCode:
         :param trackCode:
-        :return: the :class:`~ts2.scenery.lineitem.LineItem` instance defined by placeCode and trackCode.
+        :return: the :class:`~ts2.scenery.lineitem.LineItem` instance defined by
+        placeCode and trackCode.
         """
         for ti in self._trackItems.values():
             if isinstance(ti, lineitem.LineItem):

@@ -78,7 +78,7 @@ class PropertiesView(QtWidgets.QTableView):
 
 
 class ServicesEditorView(QtWidgets.QTableView):
-    """Table view with specific options for editing services in the editor
+    """QTable view with specific options for editing services in the editor
     """
     def __init__(self, parent):
         """Constructor for the ServicesEditorView class"""
@@ -93,6 +93,7 @@ class ServicesEditorView(QtWidgets.QTableView):
         self.setItemDelegateForColumn(4, delegates.TrainTypesDelegate(self))
 
     serviceSelected = QtCore.pyqtSignal(str)
+    """Signal emitted when a Row selected"""
 
     def selectionChanged(self, selected, deselected):
         """Called when the user changes the selection. Emits the
@@ -101,6 +102,13 @@ class ServicesEditorView(QtWidgets.QTableView):
         index = selected.indexes()[0]
         if index.isValid():
             self.serviceSelected.emit(index.data())
+        else:
+            self.serviceSelected.emit(None)
+
+    def setModel(self, model):
+        """Sets model and also setup cols"""
+        super().setModel(model)
+        self.resizeColumnsToContents()
 
 
 class ServiceLinesEditorView(QtWidgets.QTableView):

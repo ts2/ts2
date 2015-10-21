@@ -17,8 +17,8 @@ translate = QtWidgets.qApp.translate
 
 class C:
     name = 0
-    description = 1
-    file_name = 2
+    file_name = 1
+    description = 2
     file_path = 3
 
 
@@ -72,7 +72,7 @@ class OpenDialog(QtWidgets.QDialog):
         containerLayout.addLayout(mainLayout)
 
         self.stackWidget = QtWidgets.QStackedWidget()
-        mainLayout.addWidget(self.stackWidget)
+        mainLayout.addWidget(self.stackWidget, 200)
 
         # =================
         # Downloaded Sims
@@ -99,6 +99,7 @@ class OpenDialog(QtWidgets.QDialog):
         hitem.setText(C.file_name, "File")
         hitem.setText(C.file_path, "Path")
         self.treeSims.setColumnHidden(C.file_path, True)
+        self.treeSims.header().setStretchLastSection(True)
         self.treeSims.itemDoubleClicked.connect(self.onTreeSimsItemDblClicked)
 
         # =====================================
@@ -132,7 +133,7 @@ class OpenDialog(QtWidgets.QDialog):
         # =================================
         # Bottom status
         self.statusBar = widgets.StatusBar()
-        mainLayout.addWidget(self.statusBar)
+        mainLayout.addWidget(self.statusBar, 0)
         if settings.debug:
             self.statusBar.showMessage(settings.simulationsDir)
 

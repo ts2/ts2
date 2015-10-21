@@ -56,11 +56,14 @@ class PropertiesDialog(QtWidgets.QDialog):
         super().__init__(parent)
         self.simulation = simulation
         self.setWindowTitle(self.tr("Simulation properties"))
+        self.setMinimumWidth(500)
+
         titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText("<u>" +
                            self.tr("Simulation title:") +
                            "</u>")
         titleText = QtWidgets.QLabel(simulation.option("title"), self)
+
         hlayout = QtWidgets.QHBoxLayout()
         hlayout.addWidget(titleLabel)
         hlayout.addWidget(titleText)

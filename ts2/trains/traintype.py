@@ -105,6 +105,9 @@ class TrainTypesModel(QtCore.QAbstractTableModel):
                 return self.tr("Length (m)")
             elif section == 7:
                 return self.tr("Elements (codes list)")
+
+        if role == Qt.TextAlignmentRole:
+            return Qt.AlignLeft
         return None
     
     def flags(self, index):

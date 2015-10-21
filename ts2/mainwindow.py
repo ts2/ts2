@@ -24,7 +24,8 @@ import os
 from Qt import QtCore, QtGui, QtWidgets, Qt
 
 from ts2 import simulation
-from ts2.gui import dialogs, trainlistview, servicelistview, widgets, opendialog
+from ts2.gui import dialogs, trainlistview, servicelistview, widgets, \
+    opendialog, settingsdialog
 from ts2.scenery import placeitem
 from ts2.editor import editorwindow
 from ts2.utils import settings
@@ -38,11 +39,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
     simulationLoaded = QtCore.pyqtSignal(simulation.Simulation)
 
-    def __init__(self, debug=False, file=None):
+    def __init__(self, args=None):
         super().__init__()
         MainWindow._self = self
 
-        settings.setDebug(debug)
+        self.fileName = None
+
+        if args:
+            settings.setDebug(args.debug)
+            if args.file:
+                # TODO absolute paths
+                self.fileName = args.file
 
         self.setObjectName("ts2_main_window")
         self.editorWindow = None
@@ -71,7 +78,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.saveGameAsAction.triggered.connect(self.saveGame)
         self.saveGameAsAction.setEnabled(False)
 
-        self.propertiesAction = QtWidgets.QAction(self.tr("&Properties..."),
+        # Properties
+        self.propertiesAction = QtWidgets.QAction(self.tr("Sim &Properties..."),
                                                   self)
         self.propertiesAction.setShortcut(
             QtGui.QKeySequence(self.tr("Ctrl+P"))
@@ -79,6 +87,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.propertiesAction.setToolTip(self.tr("Edit simulation properties"))
         self.propertiesAction.triggered.connect(self.openPropertiesDialog)
         self.propertiesAction.setEnabled(False)
+
+        # Settings
+        self.settingsAction = QtWidgets.QAction(self.tr("Settings..."),
+                                                self)
+        self.settingsAction.setToolTip(self.tr("User Settings"))
+        self.settingsAction.triggered.connect(self.openSettingsDialog)
 
         self.quitAction = QtWidgets.QAction(self.tr("&Quit"), self)
         self.quitAction.setShortcut(QtGui.QKeySequence(self.tr("Ctrl+Q")))
@@ -89,6 +103,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.editorAction.setShortcut(QtGui.QKeySequence(self.tr("Ctrl+E")))
         self.editorAction.setToolTip(self.tr("Open the simulation editor"))
         self.editorAction.triggered.connect(self.openEditor)
+
+        self.editorCurrAction = QtWidgets.QAction(self.tr("&Edit"), self)
+        # self.editorCurrAction.setShortcut(QtGui.QKeySequence(self.tr("Ctrl+")))
+        self.editorCurrAction.setToolTip(self.tr("Open this sim in editor"))
+        self.editorCurrAction.triggered.connect(self.onEditorCurrent)
 
         # Web Links
         self.actionGroupWwww = QtWidgets.QActionGroup(self)
@@ -127,13 +146,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.fileMenu.addAction(self.saveGameAsAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.propertiesAction)
+        self.fileMenu.addAction(self.settingsAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitAction)
 
         # Editor Menu
         self.editorMenu = self.menuBar().addMenu(self.tr("&Editor"))
         self.editorMenu.addAction(self.editorAction)
-        
+        self.editorMenu.addAction(self.editorCurrAction)
+
         # Help Menu
         self.helpMenu = self.menuBar().addMenu(self.tr("&Help"))
         self.helpMenu.addAction(self.aboutWwwHompage)
@@ -150,10 +171,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # =========
         # Actions
-        tbar, tbg = self._make_toolbar_group("Actions")
+        tbar, tbg = self._make_toolbar_group("Simulation")
         self.addToolBar(tbar)
         tbg.addAction(self.openAction)
-        tbg.addAction(self.editorAction)
+        tbg.addAction(self.editorCurrAction)
 
         # =========
         # Speed
@@ -217,6 +238,7 @@ class MainWindow(QtWidgets.QMainWindow):
         tbar.setFloatable(False)
         tbar.setMovable(False)
         self.addToolBar(tbar)
+
         self.lblTitle = QtWidgets.QLabel()
         lbl_sty = "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0," \
                   " stop: 0 #fefefe, stop: 1 #CECECE);"
@@ -224,10 +246,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lblTitle.setStyleSheet(lbl_sty)
         self.lblTitle.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.lblTitle.setText("no sim loaded")
-        sp = self.lblTitle.sizePolicy()
-        sp.setHorizontalPolicy(QtWidgets.QSizePolicy.Expanding)
-        self.lblTitle.setSizePolicy(sp)
         tbar.addWidget(self.lblTitle)
+        tbar.layout().setSizeConstraint(QtWidgets.QLayout.SetMaximumSize)
 
         # ===============================================================
         # Dock Widgets
@@ -381,20 +401,35 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Editor
         self.editorOpened = False
+        self.setControlsDisabled(True)
 
         self.refreshRecent()
         settings.restoreWindow(self)
 
-        if file:
-            self.loadSimulation(file)
-        # DEBUG
-        # self.onOpenSimulation()
-        # self.loadSimulation()
-        # self.openEditor()
+        if args and args.file:
+            if args.edit:
+                self.openEditor(args.file)
+                # else:
+                # here we call after window is shown
+        QtCore.QTimer.singleShot(100, self.onAfterShow)
 
     @staticmethod
     def instance():
         return MainWindow._self
+
+    @QtCore.pyqtSlot()
+    def onAfterShow(self):
+        """Fires a few moments after window shows"""
+        if not settings.b(settings.INITIAL_SETUP, False):
+            self.openSettingsDialog()
+
+        if not self.fileName and settings.b(settings.LOAD_LAST, False):
+            actions = self.openRecentAction.menu().actions()
+            if actions:
+                self.fileName = actions[0].text()
+
+        if self.fileName:
+            self.loadSimulation(self.fileName)
 
     def onOpenSimulation(self):
         d = opendialog.OpenDialog(self)
@@ -405,14 +440,18 @@ class MainWindow(QtWidgets.QMainWindow):
     def loadSimulation(self, fileName=None):
         """This is where stuff happens and the simulation is loaded
 
-
         """
         if fileName:
+
+            # TODO check it exists and normalise path
+            self.fileName = fileName
+
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
 
             if self.simulation is not None:
                 self.simulationDisconnect()
                 self.simulation = None
+
             # try:
             if zipfile.is_zipfile(fileName):
                 with zipfile.ZipFile(fileName) as zipArchive:
@@ -434,7 +473,7 @@ class MainWindow(QtWidgets.QMainWindow):
             #     self.simulation = None
             # else:
             self.setWindowTitle(self.tr(
-                "ts2 - Train Signalling Simulation - %s") % fileName)
+                "ts2 - Train Signalling Simulator - %s") % fileName)
             self.lblTitle.setText(self.simulation.option("title"))
             self.simulationConnect()
             self.simulationLoaded.emit(self.simulation)
@@ -445,16 +484,18 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.simulation.setTimeFactor
             )
             self.timeFactorSpinBox.setValue(
-                float(self.simulation.option("timeFactor"))
+               float(self.simulation.option("timeFactor"))
             )
             settings.addRecent(fileName)
             self.refreshRecent()
+            self.setControlsDisabled(False)
             QtWidgets.QApplication.restoreOverrideCursor()
         else:
             self.onOpenSimulation()
 
     def simulationConnect(self):
         """Connects the signals and slots to the simulation."""
+
         # Set models
         self.trainInfoView.setModel(self.simulation.selectedTrainModel)
         self.serviceInfoView.setModel(self.simulation.selectedServiceModel)
@@ -568,7 +609,7 @@ class MainWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(int)
     def zoom(self, percent):
         transform = QtGui.QTransform()
-        transform.scale(percent/100, percent/100)
+        transform.scale(percent / 100, percent / 100)
         self.view.setTransform(transform)
 
     @QtCore.pyqtSlot()
@@ -580,8 +621,10 @@ class MainWindow(QtWidgets.QMainWindow):
             "Copyright 2008-%s, NPi (%s)\n"
             "%s\n\n"
             "TS2 is licensed under the terms of the GNU GPL v2\n""") %
-            (__VERSION__, QtCore.QDate.currentDate().year(), __ORG_CONTACT__,
-             __PROJECT_WWW__))
+                                    (__VERSION__,
+                                     QtCore.QDate.currentDate().year(),
+                                     __ORG_CONTACT__,
+                                     __PROJECT_WWW__))
         if self.editorOpened:
             self.editorWindow.activateWindow()
 
@@ -594,19 +637,26 @@ class MainWindow(QtWidgets.QMainWindow):
                                            self.trainInfoView.mapToGlobal(pos))
 
     @QtCore.pyqtSlot()
-    def openEditor(self):
+    def onEditorCurrent(self):
+        if self.fileName:
+            self.openEditor(fileName=self.fileName)
+
+    @QtCore.pyqtSlot()
+    def openEditor(self, fileName=None):
         """This slot opens the editor window if it is not already opened"""
+        if not self.buttPause.isChecked():
+            self.buttPause.click()
         if not self.editorOpened:
-            self.editorWindow = editorwindow.EditorWindow(self)
+            self.editorWindow = editorwindow.EditorWindow(self, fileName)
             self.editorWindow.simulationConnect()
-            self.editorWindow.closed.connect(self.editorIsClosed)
+            self.editorWindow.closed.connect(self.onEditorClosed)
             self.editorOpened = True
             self.editorWindow.show()
         else:
             self.editorWindow.activateWindow()
 
     @QtCore.pyqtSlot()
-    def editorIsClosed(self):
+    def onEditorClosed(self):
         self.editorOpened = False
 
     @QtCore.pyqtSlot()
@@ -645,8 +695,6 @@ class MainWindow(QtWidgets.QMainWindow):
         for fileName in settings.getRecent():
             if os.path.exists(fileName):
                 act.append(menu.addAction(fileName))
-        if act and self.simulation is None:
-            self.onRecent(act[0])
 
     def onRecent(self, act):
         """Open a  recent item"""
@@ -694,3 +742,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def onPlaceSelected(self):
         place = placeitem.Place.selectedPlaceModel.place
         self.lblPlaceInfoName.setText(place.name)
+
+    def setControlsDisabled(self, state):
+        self.editorCurrAction.setDisabled(state)
+        self.zoomWidget.setDisabled(state)
+
+    def openSettingsDialog(self):
+        d = settingsdialog.SettingsDialog(self)
+        d.exec_()

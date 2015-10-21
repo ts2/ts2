@@ -20,20 +20,26 @@
 #
 
 import sys
-import optparse
+import argparse
+
 
 if __name__ == '__main__':
 
     if not sys.version_info >= (3, 0, 0):
         sys.exit("ERROR: TS2 requires Python3")
 
-    parser = optparse.OptionParser()
-    parser.add_option("-d", "--debug", dest="debug", help="Start in debug mode", action="store_true", default=False)
-    (options, args) = parser.parse_args()
+    parser = argparse.ArgumentParser("ts2")
+    parser.add_argument("-d", "--debug", dest="debug",
+                        help="Start with debug mode", action="store_true",
+                        default=False)
+    parser.add_argument("-e", "--edit", dest="edit", help="Open sim in editor",
+                        action="store_true", default=False)
+    parser.add_argument("file", help=".ts2 file to open/edit", type=str,
+                        nargs='?')
+    args = parser.parse_args()
 
-    file = None
-    if len(args) > 0:
-        file = args[0]
+    if args.edit and args.file is None:
+        sys.exit("ERROR: Need a file with -e option")
 
     import ts2.application
-    ts2.application.Main(debug=options.debug, file=file)
+    ts2.application.Main(args=args)
