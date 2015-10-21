@@ -188,7 +188,7 @@ class Place(abstract.TrackItem):
 
     def addTimetable(self, sl):
         self._timetable.append(sl)
-        # self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
+        self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
 
     def track(self, trackCode):
         return self._tracks[trackCode]
