@@ -394,25 +394,23 @@ class TrackItem(QtCore.QObject):
         self.activeRoutePreviousItem = None
         self.updateGraphics()
 
-    def registerTrain(self, trainId):
-        """Registers the train with the given trainId on this trackItem.
+    def registerTrain(self, train):
+        """Registers the given train on this trackItem.
 
-        :param str trainId:
+        :param train: Train instance to register
         """
         hadTrains = bool(self._trains)
-        train = self.simulation.trains[trainId]
-        if not train in self._trains:
+        if train not in self._trains:
             self._trains.append(train)
             if not hadTrains:
                 self.trainEntersItem.emit()
         self.updateTrainHeadAndTail()
 
-    def unRegisterTrain(self, trainId):
-        """Removes the train given by trainId from the registry of this item.
+    def unRegisterTrain(self, train):
+        """Removes the given train from the registry of this item.
 
-        :param str trainId:
+        :param train: Train instance to unregister
         """
-        train = self.simulation.trains[trainId]
         trainTail = train.trainHead - train.trainType.length
         if trainTail.trackItem != self and train in self._trains:
             self._trains.remove(train)

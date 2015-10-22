@@ -443,6 +443,7 @@ class Train(QtCore.QObject):
             utils.DurationProba(parameters["initialDelay"])
         self._initialDelay = 0
         self._appearTime = QtCore.QTime.fromString(parameters["appearTime"])
+        self._shunting = False
         # FIXME Throw back all these actions to MainWindow
         self.assignAction = QtWidgets.QAction(self.tr("Reassign service..."),
                                               self)
@@ -464,30 +465,32 @@ class Train(QtCore.QObject):
         params = self._parameters
         self.simulation = simulation
         self._trainType = simulation.trainTypes[params["trainTypeCode"]]
-        if self.currentService is not None:
-            self._nextPlaceIndex = params.get('nextPlaceIndex')
-        self.setInitialDelay()
-        self.updateMinimumStopTime()
         self.trainHead.initialize(simulation)
-        self.activate(simulation.currentTime)
-        self.simulation.timeElapsed.connect(self.advance)
-        self.simulation.timeChanged.connect(self.activate)
-        self.trainStatusChanged.connect(simulation.trainStatusChanged)
-        self.trainStoppedAtStation.connect(
-            simulation.scorer.trainArrivedAtStation
-        )
-        self.trainExitedArea.connect(simulation.scorer.trainExitedArea)
-        self.reassignServiceRequested.connect(
-            simulation.simulationWindow.openReassignServiceWindow
-        )
-        self.splitTrainRequested.connect(
-            simulation.simulationWindow.openSplitTrainWindow
-        )
+        if self.simulation.context == utils.Context.GAME:
+            if self.currentService is not None:
+                self._nextPlaceIndex = params.get('nextPlaceIndex')
+            self.setInitialDelay()
+            self.updateMinimumStopTime()
+            self.activate(simulation.currentTime)
+            self.simulation.timeElapsed.connect(self.advance)
+            self.simulation.timeChanged.connect(self.activate)
+            self.trainStatusChanged.connect(simulation.trainStatusChanged)
+            self.trainStoppedAtStation.connect(
+                simulation.scorer.trainArrivedAtStation
+            )
+            self.trainExitedArea.connect(simulation.scorer.trainExitedArea)
+            self.reassignServiceRequested.connect(
+                simulation.simulationWindow.openReassignServiceWindow
+            )
+            self.splitTrainRequested.connect(
+                simulation.simulationWindow.openSplitTrainWindow
+            )
         self._parameters = None
 
     def for_json(self):
         """Dumps this train to JSON."""
-        if self.status == TrainStatus.INACTIVE:
+        if self.simulation.context != utils.Context.GAME or \
+                self.status == TrainStatus.INACTIVE:
             speed = self.initialSpeed
             appearTime = self.appearTimeStr
             initialDelay = self.initialDelayStr
@@ -573,13 +576,14 @@ class Train(QtCore.QObject):
         if serviceCode not in self.simulation.services:
             raise Exception(self.tr("No service with code %s") % serviceCode)
         self._serviceCode = serviceCode
-        if self._stoppedTime != 0:
-            self.status = TrainStatus.STOPPED
-        else:
-            self.status = TrainStatus.RUNNING
-        self.nextPlaceIndex = 0
-        self.drawTrain(0)
-        self.findNextSignal().trainId = self.trainId
+        if self.simulation.context == utils.Context.GAME:
+            if self._stoppedTime != 0:
+                self.status = TrainStatus.STOPPED
+            else:
+                self.status = TrainStatus.RUNNING
+            self.nextPlaceIndex = 0
+            self.drawTrain(0)
+            self.findNextSignal().trainId = self.trainId
 
     @property
     def status(self):
@@ -759,6 +763,13 @@ class Train(QtCore.QObject):
         if self.simulation.context == utils.Context.EDITOR_TRAINS:
             self._appearTime = QtCore.QTime.fromString(value)
 
+    @property
+    def shunting(self):
+        """
+        :return: True if the train is shunting False otherwise
+        """
+        return self._shunting
+
     # ## Methods ########################################################
 
     def isOut(self):
@@ -779,6 +790,15 @@ class Train(QtCore.QObject):
             self._status != TrainStatus.INACTIVE and \
             self._status != TrainStatus.OUT and \
             self._status != TrainStatus.END_OF_SERVICE
+
+    def isOnScenery(self):
+        """
+        :return: True if the train is on the scenery
+        :rtype: bool
+        """
+        return \
+            self._status != TrainStatus.INACTIVE and \
+            self._status != TrainStatus.OUT
 
     def updateMinimumStopTime(self):
         """Updates the minimum stopping time for next station."""
@@ -1121,11 +1141,12 @@ class Train(QtCore.QObject):
         oldTrainTail = trainTail - advanceLength
         # Register train on new items (even if to be unregistered just behind)
         for ti in trainTail.trackItemsToPosition(self.trainHead):
-            ti.registerTrain(self.trainId)
+            # if self.isOnScenery():
+                ti.registerTrain(self)
         # Unregister train on left behind items:
         for ti in oldTrainTail.trackItemsToPosition(trainTail):
-            if ti != trainTail.trackItem:
-                ti.unRegisterTrain(self.trainId)
+            if ti != trainTail.trackItem: # and self.isOnScenery():
+                ti.unRegisterTrain(self)
         # Update head and tails for all
         for ti in oldTrainTail.trackItemsToPosition(self.trainHead):
             ti.updateTrainHeadAndTail()
@@ -1134,7 +1155,8 @@ class Train(QtCore.QObject):
         """
         :param pos:
         :type pos: :class:`~ts2.routing.position.Position`
-        :return: - the position and distance of first signal ahead of the train head
+        :return: - the position and distance of first signal ahead of the train
+                   head
                  - or ahead of the given position if specified
         :rtype: (:class:`~ts2.routing.position.Position`, int)
         """
@@ -1251,8 +1273,8 @@ class Train(QtCore.QObject):
         """
         :param int maxDistance: The maximum distance to look ahead
         :return: the next speed limit and the distance at which it starts,
-                 looking at each trackitem forward of the trainHead up to a maximum
-                 distance of ``maxDistance``.
+                 looking at each trackitem forward of the trainHead up to a
+                 maximum distance of ``maxDistance``.
         :rtype: (int, ?)
         """
         pos = self._trainHead
@@ -1261,48 +1283,29 @@ class Train(QtCore.QObject):
                distance < maxDistance):
             pos = pos.next()
             ti = pos.trackItem
-            if ti.maxSpeed < self.getMaximumSpeed()-self.trainType.stdBraking:
+            if ti.maxSpeed < self.getMaximumSpeed() - self.trainType.stdBraking:
                 return ti.maxSpeed, distance
             distance += ti.realLength
         return self.getMaximumSpeed(), -1
 
     def setSpeed(self, secs):
+        """Sets the speed of the train.
+
+        :param: secs: Number of seconds (in the game) between two clock
+        ticks.
+        """
         if not self.isActive() or self.status == TrainStatus.STOPPED:
             self._speed = 0
             return
 
-        maxSpeed = self.getMaximumSpeed()
         # k is the gain factor to set acceleration from the difference
         # between current speed and target speed
         k = 1 / secs
-        # d is the maximum distance that can be travelled during the last
-        # sample. It is used to determine when to stop the train.
-        d = 0.5 * self.trainType.stdBraking * secs**2
 
+        # ====== Get distances to next targets =======
         # Next Signal
-        nsp, distanceToNextSignal = self.getNextSignalInfo()
-        # Next station
-        maxDistance = max(self._speed**2 / self._trainType.stdBraking, 50.0)
-        distanceToNextStation = self.getDistanceToNextStop(maxDistance)
-        # Next speed limit
-        nextSpeedLimit, distanceToNextLimit = self.getNextSpeedLimitInfo(
-            maxDistance
-        )
-        # Next train
-        distanceToNextTrain = self.getDistanceToNextTrain(maxDistance)
-        # Choose target and define speed
-        if distanceToNextStation != -1:
-            if distanceToNextStation < d:
-                targetSpeedForStation = 0
-            else:
-                targetSpeedForStation = self.targetSpeed(
-                    secs, distanceToNextStation, 0
-                )
-        else:
-            targetSpeedForStation = maxSpeed
-
         applicableAction = self.signalActions[self.applicableActionIndex]
-
+        nsp, distanceToNextSignal = self.getNextSignalInfo()
         if applicableAction[0] == signalaspect.Target.ASAP:
             # We emulate a distance to next signal to get a stdBraking
             distanceToNextSignal = (
@@ -1310,46 +1313,45 @@ class Train(QtCore.QObject):
                  applicableAction[1]**2) / (2 * self.trainType.stdBraking) +
                 (self.speed * secs / 2)
             )
-
         if applicableAction[0] == signalaspect.Target.BEFORE_NEXT_SIGNAL:
             if nsp.trackItem == self.lastSignal:
                 # The signal with the applicable action is still ahead
                 distanceToNextSignal += self.getDistanceToNextSignal(nsp)
 
+        # Next station
+        maxDistance = max(self._speed**2 / self._trainType.stdBraking, 50.0)
+        distanceToNextStation = self.getDistanceToNextStop(maxDistance)
+
+        # Next speed limit
+        nextSpeedLimit, distanceToNextLimit = self.getNextSpeedLimitInfo(
+            maxDistance
+        )
+
+        # Next train
+        safetyDistance = 0.0 if self.shunting else 100.0
+        distanceToNextTrain = self.getDistanceToNextTrain(maxDistance)
+        if distanceToNextTrain != -1:
+            distanceToNextTrain -= safetyDistance
+
+        # ====== Calculate speeds to manage each target ======
+        # Next signal
         if applicableAction[0] == signalaspect.Target.BEFORE_THIS_SIGNAL \
                 and nsp.trackItem != self.lastSignal:
             # We passed the signal, and we keep its speed limit until we
             # see the next one.
             targetSpeedForSignal = applicableAction[1]
-        elif distanceToNextSignal != -1:
-            if distanceToNextSignal < d:
-                targetSpeedForSignal = applicableAction[1]
-            else:
-                targetSpeedForSignal = self.targetSpeed(
-                    secs, distanceToNextSignal, applicableAction[1]
-                )
         else:
-            targetSpeedForSignal = maxSpeed
+            targetSpeedForSignal = self.targetSpeed(secs, distanceToNextSignal,
+                                                    applicableAction[1])
+        # Next station
+        targetSpeedForStation = self.targetSpeed(secs, distanceToNextStation, 0)
 
-        if distanceToNextLimit != -1:
-            if distanceToNextLimit < d:
-                targetSpeedForLimit = nextSpeedLimit
-            else:
-                targetSpeedForLimit = self.targetSpeed(
-                    secs, distanceToNextLimit, nextSpeedLimit
-                )
-        else:
-            targetSpeedForLimit = maxSpeed
+        # Next speed limit
+        targetSpeedForLimit = self.targetSpeed(secs, distanceToNextLimit,
+                                               nextSpeedLimit)
 
-        if distanceToNextTrain != -1:
-            if distanceToNextTrain < d:
-                targetSpeedForTrain = 0
-            else:
-                targetSpeedForTrain = self.targetSpeed(
-                    secs, distanceToNextTrain, 0
-                )
-        else:
-            targetSpeedForTrain = maxSpeed
+        # Next train
+        targetSpeedForTrain = self.targetSpeed(secs, distanceToNextTrain, 0)
 
         ts = min(targetSpeedForSignal,
                  targetSpeedForStation,
@@ -1359,23 +1361,36 @@ class Train(QtCore.QObject):
                           min(k * (ts - self._speed),
                               self._trainType.stdAccel))
         self._speed = max(0.0, self._speed + self._accel * secs)
+
+        # ### DEBUG ###
         # print("SC:%s, Secs:%f, Accel=%f; ts=%f, speed=%f,"
-        # "dtnstation:%f, dtnsignal:%f, dtnlimit:%f, appl.action=%s" % (
-        # self.serviceCode, secs, self._accel, ts , self._speed,
-        # distanceToNextStation, distanceToNextSignal, distanceToNextLimit,
-        # str(applicableAction)))
+        # "dtnStation:%f, dtnSignal:%f, dtnLimit:%f, dtnTrain:%f,
+        # appl.action=%s" % (self.serviceCode, secs, self._accel, ts,
+        # self._speed, distanceToNextStation, distanceToNextSignal,
+        # distanceToNextLimit, distanceToNextTrain, str(applicableAction)))
 
     def targetSpeed(self, secs, targetDistance=-1, targetSpeedAtPos=0):
-        """ Defines the current target speed of the train depending on the parameters:
+        """Defines the current target speed of the train depending on the
+        parameters.
 
-        :param targetDistance: the distance at which the train should be at  targetSpeedAtPos
-        :param targetSpeedAtPos: the target speed when the train will be at  targetDistance
-        :return: the current target speed for the train, including sampling margin.
+        :param targetDistance: the distance at which the train should be at
+               targetSpeedAtPos
+        :param targetSpeedAtPos: the target speed when the train will be at
+               targetDistance
+        :return: the current target speed for the train, including sampling
+                 margin.
         :rtype: `float`
         """
         maxSpeed = self.getMaximumSpeed()
+        # d is the maximum distance that can be travelled during the last
+        # sample. It is used to determine when to stop the train.
+        d = 0.5 * self.trainType.stdBraking * secs**2
+
         if targetDistance == -1:
             return maxSpeed
+        if targetDistance < d:
+            return targetSpeedAtPos
+
         theoreticalSpeed = self.calculatedSpeed(targetDistance,
                                                 targetSpeedAtPos)
         # s1 is half the distance run at the train's current speed during secs

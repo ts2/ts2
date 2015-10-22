@@ -68,7 +68,7 @@ class PositionGraphicsItem(QtWidgets.QGraphicsPolygonItem):
             trackItem = self._position.trackItem
             if not isinstance(trackItem, ts2.scenery.lineitem.LineItem):
                 raise Exception("Error: PositionGraphicsItem can be used only"
-                                "for positions on LineItem and subclasses")
+                                " for positions on LineItem and subclasses")
             pos1 = trackItem.sceneLine.pointAt(
                 self._position.positionOnTI /
                 self._position.trackItem.realLength
