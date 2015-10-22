@@ -562,10 +562,13 @@ class TrackItem(QtCore.QObject):
         :param point: the point to draw on
         :type point: ``QPointF``
         """
+        pen = self.getPen()
+        pen.setWidth(0)
         if self.selected:
-            painter.setPen(Qt.magenta)
+            pen.setColor(Qt.magenta)
         else:
-            painter.setPen(Qt.cyan)
+            pen.setColor(Qt.cyan)
+        painter.setPen(pen)
         painter.setBrush(Qt.NoBrush)
         topLeft = point + QtCore.QPointF(-5, -5)
         painter.drawRect(QtCore.QRectF(topLeft, QtCore.QSizeF(10, 10)))

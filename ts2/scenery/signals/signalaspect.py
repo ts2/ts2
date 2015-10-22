@@ -87,13 +87,16 @@ class SignalAspect:
     def meansProceed(self):
         """Returns true if this aspect is a proceed aspect, returns false if
         this aspect requires to stop."""
-        return self.actions[0] != (Target.ASAP, 0) \
-            and self.actions[0] != (Target.BEFORE_THIS_SIGNAL, 0)
+        if not self.actions:
+            # No action means the driver discards the signal
+            return True
+        else:
+            return self.actions[0] != (Target.ASAP, 0) \
+                and self.actions[0] != (Target.BEFORE_THIS_SIGNAL, 0)
 
     def drawAspect(self, p, linePen, shapePen, persistent=False):
         """Draws the aspect on the given painter p. Draws the line with
         linePen and the shapes with shapePen."""
-
         if self.lineStyle == SignalLineStyle.BUFFER:
             p.setPen(shapePen)
             brush = QtGui.QBrush(Qt.SolidPattern)
@@ -163,21 +166,21 @@ class SignalAspect:
         elif shape == SignalShape.BAR_E_W:
             tl = rect.topLeft() + QtCore.QPointF(3, 1)
             p.drawRect(QtCore.QRectF(tl, QtCore.QSizeF(2, 6)))
-        elif shape == SignalShape.BAR_SW_NE:
-            edges = QtGui.QPolygonF()
-            edges \
-                << rect.topLeft() + QtCore.QPointF(1, 6) \
-                << rect.topLeft() + QtCore.QPointF(3, 7) \
-                << rect.topLeft() + QtCore.QPointF(7, 3) \
-                << rect.topLeft() + QtCore.QPointF(6, 1)
-            p.drawPolygon(edges)
         elif shape == SignalShape.BAR_NW_SE:
             edges = QtGui.QPolygonF()
             edges \
-                << rect.topLeft() + QtCore.QPointF(1, 3) \
-                << rect.topLeft() + QtCore.QPointF(6, 7) \
-                << rect.topLeft() + QtCore.QPointF(7, 6) \
-                << rect.topLeft() + QtCore.QPointF(3, 1)
+                << rect.topLeft() + QtCore.QPointF(1, 5.5) \
+                << rect.topLeft() + QtCore.QPointF(2.5, 7) \
+                << rect.topLeft() + QtCore.QPointF(7, 2.5) \
+                << rect.topLeft() + QtCore.QPointF(5.5, 1)
+            p.drawPolygon(edges)
+        elif shape == SignalShape.BAR_SW_NE:
+            edges = QtGui.QPolygonF()
+            edges \
+                << rect.topLeft() + QtCore.QPointF(1, 2.5) \
+                << rect.topLeft() + QtCore.QPointF(5.5, 7) \
+                << rect.topLeft() + QtCore.QPointF(7, 5.5) \
+                << rect.topLeft() + QtCore.QPointF(2.5, 1)
             p.drawPolygon(edges)
 
         if (shape == SignalShape.POLE_NE or

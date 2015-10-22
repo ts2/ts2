@@ -1016,12 +1016,22 @@ class Train(QtCore.QObject):
             self.simulation.option("defaultSignalVisibility")
         )
         if nsd < signalVisibility:
-            self._signalActions = nsp.trackItem.activeAspect.actions
-            if self.lastSignal != nsp.trackItem:
-                # Change actions list if we see this signal for the first time
+            # We can see the next signal aspect
+            if nsp.trackItem.activeAspect.actions:
+                # It requires actions
+                # We check actions each time because the aspect of the signal
+                # might have changed
+                self._signalActions = nsp.trackItem.activeAspect.actions
+                if self.lastSignal != nsp.trackItem:
+                    # We see this signal for the first time
+                    self._lastSignal = nsp.trackItem
+                    self._applicableActionIndex = 0
+                    self._actionTime = 0
+            else:
+                # This signal does not require actions, so we only update our
+                # memory of the last signal
                 self._lastSignal = nsp.trackItem
-                self._applicableActionIndex = 0
-                self._actionTime = 0
+
         applicableAction = self.signalActions[self.applicableActionIndex]
         currentTime = self.simulation.currentTime
         if abs(self.speed - applicableAction[1]) < 0.1:
@@ -1033,6 +1043,7 @@ class Train(QtCore.QObject):
             else:
                 timeToWait = 0
             if currentTime > self._actionTime.addSecs(timeToWait):
+                # We have waited enough, so we go to next action
                 if len(self.signalActions) > self.applicableActionIndex + 1:
                     self._applicableActionIndex += 1
 
