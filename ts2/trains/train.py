@@ -920,11 +920,16 @@ class Train(QtCore.QObject):
     def splitTrainPopUp(self):
         """Pops up a dialog for the user to choose where to split the train and
         then split it."""
+        reason = None
         if len(self.trainType.elements) < 2:
+            reason = self.tr("This train cannot be split")
+        if self.speed != 0:
+            reason = self.tr("This train is not stopped")
+        if reason:
             QtWidgets.QMessageBox.warning(
                 self.simulation.simulationWindow,
                 self.tr("Unable to split train"),
-                self.tr("This train cannot be split"),
+                reason,
                 QtWidgets.QMessageBox.Ok
             )
         else:
