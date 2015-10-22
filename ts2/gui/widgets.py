@@ -54,6 +54,7 @@ class ZoomWidget(QtWidgets.QWidget):
         self.slider.setRange(10, 200)
         self.slider.setValue(100)
         self.slider.setSingleStep(10)
+        self.slider.setMinimumWidth(140)
 
         self.spinBox = QtWidgets.QSpinBox(self)
         self.spinBox.setRange(10, 200)

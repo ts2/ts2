@@ -1146,11 +1146,10 @@ class Train(QtCore.QObject):
         oldTrainTail = trainTail - advanceLength
         # Register train on new items (even if to be unregistered just behind)
         for ti in trainTail.trackItemsToPosition(self.trainHead):
-            # if self.isOnScenery():
-                ti.registerTrain(self)
+            ti.registerTrain(self)
         # Unregister train on left behind items:
         for ti in oldTrainTail.trackItemsToPosition(trainTail):
-            if ti != trainTail.trackItem: # and self.isOnScenery():
+            if ti != trainTail.trackItem:
                 ti.unRegisterTrain(self)
         # Update head and tails for all
         for ti in oldTrainTail.trackItemsToPosition(self.trainHead):

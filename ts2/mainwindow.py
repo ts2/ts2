@@ -196,7 +196,6 @@ class MainWindow(QtWidgets.QMainWindow):
         tbg.setMaximumWidth(300)
 
         self.zoomWidget = widgets.ZoomWidget(self)
-        self.zoomWidget.setMaximumWidth(300)
         self.zoomWidget.valueChanged.connect(self.zoom)
         tbg.addWidget(self.zoomWidget)
 
