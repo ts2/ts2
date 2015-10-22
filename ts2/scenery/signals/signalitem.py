@@ -133,18 +133,6 @@ def json_hook(dct):
         return signalaspect.SignalAspect(parameters=dct)
 
 
-class ConditionCode:
-    """This class holds the possible conditions to display a Signal aspect."""
-    # Without parameters
-    NEXT_ROUTE_ACTIVE = 1
-    PREVIOUS_ROUTE_ACTIVE = 2
-    TRAIN_NOT_PRESENT_ON_NEXT_ROUTE = 4
-    # With parameters
-    TRAIN_NOT_PRESENT_ON_ITEMS = 1024   # No train on any item in list
-    ROUTES_SET = 2048                   # At least one route set in list
-    NEXT_SIGNAL_ASPECTS = 4096          # Aspect in list
-
-
 class SignalItem(abstract.TrackItem):
     """Logical item for signals.
 
@@ -796,17 +784,21 @@ class SignalType:
 
     def getDefaultAspect(self):
         """
-        :return: The default aspect for this :class:`~ts2.scenery.signals.signalitem.SignalType`.
+        :return: The default aspect for this
+                 :class:`~ts2.scenery.signals.signalitem.SignalType`.
         :rtype: :class:`~ts2.scenery.signals.signalitem.SignalState`
         """
         return self.states[-1].aspect
 
     def getCustomParams(self, signalItem):
         """
-        :param signalItem: A :class:`~ts2.scenery.signals.signalitem.SignalItem` instance
-        :return: The custom parameters of :class:`~ts2.scenery.signals.signalitem.SignalItem`.
-                 The params dict has keys which are condition names and values which are
-                 dict with signal aspect name as keys and a list of parameters as values.
+        :param signalItem: A :class:`~ts2.scenery.signals.signalitem.SignalItem`
+               instance
+        :return: The custom parameters of
+                 :class:`~ts2.scenery.signals.signalitem.SignalItem`.
+                 The params dict has keys which are condition names and values
+                 which are dict with signal aspect name as keys and a list of
+                 parameters as values.
         :rtype: dict
         """
         params = {}

@@ -131,10 +131,16 @@ class SignalAspect:
                 p.setPen(ppen)
                 p.drawLine(6, -10, 6, -3)
 
-    def drawShape(self, p, shape, rect):
-        """Draws the shape on painter p inside rect."""
-        # TODO: Draw missing shapes
+    @staticmethod
+    def drawShape(p, shape, rect):
+        """Draws a signal aspect shape.
 
+        :param p: The painter on which to draw the shape
+        :param shape: The shape to draw
+        :type shape: SignalShape
+        :param rect: The rect inside which to draw the shape on the painter
+        :type rect: QRectF
+        """
         if shape == SignalShape.CIRCLE:
             p.drawEllipse(rect)
         elif shape == SignalShape.SQUARE:
@@ -157,6 +163,22 @@ class SignalAspect:
         elif shape == SignalShape.BAR_E_W:
             tl = rect.topLeft() + QtCore.QPointF(3, 1)
             p.drawRect(QtCore.QRectF(tl, QtCore.QSizeF(2, 6)))
+        elif shape == SignalShape.BAR_SW_NE:
+            edges = QtGui.QPolygonF()
+            edges \
+                << rect.topLeft() + QtCore.QPointF(1, 6) \
+                << rect.topLeft() + QtCore.QPointF(3, 7) \
+                << rect.topLeft() + QtCore.QPointF(7, 3) \
+                << rect.topLeft() + QtCore.QPointF(6, 1)
+            p.drawPolygon(edges)
+        elif shape == SignalShape.BAR_NW_SE:
+            edges = QtGui.QPolygonF()
+            edges \
+                << rect.topLeft() + QtCore.QPointF(1, 3) \
+                << rect.topLeft() + QtCore.QPointF(6, 7) \
+                << rect.topLeft() + QtCore.QPointF(7, 6) \
+                << rect.topLeft() + QtCore.QPointF(3, 1)
+            p.drawPolygon(edges)
 
         if (shape == SignalShape.POLE_NE or
               shape == SignalShape.POLE_NS or

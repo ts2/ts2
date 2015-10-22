@@ -837,8 +837,9 @@ class Train(QtCore.QObject):
 
     @QtCore.pyqtSlot(QtCore.QTime)
     def activate(self, time):
-        """Activate this Train if time is after this :class:`~ts2.trains.train.Train`'s
-           :meth:`~ts2.trains.train.Train.appearTime`.
+        """Activate this Train if time is after this
+        :class:`~ts2.trains.train.Train`'s
+        :meth:`~ts2.trains.train.Train.appearTime`.
         """
         if self.status == TrainStatus.INACTIVE:
             realAppearTime = self._appearTime.addSecs(self.initialDelay)
