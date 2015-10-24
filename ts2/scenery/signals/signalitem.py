@@ -612,7 +612,8 @@ class SignalItem(abstract.TrackItem):
                 force = (e.modifiers() == Qt.AltModifier | Qt.ControlModifier)
                 self.signalSelected.emit(self.tiId, persistent, force)
             elif itemId == SignalItem.BERTH_GRAPHIC_ITEM:
-                self.trainSelected.emit(self.trainId)
+                if self.trainId:
+                    self.trainSelected.emit(self.trainId)
         elif e.button() == Qt.RightButton:
             if self.simulation.context == utils.Context.EDITOR_SCENERY:
                 self.reverse = not self.reverse
@@ -1068,7 +1069,7 @@ class TrainNotPresentOnItems:
                     translate("TrainNotPresentOnItems",
                               "Error in simulation definition: SignalItem %s "
                               "references unknown track item %s") %
-                              (signalItem.tiId, str(err))
+                    (signalItem.tiId, str(err))
                 )
 
 
@@ -1172,6 +1173,7 @@ class RouteSetCondition:
                               "references unknown route %s") %
                               (signalItem.tiId, str(err))
                 )
+
 
 @condition
 class NextSignalAspectsCondition:

@@ -392,9 +392,9 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
         return self._train
 
     @QtCore.pyqtSlot(int)
-    def setTrainByServiceCode(self, trainId):
+    def setTrainByTrainId(self, trainId):
         """Sets the train instance associated with this model from its
-        serviceCode"""
+        trainId"""
         self.beginResetModel()
         self._train = self.simulation.trains[trainId]
         self.endResetModel()

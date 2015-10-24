@@ -64,12 +64,13 @@ def qPointFDetupler(attr):
 
 
 class TrackItem(QtCore.QObject):
-    """A ``TrackItem`` is a piece of scenery and is a **base class**. Each item has defined coordinates in
-    the scenery layout and is connected to other items so that the trains can
-    travel from one to another.
+    """A ``TrackItem`` is a piece of scenery and is a **base class**. Each item
+    has defined coordinates in the scenery layout and is connected to other
+    items so that the trains can travel from one to another.
 
     - The coordinates are expressed in pixels
-    - The :attr:`~ts2.scenery.abstract.TrackItem.origin` is the top left most corner of the scene
+    - The :attr:`~ts2.scenery.abstract.TrackItem.origin` is the top left most
+      corner of the scene
     - The X-axis is from left to right
     - The Y-axis is from top to bottom.
     """
@@ -175,7 +176,8 @@ class TrackItem(QtCore.QObject):
     def _getOrigin(self):
         """
         :return: The origin of  :class:`~ts2.scenery.abstract.TrackItem`  is
-                 generally the left end of the track represented on the :class:`~ts2.scenery.abstract.TrackItem`
+                 generally the left end of the track represented on the
+                 :class:`~ts2.scenery.abstract.TrackItem`
         :rtype: QPointF
         """
         return self._origin
@@ -197,7 +199,8 @@ class TrackItem(QtCore.QObject):
     def _getEnd(self):
         """
         :return: The end  of the :class:`~ts2.scenery.abstract.TrackItem` is
-                generally the right end of the track represented on the :class:`~ts2.scenery.abstract.TrackItem`
+                generally the right end of the track represented on the
+                :class:`~ts2.scenery.abstract.TrackItem`
         :rtype: QPointF
         """
         return self._end
@@ -222,7 +225,8 @@ class TrackItem(QtCore.QObject):
     @property
     def maxSpeed(self):
         """
-        :return: The maximum speed allowed on this LineItem, in metres per  second
+        :return: The maximum speed allowed on this LineItem, in metres per
+                 second
         :rtype: float
         """
         if self.simulation.context == utils.Context.GAME and \
@@ -357,10 +361,11 @@ class TrackItem(QtCore.QObject):
         """
         :param precedingItem: TrackItem where we come from (along a route)
         :param direction: The direction
-        :return: the following :class:`~ts2.scenery.abstract.TrackItem` linked to this one,
-                knowing we come from ``precedingItem``.
+        :return: the following :class:`~ts2.scenery.abstract.TrackItem` linked
+                 to this one, knowing we come from ``precedingItem``.
 
-                Returned isEither _nextItem or _previousItem,depending which way we come from.
+                Returned isEither _nextItem or _previousItem,depending which way
+                we come from.
         :rtype: :class:`~ts2.scenery.abstract.TrackItem`
         """
         if precedingItem == self._previousItem:
@@ -377,8 +382,8 @@ class TrackItem(QtCore.QObject):
         routes are activated in order to check the potential conflicts.
 
         :param r: The newly active Route on this TrackItem.
-        :param previous: The previous :class:`~ts2.scenery.abstract.TrackItem` on this route (to know the
-               direction)."""
+        :param previous: The previous :class:`~ts2.scenery.abstract.TrackItem`
+               on this route (to know the direction)."""
         self.activeRoute = r
         self.activeRoutePreviousItem = previous
         self.updateGraphics()
@@ -416,9 +421,11 @@ class TrackItem(QtCore.QObject):
 
     def updateTrainHeadAndTail(self):
         """Updates the _trainHeads and _trainTails lists from the _trains
-        data. _trainHeads are always the closest to :func:`~ts2.scenery.abstract.TrackItem.nextItem`
-        whereas _trainTails  are always the closest to :func:`~ts2.scenery.abstract.TrackItem.previousItem`,
-        whatever the trains' direction   and real trainHead and trainTail.
+        data. _trainHeads are always the closest to
+        :func:`~ts2.scenery.abstract.TrackItem.nextItem` whereas _trainTails
+        are always the closest to
+        :func:`~ts2.scenery.abstract.TrackItem.previousItem`, whatever the
+        trains' direction and real trainHead and trainTail.
         """
         self._trainHeads = []
         self._trainTails = []
@@ -452,18 +459,19 @@ class TrackItem(QtCore.QObject):
         """
         :param pos:
         :type pos:
-        :return: the distance in metres to the closest end (either trainHead or trainTail) of the closest train when on pos.
+        :return: the distance in metres to the closest end (either trainHead or
+        trainTail) of the closest train when on pos.
         :rtype: float
         """
         if pos.previousTI == self.previousItem:
             return min([x - pos.positionOnTI for x in self._trainTails
-                        if (x - pos.positionOnTI) > 0]
-                       or [-1])
+                        if (x - pos.positionOnTI) > 0] or
+                       [-1])
         else:
             return min([(self.realLength - x) - pos.positionOnTI
                         for x in self._trainHeads
-                        if (self.realLength - x) - pos.positionOnTI > 0]
-                       or [-1])
+                        if (self.realLength - x) - pos.positionOnTI > 0] or
+                       [-1])
 
     def isOnPosition(self, p):
         """
@@ -571,7 +579,8 @@ class TrackItem(QtCore.QObject):
 
     def graphicsBoundingRect(self, itemId):
         """
-        :return: The bounding rectangle of the owned :class:`~ts2.scenery.helper.TrackGraphicsItem`.
+        :return: The bounding rectangle of the owned
+                 :class:`~ts2.scenery.helper.TrackGraphicsItem`.
         :rtype: ``QRectF``
         """
         return QtCore.QRectF(0, 0, 1, 1)
@@ -656,9 +665,11 @@ class TrackItem(QtCore.QObject):
 
 
 class ResizableItem(TrackItem):
-    """``ResizableItem`` is the base class for all :class:`~ts2.scenery.abstract.TrackItem`'s which can be
+    """``ResizableItem`` is the base class for all
+    :class:`~ts2.scenery.abstract.TrackItem`'s which can be
     resized by the user in the editor, such as
-    :class:`~ts2.scenery.lineitem.LineItem`'s or :class:`~ts2.scenery.platformitem.PlatformItem`'s.
+    :class:`~ts2.scenery.lineitem.LineItem`'s or
+    :class:`~ts2.scenery.platformitem.PlatformItem`'s.
     """
     def __init__(self, parameters):
         """
@@ -731,8 +742,9 @@ class ResizableItem(TrackItem):
 
     def _getStart(self):
         """
-        :return: The start of a :class:`~ts2.scenery.abstract.TrackItem` is a point that is in the
-                same place than origin, but resizes  the item when moved instead of moving the item.
+        :return: The start of a :class:`~ts2.scenery.abstract.TrackItem` is a
+                 point that is in the same place than origin, but resizes
+                 the item when moved instead of moving the item.
         :rtype: QPointF
         """
         return self.origin
@@ -760,9 +772,11 @@ class ResizableItem(TrackItem):
             return QtCore.QRectF(0, 0, x2 - x1, y2 - y1)
 
     def graphicsMouseMoveEvent(self, event, itemId=0):
-        """This function is called by the owned :class:`~ts2.scenery.helper.TrackGraphicsItem` to handle
-        its :meth:`~ts2.scenery.helper.TrackGraphicsItem.mouseMoveEvent`. Reimplemented in the ResizableItem class to begin
-        a drag operation on corners."""
+        """This function is called by the owned
+        :class:`~ts2.scenery.helper.TrackGraphicsItem` to handle
+        its :meth:`~ts2.scenery.helper.TrackGraphicsItem.mouseMoveEvent`.
+        Reimplemented in the ResizableItem class to begin a drag operation on
+        corners."""
         if event.buttons() == Qt.LeftButton and \
            self.simulation.context == utils.Context.EDITOR_SCENERY:
             if QtCore.QLineF(

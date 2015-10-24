@@ -19,7 +19,6 @@
 #
 
 import random
-import os.path
 
 from Qt import QtCore
 import simplejson

@@ -504,15 +504,16 @@ class MainWindow(QtWidgets.QMainWindow):
         # Set scene
         self.view.setScene(self.simulation.scene)
         # TrainListView
+        self.trainListView.trainSelected.connect(
+            self.simulation.trainSelected
+        )
         self.simulation.trainSelected.connect(
-            self.trainListView.updateTrainSelection
+            self.simulation.selectedTrainModel.setTrainByTrainId
         )
-        self.trainListView.trainSelected.connect(
-            self.simulation.selectedTrainModel.setTrainByServiceCode
-        )
-        self.trainListView.trainSelected.connect(
+        self.simulation.trainSelected.connect(
             self.serviceListView.updateServiceSelection
         )
+        self.trainListView.trainSelected.connect(self.centerViewOnTrain)
         # ServiceListView
         self.serviceListView.serviceSelected.connect(
             self.simulation.selectedServiceModel.setServiceCode
@@ -751,3 +752,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def openSettingsDialog(self):
         d = settingsdialog.SettingsDialog(self)
         d.exec_()
+
+    def centerViewOnTrain(self, trainId):
+        """Centers the graphics view on the given train."""
+        if self.simulation:
+            train = self.simulation.trains[trainId]
+            if train.isOnScenery():
+                trackItem = train.trainHead.trackItem
+                self.view.centerOn(trackItem.graphicsItem)
