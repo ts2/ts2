@@ -79,29 +79,17 @@ def cumsum(lis):
         summ += x
         yield summ
 
-"""
-def _getUserDataDirectory():
-
-    homeDir = os.path.expanduser("~")
-    if os.path.commonprefix((homeDir, os.getcwd())):
-        return os.getcwd()
-    else:
-        os.makedirs(os.path.join(homeDir, ".ts2", "data"), exist_ok=True)
-        os.makedirs(os.path.join(homeDir, ".ts2", "simulations"), exist_ok=True)
-        return os.path.join(homeDir, ".ts2")
-
-
-simulationsDirectory = os.path.join(_getUserDataDirectory(), "simulations")
-userDataDirectory = os.path.join(_getUserDataDirectory(), "data")
-"""
-
 
 class DurationProba(QtCore.QObject):
     """A DurationProba is a probability distribution for a duration in
     seconds."""
 
     def __init__(self, data):
-        """Constructor for the DurationProba class."""
+        """Constructor for the DurationProba class.
+
+        :param data: ?
+
+        """
         super().__init__()
         self._probaList = None
         if isinstance(data, str):
@@ -113,11 +101,17 @@ class DurationProba(QtCore.QObject):
             self._probaList = data
 
     def __str__(self):
-        """Returns the string representation of the DurationProba."""
+        """
+        :return: The string representation of the DurationProba.
+        :rtype str:
+        """
         return str(self._probaList)
 
     def isNull(self):
-        """Returns true if the DurationProba instance has no data."""
+        """
+        :return: True if the DurationProba instance has no data.
+        :rtype bool:
+        """
         return self._probaList is None
 
     def yieldValue(self):
@@ -149,8 +143,8 @@ def to_json(data):
     """Serialize data to a json string
 
     .. important:: Its advised to use this function as its is indented and
-    sorted and therefore a consistent output. This is for git and versioning
-    reasons, ie less deltas.
+                   sorted and therefore a consistent output. This is for git and
+                   versioning reasons, ie less deltas.
     """
     return simplejson.dumps(data, indent=4, sort_keys=True)
 

@@ -18,11 +18,12 @@ version 0.6
 
 ## Links
 * TS2 Homepage - [ts2.github.io](http://ts2.github.io/)
+* TS2 Chat - [irc.freenode.net#trainsigsim](irc://irc.freenode.net#trainsigsim)
 * TS2 Project at Github - [github.com/ts2](http://github.com/ts2/)
 * TS2 API Docs - autogen at [docs-ts2.rhcloud.com](http://docs-ts2.rhcloud.com/)
 
 ## Status
-TS2  is beta.ish software, meaning it is playable, but still lacks many features that one would expect from a real simulation, will it ever be finished..
+TS2  is beta software, meaning it is playable, but still lacks many features that one would expect from a real simulation, will it ever be finished..
 TS2 is provided with two simulation starters:
 * A demo simulation called "drain"
 * A full-featured simulation called "liverpool-st"
