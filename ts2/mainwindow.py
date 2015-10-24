@@ -176,7 +176,6 @@ class MainWindow(QtWidgets.QMainWindow):
         tbg.addAction(self.openAction)
         tbg.addAction(self.editorCurrAction)
 
-
         # =========
         # Speed
         tbar, tbg = self._make_toolbar_group("Speed", bg="#aaaaaa")
