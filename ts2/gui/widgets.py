@@ -186,12 +186,8 @@ class ToolBarGroup(QtWidgets.QWidget):
         # Label
         self.label = QtWidgets.QLabel()
         self.label.setAlignment(QtCore.Qt.AlignCenter)
-        lbl_sty = "background: %s; " % self.bg
-        lbl_sty += " color: %s; font-size: 7pt; padding: 1px;" % self.fg
-        print(lbl_sty)
-        self.label.setStyleSheet(lbl_sty)
         mainLayout.addWidget(self.label)
-        #self.updateStyle()
+        self.updateStyle()
 
         # Toolbar - were using a toolbar as we can addAction, Q*box dont allow
         self.toolbar = QtWidgets.QToolBar()
@@ -220,7 +216,7 @@ class ToolBarGroup(QtWidgets.QWidget):
 
 
 class VBoxWidget(QtWidgets.QWidget):
-    """Widget with a Vertical Box"""
+    """A QWidget with a Vertical Box"""
 
     def __init__(self, parent=None, margin=0):
         super().__init__(parent)
@@ -237,7 +233,7 @@ class VBoxWidget(QtWidgets.QWidget):
 
 
 class HBoxWidget(QtWidgets.QWidget):
-    """Widget with a Horizontal Box"""
+    """A `QWidget` with a Horizontal Box"""
 
     def __init__(self, parent=None, margin=0):
         super().__init__(parent)
