@@ -65,12 +65,6 @@ class LineItem(abstract.ResizableItem):
         self.drawTrain()
         super().initialize(simulation)
 
-    def __del__(self):
-        """Destructor for the LineItem class"""
-        for tli in self._tli:
-            self.simulation.scene.removeItem(tli)
-        super().__del__()
-
     @staticmethod
     def getProperties():
         return abstract.ResizableItem.getProperties() + [

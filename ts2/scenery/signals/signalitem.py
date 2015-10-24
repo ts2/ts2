@@ -193,9 +193,17 @@ class SignalItem(abstract.TrackItem):
         if not params:
             raise Exception("Internal error: TrackItem %s already initialized"
                             % self.tiId)
-        self._signalType = simulation.signalLibrary.signalTypes[
-            params['signalType']
-        ]
+        try:
+            self._signalType = simulation.signalLibrary.signalTypes[
+                params['signalType']
+            ]
+        except KeyError as err:
+            raise utils.MissingDependencyException(
+                self.tr("This simulation uses %s signal types which are not "
+                        "available on this computer. You can download the "
+                        "missing files from the server in File->Open dialog" %
+                        (str(err)))
+            )
         self._activeAspect = self._signalType.getDefaultAspect()
         if simulation.context == utils.Context.GAME:
             self.signalSelected.connect(simulation.activateRoute)
@@ -1048,12 +1056,20 @@ class TrainNotPresentOnItems:
         for tnp in signalItem.trainNotPresentParams.values():
             tiIds.extend(tnp)
         for tiId in tiIds:
-            signalItem.simulation.trackItem(tiId).trainEntersItem.connect(
-                signalItem.updateSignalState
-            )
-            signalItem.simulation.trackItem(tiId).trainLeavesItem.connect(
-                signalItem.updateSignalState
-            )
+            try:
+                signalItem.simulation.trackItems[tiId].trainEntersItem.connect(
+                    signalItem.updateSignalState
+                )
+                signalItem.simulation.trackItems[tiId].trainLeavesItem.connect(
+                    signalItem.updateSignalState
+                )
+            except KeyError as err:
+                raise utils.FormatException(
+                    translate("TrainNotPresentOnItems",
+                              "Error in simulation definition: SignalItem %s "
+                              "references unknown track item %s") %
+                              (signalItem.tiId, str(err))
+                )
 
 
 @condition
@@ -1090,12 +1106,20 @@ class TrainPresentOnItems:
         for tp in signalItem.trainPresentParams.values():
             tiIds.extend(tp)
         for tiId in tiIds:
-            signalItem.simulation.trackItem(tiId).trainEntersItem.connect(
-                signalItem.updateSignalState
-            )
-            signalItem.simulation.trackItem(tiId).trainLeavesItem.connect(
-                signalItem.updateSignalState
-            )
+            try:
+                signalItem.simulation.trackItems[tiId].trainEntersItem.connect(
+                    signalItem.updateSignalState
+                )
+                signalItem.simulation.trackItems[tiId].trainLeavesItem.connect(
+                    signalItem.updateSignalState
+                )
+            except KeyError as err:
+                raise utils.FormatException(
+                    translate("TrainPresentOnItems",
+                              "Error in simulation definition: SignalItem %s "
+                              "references unknown track item %s") %
+                              (signalItem.tiId, str(err))
+                )
 
 
 @condition
@@ -1130,17 +1154,24 @@ class RouteSetCondition:
 
     @staticmethod
     def trigger(signalItem):
-        tiIds = []
+        routeNums = []
         for rs in signalItem.routesSetParams.values():
-            tiIds.extend(rs)
-        for tiId in tiIds:
-            signalItem.simulation.routes[tiId].routeSelected.connect(
-                signalItem.updateSignalState
-            )
-            signalItem.simulation.routes[tiId].routeUnselected.connect(
-                signalItem.updateSignalState
-            )
-
+            routeNums.extend(rs)
+        for routeNum in routeNums:
+            try:
+                signalItem.simulation.routes[routeNum].routeSelected.connect(
+                    signalItem.updateSignalState
+                )
+                signalItem.simulation.routes[routeNum].routeUnselected.connect(
+                    signalItem.updateSignalState
+                )
+            except KeyError as err:
+                raise utils.FormatException(
+                    translate("RouteSetCondition",
+                              "Error in simulation definition: SignalItem %s "
+                              "references unknown route %s") %
+                              (signalItem.tiId, str(err))
+                )
 
 @condition
 class NextSignalAspectsCondition:

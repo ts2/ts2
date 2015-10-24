@@ -23,7 +23,7 @@ import os
 
 from Qt import QtCore, QtGui, QtWidgets, Qt
 
-from ts2 import simulation
+from ts2 import simulation, utils
 from ts2.gui import dialogs, trainlistview, servicelistview, widgets, \
     opendialog, settingsdialog
 from ts2.scenery import placeitem
@@ -451,44 +451,46 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.simulationDisconnect()
                 self.simulation = None
 
-            # try:
-            if zipfile.is_zipfile(fileName):
-                with zipfile.ZipFile(fileName) as zipArchive:
-                    with zipArchive.open("simulation.json") as file:
+            try:
+                if zipfile.is_zipfile(fileName):
+                    with zipfile.ZipFile(fileName) as zipArchive:
+                        with zipArchive.open("simulation.json") as file:
+                            self.simulation = simulation.load(self, file)
+                else:
+                    with open(fileName) as file:
                         self.simulation = simulation.load(self, file)
+            except (utils.FormatException,
+                    utils.MissingDependencyException) as err:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    self.tr("Error while loading the simulation"),
+                    str(err),
+                    QtWidgets.QMessageBox.Ok
+                )
+                self.simulation = None
+            except Exception as err:
+                dialogs.ExceptionDialog.popupException(self, err)
+                self.simulation = None
             else:
-                with open(fileName) as file:
-                    self.simulation = simulation.load(self, file)
-            # except utils.FormatException as err:
-            #     QtWidgets.QMessageBox.critical(
-            #         self,
-            #         self.tr("Bad version of TS2 simulation file"),
-            #         str(err),
-            #         QtWidgets.QMessageBox.Ok
-            #     )
-            #     self.simulation = None
-            # except:
-            #     dialogs.ExceptionDialog.popupException(self)
-            #     self.simulation = None
-            # else:
-            self.setWindowTitle(self.tr(
-                "ts2 - Train Signalling Simulator - %s") % fileName)
-            self.lblTitle.setText(self.simulation.option("title"))
-            self.simulationConnect()
-            self.simulationLoaded.emit(self.simulation)
+                self.setWindowTitle(self.tr(
+                    "ts2 - Train Signalling Simulator - %s") % fileName)
+                self.lblTitle.setText(self.simulation.option("title"))
+                self.simulationConnect()
+                self.simulationLoaded.emit(self.simulation)
 
-            self.buttPause.toggled.connect(self.simulation.pause)
-            self.buttPause.toggled.connect(self.setPauseButtonText)
-            self.timeFactorSpinBox.valueChanged.connect(
-                self.simulation.setTimeFactor
-            )
-            self.timeFactorSpinBox.setValue(
-               float(self.simulation.option("timeFactor"))
-            )
-            settings.addRecent(fileName)
-            self.refreshRecent()
-            self.setControlsDisabled(False)
-            QtWidgets.QApplication.restoreOverrideCursor()
+                self.buttPause.toggled.connect(self.simulation.pause)
+                self.buttPause.toggled.connect(self.setPauseButtonText)
+                self.timeFactorSpinBox.valueChanged.connect(
+                    self.simulation.setTimeFactor
+                )
+                self.timeFactorSpinBox.setValue(
+                   float(self.simulation.option("timeFactor"))
+                )
+                settings.addRecent(fileName)
+                self.refreshRecent()
+                self.setControlsDisabled(False)
+            finally:
+                QtWidgets.QApplication.restoreOverrideCursor()
         else:
             self.onOpenSimulation()
 

@@ -59,7 +59,14 @@ class Context:
 class FormatException(Exception):
     """File format exception."""
     def __init__(self, arg):
-        """Constructor of the Exception class."""
+        """Constructor of the FormatException class."""
+        super().__init__(arg)
+
+
+class MissingDependencyException(Exception):
+    """Exception raised when a dependency is missing (e.g. TSL file)."""
+    def __init__(self, arg):
+        """Constructor of the MissingDependencyException class."""
         super().__init__(arg)
 
 
@@ -89,6 +96,7 @@ simulationsDirectory = os.path.join(_getUserDataDirectory(), "simulations")
 userDataDirectory = os.path.join(_getUserDataDirectory(), "data")
 """
 
+
 class DurationProba(QtCore.QObject):
     """A DurationProba is a probability distribution for a duration in
     seconds."""
@@ -100,7 +108,7 @@ class DurationProba(QtCore.QObject):
         if isinstance(data, str):
             try:
                 self._probaList = eval(data)
-            except:
+            except SyntaxError:
                 pass
         else:
             self._probaList = data
@@ -137,14 +145,16 @@ class DurationProba(QtCore.QObject):
         low, high, prob = self._probaList[seg]
         return r1 * (high - low) + low
 
-##==============================================
+
 def to_json(data):
     """Serialize data to a json string
 
-    .. important:: Its advised to use this function as its is indented and sorted and therefore
-                   a consistent output. This is for git and versioning reasons, ie less deltas.
+    .. important:: Its advised to use this function as its is indented and
+    sorted and therefore a consistent output. This is for git and versioning
+    reasons, ie less deltas.
     """
     return simplejson.dumps(data, indent=4, sort_keys=True)
+
 
 def from_json(json_str):
     """Load data from a json string"""

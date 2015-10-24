@@ -375,9 +375,26 @@ class Editor(simulation.Simulation):
                     return ti
         return None
 
+    def checkSimulation(self):
+        """Checks that the simulation is valid.
+
+        :return : a tuple (ok, message) where ok is True if the simulation is
+                  valid, and False otherwise. If the simulation is not valid,
+                  message describes the error.
+        """
+        if not self.checkTrackItemsLinks():
+            return False, self.tr("Invalid simulation: Not all items are "
+                                  "linked or end items are missing.")
+        for ti in self.trackItems.values():
+            try:
+                ti.setupTriggers()
+            except utils.FormatException as err:
+                return False, str(err)
+        return True, ""
+
     def save(self):
         """Saves the data of the simulation to the database"""
-        # Set up database
+        # Set up file format version
         self.setOption("version", __FILE_FORMAT__)
 
         if self.fileName.endswith(".ts2"):

@@ -122,10 +122,6 @@ class TrackItem(QtCore.QObject):
             simulation.registerGraphicsItem(gi)
         self.updateGraphics()
 
-    def __del__(self):
-        """Destructor for the TrackItem class"""
-        self.removeAllGraphicsItems()
-
     trainEntersItem = QtCore.pyqtSignal()
     trainLeavesItem = QtCore.pyqtSignal()
 

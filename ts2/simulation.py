@@ -186,7 +186,9 @@ class Simulation(QtCore.QObject):
                 self.tr("Invalid simulation: Not all items are linked."),
                 logger.Message.SOFTWARE_MSG
             )
-            raise Exception("Invalid simulation: Not all items are linked.")
+            raise utils.FormatException(
+                self.tr("Invalid simulation: Not all items are linked.")
+            )
 
         for rte in self.routes.values():
             rte.initialize(self)
