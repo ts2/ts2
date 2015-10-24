@@ -238,7 +238,7 @@ class SignalItem(abstract.TrackItem):
         jsonData = super().for_json()
         signalCustomProperties = list(signalLibrary.tiProperties.values())
         for customProp in signalCustomProperties:
-            jsonData[customProp.name[:-3]] = getattr(self, customProp.name)
+            jsonData[customProp.name[:-3]] = getattr(self, customProp.name[:-3])
         jsonData.update({
             "reverse": int(self.reverse),
             "signalType": self.signalTypeStr,
