@@ -612,7 +612,7 @@ class SignalItem(abstract.TrackItem):
                 force = (e.modifiers() == Qt.AltModifier | Qt.ControlModifier)
                 self.signalSelected.emit(self.tiId, persistent, force)
             elif itemId == SignalItem.BERTH_GRAPHIC_ITEM:
-                if self.trainId:
+                if self.trainId is not None:
                     self.trainSelected.emit(self.trainId)
         elif e.button() == Qt.RightButton:
             if self.simulation.context == utils.Context.EDITOR_SCENERY:
