@@ -70,9 +70,11 @@ class MissingDependencyException(Exception):
 
 
 def cumsum(lis):
-    """cumulated sum of lis
+    """Cumulated sum of a list
 
-    :return: a list with the
+    :param: the list to cumulatively sum.
+    :return: an iterator with each item being the cumulated sum of all the
+             items of the original list up to this index.
     """
     summ = 0
     for x in lis:
@@ -127,7 +129,14 @@ class DurationProba(QtCore.QObject):
 
     def yieldValue(self):
         """Returns a random value in the bounds and probabilities given by
-        this DurationProba instance."""
+        this DurationProba instance.
+
+        This is done in two steps:
+        - First we take a random number to determine the segment (tuple) in
+          which we should be according to our _probaList.
+        - Then we take a second random number to get our value inside the
+          selected segment (with even probability).
+        """
         try:
             probas = list(cumsum([t[2] for t in self._probaList]))
             probas.insert(0, 0)
@@ -137,6 +146,8 @@ class DurationProba(QtCore.QObject):
         except Exception as err:
             QtCore.qDebug(str(err))
             return None
+
+        # First determine our segment
         r0 = 100 * random.random()
         seg = 0
         for i in range(len(probas) - 1):
@@ -146,6 +157,8 @@ class DurationProba(QtCore.QObject):
         else:
             # Out of range: returns max value
             return self._probaList[-1][1]
+
+        # Then pick up a number inside our segment
         r1 = random.random()
         low, high, prob = self._probaList[seg]
         return r1 * (high - low) + low
