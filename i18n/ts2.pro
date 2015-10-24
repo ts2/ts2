@@ -64,6 +64,8 @@ SOURCES =  \
 ../build.py \
 ../start-ts2.py \
 
-TRANSLATIONS = ts2_fr.ts
+TRANSLATIONS = \
+ts2_fr.ts \
+ts2_pl.ts
 
 CODECFORTS = UTF-8
