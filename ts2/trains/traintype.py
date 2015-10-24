@@ -148,7 +148,7 @@ class TrainType:
             "stdBraking": self.stdBraking,
             "emergBraking": self.emergBraking,
             "length": self.length,
-            "elements": self.elementsStr
+            "elements": self._elements
         }
 
     @property
