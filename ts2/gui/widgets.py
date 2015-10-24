@@ -201,7 +201,6 @@ class ToolBarGroup(QtWidgets.QWidget):
     def updateStyle(self):
         lbl_sty = "background: %s; " % self.bg
         lbl_sty += " color: %s; font-size: 7pt; padding: 1px;" % self.fg
-        print(lbl_sty)
         self.label.setStyleSheet(lbl_sty)
 
     def setTitle(self, title):
