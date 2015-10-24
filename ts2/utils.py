@@ -82,13 +82,24 @@ def cumsum(lis):
 
 class DurationProba(QtCore.QObject):
     """A DurationProba is a probability distribution for a duration in
-    seconds."""
+    seconds. This class is used to have random delays of trains."""
 
     def __init__(self, data):
         """Constructor for the DurationProba class.
 
-        :param data: ?
+        :param data: A list of tuples (or its string representation). Each
+                     tuple defines in order:
+                     - A lower bound
+                     - An upper bound
+                     - A probability (in percent) of the value to be inside
+                     the defined bounds.
+                     e.g. [(0, 100, 80),(100, 500, 20)] means that when a value
+                     will be yielded by `yieldValue` it will have 80% chance of
+                     being between 0 and 100, and 20% chance of being between
+                     100 and 500.
 
+                     If a number N is given instead of a list of tuples then
+                     this number will always be yielded
         """
         super().__init__()
         self._probaList = None
@@ -121,6 +132,7 @@ class DurationProba(QtCore.QObject):
             probas = list(cumsum([t[2] for t in self._probaList]))
             probas.insert(0, 0)
         except TypeError:
+            # We have a value instead of a list
             return self._probaList
         except Exception as err:
             QtCore.qDebug(str(err))
