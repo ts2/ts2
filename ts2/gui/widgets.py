@@ -48,7 +48,9 @@ class ZoomWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         """Constructor for the ZoomWidget class."""
         super().__init__(parent)
-        self.button = QtWidgets.QPushButton(self.tr("100%"), self)
+        self.button = QtWidgets.QToolButton(self)
+        self.button.setText(self.tr("100%"))
+        self.button.setAutoRaise(True)
 
         self.slider = QtWidgets.QSlider(Qt.Horizontal, self)
         self.slider.setRange(10, 200)
@@ -160,9 +162,20 @@ class StatusBar(QtWidgets.QStatusBar):
 
 
 class ToolBarGroup(QtWidgets.QWidget):
-    def __init__(self, parent=None, title=None):
-        """Constructor for the ToolBarGroup class."""
+    """Created a widget with a small label, containing a toolbar with widgets
+
+
+    """
+    def __init__(self, parent=None, title=None, fg=None, bg=None):
+        """
+        :param title: The title to show in header
+
+        """
         super().__init__(parent)
+
+        self.fg = "#333333" if fg == None else fg
+        self.bg = "#cccccc" if bg == None else bg
+
 
         # Main Layout
         mainLayout = QtWidgets.QVBoxLayout()
@@ -172,11 +185,13 @@ class ToolBarGroup(QtWidgets.QWidget):
 
         # Label
         self.label = QtWidgets.QLabel()
-        lbl_sty = "background: #cccccc; "
-        lbl_sty += " color: #333333; font-size: 7pt; padding: 1px;"
-        self.label.setStyleSheet(lbl_sty)
         self.label.setAlignment(QtCore.Qt.AlignCenter)
+        lbl_sty = "background: %s; " % self.bg
+        lbl_sty += " color: %s; font-size: 7pt; padding: 1px;" % self.fg
+        print(lbl_sty)
+        self.label.setStyleSheet(lbl_sty)
         mainLayout.addWidget(self.label)
+        #self.updateStyle()
 
         # Toolbar - were using a toolbar as we can addAction, Q*box dont allow
         self.toolbar = QtWidgets.QToolBar()
@@ -187,6 +202,12 @@ class ToolBarGroup(QtWidgets.QWidget):
 
         if title:
             self.setTitle(title)
+
+    def updateStyle(self):
+        lbl_sty = "background: %s; " % self.bg
+        lbl_sty += " color: %s; font-size: 7pt; padding: 1px;" % self.fg
+        print(lbl_sty)
+        self.label.setStyleSheet(lbl_sty)
 
     def setTitle(self, title):
         self.label.setText("%s" % title)
