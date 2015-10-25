@@ -29,15 +29,23 @@ if __name__ == '__main__':
         sys.exit("ERROR: TS2 requires Python3")
 
     parser = argparse.ArgumentParser("ts2")
-    parser.add_argument("-d", "--debug", dest="debug",
-                        help="Start with debug mode", action="store_true",
-                        default=False)
-    parser.add_argument("-e", "--edit", dest="edit", help="Open sim in editor",
-                        action="store_true", default=False)
-    parser.add_argument("file", help=".ts2 file to open/edit", type=str,
-                        nargs='?')
-    args = parser.parse_args()
 
+    ## TODO. make debug into string..
+    # so we can have -d npi, even -d win32
+    # avaiable thrught application with settings.debug == settings.NPI
+    # for enviroment and other things..
+    parser.add_argument("-d", "--debug", dest="debug",
+                        action="store_true", default=False,
+                        help="Start with debug mode")
+
+    parser.add_argument("-e", "--edit", dest="edit",
+                        action="store_true", default=False,
+                        help="Open given sim file in editor")
+
+    parser.add_argument("file", type=str, nargs="?",
+                        help=".ts2 file to open/edit")
+
+    args = parser.parse_args()
     if args.edit and args.file is None:
         sys.exit("ERROR: Need a file with -e option")
 

@@ -214,7 +214,7 @@ class ToolBarGroup(QtWidgets.QWidget):
 
 
 class VBoxWidget(QtWidgets.QWidget):
-    """A QWidget with a Vertical Box"""
+    """A QWidget with a Vertical Layout"""
 
     def __init__(self, parent=None, margin=0):
         super().__init__(parent)
@@ -231,7 +231,7 @@ class VBoxWidget(QtWidgets.QWidget):
 
 
 class HBoxWidget(QtWidgets.QWidget):
-    """A `QWidget` with a Horizontal Box"""
+    """A `QWidget` with a Horizontal Layout"""
 
     def __init__(self, parent=None, margin=0):
         super().__init__(parent)
