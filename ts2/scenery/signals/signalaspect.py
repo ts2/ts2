@@ -149,16 +149,32 @@ class SignalAspect:
         elif shape == SignalShape.SQUARE:
             p.drawRect(rect)
         elif shape == SignalShape.QUARTER_SW:
-            points = {rect.topLeft(), rect.topRight(), rect.bottomLeft()}
+            points = QtGui.QPolygonF()
+            points \
+                << rect.topLeft() \
+                << rect.topRight() \
+                << rect.bottomLeft()
             p.drawPolygon(points)
         elif shape == SignalShape.QUARTER_NW:
-            points = {rect.topRight(), rect.bottomRight(), rect.topLeft()}
+            points = QtGui.QPolygonF()
+            points \
+                << rect.topRight() \
+                << rect.bottomRight() \
+                << rect.topLeft()
             p.drawPolygon(points)
         elif shape == SignalShape.QUARTER_NE:
-            points = {rect.bottomRight(), rect.bottomLeft(), rect.topRight()}
+            points = QtGui.QPolygonF()
+            points \
+                << rect.bottomRight() \
+                << rect.bottomLeft() \
+                << rect.topRight()
             p.drawPolygon(points)
         elif shape == SignalShape.QUARTER_SE:
-            points = {rect.bottomLeft(), rect.topLeft(), rect.bottomRight()}
+            points = QtGui.QPolygonF()
+            points \
+                << rect.bottomLeft() \
+                << rect.topLeft() \
+                << rect.bottomRight()
             p.drawPolygon(points)
         elif shape == SignalShape.BAR_N_S:
             tl = rect.topLeft() + QtCore.QPointF(1, 3)
