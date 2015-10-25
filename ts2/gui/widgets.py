@@ -173,9 +173,8 @@ class ToolBarGroup(QtWidgets.QWidget):
         """
         super().__init__(parent)
 
-        self.fg = "#333333" if fg == None else fg
-        self.bg = "#cccccc" if bg == None else bg
-
+        self.fg = "#333333" if fg is None else fg
+        self.bg = "#cccccc" if bg is None else bg
 
         # Main Layout
         mainLayout = QtWidgets.QVBoxLayout()
@@ -202,7 +201,6 @@ class ToolBarGroup(QtWidgets.QWidget):
     def updateStyle(self):
         lbl_sty = "background: %s; " % self.bg
         lbl_sty += " color: %s; font-size: 7pt; padding: 1px;" % self.fg
-        print(lbl_sty)
         self.label.setStyleSheet(lbl_sty)
 
     def setTitle(self, title):

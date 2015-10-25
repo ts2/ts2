@@ -3,7 +3,7 @@
 import sys
 
 from cx_Freeze import setup, Executable
-from ts2 import __APP_SHORT__, __APP_lONG__, __VERSION__,
+from ts2 import __APP_SHORT__, __APP_LONG__, __VERSION__
 
 build_exe_options = {
     "includes": ["atexit"],
@@ -25,9 +25,9 @@ if sys.platform == "win32":
 
 
 setup(
-    name = __APP_SHORT__,
-    version = __VERSION__,
-    description = __APP_lONG__,
+    name=__APP_SHORT__,
+    version=__VERSION__,
+    description=__APP_LONG__,
     options={"build_exe": build_exe_options},
     executables=[Executable("ts2.py", base=base)]
 )

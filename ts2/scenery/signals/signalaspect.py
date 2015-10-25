@@ -149,16 +149,32 @@ class SignalAspect:
         elif shape == SignalShape.SQUARE:
             p.drawRect(rect)
         elif shape == SignalShape.QUARTER_SW:
-            points = {rect.topLeft(), rect.topRight(), rect.bottomLeft()}
+            points = QtGui.QPolygonF()
+            points \
+                << rect.topLeft() \
+                << rect.topRight() \
+                << rect.bottomLeft()
             p.drawPolygon(points)
         elif shape == SignalShape.QUARTER_NW:
-            points = {rect.topRight(), rect.bottomRight(), rect.topLeft()}
+            points = QtGui.QPolygonF()
+            points \
+                << rect.topRight() \
+                << rect.bottomRight() \
+                << rect.topLeft()
             p.drawPolygon(points)
         elif shape == SignalShape.QUARTER_NE:
-            points = {rect.bottomRight(), rect.bottomLeft(), rect.topRight()}
+            points = QtGui.QPolygonF()
+            points \
+                << rect.bottomRight() \
+                << rect.bottomLeft() \
+                << rect.topRight()
             p.drawPolygon(points)
         elif shape == SignalShape.QUARTER_SE:
-            points = {rect.bottomLeft(), rect.topLeft(), rect.bottomRight()}
+            points = QtGui.QPolygonF()
+            points \
+                << rect.bottomLeft() \
+                << rect.topLeft() \
+                << rect.bottomRight()
             p.drawPolygon(points)
         elif shape == SignalShape.BAR_N_S:
             tl = rect.topLeft() + QtCore.QPointF(1, 3)
@@ -184,26 +200,26 @@ class SignalAspect:
             p.drawPolygon(edges)
 
         if (shape == SignalShape.POLE_NE or
-              shape == SignalShape.POLE_NS or
-              shape == SignalShape.POLE_NSE or
-              shape == SignalShape.POLE_NSW):
+                shape == SignalShape.POLE_NS or
+                shape == SignalShape.POLE_NSE or
+                shape == SignalShape.POLE_NSW):
             tm = QtCore.QPointF(rect.right(), rect.center().y())
             p.drawLine(rect.center(), tm)
 
         if (shape == SignalShape.POLE_NS or
-              shape == SignalShape.POLE_NSE or
-              shape == SignalShape.POLE_NSW or
-              shape == SignalShape.POLE_SW):
+                shape == SignalShape.POLE_NSE or
+                shape == SignalShape.POLE_NSW or
+                shape == SignalShape.POLE_SW):
             bm = QtCore.QPointF(rect.left(), rect.center().y())
             p.drawLine(rect.center(), bm)
 
         if (shape == SignalShape.POLE_NE or
-              shape == SignalShape.POLE_NSE):
+                shape == SignalShape.POLE_NSE):
             rm = QtCore.QPointF(rect.center().x(), rect.bottom())
             p.drawLine(rect.center(), rm)
 
         if (shape == SignalShape.POLE_NSW or
-              shape == SignalShape.POLE_SW):
+                shape == SignalShape.POLE_SW):
             lm = QtCore.QPointF(rect.center().x(), rect.top())
             p.drawLine(rect.center(), lm)
 

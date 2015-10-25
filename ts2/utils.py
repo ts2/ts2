@@ -70,9 +70,11 @@ class MissingDependencyException(Exception):
 
 
 def cumsum(lis):
-    """cumulated sum of lis
+    """Cumulated sum of a list
 
-    :return: a list with the
+    :param: the list to cumulatively sum.
+    :return: an iterator with each item being the cumulated sum of all the
+             items of the original list up to this index.
     """
     summ = 0
     for x in lis:
@@ -82,13 +84,24 @@ def cumsum(lis):
 
 class DurationProba(QtCore.QObject):
     """A DurationProba is a probability distribution for a duration in
-    seconds."""
+    seconds. This class is used to have random delays of trains."""
 
     def __init__(self, data):
         """Constructor for the DurationProba class.
 
-        :param data: ?
+        :param data: A list of tuples (or its string representation). Each
+                     tuple defines in order:
+                     - A lower bound
+                     - An upper bound
+                     - A probability (in percent) of the value to be inside
+                     the defined bounds.
+                     e.g. [(0, 100, 80),(100, 500, 20)] means that when a value
+                     will be yielded by `yieldValue` it will have 80% chance of
+                     being between 0 and 100, and 20% chance of being between
+                     100 and 500.
 
+                     If a number N is given instead of a list of tuples then
+                     this number will always be yielded
         """
         super().__init__()
         self._probaList = None
@@ -116,15 +129,25 @@ class DurationProba(QtCore.QObject):
 
     def yieldValue(self):
         """Returns a random value in the bounds and probabilities given by
-        this DurationProba instance."""
+        this DurationProba instance.
+
+        This is done in two steps:
+        - First we take a random number to determine the segment (tuple) in
+          which we should be according to our _probaList.
+        - Then we take a second random number to get our value inside the
+          selected segment (with even probability).
+        """
         try:
             probas = list(cumsum([t[2] for t in self._probaList]))
             probas.insert(0, 0)
         except TypeError:
+            # We have a value instead of a list
             return self._probaList
         except Exception as err:
             QtCore.qDebug(str(err))
             return None
+
+        # First determine our segment
         r0 = 100 * random.random()
         seg = 0
         for i in range(len(probas) - 1):
@@ -134,6 +157,8 @@ class DurationProba(QtCore.QObject):
         else:
             # Out of range: returns max value
             return self._probaList[-1][1]
+
+        # Then pick up a number inside our segment
         r1 = random.random()
         low, high, prob = self._probaList[seg]
         return r1 * (high - low) + low

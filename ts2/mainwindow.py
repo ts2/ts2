@@ -171,15 +171,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # =========
         # Actions
-        tbar, tbg = self._make_toolbar_group("Simulation", bg="#dddddd")
+        tbar, tbg = self._make_toolbar_group(self.tr("Simulation"),
+                                             bg="#dddddd")
         self.addToolBar(tbar)
         tbg.addAction(self.openAction)
         tbg.addAction(self.editorCurrAction)
 
-
         # =========
         # Speed
-        tbar, tbg = self._make_toolbar_group("Speed", bg="#aaaaaa")
+        tbar, tbg = self._make_toolbar_group(self.tr("Speed"), bg="#aaaaaa")
         self.addToolBar(tbar)
 
         # Time factor spinBox
@@ -192,7 +192,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # =========
         # Zoom
-        tbar, tbg = self._make_toolbar_group("Zoom", bg="white")
+        tbar, tbg = self._make_toolbar_group(self.tr("Zoom"), bg="white")
         self.addToolBar(tbar)
         tbg.setMaximumWidth(300)
 
@@ -202,7 +202,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # =========
         # Score
-        tbar, tbg = self._make_toolbar_group("Penalty", bg="#dddddd")
+        tbar, tbg = self._make_toolbar_group(self.tr("Penalty"), bg="#dddddd")
         self.addToolBar(tbar)
 
         # Score display
@@ -216,7 +216,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # =========
         # Clock
-        tbar, tbg = self._make_toolbar_group("Clock", fg="Yellow", bg="#444444")
+        tbar, tbg = self._make_toolbar_group(self.tr("Clock"), fg="Yellow",
+                                             bg="#444444")
         self.addToolBar(tbar)
 
         # Pause button
