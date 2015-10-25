@@ -654,7 +654,7 @@ Do you want to save anyway ?</source>
         <translation>&amp;O TS2...</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="620"/>
+        <location filename="../ts2/mainwindow.py" line="622"/>
         <source>About TS2</source>
         <translation>O TS2</translation>
     </message>
@@ -679,27 +679,27 @@ Do you want to save anyway ?</source>
         <translation>Po&amp;moc</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="255"/>
+        <location filename="../ts2/mainwindow.py" line="257"/>
         <source>Train Information</source>
         <translation>informacje o pociągu</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="274"/>
+        <location filename="../ts2/mainwindow.py" line="276"/>
         <source>Service Information</source>
         <translation>Informacje o obsłudze</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="311"/>
+        <location filename="../ts2/mainwindow.py" line="313"/>
         <source>Station Information</source>
         <translation>Informacje o stacjach</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="341"/>
+        <location filename="../ts2/mainwindow.py" line="343"/>
         <source>Trains</source>
         <translation>Pociągi</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="353"/>
+        <location filename="../ts2/mainwindow.py" line="355"/>
         <source>Services</source>
         <translation>Misje</translation>
     </message>
@@ -709,7 +709,7 @@ Do you want to save anyway ?</source>
         <translation>ts2 - Symulator sygnalizacji koleji - %s</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="366"/>
+        <location filename="../ts2/mainwindow.py" line="368"/>
         <source>Messages</source>
         <translation>Wiadomości</translation>
     </message>
@@ -734,12 +734,12 @@ Do you want to save anyway ?</source>
         <translation>Zmień ustawienia symulacji</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="596"/>
+        <location filename="../ts2/mainwindow.py" line="598"/>
         <source>Save the simulation as</source>
         <translation>Zapisz symulację jako</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="596"/>
+        <location filename="../ts2/mainwindow.py" line="598"/>
         <source>TS2 game files (*.tsg)</source>
         <translation>Pliki TS2 (*.tsg)</translation>
     </message>
@@ -799,22 +799,22 @@ Do you want to save anyway ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="737"/>
+        <location filename="../ts2/mainwindow.py" line="739"/>
         <source>Pause</source>
         <translation type="unfinished">Pauza</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="464"/>
+        <location filename="../ts2/mainwindow.py" line="466"/>
         <source>Error while loading the simulation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="475"/>
+        <location filename="../ts2/mainwindow.py" line="477"/>
         <source>ts2 - Train Signalling Simulator - %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="620"/>
+        <location filename="../ts2/mainwindow.py" line="622"/>
         <source>TS2 is a train signalling simulation.
 
 Version %s
@@ -827,8 +827,33 @@ TS2 is licensed under the terms of the GNU GPL v2
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="735"/>
+        <location filename="../ts2/mainwindow.py" line="737"/>
         <source>Paused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/mainwindow.py" line="174"/>
+        <source>Simulation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/mainwindow.py" line="182"/>
+        <source>Speed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/mainwindow.py" line="195"/>
+        <source>Zoom</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/mainwindow.py" line="205"/>
+        <source>Penalty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/mainwindow.py" line="219"/>
+        <source>Clock</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1686,7 +1711,7 @@ Peron %s</translation>
 <context>
     <name>ZoomWidget</name>
     <message>
-        <location filename="../ts2/gui/widgets.py" line="51"/>
+        <location filename="../ts2/gui/widgets.py" line="52"/>
         <source>100%</source>
         <translation>100%</translation>
     </message>
