@@ -1,13 +1,9 @@
 ## Ignore storage locations local ??
-data/
 simulations/
 
 /.directory
 /.eric5project/ts2.e4t
 /.eric5project/ts2.e4q
-/data/CVS/Entries
-/data/CVS/Repository
-/data/CVS/Root
 *.py[cod]
 
 # C extensions
@@ -49,3 +45,9 @@ nosetests.xml
 .kdev4
 .settings
 temp/
+
+# TS2 files (should be in ts2-data)
+*.ts2
+*.json
+*.tsl
+*.tsg

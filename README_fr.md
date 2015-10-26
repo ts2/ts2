@@ -1,22 +1,20 @@
 # TS2 - Train Signalling Simulation
-version 0.5
+version 0.6
 
 ## Présentation
-"Train Signalling Simulation" (TS2) est un jeu de simulation ferroviaire où vous
+**Train Signalling Simulation (TS2)** est un jeu de simulation ferroviaire où vous
 devez aiguiller les trains sur une zone et les garder à l'heure.
-Voir le site pour plus de détails.
 
 ## Liens
-* [Site de TS2](http://ts2.sf.net/fr/)
-* [Site du projet TS2 sur SourceForge.net](http://sourceforge.net/projects/ts2/)
-* [Site de développement sur GitHub](https://gihub.com/npiganeau/ts2)
+* Site de TS2 - [ts2.github.io](http://ts2.github.io/)
+* Chat TS2 (en anglais) - [irc.freenode.net#trainsigsim](irc://irc.freenode.net#trainsigsim)
+* Page du projet TS2 sur Github - [github.com/ts2](http://github.com/ts2/)
+* Docs API TS2 - générées automatiquement [docs-ts2.rhcloud.com](http://docs-ts2.rhcloud.com/)
 
 ## Statut
 TS2 est un logiciel beta ce qui signifie qu'il est jouable, mais qu'il lui manque
 encore de nombreuses fonctionnalités que l'on peut attendre d'une simulation.
-TS2 est livré avec deux simulations:
-* Une simulation de démonstration appelée "drain"
-* Une simulation complète appelée "liverpool-st"
+Au démarrage de TS2, vous pourrez télécharger des simulations depuis notre serveur [ts2-data](https://github.com/ts2/ts2-data)
 
 De nouvelles simulations peuvent être créées grâce à l'éditeur incorporé dans
 le logiciel.
@@ -27,9 +25,9 @@ le logiciel.
     - Autres plateformes: voir installation depuis les sources.
 * Installation à partir des sources:
     - Télécharger et installer Python v3 ou supérieur depuis [www.python.org](http://www.python.org).
-    - Télécharger et installer PyQt v4.8 ou supérieur depuis [http://www.riverbankcomputing.co.uk](http://www.riverbankcomputing.co.uk).
+    - Télécharger et installer PyQt v5 ou supérieur depuis [http://www.riverbankcomputing.co.uk](http://www.riverbankcomputing.co.uk).
     - Récuperer les sources depuis le site de développement sur GitHub.
-    - Lancer ts2.py.
+    - Lancer start-ts2.py.
 
 ## Jeu (Guide rapide)
 * Charger une simulation depuis le dossier _simulation_ (ou le dossier _data_ si vous avez installé depuis les sources).
@@ -70,12 +68,24 @@ le logiciel.
     A chaque fois qu'un train arrive en retard à une gare, s'arrête sur le mauvais quai ou est aiguillé dans une
     mauvaise direction, des points de pénalité sont ajoutés au score.
 
-## Créer de nouvelles simulations
-
-Les simulations peuvent être créées/modifiées à l'aide de l'éditeur incorporé dans TS2.
-
 ## Historique des versions
+
+###Version 0.6:
+- Nouvelle version Python3 / PyQt5
+- Déplacement du projet sur GitHub
+- Nouveau site
+- Les simulations sont maintenant au format JSON 
+- Possibilité de télécharger des simulations / signaux depuis ts2-data
+- Marches à vue
+- Division de train
+- Nouveaux signaux paramétriques
+- Signaux BAL français
+- Signaux de manoeuvre UK
+- Amélioration de l'interface
+- Meilleure gestion des erreurs
+
 ###Version 0.5:
+- Dernière version PyQt4
 - Editeur amélioré incluant les caractéristiques suivantes: 
     - Sélections multiples
     - Copier/Coller
@@ -85,16 +95,3 @@ Les simulations peuvent être créées/modifiées à l'aide de l'éditeur incorporé da
     - Longueur réduite
     - Code train positionable 
     - Nouveaux types de signaux (UK 4 aspects notamment)
-
-###Version 0.4.1:
-- Correction d'un bug dans l'éditeur: les nouvelles "Places" sont maintenant prises en compte immédiatement
-    après leur création.
-
-###Version 0.4:
-- Ajout du système de comptage du score
-- Ajout de retards statistiques sur les trains
-- Ajout de la possibilité de sauvegarder les jeux en cours
-- Ajout d'une option pour jouer avec les circuits de voie
-
-###Version 0.3.3:
-- Ajout de la traduction française de TS2

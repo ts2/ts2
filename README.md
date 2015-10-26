@@ -2,19 +2,8 @@
 
 version 0.6
 
-**== IMPORTANT ==**
-- This 0.6 branch and current `develop`
-- abandons PyQt4 for PyQt5
-- Python3 only 
-  - Sorry guys but its a step we have to do..
-- Data saved in json instead of sqlite.db
-- Relocation of project to github (from sf.. sorr sfo.. get your act together.. doh!!!)
-   - http://ts2.github.io/
-
-
 ## Overview
 **Train Signalling Simulation (TS2)** is a railways simulation game where you have to dispatch trains across an area and keep them on schedule. 
-
 
 ## Links
 * TS2 Homepage - [ts2.github.io](http://ts2.github.io/)
@@ -23,10 +12,8 @@ version 0.6
 * TS2 API Docs - autogen at [docs-ts2.rhcloud.com](http://docs-ts2.rhcloud.com/)
 
 ## Status
-TS2  is beta software, meaning it is playable, but still lacks many features that one would expect from a real simulation, will it ever be finished..
-TS2 is provided with two simulation starters:
-* A demo simulation called "drain"
-* A full-featured simulation called "liverpool-st"
+TS2 is beta software, meaning it is playable, but still lacks many features that one would expect from a real simulation, will it ever be finished.
+When starting TS2, you will be able to download simulations from our [ts2-data](https://github.com/ts2/ts2-data) server.
 
 New simulations can be created with the editor provided with ts2.
 
@@ -38,7 +25,7 @@ New simulations can be created with the editor provided with ts2.
     - Download and install Python v3 or above at [www.python.org](http://www.python.org).
     - Download and install PyQt v5 or above at [http://www.riverbankcomputing.co.uk](http://www.riverbankcomputing.co.uk).
     - Grab the sources from GitHub development page.
-    - Run ts2.py
+    - Run start-ts2.py
 
 ## Playing (QuickStart)
 * Load a simulation from the _simulation_ directory (or the _data_ directory if you have installed from sources).
@@ -78,12 +65,21 @@ New simulations can be created with the editor provided with ts2.
     penalty points are added to the score.
 
 
-
 ## Change log
 
 ###Version 0.6:
-- New PyQt5+python3 version
-
+- New release that is PyQt5 = Python3 only
+- Announce move and infrastructure to github
+- New home page, et all
+- Also Data is now json and in ts2-data
+- Ability to download sims / signals from ts2-data
+- Trains shunting
+- Trains splitting (joining postponed)
+- New parametric signals
+- French BAL signals (except blinking)
+- UK Shunt signals
+- UI improvements (toolbars, etc.)
+- Catch exceptions when loading sims
 
 ###Version 0.5:
 - Last PyQt4 version
