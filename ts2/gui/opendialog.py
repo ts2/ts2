@@ -179,7 +179,8 @@ class OpenDialog(QtWidgets.QDialog):
                         os.makedirs(os.path.dirname(fName), exist_ok=True)
                         with zipfile.ZipFile(fName, "w") as ts2Zip:
                             ts2Zip.writestr("simulation.json",
-                                            zipArchive.read(fileName))
+                                            zipArchive.read(fileName),
+                                            compress_type=zipfile.ZIP_BZIP2)
 
         QtWidgets.qApp.restoreOverrideCursor()
 
