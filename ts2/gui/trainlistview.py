@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,11 +18,12 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
+from Qt import QtCore, QtWidgets
 
 from ts2 import simulation
 
-class TrainListView(QtGui.QTreeView):
+
+class TrainListView(QtWidgets.QTreeView):
     """ TODO Document TrainListView class"""
 
     def __init__(self, parent):
@@ -39,23 +40,22 @@ class TrainListView(QtGui.QTreeView):
     def updateTrainSelection(self, trainId):
         index = self.model().index(trainId, 0)
         self.selectionModel().select(index,
-                                     QtGui.QItemSelectionModel.Rows|
-                                     QtGui.QItemSelectionModel.ClearAndSelect)
+                                     QtCore.QItemSelectionModel.Rows |
+                                     QtCore.QItemSelectionModel.ClearAndSelect)
 
     @QtCore.pyqtSlot(simulation.Simulation)
     def setupTrainList(self, sim):
         self.simulation = sim
-        #if self.model() is None:
-        #trainsSortedModel = QSortFilterProxyModel()
-        #trainsSortedModel.setSourceModel()
+        # if self.model() is None:
+        # trainsSortedModel = QSortFilterProxyModel()
+        # trainsSortedModel.setSourceModel()
         self.setModel(self.simulation.trainListModel)
         self.header().setStretchLastSection(False)
         self.header().setSortIndicatorShown(False)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.simulation.trainStatusChanged.connect(self.model().update)
-        #self.simulation.timeChanged.connect(self.model().update)
-        #self.trainSelected.connect(self.simulation.selectedTrainModel.setTrainByServiceCode)
-
+        # self.simulation.timeChanged.connect(self.model().update)
+        # self.trainSelected.connect(self.simulation.selectedTrainModel.setTrainByServiceCode)
 
     def contextMenuEvent(self, event):
         index = self.selectionModel().selection().indexes()[0]
@@ -63,11 +63,10 @@ class TrainListView(QtGui.QTreeView):
             train = self.simulation.trains[index.row()]
             train.showTrainActionsMenu(self, event.globalPos())
 
-    @QtCore.pyqtSlot(QtGui.QItemSelection, QtGui.QItemSelection)
+    @QtCore.pyqtSlot(QtCore.QItemSelection, QtCore.QItemSelection)
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)
         if len(selected.indexes()) > 0:
             index = selected.indexes()[0]
             if index.isValid():
                 self.trainSelected.emit(index.row())
-

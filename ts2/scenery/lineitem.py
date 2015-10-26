@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,13 +18,13 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
-from ts2.scenery import helper, abstract
-from ts2 import utils, routing
-from math import sqrt
+from Qt import QtCore, QtGui, QtWidgets, Qt
 
-translate = QtGui.qApp.translate
+from ts2.scenery import helper, abstract
+import ts2.utils as utils
+import ts2.routing.position
+
+translate = QtWidgets.qApp.translate
 
 
 class LineItem(abstract.ResizableItem):
@@ -33,79 +33,61 @@ class LineItem(abstract.ResizableItem):
     have in real life, since this will determine the time the train takes to
     travel on it.
     """
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the LineItem class"""
-        super().__init__(simulation, parameters)
-        self.tiType = "L"
-        self._placeCode = parameters["placecode"]
-        trackCode = parameters["trackcode"]
-        self._place = simulation.place(self._placeCode)
-        if self._place is not None:
-            self._trackCode = trackCode
-            self._place.addTrack(self)
-        else:
-            self._trackCode = ""
-        realLength = parameters["reallength"]
-        if realLength is None or realLength == 0:
-            realLength = 1.0
-        self._realLength = realLength
+        super().__init__(parameters)
+        self._placeCode = parameters["placeCode"]
+        self._trackCode = ""
+        self._realLength = parameters.get('realLength', 1.0)
         self.defaultZValue = 1
+        self._line = QtCore.QLineF()
+        self._boundingRect = QtCore.QRectF()
         self.updateGeometry()
         gli = helper.TrackGraphicsItem(self)
-        if simulation.context in utils.Context.EDITORS:
-            gli.setCursor(Qt.PointingHandCursor)
-        else:
-            gli.setCursor(Qt.ArrowCursor)
         gli.setPos(self._origin)
         gli.setZValue(self.defaultZValue)
         self._gi[0] = gli
-        simulation.registerGraphicsItem(gli)
+        self._tli = []
 
-        # draw the "train" graphicLineItem
-        p = QtGui.QPen()
-        p.setWidth(3)
-        p.setJoinStyle(Qt.RoundJoin)
-        p.setCapStyle(Qt.RoundCap)
-        p.setColor(Qt.red)
-        self._tli = QtGui.QGraphicsLineItem()
-        self._tli.setCursor(Qt.ArrowCursor)
-        self._tli.setPen(p)
-        self._tli.setZValue(10)
-        self._tli.hide()
-        simulation.registerGraphicsItem(self._tli)
+    def initialize(self, simulation):
+        """Initialize the item after all items are loaded."""
+        self._place = simulation.place(self._placeCode)
+        trackCode = self._parameters["trackCode"]
+        if self._place is not None:
+            self._trackCode = trackCode
+            self._place.addTrack(self)
+        if simulation.context in utils.Context.EDITORS:
+            self._gi[0].setCursor(Qt.PointingHandCursor)
+            self.positionSelected.connect(simulation.setSelectedTrainHead)
+        else:
+            self._gi[0].setCursor(Qt.ArrowCursor)
+        self.simulation = simulation
         self.drawTrain()
-
-    def __del__(self):
-        """Destructor for the LineItem class"""
-        self.simulation.scene.removeItem(self._tli)
-        super().__del__()
+        super().initialize(simulation)
 
     @staticmethod
     def getProperties():
         return abstract.ResizableItem.getProperties() + [
-                  helper.TIProperty("placeCode",
-                                    translate("LineItem", "Place code")),
-                  helper.TIProperty("trackCode",
-                                    translate("LineItem", "Track code")),
-                  helper.TIProperty("realLength",
-                                    translate("LineItem", "Real length (m)"))]
+            helper.TIProperty("placeCode", translate("LineItem", "Place code")),
+            helper.TIProperty("trackCode", translate("LineItem", "Track code")),
+            helper.TIProperty("realLength",
+                              translate("LineItem", "Real length (m)"))
+        ]
 
-    positionSelected = QtCore.pyqtSignal(routing.Position)
+    positionSelected = QtCore.pyqtSignal(ts2.routing.position.Position)
 
-    def getSaveParameters(self):
-        """Returns the parameters dictionary to save this TrackItem to the
-        database"""
-        parameters = super().getSaveParameters()
-        parameters.update({
-                            "xf":self._end.x(),
-                            "yf":self._end.y(),
-                            "placecode":self.placeCode,
-                            "trackCode":self.trackCode,
-                            "reallength":self.realLength,
-                            "maxspeed":self._maxSpeed})
-        return parameters
+    def for_json(self):
+        """Dumps this line item to JSON."""
+        jsonData = super().for_json()
+        jsonData.update({
+            "placeCode": self.placeCode,
+            "trackCode": self.trackCode,
+            "realLength": self.realLength,
+            "maxSpeed": self._maxSpeed
+        })
+        return jsonData
 
-    ### Properties #####################################################
+    # ## Properties #####################################################
 
     def _setOrigin(self, pos):
         """Setter function for the origin property"""
@@ -126,13 +108,13 @@ class LineItem(abstract.ResizableItem):
         super()._setStart(pos)
         self.updateGeometry()
 
-    start = property(abstract.ResizableItem._getStart,
-                          _setStart)
+    start = property(abstract.ResizableItem._getStart, _setStart)
 
     def _setRealLength(self, value):
         """Setter function for the realLength property"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            if value == "": value = "0.0"
+            if value == "":
+                value = "0.0"
             self._realLength = float(value)
 
     realLength = property(abstract.TrackItem._getRealLength, _setRealLength)
@@ -180,7 +162,7 @@ class LineItem(abstract.ResizableItem):
         """Returns the line as a QLineF in the scene's coordinates."""
         return QtCore.QLineF(self.origin, self.end)
 
-    ### Methods ########################################################
+    # ## Methods ########################################################
 
     def updateGeometry(self):
         """Updates the internal representation of the line and boundingRect
@@ -217,8 +199,7 @@ class LineItem(abstract.ResizableItem):
         self.drawTrain()
         super().updateGraphics()
 
-
-    ### Graphics Methods ###############################################
+    # ## Graphics Methods ###############################################
 
     def graphicsBoundingRect(self, itemId):
         """Returns the bounding rectangle of the line item"""
@@ -265,7 +246,7 @@ class LineItem(abstract.ResizableItem):
             path.lineTo(x1 - d, y1 + d)
         return path
 
-    def graphicsPaint(self, p, options, itemId, widget):
+    def graphicsPaint(self, p, options, itemId, widget=None):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws the line."""
         super().graphicsPaint(p, options, itemId, widget)
@@ -282,44 +263,69 @@ class LineItem(abstract.ResizableItem):
             self.drawConnectionRect(p, self.line.p2())
 
     def drawTrain(self):
-        """Draws the train on the line, if any"""
+        """Draws the train(s) on the line, if any"""
+        tlines = []
         if self.simulation.context == utils.Context.GAME and \
            self.trainPresent():
             if int(self.simulation.option("trackCircuitBased")) == 0:
-                tline = QtCore.QLineF(
-                        self.sceneLine.pointAt(
-                                            self._trainHead/self._realLength),
-                        self.sceneLine.pointAt(
-                                            self._trainTail/self._realLength))
-                if tline.length() < 5.0 and self._trainTail != 0:
-                    # Make sure that the train representation is always at least
-                    # 5 pixel long.
-                    tline.setLength(min(5.0,
-                                        (1 - self._trainTail/self._realLength) *
-                                        self.sceneLine.length()))
+                for i in range(len(self._trainHeads)):
+                    tlines.append(QtCore.QLineF(
+                        self.sceneLine.pointAt(self._trainHeads[i] /
+                                               self._realLength),
+                        self.sceneLine.pointAt(self._trainTails[i] /
+                                               self._realLength)
+                    ))
+                    if tlines[i].length() < 5.0 and self._trainTails[i] != 0:
+                        # Make sure that the train representation is always
+                        # at least 5 pixel long.
+                        tlines[i].setLength(
+                            min(5.0,
+                                (1 - self._trainTails[i] / self._realLength) *
+                                self.sceneLine.length()))
             else:
-                tline = self.sceneLine
-            self._tli.setLine(tline)
-            self._tli.show()
-            self._tli.update()
-        else:
-            self._tli.hide()
-            self._tli.update()
+                tlines = [self.sceneLine]
+        self.showTrainLineItem(tlines)
+
+    def showTrainLineItem(self, lines):
+        """Shows the given lines (representing trains) on the scenery."""
+        if lines:
+            # Set the pen
+            p = QtGui.QPen()
+            p.setWidth(3)
+            p.setJoinStyle(Qt.RoundJoin)
+            p.setCapStyle(Qt.RoundCap)
+            p.setColor(Qt.red)
+            for i in range(len(lines)):
+                try:
+                    self._tli[i].setLine(lines[i])
+                except IndexError:
+                    newTli = QtWidgets.QGraphicsLineItem()
+                    newTli.setCursor(Qt.ArrowCursor)
+                    newTli.setPen(p)
+                    newTli.setZValue(10)
+                    newTli.setLine(lines[i])
+                    self.simulation.registerGraphicsItem(newTli)
+                    self._tli.append(newTli)
+                    newTli.show()
+                self._tli[i].update()
+        for i in range(len(lines), len(self._tli)):
+            self._tli[i].hide()
+            self._tli[i].update()
+            del self._tli[i]
 
     def graphicsMousePressEvent(self, event, itemId):
         """This function is called by the owned TrackGraphicsItem to handle
         its mousePressEvent. Reimplemented to send the positionSelected
         signal."""
         super().graphicsMousePressEvent(event, itemId)
-        #pos = event.buttonDownPos(Qt.LeftButton)
+        # pos = event.buttonDownPos(Qt.LeftButton)
         if event.button() == Qt.LeftButton:
-           #and self.graphicsItem.shape().contains(pos):
+            # and self.graphicsItem.shape().contains(pos):
             if (self.simulation.context == utils.Context.EDITOR_TRAINS and
                self.tiId > 0):
                 x = event.buttonDownPos(Qt.LeftButton).x()
                 ratio = (x - self.line.x1())/(self.line.x2() - self.line.x1())
-                self.positionSelected.emit(routing.Position(
-                                                    self,
-                                                    self.previousItem,
-                                                    self.realLength * ratio))
-
+                self.positionSelected.emit(
+                    ts2.routing.position.Position(self, self.previousItem,
+                                                  self.realLength * ratio)
+                )

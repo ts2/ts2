@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,57 +18,50 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtGui, QtCore, QtWidgets, Qt
+
 from ts2.scenery import abstract, helper
 from ts2 import utils
 
-translate = QtGui.qApp.translate
+translate = QtWidgets.qApp.translate
+
 
 class PlaceInfoModel(QtCore.QAbstractTableModel):
     def __init__(self):
         super().__init__()
         self._place = None
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args, **kwargs):
         if self._place is not None:
-            return len(self._place.timetable) + 2
+            return len(self._place.timetable)
         else:
             return 0
 
-    def columnCount (self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args, **kwargs):
         if self._place is not None:
             return 5
         else:
             return 0
 
-    def data (self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         if self._place is not None and role == Qt.DisplayRole:
-            if index.row() == 0:
-                if index.column() == 0:
-                    return self.tr("Station:")
-                if index.column() == 1:
-                    return self._place.placeName
-            elif index.row() == 1:
-                return ""
-            else:
-                line = self._place.timetable[index.row() - 2]
-                if index.column() == 0:
-                    return line.scheduledDepartureTime
-                elif index.column() == 1:
-                    return line.service.serviceCode
-                elif index.column() == 2:
-                    return line.service.exitPlaceName
-                elif index.column() == 3:
-                    return line.trackCode
-                elif index.column() == 4:
-                    if not line.mustStop:
-                        return self.tr("non-stop")
-                    else:
-                        return ""
+            line = self._place.timetable[index.row() - 2]
+            if index.column() == 0:
+                return line.scheduledDepartureTime
+            elif index.column() == 1:
+                return line.service.serviceCode
+            elif index.column() == 2:
+                return line.service.exitPlaceName
+            elif index.column() == 3:
+                return line.trackCode
+            elif index.column() == 4:
+                if not line.mustStop:
+                    return self.tr("Non-stop")
+                else:
+                    return ""
         return None
 
-    def headerData (self, column, orientation, role = Qt.DisplayRole):
+    def headerData(self, column, orientation, role=Qt.DisplayRole):
         if self._place is not None \
            and orientation == Qt.Horizontal \
            and role == Qt.DisplayRole:
@@ -86,7 +79,7 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
                 return ""
         return None
 
-    def flags (self, index):
+    def flags(self, index):
         return Qt.ItemIsEnabled
 
     @property
@@ -95,23 +88,43 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
 
     @place.setter
     def place(self, place):
+        self.beginResetModel()
         self._place = place
-        self.reset()
+        self.endResetModel()
 
     @QtCore.pyqtSlot(str)
     def setPlace(self, place):
         self.place = place
 
 
+class PlacesModel(QtCore.QAbstractTableModel):
+    """Model listing places to be used in item delegates."""
+    def __init__(self, editor):
+        super().__init__()
+        self._editor = editor
+
+    def rowCount(self, parent=None, *args, **kwargs):
+        return len(self._editor.places)
+
+    def columnCount(self, parent=None, *args, **kwargs):
+        return 1
+
+    def data(self, index, role=Qt.DisplayRole):
+        placeCodes = list(self._editor.places.keys())
+        if role == Qt.DisplayRole:
+            return placeCodes[index.row()]
+
+
 class Place(abstract.TrackItem):
     """A Place is a place where trains will have a schedule (mainly station,
     but can also be a main junction for example)
     """
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the Place class"""
-        super().__init__(simulation, parameters)
-        self.tiType = "A"
-        self._placeCode = parameters["placecode"]
+        super().__init__(parameters)
+        self.simulation = None
+        self._placeCode = parameters["placeCode"]
+        self._rect = QtCore.QRectF()
         self.updateBoundingRect()
         gi = helper.TrackGraphicsItem(self)
         gi.setPos(self._origin)
@@ -119,27 +132,24 @@ class Place(abstract.TrackItem):
         gi.setToolTip(self.toolTipText)
         gi.setZValue(self.defaultZValue)
         self._gi[0] = gi
-        self.simulation.registerGraphicsItem(gi)
         self._timetable = []
         self._tracks = {}
-        self.updateGraphics()
 
     @staticmethod
     def getProperties():
         return abstract.TrackItem.getProperties() + [
-                    helper.TIProperty("placeCode",
-                                      translate("Place", "Place code"))]
+            helper.TIProperty("placeCode", translate("Place", "Place code"))
+        ]
 
     selectedPlaceModel = PlaceInfoModel()
 
-    def getSaveParameters(self):
-        """Returns the parameters dictionary to save this TrackItem to the
-        database"""
-        parameters = super().getSaveParameters()
-        parameters.update({"placecode":self.placeCode})
-        return parameters
+    def for_json(self):
+        """Dumps this place item to JSON."""
+        jsonData = super().for_json()
+        jsonData.update({"placeCode": self.placeCode})
+        return jsonData
 
-    ### Properties ###################################################
+    # ## Properties ###################################################
 
     def _setName(self, value):
         """Setter function for the name property"""
@@ -171,14 +181,14 @@ class Place(abstract.TrackItem):
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             self._placeCode = value
 
-    ### Methods #######################################################
+    # ## Methods #######################################################
 
     def addTrack(self, li):
         self._tracks[li.trackCode] = li
 
     def addTimetable(self, sl):
         self._timetable.append(sl)
-        #self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
+        self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
 
     def track(self, trackCode):
         return self._tracks[trackCode]
@@ -187,7 +197,7 @@ class Place(abstract.TrackItem):
         """Updates the bounding rectangle of the graphics item"""
         tl = QtGui.QTextLayout(self._name)
         tl.beginLayout()
-        line = tl.createLine()
+        tl.createLine()
         tl.endLayout()
         self._rect = tl.boundingRect()
 
@@ -196,7 +206,7 @@ class Place(abstract.TrackItem):
         """Sorts the timetable of the place."""
         self._timetable.sort(key=lambda x: x.scheduledDepartureTime)
 
-    ### Graphics Methods ##############################################
+    # ## Graphics Methods ##############################################
 
     def graphicsBoundingRect(self, itemId):
         """This function is called by the owned TrackGraphicsItem to return
@@ -210,7 +220,7 @@ class Place(abstract.TrackItem):
             else:
                 return self._rect
 
-    def graphicsPaint(self, p, options, itemId, widget = 0):
+    def graphicsPaint(self, p, options, itemId, widget=None):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter."""
         super().graphicsPaint(p, options, itemId, widget)
@@ -219,4 +229,3 @@ class Place(abstract.TrackItem):
         pen.setColor(Qt.white)
         p.setPen(pen)
         p.drawText(self._rect.bottomLeft(), self.name)
-

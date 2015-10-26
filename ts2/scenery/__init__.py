@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -17,4 +17,3 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-

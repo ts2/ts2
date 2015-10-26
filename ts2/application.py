@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -17,15 +17,26 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-
-from PyQt4 import QtCore, QtGui
 import sys
+
+from Qt import QtCore, QtGui, QtWidgets
+
+
 from ts2 import mainwindow
 from ts2 import ressources_rc
-from ts2 import gui
+from ts2.gui import dialogs
 
-def Main():
-    app = QtGui.QApplication(sys.argv)
+from ts2 import __APP_SHORT__, __VERSION__
+
+
+def Main(args=None):
+    """Start the ts2 application and present :class:`~ts2.mainwindow.MainWindow`
+
+    :param object args: Command line args from argparse
+    """
+    app = QtWidgets.QApplication(sys.argv)
+    app.setApplicationName(__APP_SHORT__)
+    app.setApplicationName(__VERSION__)
     app.setWindowIcon(QtGui.QIcon(QtGui.QPixmap(":/ts2.png")))
     qtTranslator = QtCore.QTranslator()
     qtTranslator.load("qt_" + QtCore.QLocale.system().name(),
@@ -36,17 +47,14 @@ def Main():
     ts2Translator.load(QtCore.QLocale.system(), "ts2", "_", "i18n", ".qm")
     app.installTranslator(ts2Translator)
     QtCore.qDebug(QtCore.QLocale.system().name())
-    try:
-        mw = mainwindow.MainWindow()
-        mw.show()
-        return app.exec_()
-    except:
-        gui.dialogs.ExceptionDialog.popupException(None)
-        #QMessageBox.critical(None,
-                             #QObject.trUtf8(QObject(), "Error"),
-                             #str(e),
-                             #QMessageBox.StandardButtons(QMessageBox.Ok))
-        return 1
+    # TODO: Uncomment in production
+    # try:
+    mw = mainwindow.MainWindow(args=args)
+    mw.show()
+    return app.exec_()
+    # except:
+    #     dialogs.ExceptionDialog.popupException(None)
+    #     return 1
 
 if __name__ == "__main__":
     Main()

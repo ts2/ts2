@@ -39,7 +39,6 @@ SOURCES =  \
 ../ts2/scenery/signals/__init__.py \
 ../ts2/scenery/signals/signalaspect.py \
 ../ts2/scenery/signals/signalitem.py \
-../ts2/scenery/signals/signaltype.py \
 ../ts2/scenery/__init__.py \
 ../ts2/scenery/abstract.py \
 ../ts2/scenery/enditem.py \
@@ -54,6 +53,8 @@ SOURCES =  \
 ../ts2/trains/service.py \
 ../ts2/trains/train.py \
 ../ts2/trains/traintype.py \
+../ts2/xobjects/__init__.py \
+../ts2/xobjects/xsettings.py \
 ../ts2/__init__.py \
 ../ts2/application.py \
 ../ts2/mainwindow.py \
@@ -61,8 +62,10 @@ SOURCES =  \
 ../ts2/simulation.py \
 ../ts2/utils.py \
 ../build.py \
-../ts2.py \
+../start-ts2.py \
 
-TRANSLATIONS = ts2_fr.ts
+TRANSLATIONS = \
+ts2_fr.ts \
+ts2_pl.ts
 
 CODECFORTS = UTF-8

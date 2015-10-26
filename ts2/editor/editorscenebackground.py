@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,22 +18,21 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtWidgets, Qt
 
-class EditorSceneBackground(QtGui.QGraphicsRectItem):
+
+class EditorSceneBackground(QtWidgets.QGraphicsRectItem):
     """The EditorSceneBackground is a graphics item set at the background of
     the editor scene to handle drag and drop events."""
 
-    def __init__(self, editor, x, y , width, height):
+    def __init__(self, editor, x, y, width, height):
         """Constructor for the EditorSceneBackground class"""
         super().__init__(x, y, width, height)
         self.setZValue(-100)
         self.setAcceptDrops(True)
         self.editor = editor
-        #pen = QtGui.QPen(Qt.cyan)
-        #self.setPen(pen)
-
+        # pen = QtGui.QPen(Qt.cyan)
+        # self.setPen(pen)
 
     def dragEnterEvent(self, event):
         """dragEnterEvent handler for the EditorSceneBackground."""
@@ -48,7 +47,7 @@ class EditorSceneBackground(QtGui.QGraphicsRectItem):
             if int(tiId) > 0:
                 clickPos = QtCore.QPointF(float(ox), float(oy))
                 self.editor.moveTrackItem(tiId, event.scenePos(),
-                                                            clickPos, point)
+                                          clickPos, point)
 
     def dropEvent(self, event):
         """dropEvent handler for the EditorSceneBackground.
@@ -66,7 +65,7 @@ class EditorSceneBackground(QtGui.QGraphicsRectItem):
                 event.accept()
                 clickPos = QtCore.QPointF(float(ox), float(oy))
                 self.editor.moveTrackItem(tiId, event.scenePos(),
-                                                            clickPos, point)
+                                          clickPos, point)
         else:
             event.ignore()
 

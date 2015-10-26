@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,9 +18,8 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-import copy
-from PyQt4 import QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtCore, Qt
+
 from ts2 import utils
 
 
@@ -33,50 +32,43 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
         self._service = None
         self.simulation = simulation
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows of the model, corresponding to the
-        number of serviceLines of this service + lines for displaying general
-        service information."""
+        number of serviceLines of this service."""
         if self._service is not None:
-            return len(self._service._lines) + 3
+            return len(self._service.lines)
         else:
             return 0
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
         if self._service is not None:
             return 4
         else:
             return 0
 
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if self._service is not None and role == Qt.DisplayRole:
-            if index.row() == 0:
-                if index.column() == 0:
-                    return self.tr("Service no:")
-                if index.column() == 1:
-                    return self._service.serviceCode
-            elif (index.row() == 1):
-                if index.column() == 0:
-                    return self.tr("Description:")
-                if index.column() == 1:
-                    return self._service.description
-            elif (index.row() == 2):
-                return None
-            else:
-                line = self._service._lines[index.row() - 3]
-                if index.column() == 0:
-                    return line.place.placeName
-                elif index.column() == 1:
-                    return line.trackCode
-                elif index.column() == 2:
+            line = self._service.lines[index.row()]
+            if index.column() == 0:
+                return line.place.placeName
+            elif index.column() == 1:
+                return line.trackCode
+            elif index.column() == 2:
+                if line.mustStop:
                     return line.scheduledArrivalTime
-                elif index.column() == 3:
+                else:
+                    return self.tr("Non-stop")
+            elif index.column() == 3:
+                if line.mustStop:
                     return line.scheduledDepartureTime
+                else:
+                    return line.scheduledDepartureTime or \
+                           line.scheduledArrivalTime
         return None
 
-    def headerData(self, column, orientation, role = Qt.DisplayRole):
+    def headerData(self, column, orientation, role=Qt.DisplayRole):
         """Returns the header labels"""
         if self._service is not None \
            and orientation == Qt.Horizontal\
@@ -88,7 +80,7 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
             elif column == 2:
                 return self.tr("Arrival")
             elif column == 3:
-                return self.tr("Departure")
+                return self.tr("Departure / Pass")
         return None
 
     def flags(self, index):
@@ -98,8 +90,9 @@ class ServiceInfoModel(QtCore.QAbstractTableModel):
     @QtCore.pyqtSlot(str)
     def setServiceCode(self, serviceCode):
         """Sets the service linked with this model from its serviceCode."""
+        self.beginResetModel()
         self._service = self.simulation.service(serviceCode)
-        self.reset()
+        self.endResetModel()
 
 
 class ServiceListModel(QtCore.QAbstractTableModel):
@@ -110,31 +103,35 @@ class ServiceListModel(QtCore.QAbstractTableModel):
         """Constructor for the ServiceInfoModel class"""
         super().__init__()
         self.simulation = simulation
+        self._services = []
         self.updateModel()
 
     def updateModel(self):
         """Updates the internal copy of the services with the simulation
         services."""
-        self._services = sorted(self.simulation.services.values(),
-                        key = lambda x: x.lines[0].scheduledDepartureTimeStr)
+        self._services = sorted(
+            self.simulation.services.values(),
+            key=lambda x: x.lines and x.lines[0].scheduledDepartureTimeStr
+                          or x.serviceCode
+        )
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows of the model, corresponding to the
         number of services in the simulation."""
         return len(self._services)
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
         return 5
 
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole:
             service = self._services[index.row()]
             if index.column() == 0:
                 return service.serviceCode
             elif index.column() == 1:
-                return service._lines[0].scheduledDepartureTime
+                return service.lines[0].scheduledDepartureTime
             elif index.column() == 2:
                 return service.description
             elif index.column() == 3:
@@ -143,11 +140,11 @@ class ServiceListModel(QtCore.QAbstractTableModel):
                 return service.exitPlaceName
         return None
 
-    def headerData(self, section, orientation, role = Qt.DisplayRole):
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Returns the header labels"""
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             if section == 0:
-                return self.tr("Code");
+                return self.tr("Code")
             elif section == 1:
                 return self.tr("Time")
             elif section == 2:
@@ -158,16 +155,25 @@ class ServiceListModel(QtCore.QAbstractTableModel):
                 return self.tr("Exit point")
             else:
                 return ""
+        if role == Qt.TextAlignmentRole:
+            return Qt.AlignLeft
         return None
 
     def flags(self, index):
         """Returns the flags of the model"""
-        return Qt.ItemIsSelectable|Qt.ItemIsEnabled
+        return Qt.ItemIsSelectable | Qt.ItemIsEnabled
 
 
 class ServicesModel(QtCore.QAbstractTableModel):
     """Model for Service class used in the editor
     """
+    class C:
+        serviceCode = 0
+        nextServiceCode = 1
+        autoReverse = 2
+        plannedTrainType = 3
+        description = 4
+
     def __init__(self, editor):
         """Constructor for the ServicesModel class"""
         super().__init__(editor)
@@ -178,73 +184,91 @@ class ServicesModel(QtCore.QAbstractTableModel):
         """Returns the simulation this model belongs to."""
         return self._editor
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows of the model, corresponding to the
         number of services of the editor"""
         return len(self._editor.services)
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
         return 5
 
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole or role == Qt.EditRole:
+
             service = list(self._editor.services.values())[index.row()]
-            if index.column() == 0:
+
+            if index.column() == self.C.serviceCode:
                 return str(service.serviceCode)
-            elif index.column() == 1:
-                return service.description
-            elif index.column() == 2:
+
+            elif index.column() == self.C.nextServiceCode:
                 return service.nextServiceCode
-            elif index.column() == 3:
-                return bool(service.autoReverse)
-            elif index.column() == 4:
-                return service.plannedTrainType
+
+            elif index.column() == self.C.autoReverse:
+                return service.autoReverse
+
+            elif index.column() == self.C.plannedTrainType:
+                return bool(service.plannedTrainType)
+
+            elif index.column() == self.C.description:
+                return service.description
+
         return None
 
-    def setData(self, index, value, role):
+    def setData(self, index, value, role=None):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
-            code = index.sibling(index.row(), 0).data()
-            if index.column() == 0:
-                if (value is not None) and (value != ""):
-                    self._editor.services[value] = \
-                                  copy.copy(self._editor.services[code])
-                    self._editor.services[value].serviceCode = value
-                    del self._editor.services[code]
-            elif index.column() == 1:
-                self._editor.services[code].description = value
-            elif index.column() == 2:
+            code = index.sibling(index.row(), self.C.serviceCode).data()
+
+            if index.column() == self.C.nextServiceCode:
                 self._editor.services[code].nextServiceCode = value
-            elif index.column() == 3:
+
+            elif index.column() == self.C.autoReverse:
                 self._editor.services[code].autoReverse = value
-            elif index.column() == 4:
+
+            elif index.column() == self.C.plannedTrainType:
                 self._editor.services[code].plannedTrainType = value
+
+            elif index.column() == self.C.description:
+                self._editor.services[code].description = value
+
             else:
                 return False
             self.dataChanged.emit(index, index)
             return True
         return False
 
-    def headerData(self, section, orientation, role = Qt.DisplayRole):
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Returns the header labels"""
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
-            if section == 0:
+
+            if section == self.C.serviceCode:
                 return self.tr("Code")
-            elif section == 1:
-                return self.tr("Description")
-            elif section == 2:
+
+            elif section == self.C.nextServiceCode:
                 return self.tr("Next service code")
-            elif section == 3:
+
+            elif section == self.C.autoReverse:
                 return self.tr("Auto reverse")
-            elif section == 4:
+
+            elif section == self.C.plannedTrainType:
                 return self.tr("Planned Train Type")
+
+            elif section == self.C.description:
+                return self.tr("Description")
+
+        if role == Qt.TextAlignmentRole:
+            return Qt.AlignLeft
+
         return None
 
     def flags(self, index):
         """Returns the flags of the model"""
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
+        flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        if index.column() != self.C.serviceCode:
+            flags |= Qt.ItemIsEditable
+        return flags
 
 
 class ServiceLine:
@@ -252,17 +276,33 @@ class ServiceLine:
     It consists of a place (usually a station) with a track number
     and scheduled times to arrive at and depart from this station.
     """
-    def __init__(self, service, parameters):
+    def __init__(self, parameters):
         """Constructor for the ServiceLine class"""
+        self._placeCode = parameters["placeCode"]
+        self._scheduledArrivalTime = \
+            QtCore.QTime.fromString(parameters["scheduledArrivalTime"])
+        self._scheduledDepartureTime = \
+            QtCore.QTime.fromString(parameters["scheduledDepartureTime"])
+        self._trackCode = parameters["trackCode"]
+        self._stop = int(parameters["mustStop"])
+        self._service = None
+        self.simulation = None
+
+    def initialize(self, service):
+        """Initialize the serviceLine for the given service."""
         self._service = service
         self.simulation = service.simulation
-        self._placeCode = parameters["placecode"]
-        self._scheduledArrivalTime = \
-                QtCore.QTime.fromString(parameters["scheduledarrivaltime"])
-        self._scheduledDepartureTime = \
-                QtCore.QTime.fromString(parameters["scheduleddeparturetime"])
-        self._trackCode = parameters["trackcode"]
-        self._stop = int(parameters["stop"])
+
+    def for_json(self):
+        """Dumps this service line to JSON."""
+        return {
+            "__type__": "ServiceLine",
+            "placeCode": self.placeCode,
+            "scheduledArrivalTime": self.scheduledArrivalTimeStr,
+            "scheduledDepartureTime": self.scheduledDepartureTimeStr,
+            "trackCode": self.trackCode,
+            "mustStop": self.mustStop
+        }
 
     @property
     def service(self):
@@ -362,19 +402,19 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
         self._service = None
         self._editor = editor
 
-    def rowCount(self, parent = QtCore.QModelIndex()):
+    def rowCount(self, parent=None, *args, **kwargs):
         """Returns the number of rows of the model, corresponding to the
         number of serviceLines of this service"""
         if self._service is not None:
-            return len(self._service._lines)
+            return len(self._service.lines)
         else:
             return 0
 
-    def columnCount(self, parent = QtCore.QModelIndex()):
+    def columnCount(self, parent=None, *args, **kwargs):
         """Returns the number of columns of the model"""
         return 5
 
-    def data(self, index, role = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         """Returns the data at the given index"""
         if role == Qt.DisplayRole or role == Qt.EditRole:
             line = self._service.lines[index.row()]
@@ -390,7 +430,7 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
                 return bool(line.mustStop)
         return None
 
-    def setData(self, index, value, role):
+    def setData(self, index, value, role=None):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
             line = self._service.lines[index.row()]
@@ -410,7 +450,7 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
             return True
         return False
 
-    def headerData(self, section, orientation, role = Qt.DisplayRole):
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Returns the header labels"""
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             if section == 0:
@@ -423,6 +463,8 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
                 return self.tr("Departure time")
             elif section == 4:
                 return self.tr("Stop")
+        if role == Qt.TextAlignmentRole:
+            return Qt.AlignLeft
         return None
 
     def flags(self, index):
@@ -432,13 +474,21 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
     @QtCore.pyqtSlot(str)
     def setServiceCode(self, serviceCode):
         """Sets the service linked with this model from its serviceCode."""
+        if serviceCode is None:
+            return
+        self.beginResetModel()
         self._service = self._editor.service(serviceCode)
-        self.reset()
+        self.endResetModel()
 
     @property
     def service(self):
         """Returns the service this model is attached to"""
         return self._service
+
+    @property
+    def simulation(self):
+        """Returns the editor of this model."""
+        return self._editor
 
 
 class Service:
@@ -446,33 +496,40 @@ class Service:
     follow with a few additional informations.
     The schedule is composed of several "lines" of type ServiceLine
     """
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the Service class"""
-        self.simulation = simulation
-        self._serviceCode = parameters["servicecode"]
+        self._serviceCode = parameters["serviceCode"]
         self._description = parameters["description"]
-        self._nextServiceCode = parameters["nextservice"]
-        self._autoReverse = parameters["autoreverse"]
-        self._plannedTrainType = parameters.get("plannedtraintype")
+        self._nextServiceCode = parameters["nextServiceCode"]
+        self._autoReverse = parameters["autoReverse"]
+        self._plannedTrainType = parameters.get("plannedTrainType")
         self._current = None
-        self._lines = []
+        self.simulation = None
+        self._lines = parameters.get("lines", [])
 
-    def addLine(self, parameters):
-        """Add a serviceLine to this Service based on the given parameters."""
-        sl = ServiceLine(self, parameters)
-        self._lines.append(sl)
-        sl.place.addTimetable(sl)
+    def initialize(self, simulation):
+        """Initialize the service once the simulation is loaded."""
+        self.simulation = simulation
+        for line in self._lines:
+            line.initialize(self)
+            line.place.addTimetable(line)
+
+    def for_json(self):
+        """Data for JSON dump."""
+        return {
+            "__type__": "Service",
+            "serviceCode": self.serviceCode,
+            "description": self.description,
+            "nextServiceCode": self.nextServiceCode,
+            "autoReverse": self.autoReverse,
+            "plannedTrainType": self.plannedTrainType,
+            "lines": self.lines
+        }
 
     @property
     def lines(self):
         """Returns the lines of this service"""
         return self._lines
-
-    #@property
-    #def minimumStopTime(self):
-        #"""Returns the minimum stop time applicable for this Service in the
-        #next plasce."""
-        #return float(self.simulation.option("defaultMinimumStopTime"))
 
     @property
     def entryPlaceName(self):
@@ -537,9 +594,9 @@ class Service:
 
     @property
     def plannedTrainType(self):
-        """Returns the planned train type for this service, which is not
-        necessarily the actual train type of the train to which this service
-        is assigned."""
+        """Returns the planned train type code (string) for this service, which
+        is not necessarily the actual train type of the train to which this
+        service is assigned."""
         return self._plannedTrainType
 
     @plannedTrainType.setter

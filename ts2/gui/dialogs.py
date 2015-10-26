@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -21,12 +21,14 @@
 import sys
 import traceback
 
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtWidgets, Qt
 
+import ts2
 from ts2.gui import servicelistview
+from ts2.utils import settings
 
-translate = QtGui.QApplication.translate
+translate = QtWidgets.qApp.translate
+
 
 class ExceptionDialog:
     """A Dialog box for displaying exception information
@@ -43,10 +45,10 @@ class ExceptionDialog:
             message += message.join(traceback.format_tb(sys.exc_info()[2]))
         else:
             message += message.join(traceback.format_exc())
-        return QtGui.QMessageBox.critical(parent, title, message)
+        return QtWidgets.QMessageBox.critical(parent, title, message)
 
 
-class PropertiesDialog(QtGui.QDialog):
+class PropertiesDialog(QtWidgets.QDialog):
     """Dialog box for editing simulation properties during the game."""
 
     def __init__(self, parent, simulation):
@@ -54,33 +56,36 @@ class PropertiesDialog(QtGui.QDialog):
         super().__init__(parent)
         self.simulation = simulation
         self.setWindowTitle(self.tr("Simulation properties"))
-        titleLabel = QtGui.QLabel(self)
+        self.setMinimumWidth(500)
+
+        titleLabel = QtWidgets.QLabel(self)
         titleLabel.setText("<u>" +
                            self.tr("Simulation title:") +
                            "</u>")
-        titleText = QtGui.QLabel(simulation.option("title"), self)
-        hlayout = QtGui.QHBoxLayout()
+        titleText = QtWidgets.QLabel(simulation.option("title"), self)
+
+        hlayout = QtWidgets.QHBoxLayout()
         hlayout.addWidget(titleLabel)
         hlayout.addWidget(titleText)
         hlayout.addStretch()
-        descriptionLabel = QtGui.QLabel(self)
+        descriptionLabel = QtWidgets.QLabel(self)
         descriptionLabel.setText("<u>" +
                                  self.tr("Description:") +
                                  "</u>")
-        descriptionText = QtGui.QTextEdit(self)
+        descriptionText = QtWidgets.QTextEdit(self)
         descriptionText.setReadOnly(True)
         descriptionText.setText(simulation.option("description"))
-        optionsLabel = QtGui.QLabel(self)
+        optionsLabel = QtWidgets.QLabel(self)
         optionsLabel.setText("<u>" + self.tr("Options:") + "</u>")
-        tibOptionCB = QtGui.QCheckBox(self)
+        tibOptionCB = QtWidgets.QCheckBox(self)
         tibOptionCB.stateChanged.connect(self.changeTIB)
         tibOptionCB.setChecked(
-                            int(simulation.option("trackCircuitBased")) != 0)
-        optionLayout = QtGui.QFormLayout()
+            int(simulation.option("trackCircuitBased")) != 0)
+        optionLayout = QtWidgets.QFormLayout()
         optionLayout.addRow(self.tr("Play simulation with track circuits"),
                             tibOptionCB)
-        buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
-        layout = QtGui.QVBoxLayout()
+        buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok)
+        layout = QtWidgets.QVBoxLayout()
         layout.addLayout(hlayout)
         layout.addWidget(descriptionLabel)
         layout.addWidget(descriptionText)
@@ -99,24 +104,31 @@ class PropertiesDialog(QtGui.QDialog):
             self.simulation.setOption("trackCircuitBased", 0)
 
 
-class ServiceAssignDialog(QtGui.QDialog):
+class ServiceAssignDialog(QtWidgets.QDialog):
     """TODO Document ServiceAssignDialog"""
 
     def __init__(self, parent, simulation):
         super().__init__(parent)
-        self.setWindowTitle(self.tr(
-                                "Choose a service to assign to this train"))
+        self.setObjectName("service_assign_dialog")
+        self.setWindowTitle(
+            self.tr("Choose a service to assign to this train")
+        )
         self.serviceListView = servicelistview.ServiceListView(self)
         self.serviceListView.setupServiceList(simulation)
-        buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok|
-                                           QtGui.QDialogButtonBox.Cancel)
-        layout = QtGui.QVBoxLayout()
+        buttonBox = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
+        layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.serviceListView)
         layout.addWidget(buttonBox)
         self.setLayout(layout)
         self.resize(600, 300)
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
+
+        self.serviceListView.doubleClicked.connect(self.accept)
+
+        settings.restoreWindow(self)
 
     def getServiceCode(self):
         index = self.serviceListView.selectionModel().selection().indexes()[0]
@@ -130,9 +142,111 @@ class ServiceAssignDialog(QtGui.QDialog):
         """Reassigns a service to the train given by trainId by poping-up a
         reassignServiceDialog."""
         sad = ServiceAssignDialog(simulation.simulationWindow, simulation)
-        if sad.exec_() == QtGui.QDialog.Accepted:
+        if sad.exec_() == QtWidgets.QDialog.Accepted:
             newServiceCode = sad.getServiceCode()
             if newServiceCode != "":
                 train = simulation.trains[trainId]
                 train.serviceCode = newServiceCode
 
+    def closeEvent(self, event):
+        """Save window postions on close"""
+        settings.saveWindow(self)
+        settings.sync()
+        super().closeEvent(event)
+
+
+class SplitTrainDialog(QtWidgets.QDialog):
+    """Popup window for the user to select where to split a train."""
+
+    def __init__(self, parent, train):
+        """Constructor for the SplitTrainDialog."""
+        super().__init__(parent)
+        self.setObjectName("split_train_dialog")
+        self.setWindowTitle(
+            self.tr("Split a train")
+        )
+        layout = QtWidgets.QVBoxLayout()
+
+        label0 = QtWidgets.QLabel(self)
+        label0.setText(train.trainType.elements[0].description)
+        layout.addWidget(label0)
+        self.radioButtons = []
+        for element in train.trainType.elements[1:]:
+            self.radioButtons.append(QtWidgets.QRadioButton(
+                self.tr("Split here"), self)
+            )
+            layout.addWidget(self.radioButtons[-1])
+            label = QtWidgets.QLabel(self)
+            label.setText(element.description)
+            layout.addWidget(label)
+        self.radioButtons[0].setChecked(True)
+        buttonBox = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
+        layout.addWidget(buttonBox)
+        self.setLayout(layout)
+        self.setMinimumWidth(300)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+        settings.restoreWindow(self)
+
+    def getSplitIndex(self):
+        """
+        :return: The index of the selected radio button
+        """
+        for button in self.radioButtons:
+            if button.isChecked():
+                return self.radioButtons.index(button)
+        return 0
+
+    @staticmethod
+    def getSplitIndexPopUp(train):
+        """Pops up a split train dialog and returns the index at which to split
+        the given train.
+        :param train: The train instance to split
+        """
+        simWindow = train.simulation.simulationWindow
+        std = SplitTrainDialog(simWindow, train)
+        if std.exec_() == QtWidgets.QDialog.Accepted:
+            train.splitTrain(std.getSplitIndex() + 1)
+
+    def closeEvent(self, event):
+        """Save window postions on close"""
+        settings.saveWindow(self)
+        settings.sync()
+        super().closeEvent(event)
+
+
+class DownloadSimulationsDialog(QtWidgets.QDialog):
+    """Popup window for the user to select download server."""
+    def __init__(self, parent):
+        """Constructor for the DownloadSimulationsDialog."""
+        super().__init__(parent)
+        self.setWindowTitle(
+            self.tr("Download simulations from server")
+        )
+        label = QtWidgets.QLabel(self)
+        label.setText(self.tr("Download server: "))
+        self.url = QtWidgets.QLineEdit(self)
+        self.url.setText(ts2.get_info().get('simulations_repo'))
+        hlayout = QtWidgets.QHBoxLayout()
+        hlayout.addWidget(label)
+        hlayout.addWidget(self.url)
+        note = QtWidgets.QLabel(self)
+        note.setText(self.tr("<em>The download server must be the url of a "
+                             "valid GitHub repository.</em>"))
+        buttonBox = QtWidgets.QDialogButtonBox()
+        buttonBox.addButton(self.tr("Download"),
+                            QtWidgets.QDialogButtonBox.AcceptRole)
+        buttonBox.addButton(self.tr("Cancel"),
+                            QtWidgets.QDialogButtonBox.RejectRole)
+        vlayout = QtWidgets.QVBoxLayout()
+        vlayout.addLayout(hlayout)
+        vlayout.addSpacing(5)
+        vlayout.addWidget(note)
+        vlayout.addSpacing(10)
+        vlayout.addWidget(buttonBox)
+        self.setLayout(vlayout)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)

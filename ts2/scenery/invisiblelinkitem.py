@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,8 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4.QtCore import Qt
+from Qt import Qt
+
 from ts2 import utils
 from ts2.scenery import lineitem
 
@@ -28,25 +29,24 @@ class InvisibleLinkItem(lineitem.LineItem):
     all on the scenery. They are used to make links between lines or to
     represent bridges and tunnels.
     """
-    def __init__(self, simulation, parameters):
+    def __init__(self, parameters):
         """Constructor for the InvisibleLinkItem class"""
-        super().__init__(simulation, parameters)
-        self.tiType = "LI"
-        self._tli.hide()
+        super().__init__(parameters)
+        for tli in self._tli:
+            tli.hide()
 
-    ### Methods ########################################################
+    # ## Methods ########################################################
 
     def updateTrain(self):
         """Does nothing as this is an invisible link."""
         pass
 
-    ### Graphics Methods ###############################################
+    # ## Graphics Methods ###############################################
 
-    def graphicsPaint(self, p, options, itemId, widget):
+    def graphicsPaint(self, p, options, itemId, widget=None):
         """This function is called by the owned TrackGraphicsItem to paint its
         painter. Draws nothing during the game."""
-        super(lineitem.LineItem, self).graphicsPaint(p, options,
-                                                      itemId, widget)
+        super(lineitem.LineItem, self).graphicsPaint(p, options, itemId, widget)
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             if self.selected:
                 p.setPen(Qt.magenta)
@@ -55,6 +55,3 @@ class InvisibleLinkItem(lineitem.LineItem):
             p.drawLine(self.line)
             self.drawConnectionRect(p, self.line.p1())
             self.drawConnectionRect(p, self.line.p2())
-
-
-

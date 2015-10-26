@@ -2,10 +2,11 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "TS2"
-#define MyAppVersion "0.5"
-#define MyAppPublisher "NPi"
-#define MyAppURL "http://ts2.sf.net"
+#define MyAppVersion "0.6"
+#define MyAppPublisher "TS2 Team"
+#define MyAppURL "http://ts2.github.io"
 #define MyAppExeName "ts2.exe"
+#define PythonVersion "3.4"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -14,7 +15,6 @@
 AppId={{EA342016-D18E-440E-BF2F-DF1EAED885DA}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-;AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -24,23 +24,22 @@ ArchitecturesInstallIn64BitMode=x64 ia64
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName=Train Signalling Simulation
 DisableProgramGroupPage=yes
-LicenseFile=C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-3.3\doc\COPYING.txt
-;InfoAfterFile=C:\Users\Nicolas\Documents\GitHub\ts2\build\exe.win-amd64-3.3\doc\README.txt
+LicenseFile=C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-{#PythonVersion}\doc\COPYING.txt
 OutputDir=dist
 OutputBaseFilename={#MyAppName}-{#MyAppVersion}-x64-setup
 Compression=lzma
 SolidCompression=yes
 
 [Languages]
-Name: "english"; MessagesFile: "compiler:Default.isl"; InfoAfterFile: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-3.3\doc\README.txt"
-Name: "french"; MessagesFile: "compiler:Languages\French.isl"; InfoAfterFile: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-3.3\doc\README_fr.txt"
+Name: "english"; MessagesFile: "compiler:Default.isl"; InfoAfterFile: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-{#PythonVersion}\doc\README.txt"
+Name: "french"; MessagesFile: "compiler:Languages\French.isl"; InfoAfterFile: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-{#PythonVersion}\doc\README_fr.txt"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-3.3\ts2.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-3.3\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-{#PythonVersion}\ts2.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-{#PythonVersion}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

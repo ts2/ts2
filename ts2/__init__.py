@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau                                
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org                                                           
 #                                                                         
 #   This program is free software; you can redistribute it and/or modify  
@@ -18,8 +18,45 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-#__all__ = ['bumperitem','clock','enditem','lineitem','mainwindow','panel', \
-           #'place','platformitem','pointsitem','position','route','service', \
-           #'serviceassigndialog','servicelistview','signalitem','signaltimeritem', \
-           #'simulation','trackitem','train','trainlistview','traintype','utils']
-       
+###############################################################
+### Please try and not include any imports here
+### As this file may be loaded in any enviroment
+### such as a packager, docs compile etc
+###############################################################
+
+
+__VERSION__ = "0.6.0"
+__FILE_FORMAT__ = 0.6
+__APP_SHORT__ = "ts2"
+__APP_LONG__ = "Train Signalling Simulation"
+__APP_DESCRIPTION__ = "A railway simulation game where you have to dispatch trains across an area and keep them on schedule"
+
+__ORG_NAME__ = "TS2 Team"
+__ORG_CONTACT__ = "npiganeau@github.com"
+
+__PROJECT_DOMAIN__ = "ts2.github.io"
+__PROJECT_WWW__ = "http://ts2.github.io/"
+__PROJECT_HOME__ = "https://github.com/ts2"
+__PROJECT_BUGS__ = "https://github.com/ts2/ts2/issues"
+__PROJECT_API_DOCS__ = "http://docs-ts2.rhcloud.com/"
+
+__SIMULATIONS_REPO__ = "https://github.com/ts2/ts2-data"
+
+
+def get_info():
+    """ts2 info
+
+    :rtype: `dict`
+    """
+    return dict(
+        version = __VERSION__,
+        app_short = __APP_SHORT__,
+        app_long = __APP_LONG__,
+        app_description = __APP_DESCRIPTION__,
+        project_domain = __PROJECT_DOMAIN__,
+        project_www = __PROJECT_WWW__,
+        project_home = __PROJECT_HOME__,
+        project_bugs = __PROJECT_BUGS__,
+        project_api_docs = __PROJECT_API_DOCS__,
+        simulations_repo = __SIMULATIONS_REPO__
+    )

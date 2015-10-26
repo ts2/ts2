@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,29 +18,37 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
+from Qt import QtCore, QtWidgets, Qt
 
 translate = QtCore.QCoreApplication.translate
 
-class TrackGraphicsItem(QtGui.QGraphicsItem):
-    """@brief Graphical item of a trackItem
-    This class is the graphics of a TrackItem on the scene. Each instance
+
+class TrackGraphicsItem(QtWidgets.QGraphicsItem):
+    """Graphical item of a trackItem
+
+    This class is the graphics of a :class:`~ts2.scenery.abstract.TrackItem` on the scene. Each instance
     belongs to a trackItem which is defined in the constructor and which
     is responsible for all actions related to this graphical item."""
     def __init__(self, trackItem, itemId=0):
-        """Constructor for the TrackGraphicsItem Class"""
+        """
+        :param trackItem: The object to draw for
+        :type trackItem: :class:`~ts2.scenery.abstract.TrackItem`
+        :param itemId: Id of this item
+        :type int:
+        """
         super().__init__()
         self.trackItem = trackItem
         self.itemId = itemId
         self.setZValue(0)
-        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
 
     def boundingRect(self):
-        """Returns the bounding rectangle of the TrackGraphicsItem.
-        See QGraphicsItem::boundingRect() for more info.
-        Actually calls the graphicsBoundingRect() function of the owning
-        trackItem"""
+        """
+        :return: The bounding rectangle of this ``TrackGraphicsItem``.
+                 See ``QGraphicsItem::boundingRect()`` for more info.
+                 Actually calls the graphicsBoundingRect() function of the owning trackItem
+        :rtype: ``QRectF``
+        """
         return self.trackItem.graphicsBoundingRect(self.itemId)
 
     def shape(self):
@@ -49,14 +57,14 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
         shape = super().shape()
         return self.trackItem.graphicsShape(shape, self.itemId)
 
-    def paint(self, painter, option, widget = 0):
+    def paint(self, painter, option, widget=None):
         """Painting function for the SignalGraphicsItem.
         This function calls the graphicsPaint function of the owning TrackItem
         to paint its painter."""
         self.trackItem.graphicsPaint(painter, option, self.itemId, widget)
-        #pen = QtGui.QPen(Qt.red)
-        #painter.setPen(pen)
-        #painter.drawPath(self.shape())
+        # pen = QtGui.QPen(Qt.red)
+        # painter.setPen(pen)
+        # painter.drawPath(self.shape())
 
     def mousePressEvent(self, event):
         """Event handler for mouse pressed.
@@ -90,7 +98,6 @@ class TrackGraphicsItem(QtGui.QGraphicsItem):
         self.trackItem.graphicsDropEvent(event, self.itemId)
 
 
-
 class TrackPropertiesModel(QtCore.QAbstractTableModel):
     """This class is a model for accessing TrackItem properties in the editor
     """
@@ -100,9 +107,9 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
         self.trackItems = trackItems
         self.simulation = trackItems[0].simulation
         self.multiType = False
-        tiType = self.trackItems[0].tiType
+        tiType = type(self.trackItems[0])
         for ti in self.trackItems:
-            if ti.tiType != tiType:
+            if type(ti) != tiType:
                 self.multiType = True
                 break
 
@@ -141,7 +148,7 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
                     return value
         return None
 
-    def setData(self, index, value, role = Qt.EditRole):
+    def setData(self, index, value, role=Qt.EditRole):
         """Sets the data to the model"""
         if role == Qt.EditRole:
             if index.column() == 1:
@@ -156,7 +163,7 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
                 return True
         return False
 
-    def headerData(self, section, orientation, role = Qt.DisplayRole):
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Returns the header labels"""
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             if section == 0:
@@ -177,7 +184,7 @@ class TrackPropertiesModel(QtCore.QAbstractTableModel):
         return retFlag
 
 
-class TIProperty():
+class TIProperty:
     """This class holds a TrackItem property that can be edited in the editor
     """
     def __init__(self, name, display, readOnly=False, propType="str",

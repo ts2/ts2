@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2008-2013 by Nicolas Piganeau
+#   Copyright (C) 2008-2015 by Nicolas Piganeau
 #   npi@m4x.org
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -18,154 +18,248 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import Qt
-
-from ts2 import simulation
+from Qt import QtCore, QtWidgets, Qt
 
 
-class Clock(QtGui.QLCDNumber):
+class ClockWidget(QtWidgets.QLCDNumber):
+    """Clock LCD Widget"""
 
     def __init__(self, parent):
+        """Constructor for the ClockWidget class."""
         super().__init__(parent)
-        self.setFrameShape(QtGui.QFrame.NoFrame)
-        self.setFrameShadow(QtGui.QFrame.Plain)
-        self.setSegmentStyle(QtGui.QLCDNumber.Flat)
+        self.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
+
         self.setNumDigits(8)
         self.display("--:--:--")
-        self.resize(100,20)
+        self.resize(100, 20)
 
     @QtCore.pyqtSlot(QtCore.QTime)
     def setTime(self, t):
         self.display(t.toString("hh:mm:ss"))
 
-class ZoomWidget(QtGui.QWidget):
+
+class ZoomWidget(QtWidgets.QWidget):
     """Zoom slider bar with associated spinBox."""
+
+    valueChanged = QtCore.pyqtSignal(int)
 
     def __init__(self, parent=None):
         """Constructor for the ZoomWidget class."""
         super().__init__(parent)
-        self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.Fixed)
-        self.button = QtGui.QPushButton(self.tr("100%"), self)
+        self.button = QtWidgets.QToolButton(self)
+        self.button.setText(self.tr("100%"))
+        self.button.setAutoRaise(True)
 
-        self.slider = QtGui.QSlider(Qt.Horizontal, self)
+        self.slider = QtWidgets.QSlider(Qt.Horizontal, self)
         self.slider.setRange(10, 200)
         self.slider.setValue(100)
         self.slider.setSingleStep(10)
+        self.slider.setMinimumWidth(140)
 
-        self.spinBox = QtGui.QSpinBox(self)
-        self.spinBox.setRange(10,200)
+        self.spinBox = QtWidgets.QSpinBox(self)
+        self.spinBox.setRange(10, 200)
         self.spinBox.setSingleStep(1)
         self.spinBox.setValue(100)
         self.spinBox.setSuffix("%")
         self.spinBox.setCorrectionMode(
-                                QtGui.QAbstractSpinBox.CorrectToNearestValue)
+            QtWidgets.QAbstractSpinBox.CorrectToNearestValue
+        )
 
         self.button.clicked.connect(self.setDefaultZoom)
         self.slider.valueChanged.connect(self.spinBox.setValue)
         self.spinBox.valueChanged.connect(self.slider.setValue)
         self.spinBox.valueChanged.connect(self.valueChanged)
 
-        hlayout = QtGui.QHBoxLayout()
+        hlayout = QtWidgets.QHBoxLayout()
+        hlayout.setContentsMargins(0, 0, 0, 0)
         hlayout.addWidget(self.button)
         hlayout.addWidget(self.slider)
         hlayout.addWidget(self.spinBox)
-        hlayout.setMargin(0)
         self.setLayout(hlayout)
-
-    valueChanged = QtCore.pyqtSignal(int)
 
     @QtCore.pyqtSlot()
     def setDefaultZoom(self):
         """Sets the zoom to 100%."""
         self.spinBox.setValue(100)
 
-    def sizeHint(self):
-        return QtCore.QSize(300,50)
 
-    def minimumSizeHint(self):
-        return QtCore.QSize(300,50)
+class XGraphicsView(QtWidgets.QGraphicsView):
+    """An extended QGraphicsView to handle wheel events"""
 
+    wheelChanged = QtCore.pyqtSignal(int)
+    """Signal emited when wheel has changed, direction = +1 or -1 """
 
-class Panel(QtGui.QWidget):
-    """The panel is the display rectangle below the scene holding the widgets
-    necessary to play the simulation (e.g. clock)."""
-
-    def __init__(self, parent, simulationWindow):
-        """Constructor for the Panel class."""
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self.simulation = None
-        self.simulationWindow = simulationWindow
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Fixed)
-        # Clock
-        self.clock = Clock(self)
-        # Pause button
-        self.pauseButton = QtGui.QPushButton(self.tr("Pause"), self)
-        self.pauseButton.setCheckable(True)
-        # Time factor spinBox
-        self.timeFactorSpinBox = QtGui.QSpinBox(self)
-        self.timeFactorSpinBox.setRange(0, 10)
-        self.timeFactorSpinBox.setSingleStep(1)
-        self.timeFactorSpinBox.setValue(1)
-        self.timeFactorSpinBox.setSuffix("x")
-        # Zoom spinBox
-        self.zoomWidget = ZoomWidget(self)
-        self.zoomWidget.valueChanged.connect(self.simulationWindow.zoom)
-        # score display
-        self.scoreDisplay = QtGui.QLCDNumber(self)
-        self.scoreDisplay.setFrameShape(QtGui.QFrame.NoFrame)
-        self.scoreDisplay.setFrameShadow(QtGui.QFrame.Plain)
-        self.scoreDisplay.setSegmentStyle(QtGui.QLCDNumber.Flat)
-        self.scoreDisplay.setNumDigits(5)
-        self.scoreDisplay.resize(70, 25)
 
-        layout = QtGui.QHBoxLayout()
-        layout.addSpacing(5)
-        layout.addWidget(self.clock)
-        layout.addSpacing(5)
-        layout.addWidget(self.pauseButton)
-        layout.addSpacing(5)
-        layout.addWidget(QtGui.QLabel(self.tr("Simulation speed: ")))
-        layout.addWidget(self.timeFactorSpinBox)
-        layout.addSpacing(5)
-        # layout.addWidget(QtGui.QLabel(self.tr("Zoom: ")))
-        layout.addWidget(self.zoomWidget)
-        layout.addStretch()
-        layout.addWidget(QtGui.QLabel(self.tr("Penalty points: ")))
-        layout.addWidget(self.scoreDisplay)
-        self.setLayout(layout)
-
-        self.simulationWindow.simulationLoaded.connect(self.activate)
-
-    @QtCore.pyqtSlot(simulation.Simulation)
-    def activate(self, sim):
-        """Activates the panel with the given simulation."""
-        self.simulation = sim
-        self.pauseButton.toggled.connect(self.simulation.pause)
-        self.pauseButton.toggled.connect(self.changePauseButtonText)
-        self.timeFactorSpinBox.valueChanged.connect(
-                                            self.simulation.setTimeFactor)
-        self.timeFactorSpinBox.setValue(
-                                float(self.simulation.option("timeFactor")))
-
-    zoomChanged = QtCore.pyqtSignal(int)
-
-    def sizeHint(self):
-        return QtCore.QSize(800,40)
-
-    def minimumSizeHint(self):
-        return QtCore.QSize(200,40)
-
-
-    @QtCore.pyqtSlot(bool)
-    def changePauseButtonText(self, paused):
-        if paused:
-            self.pauseButton.setText(self.tr("Continue"))
+    def wheelEvent(self, ev):
+        """Override the wheelEvent, and send signal with direction"""
+        if ev.angleDelta().y() > 1:
+            self.wheelChanged.emit(+1)
         else:
-            self.pauseButton.setText(self.tr("Pause"))
+            self.wheelChanged.emit(-1)
 
-    @QtCore.pyqtSlot(int)
-    def zoomWidgetChanged(self, percent):
-        self.zoomChanged.emit(percent)
 
+class StatusBar(QtWidgets.QStatusBar):
+    """A horizontal bar with embedded progress bar
+
+    .. todo: The progressBar is not showing progress !!
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.progressTimer = QtCore.QTimer()
+        self.progressTimer.setInterval(100)
+        self.progressTimer.timeout.connect(self.onProgressTimeout)
+
+        self.progressContainerWidget = HBoxWidget()
+        self.progressContainerWidget.setFixedWidth(100)
+        self.progressContainerWidget.setFixedHeight(15)
+        self.addPermanentWidget(self.progressContainerWidget)
+
+        self.progressBar = QtWidgets.QProgressBar()
+        self.progressBar.setTextVisible(False)
+        self.progressContainerWidget.addWidget(self.progressBar, 1)
+        self.progressBar.setVisible(False)
+
+    def showMessage(self, txt, timeout=0, info=False, warn=False):
+        """Shows a message
+
+        :param str txt: Text to display
+        :param int timeout: Timeout in seconds
+        :param bool info: shows blue
+        :param bool warn: shows red
+        """
+        color = "black"
+        if warn:
+            color = "#AC3636"
+        elif info:
+            color = "#204292"
+        self.setStyleSheet("color: %s" % color)
+
+        if timeout > 0:
+            super().showMessage(txt, timeout * 1000)
+        else:
+            super().showMessage(txt)
+
+    @QtCore.pyqtSlot()
+    def onProgressTimeout(self):
+        print("onTimer")
+        QtWidgets.qApp.processEvents()
+
+    def showBusy(self, is_busy):
+        """Shows the progress bar and makes busy bee"""
+        if is_busy:
+            self.progressBar.setRange(0, 0)
+            self.progressTimer.start()
+        else:
+            self.progressBar.setRange(0, 0)
+            self.progressTimer.stop()
+        self.progressBar.setVisible(is_busy)
+
+
+class ToolBarGroup(QtWidgets.QWidget):
+    """Created a widget with a small label, containing a toolbar with widgets
+
+
+    """
+    def __init__(self, parent=None, title=None, fg=None, bg=None):
+        """
+        :param title: The title to show in header
+
+        """
+        super().__init__(parent)
+
+        self.fg = "#333333" if fg is None else fg
+        self.bg = "#cccccc" if bg is None else bg
+
+        # Main Layout
+        mainLayout = QtWidgets.QVBoxLayout()
+        mainLayout.setContentsMargins(0, 0, 0, 0)
+        mainLayout.setSpacing(0)
+        self.setLayout(mainLayout)
+
+        # Label
+        self.label = QtWidgets.QLabel()
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
+        mainLayout.addWidget(self.label)
+        self.updateStyle()
+
+        # Toolbar - were using a toolbar as we can addAction, Q*box dont allow
+        self.toolbar = QtWidgets.QToolBar()
+        self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.toolbar.setFixedHeight(30)
+        self.toolbar.layout().setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
+        mainLayout.addWidget(self.toolbar)
+
+        if title:
+            self.setTitle(title)
+
+    def updateStyle(self):
+        lbl_sty = "background: %s; " % self.bg
+        lbl_sty += " color: %s; font-size: 7pt; padding: 1px;" % self.fg
+        self.label.setStyleSheet(lbl_sty)
+
+    def setTitle(self, title):
+        self.label.setText("%s" % title)
+
+    def addWidget(self, widget):
+        self.toolbar.addWidget(widget)
+
+    def addAction(self, action):
+        self.toolbar.addAction(action)
+
+
+class VBoxWidget(QtWidgets.QWidget):
+    """A QWidget with a Vertical Box"""
+
+    def __init__(self, parent=None, margin=0):
+        super().__init__(parent)
+
+        lay = QtWidgets.QVBoxLayout()
+        lay.setContentsMargins(margin, margin, margin, margin)
+        self.setLayout(lay)
+
+    def addWidget(self, widget, stretch=0):
+        self.layout().addWidget(widget, stretch)
+
+    def addLayout(self, layout, stretch=0):
+        self.layout().addLayout(layout, stretch)
+
+
+class HBoxWidget(QtWidgets.QWidget):
+    """A `QWidget` with a Horizontal Box"""
+
+    def __init__(self, parent=None, margin=0):
+        super().__init__(parent)
+
+        lay = QtWidgets.QVBoxLayout()
+        lay.setContentsMargins(margin, margin, margin, margin)
+        self.setLayout(lay)
+
+    def addWidget(self, widget, stretch=0):
+        self.layout().addWidget(widget, stretch)
+
+    def addLayout(self, layout, stretch=0):
+        self.layout().addLayout(layout, stretch)
+
+
+class HeaderLabel(QtWidgets.QLabel):
+    def __init__(self, parent=None, text="", start=None, end=None, align=None):
+        super().__init__(parent)
+
+        self.setText(text)
+
+        align = align if align else Qt.AlignCenter
+        self.setAlignment(align | Qt.AlignVCenter)
+
+        start = start if start else "#ffffff"
+        end = end if end else "#aaaaaa"
+
+        sty = "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0," \
+              " stop: 0 %s, stop: 1 %s);" % (start, end)
+        sty += " color: #333333; font-size: 14pt; padding: 5px;"
+        self.setStyleSheet(sty)
