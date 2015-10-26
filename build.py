@@ -1,14 +1,23 @@
 # cx_freeze setup file
+#
+# Call this script on Windows with:
+# python build.py build
 
 import sys, os
 
 from cx_Freeze import setup, Executable
 from ts2 import __APP_SHORT__, __APP_LONG__, __VERSION__
 
-# Generate the qm translation files
+
+def find_file(name, path):
+    for root, dirs, files in os.walk(path):
+        if name in files:
+            return os.path.join(root, name)
+
+print("############# Generating translation files ###################")
 out = os.system("lrelease i18n/ts2.pro")
 
-# Freeze the software into an exe
+print("############# Freezing TS2 as an executable ###################")
 build_exe_options = {
     "includes": ["atexit"],
     "packages": ["re"],
@@ -36,4 +45,16 @@ setup(
     executables=[Executable("start-ts2.py", base=base, targetName="ts2.exe")]
 )
 
-# Make the installer
+if sys.platform == "win32":
+    print("############# Making the installer ###################")
+    compiler = find_file('Compil32.exe', 'C:\\Program Files (x86)')
+    if not compiler:
+        compiler = find_file('Compil32.exe', 'C:\\Program Files')
+    if compiler:
+        print("Inno Setup Compiler found at: %s" % compiler)
+        os.system("\"%s\" /cc setup.iss" % compiler)
+    else:
+        print("No Inno Setup Compiler found, exiting.")
+        sys.exit()
+
+print("############### End of building process ##############")
