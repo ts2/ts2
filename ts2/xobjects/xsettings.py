@@ -101,7 +101,7 @@ class XSettings(QtCore.QSettings):
         ~/.ts2/
         """
         homeDir = os.path.expanduser("~")
-        if os.path.commonprefix((homeDir, os.getcwd())):
+        if os.path.commonprefix((homeDir, os.getcwd())).startswith(homeDir):
             return os.getcwd()
         else:
             os.makedirs(os.path.join(homeDir, ".ts2", "data"), exist_ok=True)
