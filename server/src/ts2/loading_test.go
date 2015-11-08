@@ -207,47 +207,49 @@ const simJson string = `
 }`
 
 func TestLoadOptions(t *testing.T) {
-	if err := json.Unmarshal([]byte(simJson), &Sim); err != nil {
+	var sim Simulation
+	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
 		t.Errorf("Options: error while loading JSON: %s", err)
 	}
-	assertEqual(t, Sim.Options.CurrentScore, 12, "Options/currentScore")
+	assertEqual(t, sim.Options.CurrentScore, 12, "Options/currentScore")
 	sixOClock, _ := time.Parse("15:04:05", "06:00:00")
-	assertEqual(t, Sim.Options.CurrentTime, Time{sixOClock}, "Options/currentTime")
-	assertTrue(t, Sim.Options.DefaultDelayAtEntry.equals(DelayGenerator{[]tuplet{{0, 0, 100}}}), "Options/defaultDelayAtEntry")
-	assertTrue(t, Sim.Options.DefaultMinimumStopTime.equals(DelayGenerator{[]tuplet{{20, 40, 90}, {40, 120, 10}}}), "Options/defaultMinimumStopTime")
-	assertEqual(t, Sim.Options.DefaultMaxSpeed, 18.06, "Options/defaultMaxSpeed")
-	assertEqual(t, Sim.Options.DefaultSignalVisibility, 100.0, "Options/defaultSignalVisibility")
-	assertEqual(t, Sim.Options.Description, "This simulation is a demo sim !", "Options/description")
-	assertEqual(t, Sim.Options.Title, "Demo Sim", "Options/title")
-	assertEqual(t, Sim.Options.TimeFactor, 5, "Options/timeFactor")
-	assertEqual(t, Sim.Options.Version, "0.7", "Options/version")
-	assertEqual(t, Sim.Options.WarningSpeed, 8.34, "Options/warningSpeed")
-	assertEqual(t, Sim.Options.TrackCircuitBased, false, "Options/trackCircuitBased")
+	assertEqual(t, sim.Options.CurrentTime, Time{sixOClock}, "Options/currentTime")
+	assertTrue(t, sim.Options.DefaultDelayAtEntry.equals(DelayGenerator{[]tuplet{{0, 0, 100}}}), "Options/defaultDelayAtEntry")
+	assertTrue(t, sim.Options.DefaultMinimumStopTime.equals(DelayGenerator{[]tuplet{{20, 40, 90}, {40, 120, 10}}}), "Options/defaultMinimumStopTime")
+	assertEqual(t, sim.Options.DefaultMaxSpeed, 18.06, "Options/defaultMaxSpeed")
+	assertEqual(t, sim.Options.DefaultSignalVisibility, 100.0, "Options/defaultSignalVisibility")
+	assertEqual(t, sim.Options.Description, "This simulation is a demo sim !", "Options/description")
+	assertEqual(t, sim.Options.Title, "Demo Sim", "Options/title")
+	assertEqual(t, sim.Options.TimeFactor, 5, "Options/timeFactor")
+	assertEqual(t, sim.Options.Version, "0.7", "Options/version")
+	assertEqual(t, sim.Options.WarningSpeed, 8.34, "Options/warningSpeed")
+	assertEqual(t, sim.Options.TrackCircuitBased, false, "Options/trackCircuitBased")
 }
 
 func TestLoadTrackItems(t *testing.T) {
-	if err := json.Unmarshal([]byte(simJson), &Sim); err != nil {
+	var sim Simulation
+	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
 		t.Errorf("TrackItems: error while loading JSON: %s", err)
 	}
-	assertEqual(t, len(Sim.TrackItems), 9, "TrackItems: Not all loaded")
+	assertEqual(t, len(sim.TrackItems), 9, "TrackItems: Not all loaded")
 
-	li1, ok := Sim.TrackItems[1].(LineItem)
+	li1, ok := sim.TrackItems[1].(LineItem)
 	assertTrue(t, ok, "TrackItems: 1 not loaded")
-	li3, ok := Sim.TrackItems[3].(LineItem)
+	li3, ok := sim.TrackItems[3].(LineItem)
 	assertTrue(t, ok, "TrackItems: 3 not loaded")
-	ei4, ok := Sim.TrackItems[4].(EndItem)
+	ei4, ok := sim.TrackItems[4].(EndItem)
 	assertTrue(t, ok, "TrackItems: 4 not loaded")
-	ili5, ok := Sim.TrackItems[5].(InvisibleLinkItem)
+	ili5, ok := sim.TrackItems[5].(InvisibleLinkItem)
 	assertTrue(t, ok, "TrackItems: 5 not loaded")
-	pfi6, ok := Sim.TrackItems[6].(PlatformItem)
+	pfi6, ok := sim.TrackItems[6].(PlatformItem)
 	assertTrue(t, ok, "TrackItems: 6 not loaded")
-	ti7, ok := Sim.TrackItems[7].(TextItem)
+	ti7, ok := sim.TrackItems[7].(TextItem)
 	assertTrue(t, ok, "TrackItems: 7 not loaded")
-	pi8, ok := Sim.TrackItems[8].(PointsItem)
+	pi8, ok := sim.TrackItems[8].(PointsItem)
 	assertTrue(t, ok, "TrackItems: 8 not loaded")
-	li9, ok := Sim.TrackItems[9].(LineItem)
+	li9, ok := sim.TrackItems[9].(LineItem)
 	assertTrue(t, ok, "TrackItems: 9 not loaded")
-	li10, ok := Sim.TrackItems[10].(LineItem)
+	li10, ok := sim.TrackItems[10].(LineItem)
 	assertTrue(t, ok, "TrackItems: 10 not loaded")
 
 	assertEqual(t, li1.Name(), "", "TrackItems/Name")
@@ -284,7 +286,7 @@ func TestLoadTrackItems(t *testing.T) {
 	assertEqual(t, li9.PreviousItem(), pi8, "TrackItem/Link")
 	assertEqual(t, li10.PreviousItem(), pi8, "TrackItem/Link")
 
-	place, okBnk := Sim.Places["BNK"]
+	place, okBnk := sim.Places["BNK"]
 	assertTrue(t, okBnk, "Places: BNK not loaded")
 	assertEqual(t, place.Name(), "BANK", "Places/Name")
 	assertEqual(t, li3.Place(), place, "TrackItems/Place")

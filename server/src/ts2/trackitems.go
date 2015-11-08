@@ -42,6 +42,8 @@ type TrackItem interface {
 	Type() string
 	// Name returns the human readable name of this item.
 	Name() string
+	// setSimulation sets the simulation of the item.
+	setSimulation(*Simulation)
 	// NextItem returns the next item of this TrackItem. The next item is
 	// usually the item connected to the end of the item that is not the origin.
 	NextItem() TrackItem
@@ -89,6 +91,7 @@ type trackStruct struct {
 	CustomProperties []customProperty `json:"customProperties"`
 	PlaceCode        string           `json:"placeCode"`
 
+	simulation       *Simulation
 	activeRoute      *Route
 	arPreviousItem   TrackItem
 	selected         bool
@@ -103,17 +106,21 @@ func (ti *trackStruct) Name() string {
 	return ti.TsName
 }
 
+func (ti *trackStruct) setSimulation(sim *Simulation) {
+	ti.simulation = sim
+}
+
 func (ti *trackStruct) NextItem() TrackItem {
-	return Sim.TrackItems[ti.NextTiId]
+	return ti.simulation.TrackItems[ti.NextTiId]
 }
 
 func (ti *trackStruct) PreviousItem() TrackItem {
-	return Sim.TrackItems[ti.PreviousTiId]
+	return ti.simulation.TrackItems[ti.PreviousTiId]
 }
 
 func (ti *trackStruct) MaxSpeed() float64 {
 	if ti.TsMaxSpeed == 0 {
-		return Sim.Options.DefaultMaxSpeed
+		return ti.simulation.Options.DefaultMaxSpeed
 	}
 	return ti.TsMaxSpeed
 }
@@ -127,11 +134,11 @@ func (ti *trackStruct) Origin() Point {
 }
 
 func (ti *trackStruct) ConflictItem() TrackItem {
-	return Sim.TrackItems[ti.ConflictTiId]
+	return ti.simulation.TrackItems[ti.ConflictTiId]
 }
 
 func (ti *trackStruct) Place() Place {
-	return Sim.Places[ti.PlaceCode]
+	return ti.simulation.Places[ti.PlaceCode]
 }
 
 func (ti *trackStruct) FollowingItem(precedingItem TrackItem, direction int) (TrackItem, error) {
@@ -386,7 +393,7 @@ func (pi *pointsStruct) ReverseEnd() Point {
 }
 
 func (pi *pointsStruct) ReverseItem() TrackItem {
-	return Sim.TrackItems[pi.ReverseTiId]
+	return pi.simulation.TrackItems[pi.ReverseTiId]
 }
 
 func (pi *pointsStruct) Reversed() bool {

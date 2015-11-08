@@ -38,7 +38,8 @@ func (sim *Simulation) UnmarshalJSON(data []byte) error {
 				return fmt.Errorf("Unable to decode %s: %s. %s", tiType, tiString, err)
 			}
 			tiId, _ := strconv.Atoi(strings.Trim(tiId, `"`))
-			Sim.TrackItems[tiId] = ti
+			ti.setSimulation(sim)
+			sim.TrackItems[tiId] = ti
 			return nil
 		}
 
@@ -75,5 +76,3 @@ func (sim *Simulation) UnmarshalJSON(data []byte) error {
 	sim.Options = rawSim.Options
 	return nil
 }
-
-var Sim *Simulation
