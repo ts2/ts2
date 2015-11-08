@@ -5,12 +5,12 @@ type options struct {
 	CurrentScore            int            `json:"currentScore"`
 	CurrentTime             Time           `json:"currentTime"`
 	DefaultDelayAtEntry     DelayGenerator `json:"defaultDelayAtEntry"`
-	DefaultMaxSpeed         float32        `json:"defaultMaxSpeed"`
+	DefaultMaxSpeed         float64        `json:"defaultMaxSpeed"`
 	DefaultMinimumStopTime  DelayGenerator `json:"defaultMinimumStopTime"`
-	DefaultSignalVisibility float32        `json:"defaultSignalVisibility"`
+	DefaultSignalVisibility float64        `json:"defaultSignalVisibility"`
 	Description             string         `json:"description"`
 	TimeFactor              int            `json:"timeFactor"`
 	Title                   string         `json:"title"`
 	Version                 string         `json:"version"`
-	WarningSpeed            float32        `json:"warningSpeed"`
+	WarningSpeed            float64        `json:"warningSpeed"`
 }
