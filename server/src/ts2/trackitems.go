@@ -1,4 +1,5 @@
 package ts2
+
 import (
 	"fmt"
 )
@@ -7,7 +8,7 @@ import (
 bigFloat is a large number used for the length of EndItem. It must be bigger
 than the maximum distance the fastest train can travel during the game time step
 at maximum simulation speed.
- */
+*/
 const bigFloat = 1000000000.0
 
 type customProperty map[string][]int
@@ -15,7 +16,7 @@ type customProperty map[string][]int
 /*
 ItemsNotLinkedError is returned when two TrackItem instances that are assumed
 to be linked are not.
- */
+*/
 type ItemsNotLinkedError struct {
 	item1 TrackItem
 	item2 TrackItem
@@ -30,9 +31,8 @@ A TrackItem is a piece of scenery and is a base interface. Each item
 has defined coordinates in the scenery layout and is connected to other
 items so that the trains can travel from one to another.
 
-- The coordinates are expressed in pixels
-- The X-axis is from left to right
-- The Y-axis is from top to bottom
+The coordinates are expressed in pixels, the X-axis is from left to right and
+the Y-axis is from top to bottom.
 
 A TrackItem has an origin point defined by its X and Y fields.
 */
@@ -78,7 +78,7 @@ type TrackItem interface {
 
 /*
 trackStruct is a struct the pointer of which implements TrackItem
- */
+*/
 type trackStruct struct {
 	TsName           string           `json:"name"`
 	NextTiId         int              `json:"nextTiId"`
@@ -91,11 +91,11 @@ type trackStruct struct {
 	CustomProperties []customProperty `json:"customProperties"`
 	PlaceCode        string           `json:"placeCode"`
 
-	simulation       *Simulation
-	activeRoute      *Route
-	arPreviousItem   TrackItem
-	selected         bool
-	trains           []*Train
+	simulation     *Simulation
+	activeRoute    *Route
+	arPreviousItem TrackItem
+	selected       bool
+	trains         []*Train
 }
 
 func (ti *trackStruct) Type() string {
@@ -164,7 +164,7 @@ type ResizableItem interface {
 
 /*
 resizableStruct is a struct the pointer of which implements ResizableItem
- */
+*/
 type resizableStruct struct {
 	trackStruct
 	Xf float64 `json:"xf"`
@@ -182,14 +182,14 @@ func (ri *resizableStruct) End() Point {
 /*
 A Place is a special TrackItem representing a physical location such as a
 station or a passing point. Place items are not linked to other items.
- */
+*/
 type Place interface {
 	TrackItem
 }
 
 /*
 placeStruct is a struct the pointer of which implements Place
- */
+*/
 type placeStruct struct {
 	trackStruct
 }
@@ -201,7 +201,7 @@ func (pl *placeStruct) Type() string {
 /*
 A PlaceObject is an interface that TrackItem instances that interact with a
 Place should implement.
- */
+*/
 type PlaceObject interface {
 	// TrackCode returns the track number of this LineItem, if it is part of a
 	// place and if it has one.
@@ -211,7 +211,7 @@ type PlaceObject interface {
 /*
 A LineItem is a resizable TrackItem that represent a simple railway line and
 that is used to connect two TrackItem together.
- */
+*/
 type LineItem interface {
 	ResizableItem
 	PlaceObject
@@ -219,7 +219,7 @@ type LineItem interface {
 
 /*
 lineStruct is a struct the pointer of which implements LineItem
- */
+*/
 type lineStruct struct {
 	resizableStruct
 	TsTrackCode string `json:"trackCode"`
@@ -234,19 +234,17 @@ func (li *lineStruct) TrackCode() string {
 }
 
 /*
-InvisibleLinkItem is the same as LinkItem except that clients are encouraged not 
-to show them on the scenery.
 InvisibleLinkItem behave like line items, but clients are encouraged not to
 represented them on the scenery. They are used to make links between lines or to
 represent bridges and tunnels.
- */
+*/
 type InvisibleLinkItem interface {
 	LineItem
 }
 
 /*
 invisibleLinkStruct is a struct the pointer of which implements InvisibleLinkItem
- */
+*/
 type invisibleLinkstruct struct {
 	lineStruct
 }
@@ -260,14 +258,14 @@ End items are invisible items to which the free ends of other Trackitem instance
 must be connected to prevent the simulation from crashing.
 
 End items are single point items.
- */
+*/
 type EndItem interface {
 	TrackItem
 }
 
 /*
 endStruct is a struct the pointer of which implements EndItem
- */
+*/
 type endStruct struct {
 	trackStruct
 }
@@ -283,7 +281,7 @@ func (ei *endStruct) RealLength() float64 {
 /*
 Platform items are usually represented as a colored rectangle on the scene to
 symbolise the platform. This colored rectangle can permit user interaction.
- */
+*/
 type PlatformItem interface {
 	ResizableItem
 	PlaceObject
@@ -291,7 +289,7 @@ type PlatformItem interface {
 
 /*
 platformStruct is a struct the pointer of which implements PlatformItem
- */
+*/
 type platformStruct struct {
 	lineStruct
 }
@@ -302,14 +300,14 @@ func (pfi *platformStruct) Type() string {
 
 /*
 TextItem is a prop to display simple text on the layout
- */
+*/
 type TextItem interface {
 	TrackItem
 }
 
 /*
 textStruct is a struct the pointer of which implements TextItem
- */
+*/
 type textStruct struct {
 	trackStruct
 }
@@ -321,25 +319,21 @@ func (ti *textStruct) Type() string {
 /*
 PointsItem is a three-way junction.
 
-The three ends are called:
-- common end
-- normal end
-- reverse end
+The three ends are called `common end`, `normal end` and `reverse end`
 
-					____________ reverse
-				   /
-common ___________/______________normal
+	                    ____________ reverse
+	                   /
+	common ___________/______________normal
 
-- Trains can go from common end to normal or reverse ends depending on the
-state of the points.
-- They cannot go from normal end to reverse end.
-- Usually, the normal end is aligned with the common end and the reverse end
+Trains can go from common end to normal or reverse ends depending on the
+state of the points, but they cannot go from normal end to reverse end.
+Usually, the normal end is aligned with the common end and the reverse end
 is sideways, but this is not mandatory.
 
 Points are represented on a 10 x 10 square centered on Center point. CommonEnd,
 NormalEnd and ReverseEnd are points on the side of this square (i.e. they have
 at least one coordinate which is 5 or -5)
- */
+*/
 type PointsItem interface {
 	TrackItem
 	// The center point of this PointsItem in the scene coordinates
@@ -359,7 +353,7 @@ type PointsItem interface {
 
 /*
 pointsStruct is a struct the pointer of which implements PointsItem
- */
+*/
 type pointsStruct struct {
 	trackStruct
 	Xc          float64 `json:"xf"`

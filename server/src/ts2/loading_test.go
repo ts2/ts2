@@ -6,206 +6,6 @@ import (
 	"time"
 )
 
-
-func (a DelayGenerator) equals(b DelayGenerator) bool {
-	for i := 0; i < len(a.data); i++ {
-		for j := 0; j < 3; j++ {
-			if a.data[i][j] != b.data[i][j] {
-				return false
-			}
-		}
-	}
-	return true
-}
-
-func assertTrue(t *testing.T, expr bool, msg string) {
-	if !expr {
-		t.Errorf("%v: expression is false", msg)
-	}
-}
-
-func assertEqual(t *testing.T, a interface{}, b interface{}, msg string) {
-	if a != b {
-		t.Errorf("%v: %v(%T) is not equal to %v(%T)", msg, a, a, b, b)
-	}
-}
-
-const simJson string = `
-{
-	"__type__": "Simulation",
-	"messageLogger": {
-		"__type__": "MessageLogger",
-		"messages": []
-	},
-	"options": {
-		"currentScore": 12,
-		"currentTime": "06:00:00",
-		"defaultDelayAtEntry": 0,
-		"defaultMaxSpeed": 18.06,
-		"defaultMinimumStopTime": [[20,40,90],[40,120,10]],
-		"defaultSignalVisibility": 100,
-		"description": "This simulation is a demo sim !",
-		"timeFactor": 5,
-		"title": "Demo Sim",
-		"trackCircuitBased": false,
-		"warningSpeed": 8.34,
-		"version": "0.7"
-	},
-	"routes": {
-		"1": {
-			"__type__": "Route",
-			"beginSignal": 72,
-			"directions": {
-				"511": 0,
-				"512": 0
-			},
-			"endSignal": 73,
-			"initialState": 1,
-			"routeNum": 1
-		}
-	},
-	"trackItems": {
-        "1": {
-            "__type__": "LineItem",
-            "conflictTiId": null,
-            "maxSpeed": 0.0,
-            "name": null,
-            "nextTiId": 3,
-            "placeCode": null,
-            "previousTiId": 4,
-            "realLength": 40.0,
-            "trackCode": "",
-            "x": 200.0,
-            "xf": 240.0,
-            "y": 100.0,
-            "yf": 100.0
-        },
-        "3": {
-            "__type__": "LineItem",
-            "conflictTiId": null,
-            "maxSpeed": 123.0,
-            "name": "Sample Name",
-            "nextTiId": 5,
-            "placeCode": "BNK",
-            "previousTiId": 1,
-            "realLength": 40.0,
-            "trackCode": "TC",
-            "x": 240.0,
-            "xf": 290.0,
-            "y": 100.0,
-            "yf": 150.0
-        },
-        "4":{
-            "__type__": "EndItem",
-            "conflictTiId": null,
-            "maxSpeed": 18.06,
-            "name": null,
-            "nextTiId": null,
-            "previousTiId": 1,
-            "x": 200.0,
-            "y": 100.0
-        },
-        "5": {
-            "__type__": "InvisibleLinkItem",
-            "conflictTiId": null,
-            "maxSpeed": 35.0,
-            "name": null,
-            "nextTiId": 8,
-            "placeCode": null,
-            "previousTiId": 3,
-            "realLength": 45.0,
-            "trackCode": null,
-            "x": 290.0,
-            "xf": 350.0,
-            "y": 150.0,
-            "yf": 150.0
-        },
-        "100": {
- 			"__type__": "Place",
-            "conflictTiId": null,
-            "maxSpeed": 0,
-            "name": "BANK",
-            "nextTiId": null,
-            "placeCode": "BNK",
-            "previousTiId": null,
-            "tiId": 100,
-            "x": 60.0,
-            "y": 50.0
-        },
-        "6": {
-            "__type__": "PlatformItem",
-            "conflictTiId": null,
-            "maxSpeed": 18.06,
-            "name": null,
-            "nextTiId": null,
-            "placeCode": "BNK",
-            "previousTiId": null,
-            "trackCode": "7",
-            "x": 10.0,
-            "xf": 129.0,
-            "y": 110.0,
-            "yf": 130.0
-        },
-		"7": {
-            "__type__": "TextItem",
-            "conflictTiId": null,
-            "maxSpeed": 6.7,
-            "name": "Sample Text",
-            "nextTiId": null,
-            "previousTiId": null,
-            "x": -20.0,
-            "y": 615.0
-        },
-        "8": {
-            "__type__": "PointsItem",
-            "conflictTiId": null,
-            "maxSpeed": 18.06,
-            "name": null,
-            "nextTiId": 9,
-            "previousTiId": 5,
-            "reverseTiId": 10,
-            "x": 355.0,
-            "xf": -5.0,
-            "xn": 5.0,
-            "xr": 5.0,
-            "y": 150.0,
-            "yf": 0.0,
-            "yn": 0.0,
-            "yr": 5.0
-		},
-        "9": {
-            "__type__": "LineItem",
-            "conflictTiId": null,
-            "maxSpeed": 123.0,
-            "name": null,
-            "nextTiId": 522,
-            "placeCode": null,
-            "previousTiId": 8,
-            "realLength": 40.0,
-            "trackCode": null,
-            "x": 360.0,
-            "xf": 400.0,
-            "y": 150.0,
-            "yf": 150.0
-        },
-        "10": {
-            "__type__": "LineItem",
-            "conflictTiId": null,
-            "maxSpeed": 123.0,
-            "name": null,
-            "nextTiId": 523,
-            "placeCode": null,
-            "previousTiId": 8,
-            "realLength": 40.0,
-            "trackCode": null,
-            "x": 360.0,
-            "xf": 400.0,
-            "y": 155.0,
-            "yf": 195.0
-        }
-	}
-}`
-
 func TestLoadOptions(t *testing.T) {
 	var sim Simulation
 	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
@@ -291,4 +91,40 @@ func TestLoadTrackItems(t *testing.T) {
 	assertEqual(t, place.Name(), "BANK", "Places/Name")
 	assertEqual(t, li3.Place(), place, "TrackItems/Place")
 	assertEqual(t, pfi6.Place(), place, "TrackItems/Place")
+}
+
+func TestLoadSignalLibrary(t *testing.T) {
+	var sim Simulation
+	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
+		t.Errorf("SignalLibrary: error while loading JSON: %s", err)
+	}
+	assertEqual(t, len(sim.SignalLib.Types), 2, "SignalLibrary: Not all types loaded")
+	assertEqual(t, len(sim.SignalLib.Aspects), 4, "SignalLibrary: Not all aspects loaded")
+	bufferAspect, ok := sim.SignalLib.Aspects["BUFFER"]
+	if !ok {
+		t.Errorf("SignalLibrary: no BUFFER in aspects")
+	}
+	assertEqual(t, bufferAspect.LineStyle, BUFFER, "SignalLibrary/Aspects/LineStyle")
+	assertEqual(t, bufferAspect.OuterShapes, [6]signalShape{NONE, NONE, NONE, NONE, NONE, NONE}, "SignalLibrary/Aspects/OuterShapes")
+	black, _ := FromHex("#000000")
+	assertEqual(t, bufferAspect.OuterColors, [6]Color{black, black, black, black, black, black}, "SignalLibrary/Aspects/OuterColors")
+	assertEqual(t, bufferAspect.Shapes, [6]signalShape{NONE, NONE, NONE, NONE, NONE, NONE}, "SignalLibrary/Aspects/Shapes")
+	assertEqual(t, bufferAspect.ShapesColors, [6]Color{black, black, black, black, black, black}, "SignalLibrary/Aspects/Colors")
+	assertEqual(t, len(bufferAspect.Actions), 1, "SignalLibrary/Aspects: Not all actions loaded")
+	assertEqual(t, bufferAspect.Actions[0].Target, BEFORE_THIS_SIGNAL, "SignalLibrary/Aspects/Actions/Target")
+	assertEqual(t, bufferAspect.Actions[0].Speed, 0.0, "SignalLibrary/Aspects/Actions/Speed")
+	dangerAspect, ok := sim.SignalLib.Aspects["UK_DANGER"]
+	if !ok {
+		t.Errorf("SignalLibrary: no UK_DANGER in aspects")
+	}
+	assertEqual(t, dangerAspect.LineStyle, LINE, "SignalLibrary/Aspects/LineStyle")
+	assertEqual(t, dangerAspect.Shapes, [6]signalShape{CIRCLE, NONE, NONE, NONE, NONE, NONE}, "SignalLibrary/Aspects/Shapes")
+	red, _ := FromHex("#FF0000")
+	assertEqual(t, dangerAspect.ShapesColors, [6]Color{red, black, black, black, black, black}, "SignalLibrary/Aspects/Colors")
+	cautionAspect, ok := sim.SignalLib.Aspects["UK_CAUTION"]
+	if !ok {
+		t.Errorf("SignalLibrary: no UK_CAUTION in aspects")
+	}
+	assertEqual(t, cautionAspect.Actions[0].Target, BEFORE_NEXT_SIGNAL, "SignalLibrary/Aspects/Actions/Target")
+	assertEqual(t, cautionAspect.Actions[0].Speed, 0.0, "SignalLibrary/Aspects/Actions/Speed")
 }

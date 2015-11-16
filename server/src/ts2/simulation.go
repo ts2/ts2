@@ -1,12 +1,14 @@
 package ts2
+
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 type Simulation struct {
+	SignalLib  SignalLibrary
 	TrackItems map[int]TrackItem
 	Places     map[string]Place
 	Options    options
@@ -18,6 +20,7 @@ func (sim *Simulation) UnmarshalJSON(data []byte) error {
 	type auxSim struct {
 		TrackItems map[string]json.RawMessage
 		Options    options
+		SignalLib  SignalLibrary `json:"signalLibrary"`
 	}
 
 	var rawSim auxSim
@@ -62,6 +65,9 @@ func (sim *Simulation) UnmarshalJSON(data []byte) error {
 		case `"PointsItem"`:
 			var ti pointsStruct
 			unmarshalItem(&ti)
+		case `"SignalItem"`:
+			var ti signalStruct
+			unmarshalItem(&ti)
 		case `"Place"`:
 			var pl placeStruct
 			if err := json.Unmarshal(tiString, &pl); err != nil {
@@ -74,5 +80,6 @@ func (sim *Simulation) UnmarshalJSON(data []byte) error {
 
 	}
 	sim.Options = rawSim.Options
+	sim.SignalLib = rawSim.SignalLib
 	return nil
 }

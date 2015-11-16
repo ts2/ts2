@@ -1,10 +1,10 @@
 package main
 
 import (
-	"ts2"
-	"fmt"
 	"encoding/json"
 	"flag"
+	"fmt"
+	"ts2"
 )
 
 func main() {

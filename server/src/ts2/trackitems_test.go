@@ -1,9 +1,9 @@
 package ts2
 
 import (
-	"testing"
 	"encoding/json"
 	"reflect"
+	"testing"
 )
 
 func TestFollowingItem(t *testing.T) {

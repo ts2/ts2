@@ -1,6 +1,5 @@
 package ts2
 
-
 type Train struct {
 	appearTime     string
 	initialDelay   string
