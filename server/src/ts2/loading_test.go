@@ -26,6 +26,50 @@ func TestLoadOptions(t *testing.T) {
 	assertEqual(t, sim.Options.TrackCircuitBased, false, "Options/trackCircuitBased")
 }
 
+func TestLoadRoutes(t *testing.T) {
+	var sim Simulation
+	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
+		t.Errorf("Options: error while loading JSON: %s", err)
+	}
+	if err := sim.initialize(); err != nil {
+		t.Errorf("Error while initializing simulation: %s", err)
+	}
+	assertEqual(t, len(sim.Routes), 4, "Routes: Not all loaded")
+	r1, ok := sim.Routes[1]
+	assertTrue(t, ok, "Routes: 1 not loaded")
+
+	si5, _ := sim.TrackItems[5].(SignalItem)
+	si11, _ := sim.TrackItems[11].(SignalItem)
+	assertEqual(t, r1.BeginSignal(), si5, "Route 1/BeginSignal")
+	assertEqual(t, r1.EndSignal(), si11, "Route 1/EndSignal")
+	items := []int{5, 6, 7, 8, 9, 10, 11}
+	for i, pos := range r1.positions {
+		assertEqual(t, pos.TrackItem.TiId(), items[i], "Route 1/Positions")
+	}
+	assertEqual(t, len(r1.Directions), 1, "Route 1/Directions")
+	d1, ok := r1.Directions[7]
+	if !ok{
+		t.Errorf("Route 1/No direction 7")
+	}
+	assertEqual(t, d1, Direction(0), "Route 1/Direction 7")
+	assertEqual(t, r1.InitialState, ACTIVATED, "Route 1/InitialState")
+	assertEqual(t, r1.State, ACTIVATED, "Route 1/state")
+
+	r4, ok := sim.Routes[4]
+	assertTrue(t, ok, "Routes: 4 not loaded")
+
+	si15, _ := sim.TrackItems[15].(SignalItem)
+	si3, _ := sim.TrackItems[3].(SignalItem)
+	assertEqual(t, r4.BeginSignal(), si15, "Route 4/BeginSignal")
+	assertEqual(t, r4.EndSignal(), si3, "Route 4/EndSignal")
+	items = []int{15, 14, 7, 6, 5, 4, 3}
+	for i, pos := range r4.positions {
+		assertEqual(t, pos.TrackItem.TiId(), items[i], "Route 4/Positions")
+	}
+	assertEqual(t, r4.InitialState, DESACTIVATED, "Route 4/InitialState")
+	assertEqual(t, r4.State, DESACTIVATED, "Route 4/state")
+}
+
 func TestLoadTrackItems(t *testing.T) {
 	var sim Simulation
 	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
@@ -181,14 +225,4 @@ func TestLoadSignalLibrary(t *testing.T) {
 	}
 	assertEqual(t, cautionAspect.Actions[0].Target, BEFORE_NEXT_SIGNAL, "SignalLibrary/Aspects/Actions/Target")
 	assertEqual(t, cautionAspect.Actions[0].Speed, 0.0, "SignalLibrary/Aspects/Actions/Speed")
-}
-
-func TestInitializeSimulation(t *testing.T) {
-	var sim Simulation
-	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
-		t.Errorf("SignalLibrary: error while loading JSON: %s", err)
-	}
-	if err := sim.initialize(); err != nil {
-		t.Errorf("Error while initializing simulation: %s", err)
-	}
 }

@@ -1,7 +1,7 @@
 package ts2
 
 import (
-//	"encoding/json"
+	//	"encoding/json"
 	"fmt"
 )
 
@@ -18,7 +18,7 @@ there are two Positions that can be defined:
 - the other starting from the other end.
 
 You can get the other Position by calling Reversed()
- */
+*/
 type Position struct {
 	TrackItem    TrackItem
 	PreviousItem TrackItem

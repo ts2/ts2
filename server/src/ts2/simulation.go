@@ -12,7 +12,7 @@ type Simulation struct {
 	TrackItems map[int]TrackItem
 	Places     map[string]Place
 	Options    options
-	Routes     map[int]Route
+	Routes     map[int]*Route
 }
 
 func (sim *Simulation) UnmarshalJSON(data []byte) error {
@@ -22,7 +22,7 @@ func (sim *Simulation) UnmarshalJSON(data []byte) error {
 		TrackItems map[string]json.RawMessage
 		Options    options
 		SignalLib  SignalLibrary    `json:"signalLibrary"`
-		Routes     map[string]Route `json:"routes"`
+		Routes     map[string]*Route `json:"routes"`
 	}
 
 	var rawSim auxSim
@@ -84,7 +84,7 @@ func (sim *Simulation) UnmarshalJSON(data []byte) error {
 	}
 	sim.Options = rawSim.Options
 	sim.SignalLib = rawSim.SignalLib
-	sim.Routes = make(map[int]Route)
+	sim.Routes = make(map[int]*Route)
 	for num, route := range rawSim.Routes {
 		route.setSimulation(sim)
 		routeNum, _ := strconv.Atoi(num)

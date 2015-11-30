@@ -41,8 +41,8 @@ type Route struct {
 	InitialState  RouteState
 	Directions    map[int]Direction
 
-	state     RouteState
-	positions []Position
+	State         RouteState
+	positions     []Position
 }
 
 // BeginSignal returns the SignalItem at which this Route starts.
@@ -60,10 +60,13 @@ func (r *Route) setSimulation(sim *Simulation) {
 	r.simulation = sim
 }
 
-// initialize populates the positions slice
+// initialize does initial steps necessary to use this route
 func (r *Route) initialize() error {
+	// Initialize state to initial state
+	r.State = r.InitialState
+	// Populate positions slice
 	pos := Position{r.BeginSignal(), r.BeginSignal().PreviousItem(), 0}
-	for ; !pos.IsOut(); {
+	for !pos.IsOut() {
 		r.positions = append(r.positions, pos)
 		if pos.TrackItem == r.EndSignal() {
 			return nil
