@@ -1,8 +1,8 @@
 package ts2
 
 import (
-	"testing"
 	"encoding/json"
+	"testing"
 	"time"
 )
 
@@ -88,6 +88,7 @@ func TestLoadTrackItems(t *testing.T) {
 	assertEqual(t, ei1.NextItem(), nil, "EndItem1/NextItem")
 	assertEqual(t, ei1.PreviousItem(), li2, "EndItem1/PreviousItem")
 	assertEqual(t, ei1.Origin(), Point{0.0, 0.0}, "EndItem1/Origin")
+	assertEqual(t, ei1.TiId(), 1, "EndItem/ID")
 	assertEqual(t, li2.PreviousItem(), ei1, "LineItem2/PreviousItem")
 	assertEqual(t, li2.TrackCode(), "", "LineItem2/TrackCode")
 	assertEqual(t, li2.Place(), lft, "LineItem2/Place")
@@ -136,7 +137,6 @@ func TestLoadTrackItems(t *testing.T) {
 	assertEqual(t, ei18.PreviousItem(), si17, "EndItem18/PreviousItem")
 	assertEqual(t, ei18.NextItem(), nil, "EndItem18/NextItem")
 
-
 	assertEqual(t, pfi22.Origin(), Point{300, 30}, "PlatformItem22/Origin")
 	assertEqual(t, pfi22.End(), Point{400, 45}, "PlatformItem22/End")
 
@@ -181,4 +181,14 @@ func TestLoadSignalLibrary(t *testing.T) {
 	}
 	assertEqual(t, cautionAspect.Actions[0].Target, BEFORE_NEXT_SIGNAL, "SignalLibrary/Aspects/Actions/Target")
 	assertEqual(t, cautionAspect.Actions[0].Speed, 0.0, "SignalLibrary/Aspects/Actions/Speed")
+}
+
+func TestInitializeSimulation(t *testing.T) {
+	var sim Simulation
+	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
+		t.Errorf("SignalLibrary: error while loading JSON: %s", err)
+	}
+	if err := sim.initialize(); err != nil {
+		t.Errorf("Error while initializing simulation: %s", err)
+	}
 }

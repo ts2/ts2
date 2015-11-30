@@ -72,37 +72,37 @@ func Add(p1 Point, p2 Point) Point {
 
 // A color stored as RGB values
 type Color struct {
-    R, G, B uint8
+	R, G, B uint8
 }
 
 // Implement the Go color.Color interface.
 func (col Color) RGBA() (r, g, b, a uint32) {
-    r = uint32(col.R)
-    g = uint32(col.G)
-    b = uint32(col.B)
-    a = 0xFFFF
-    return
+	r = uint32(col.R)
+	g = uint32(col.G)
+	b = uint32(col.B)
+	a = 0xFFFF
+	return
 }
 
 // Hex returns the hex "html" representation of the color, as in #ff0080.
 func (col Color) Hex() string {
-    return fmt.Sprintf("#%02x%02x%02x", uint8(col.R), uint8(col.G), uint8(col.B))
+	return fmt.Sprintf("#%02x%02x%02x", uint8(col.R), uint8(col.G), uint8(col.B))
 }
 
 // FromHex parses a "html" hex color-string, either in the 3 "#f0c" or 6 "#ff1034" digits form.
 func FromHex(scol string) (Color, error) {
-    format := "#%02x%02x%02x"
+	format := "#%02x%02x%02x"
 
-    var r, g, b uint8
-    n, err := fmt.Sscanf(scol, format, &r, &g, &b)
-    if err != nil {
-        return Color{}, err
-    }
-    if n != 3 {
-        return Color{}, fmt.Errorf("color: %v is not a hex-color", scol)
-    }
+	var r, g, b uint8
+	n, err := fmt.Sscanf(scol, format, &r, &g, &b)
+	if err != nil {
+		return Color{}, err
+	}
+	if n != 3 {
+		return Color{}, fmt.Errorf("color: %v is not a hex-color", scol)
+	}
 
-    return Color{r, g, b}, nil
+	return Color{r, g, b}, nil
 }
 
 // UnmarshalJSON for the Color type

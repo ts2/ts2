@@ -37,6 +37,9 @@ the Y-axis is from top to bottom.
 A TrackItem has an origin point defined by its X and Y fields.
 */
 type TrackItem interface {
+	// TiId returns the unique Id of this TrackItem which is the index of this
+	// item in the Simulation TrackItems map.
+	TiId() int
 	// Type returns the name of the type of item this TrackItem is. This is
 	// also the name of the interface that this type of item will implement.
 	Type() string
@@ -44,6 +47,8 @@ type TrackItem interface {
 	Name() string
 	// setSimulation sets the simulation of the item.
 	setSimulation(*Simulation)
+	// setId sets the item's internal id
+	setId(int)
 	// NextItem returns the next item of this TrackItem. The next item is
 	// usually the item connected to the end of the item that is not the origin.
 	NextItem() TrackItem
@@ -73,7 +78,10 @@ type TrackItem interface {
 	//
 	// The second argument will return a ItemsNotLinkedError if the given
 	// precedingItem is not linked to this item.
-	FollowingItem(TrackItem, int) (TrackItem, error)
+	FollowingItem(TrackItem, Direction) (TrackItem, error)
+	// IsConnected returns true if this TrackItem is connected to the given
+	// TrackItem, false otherwise
+	IsConnected(TrackItem) bool
 }
 
 /*
@@ -91,11 +99,16 @@ type trackStruct struct {
 	CustomProperties []customProperty `json:"customProperties"`
 	PlaceCode        string           `json:"placeCode"`
 
+	tsId           int
 	simulation     *Simulation
 	activeRoute    *Route
 	arPreviousItem TrackItem
 	selected       bool
 	trains         []*Train
+}
+
+func (ti *trackStruct) TiId() int {
+	return ti.tsId
 }
 
 func (ti *trackStruct) Type() string {
@@ -108,6 +121,10 @@ func (ti *trackStruct) Name() string {
 
 func (ti *trackStruct) setSimulation(sim *Simulation) {
 	ti.simulation = sim
+}
+
+func (ti *trackStruct) setId(tiId int) {
+	ti.tsId = tiId
 }
 
 func (ti *trackStruct) NextItem() TrackItem {
@@ -141,7 +158,7 @@ func (ti *trackStruct) Place() Place {
 	return ti.simulation.Places[ti.PlaceCode]
 }
 
-func (ti *trackStruct) FollowingItem(precedingItem TrackItem, direction int) (TrackItem, error) {
+func (ti *trackStruct) FollowingItem(precedingItem TrackItem, dir Direction) (TrackItem, error) {
 	if precedingItem == TrackItem(ti).PreviousItem() {
 		return ti.NextItem(), nil
 	}
@@ -149,6 +166,13 @@ func (ti *trackStruct) FollowingItem(precedingItem TrackItem, direction int) (Tr
 		return ti.PreviousItem(), nil
 	}
 	return nil, ItemsNotLinkedError{ti, precedingItem}
+}
+
+func (ti *trackStruct) IsConnected(oti TrackItem) bool {
+	if TrackItem(ti).NextItem() == oti || TrackItem(ti).PreviousItem() == ti {
+		return true
+	}
+	return false
 }
 
 /*
@@ -393,12 +417,12 @@ func (pi *pointsStruct) ReverseItem() TrackItem {
 func (pi *pointsStruct) Reversed() bool {
 	return pi.reversed
 }
-func (ti *pointsStruct) FollowingItem(precedingItem TrackItem, direction int) (TrackItem, error) {
+func (ti *pointsStruct) FollowingItem(precedingItem TrackItem, dir Direction) (TrackItem, error) {
 	if precedingItem == PointsItem(ti).ReverseItem() || precedingItem == PointsItem(ti).NextItem() {
 		return ti.PreviousItem(), nil
 	}
 	if precedingItem == PointsItem(ti).PreviousItem() {
-		if direction == 1 {
+		if dir == REVERSED {
 			return ti.ReverseItem(), nil
 		} else {
 			return ti.NextItem(), nil

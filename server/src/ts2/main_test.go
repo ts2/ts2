@@ -51,14 +51,35 @@ const simJson string = `
 	"routes": {
 		"1": {
 			"__type__": "Route",
-			"beginSignal": 72,
+			"beginSignal": 5,
 			"directions": {
-				"511": 0,
-				"512": 0
+				"7": 0
 			},
-			"endSignal": 73,
-			"initialState": 1,
-			"routeNum": 1
+			"endSignal": 11,
+			"initialState": 1
+		},
+		"2": {
+			"__type__": "Route",
+			"beginSignal": 5,
+			"directions": {
+				"7": 1
+			},
+			"endSignal": 17,
+			"initialState": 0
+		},
+		"3": {
+			"__type__": "Route",
+			"beginSignal": 9,
+			"directions": {},
+			"endSignal": 3,
+			"initialState": 0
+		},
+		"4": {
+			"__type__": "Route",
+			"beginSignal": 15,
+			"directions": {},
+			"endSignal": 3,
+			"initialState": 0
 		}
 	},
 	"trackItems": {
@@ -198,7 +219,7 @@ const simJson string = `
             "name": null,
             "nextTiId": 11,
             "placeCode": "STN",
-            "previousTiId": 10,
+            "previousTiId": 9,
             "realLength": 400.0,
             "trackCode": "1",
             "x": 300.0,
@@ -250,7 +271,7 @@ const simJson string = `
             "conflictTiId": null,
             "maxSpeed": 10.0,
             "name": null,
-            "nextTiId": 115,
+            "nextTiId": 15,
             "placeCode": null,
             "previousTiId": 7,
             "realLength": 200.0,
@@ -478,4 +499,3 @@ const simJson string = `
 		}
 	}
 }`
-
