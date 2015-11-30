@@ -117,6 +117,9 @@ type SignalItem interface {
 	BerthOrigin() Point
 	// SignalType returns a pointer to the SignalType of this signal
 	SignalType() *SignalType
+	// Reversed returns true if the SignalItem is for trains coming from the
+	// right
+	Reversed() bool
 }
 
 /*
@@ -127,10 +130,19 @@ type signalStruct struct {
 	Xb             float64 `json:"xn"`
 	Yb             float64 `json:"yn"`
 	SignalTypeCode string  `json:"signalType"`
+	Reverse        bool    `json:"reverse"`
 }
 
 func (si *signalStruct) SignalType() *SignalType {
 	return si.simulation.SignalLib.Types[si.SignalTypeCode]
+}
+
+func (si *signalStruct) Reversed() bool {
+	return si.Reverse
+}
+
+func (si *signalStruct) BerthOrigin() Point {
+	return Point{si.Xb, si.Yb}
 }
 
 /*

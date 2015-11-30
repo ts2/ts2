@@ -393,3 +393,16 @@ func (pi *pointsStruct) ReverseItem() TrackItem {
 func (pi *pointsStruct) Reversed() bool {
 	return pi.reversed
 }
+func (ti *pointsStruct) FollowingItem(precedingItem TrackItem, direction int) (TrackItem, error) {
+	if precedingItem == PointsItem(ti).ReverseItem() || precedingItem == PointsItem(ti).NextItem() {
+		return ti.PreviousItem(), nil
+	}
+	if precedingItem == PointsItem(ti).PreviousItem() {
+		if direction == 1 {
+			return ti.ReverseItem(), nil
+		} else {
+			return ti.NextItem(), nil
+		}
+	}
+	return nil, ItemsNotLinkedError{ti, precedingItem}
+}
