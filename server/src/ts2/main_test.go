@@ -82,6 +82,28 @@ const simJson string = `
 			"initialState": 0
 		}
 	},
+	"trainTypes": {
+        "UT": {
+            "__type__": "TrainType",
+            "description": "Underground train",
+            "elements": [],
+            "emergBraking": 1.5,
+            "length": 70.0,
+            "maxSpeed": 25.0,
+            "stdAccel": 0.5,
+            "stdBraking": 0.5
+        },
+        "UT2": {
+            "__type__": "TrainType",
+            "description": "Underground double unit",
+            "elements": ["UT", "UT"],
+            "emergBraking": 1.5,
+            "length": 140.0,
+            "maxSpeed": 25.0,
+            "stdAccel": 0.5,
+            "stdBraking": 0.5
+        }
+    },
 	"trackItems": {
         "1": {
             "__type__": "EndItem",

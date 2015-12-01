@@ -13,6 +13,7 @@ type Simulation struct {
 	Places     map[string]Place
 	Options    options
 	Routes     map[int]*Route
+	TrainTypes map[string]*TrainType
 }
 
 func (sim *Simulation) UnmarshalJSON(data []byte) error {
@@ -21,8 +22,9 @@ func (sim *Simulation) UnmarshalJSON(data []byte) error {
 	type auxSim struct {
 		TrackItems map[string]json.RawMessage
 		Options    options
-		SignalLib  SignalLibrary    `json:"signalLibrary"`
-		Routes     map[string]*Route `json:"routes"`
+		SignalLib  SignalLibrary         `json:"signalLibrary"`
+		Routes     map[string]*Route     `json:"routes"`
+		TrainTypes map[string]*TrainType `json:"trainTypes"`
 	}
 
 	var rawSim auxSim
@@ -87,18 +89,13 @@ func (sim *Simulation) UnmarshalJSON(data []byte) error {
 	sim.Routes = make(map[int]*Route)
 	for num, route := range rawSim.Routes {
 		route.setSimulation(sim)
+		route.initialize()
 		routeNum, _ := strconv.Atoi(num)
 		sim.Routes[routeNum] = route
 	}
-	return nil
-}
-
-// initialize initializes the Simulation after loading
-func (sim *Simulation) initialize() error {
-	for _, route := range sim.Routes {
-		if err := route.initialize(); err != nil {
-			return err
-		}
+	sim.TrainTypes = rawSim.TrainTypes
+	for _, tt := range sim.TrainTypes {
+		tt.setSimulation(sim)
 	}
 	return nil
 }

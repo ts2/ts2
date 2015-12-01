@@ -31,9 +31,9 @@ func TestLoadRoutes(t *testing.T) {
 	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
 		t.Errorf("Options: error while loading JSON: %s", err)
 	}
-	if err := sim.initialize(); err != nil {
-		t.Errorf("Error while initializing simulation: %s", err)
-	}
+	//	if err := sim.initialize(); err != nil {
+	//		t.Errorf("Error while initializing simulation: %s", err)
+	//	}
 	assertEqual(t, len(sim.Routes), 4, "Routes: Not all loaded")
 	r1, ok := sim.Routes[1]
 	assertTrue(t, ok, "Routes: 1 not loaded")
@@ -48,7 +48,7 @@ func TestLoadRoutes(t *testing.T) {
 	}
 	assertEqual(t, len(r1.Directions), 1, "Route 1/Directions")
 	d1, ok := r1.Directions[7]
-	if !ok{
+	if !ok {
 		t.Errorf("Route 1/No direction 7")
 	}
 	assertEqual(t, d1, Direction(0), "Route 1/Direction 7")
@@ -189,6 +189,28 @@ func TestLoadTrackItems(t *testing.T) {
 
 	assertEqual(t, txti24.Name(), "2", "TextItem24/Name")
 	assertEqual(t, txti25.Name(), "1", "TextItem25/Name")
+}
+
+func TestLoadTrainTypes(t *testing.T) {
+	var sim Simulation
+	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
+		t.Errorf("SignalLibrary: error while loading JSON: %s", err)
+	}
+	assertEqual(t, len(sim.TrainTypes), 2, "TrainTypes: Not all loaded")
+	tt, ok := sim.TrainTypes["UT"]
+	if !ok {
+		t.Errorf("TrainType UT: Error while loading")
+	}
+	tt2, ok := sim.TrainTypes["UT2"]
+	if !ok {
+		t.Errorf("TrainType UT2: Error while loading")
+	}
+	assertEqual(t, tt.Description, "Underground train", "TrainType/Description")
+	assertEqual(t, tt.EmergBraking, 1.5, "TrainType/Description")
+	assertEqual(t, tt.Length, 70.0, "TrainType/Length")
+	assertEqual(t, tt.MaxSpeed, 25.0, "TrainType/MaxSpeed")
+	assertEqual(t, tt2.Elements()[0], tt, "TrainType/Element 0")
+	assertEqual(t, tt2.Elements()[1], tt, "TrainType/Element 1")
 }
 
 func TestLoadSignalLibrary(t *testing.T) {

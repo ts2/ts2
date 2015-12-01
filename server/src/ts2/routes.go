@@ -41,8 +41,8 @@ type Route struct {
 	InitialState  RouteState
 	Directions    map[int]Direction
 
-	State         RouteState
-	positions     []Position
+	State     RouteState
+	positions []Position
 }
 
 // BeginSignal returns the SignalItem at which this Route starts.
