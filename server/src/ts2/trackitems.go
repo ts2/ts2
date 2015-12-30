@@ -11,7 +11,7 @@ at maximum simulation speed.
 */
 const bigFloat = 1000000000.0
 
-type customProperty map[string][]int
+type CustomProperty map[string][]int
 
 /*
 ItemsNotLinkedError is returned when two TrackItem instances that are assumed
@@ -82,22 +82,24 @@ type TrackItem interface {
 	// IsConnected returns true if this TrackItem is connected to the given
 	// TrackItem, false otherwise
 	IsConnected(TrackItem) bool
+	// CustomProperty returns the custom property with the given key
+	CustomProperty(string) CustomProperty
 }
 
 /*
 trackStruct is a struct the pointer of which implements TrackItem
 */
 type trackStruct struct {
-	TsName           string           `json:"name"`
-	NextTiId         int              `json:"nextTiId"`
-	PreviousTiId     int              `json:"previousTiId"`
-	TsMaxSpeed       float64          `json:"maxSpeed"`
-	TsRealLength     float64          `json:"realLength"`
-	X                float64          `json:"x"`
-	Y                float64          `json:"y"`
-	ConflictTiId     int              `json:"conflictTiId"`
-	CustomProperties []customProperty `json:"customProperties"`
-	PlaceCode        string           `json:"placeCode"`
+	TsName           string                    `json:"name"`
+	NextTiId         int                       `json:"nextTiId"`
+	PreviousTiId     int                       `json:"previousTiId"`
+	TsMaxSpeed       float64                   `json:"maxSpeed"`
+	TsRealLength     float64                   `json:"realLength"`
+	X                float64                   `json:"x"`
+	Y                float64                   `json:"y"`
+	ConflictTiId     int                       `json:"conflictTiId"`
+	CustomProperties map[string]CustomProperty `json:"customProperties"`
+	PlaceCode        string                    `json:"placeCode"`
 
 	tsId           int
 	simulation     *Simulation
@@ -173,6 +175,10 @@ func (ti *trackStruct) IsConnected(oti TrackItem) bool {
 		return true
 	}
 	return false
+}
+
+func (ti *trackStruct) CustomProperty(key string) CustomProperty {
+	return ti.CustomProperties[key]
 }
 
 /*

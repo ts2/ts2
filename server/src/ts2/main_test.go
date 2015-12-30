@@ -162,6 +162,14 @@ const simJson string = `
         "5": {
             "__type__": "SignalItem",
             "conflictTiId": null,
+            "customProperties": {
+            	"ROUTES_SET": {
+            		"UK_DANGER": [2]
+            	},
+				"TRAIN_NOT_PRESENT_ON_ITEMS": {
+					"UK_DANGER": [4, 3]
+				}
+            },
             "maxSpeed": 0.0,
             "name": "32",
             "nextTiId": 6,
@@ -492,6 +500,14 @@ const simJson string = `
 			"UK_3_ASPECTS": {
 				"__type__": "SignalType",
 				"states": [
+					{
+						"__type__": "SignalState",
+						"aspectName": "UK_DANGER",
+						"conditions": {
+							"TRAIN_NOT_PRESENT_ON_ITEMS": [],
+							"ROUTES_SET": []
+						}
+					},
 					{
 						"__type__": "SignalState",
 						"aspectName": "UK_CLEAR",

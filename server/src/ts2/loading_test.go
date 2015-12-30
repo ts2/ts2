@@ -189,6 +189,12 @@ func TestLoadTrackItems(t *testing.T) {
 
 	assertEqual(t, txti24.Name(), "2", "TextItem24/Name")
 	assertEqual(t, txti25.Name(), "1", "TextItem25/Name")
+
+	assertEqual(t, len(si5.CustomProperty("ROUTES_SET")["UK_DANGER"]), 1, "SignalItem5/CustomProperty/len(RoutesSet)")
+	assertEqual(t, si5.CustomProperty("ROUTES_SET")["UK_DANGER"][0], 2, "SignalItem5/CustomProperty/RoutesSet")
+	assertEqual(t, len(si5.CustomProperty("TRAIN_NOT_PRESENT_ON_ITEMS")["UK_DANGER"]), 2, "SignalItem5/CustomProperty/len(TNPOI)")
+	assertEqual(t, si5.CustomProperty("TRAIN_NOT_PRESENT_ON_ITEMS")["UK_DANGER"][0], 4, "SignalItem5/CustomProperty/TNPOI0")
+	assertEqual(t, si5.CustomProperty("TRAIN_NOT_PRESENT_ON_ITEMS")["UK_DANGER"][1], 3, "SignalItem5/CustomProperty/TNPOI1")
 }
 
 func TestLoadTrainTypes(t *testing.T) {
