@@ -14,6 +14,7 @@ type Simulation struct {
 	Options    options
 	Routes     map[int]*Route
 	TrainTypes map[string]*TrainType
+	Services   map[string]*Service
 }
 
 func (sim *Simulation) UnmarshalJSON(data []byte) error {
@@ -25,6 +26,7 @@ func (sim *Simulation) UnmarshalJSON(data []byte) error {
 		SignalLib  SignalLibrary         `json:"signalLibrary"`
 		Routes     map[string]*Route     `json:"routes"`
 		TrainTypes map[string]*TrainType `json:"trainTypes"`
+		Services   map[string]*Service   `json:"services"`
 	}
 
 	var rawSim auxSim
@@ -96,6 +98,10 @@ func (sim *Simulation) UnmarshalJSON(data []byte) error {
 	sim.TrainTypes = rawSim.TrainTypes
 	for _, tt := range sim.TrainTypes {
 		tt.setSimulation(sim)
+	}
+	sim.Services = rawSim.Services
+	for _, s := range sim.Services {
+		s.setSimulation(sim)
 	}
 	return nil
 }

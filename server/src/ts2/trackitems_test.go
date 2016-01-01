@@ -8,7 +8,7 @@ import (
 
 func TestFollowingItem(t *testing.T) {
 	var sim Simulation
-	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
+	if err := json.Unmarshal(loadSim(), &sim); err != nil {
 		t.Errorf("Options: error while loading JSON: %s", err)
 	}
 	ei1, _ := sim.TrackItems[1]

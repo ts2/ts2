@@ -3,17 +3,15 @@ package ts2
 import (
 	"encoding/json"
 	"testing"
-	"time"
 )
 
 func TestLoadOptions(t *testing.T) {
 	var sim Simulation
-	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
+	if err := json.Unmarshal(loadSim(), &sim); err != nil {
 		t.Errorf("Options: error while loading JSON: %s", err)
 	}
 	assertEqual(t, sim.Options.CurrentScore, 12, "Options/currentScore")
-	sixOClock, _ := time.Parse("15:04:05", "06:00:00")
-	assertEqual(t, sim.Options.CurrentTime, Time{sixOClock}, "Options/currentTime")
+	assertEqual(t, sim.Options.CurrentTime, ParseTime("06:00:00"), "Options/currentTime")
 	assertTrue(t, sim.Options.DefaultDelayAtEntry.equals(DelayGenerator{[]tuplet{{0, 0, 100}}}), "Options/defaultDelayAtEntry")
 	assertTrue(t, sim.Options.DefaultMinimumStopTime.equals(DelayGenerator{[]tuplet{{20, 40, 90}, {40, 120, 10}}}), "Options/defaultMinimumStopTime")
 	assertEqual(t, sim.Options.DefaultMaxSpeed, 18.06, "Options/defaultMaxSpeed")
@@ -28,7 +26,7 @@ func TestLoadOptions(t *testing.T) {
 
 func TestLoadRoutes(t *testing.T) {
 	var sim Simulation
-	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
+	if err := json.Unmarshal(loadSim(), &sim); err != nil {
 		t.Errorf("Options: error while loading JSON: %s", err)
 	}
 	//	if err := sim.initialize(); err != nil {
@@ -72,7 +70,7 @@ func TestLoadRoutes(t *testing.T) {
 
 func TestLoadTrackItems(t *testing.T) {
 	var sim Simulation
-	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
+	if err := json.Unmarshal(loadSim(), &sim); err != nil {
 		t.Errorf("TrackItems: error while loading JSON: %s", err)
 	}
 	assertEqual(t, len(sim.TrackItems), 22, "TrackItems: Not all loaded")
@@ -199,7 +197,7 @@ func TestLoadTrackItems(t *testing.T) {
 
 func TestLoadTrainTypes(t *testing.T) {
 	var sim Simulation
-	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
+	if err := json.Unmarshal(loadSim(), &sim); err != nil {
 		t.Errorf("SignalLibrary: error while loading JSON: %s", err)
 	}
 	assertEqual(t, len(sim.TrainTypes), 2, "TrainTypes: Not all loaded")
@@ -219,9 +217,40 @@ func TestLoadTrainTypes(t *testing.T) {
 	assertEqual(t, tt2.Elements()[1], tt, "TrainType/Element 1")
 }
 
+func TestLoadServices(t *testing.T) {
+	var sim Simulation
+	if err := json.Unmarshal(loadSim(), &sim); err != nil {
+		t.Errorf("SignalLibrary: error while loading JSON: %s", err)
+	}
+	assertEqual(t, len(sim.Services), 2, "Services: Not all loaded")
+	s1, ok := sim.Services["S001"]
+	if !ok {
+		t.Errorf("Service S001: Error while loading")
+	}
+	s2, ok := sim.Services["S002"]
+	if !ok {
+		t.Errorf("Service S002: Error while loading")
+	}
+	assertEqual(t, s1.Description, "LEFT->STATION", "Service1/Description")
+	assertEqual(t, s1.PlannedTrainType(), sim.TrainTypes["UT"], "Service1/PlannedTrainType")
+	assertEqual(t, len(s1.Lines), 2, "Service1/len(Lines)")
+	assertEqual(t, s1.Lines[0].MustStop, false, "Service1/Line1/MustStop")
+	assertEqual(t, s1.Lines[0].Place(), sim.Places["LFT"], "Service1/Line1/Place")
+	assertEqual(t, s1.Lines[0].ScheduledArrivalTime, Time{}, "Service1/ScheduledArrivalTime")
+	assertEqual(t, s1.Lines[0].ScheduledDepartureTime, ParseTime("06:00:30"), "Service1/ScheduledArrivalTime")
+	assertEqual(t, s1.Lines[0].TrackCode, "", "Service1/TrackCode")
+	assertEqual(t, len(s1.PostActions), 2, "Service1/len(PostActions)")
+	assertEqual(t, s1.PostActions[0].ActionCode, ACTION_REVERSE, "Service1/PostActions0/Code")
+	assertEqual(t, s1.PostActions[0].ActionParam, "", "Service1/PostActions0/Param")
+	assertEqual(t, s1.PostActions[1].ActionCode, ACTION_SET_SERVICE, "Service1/PostActions1/Code")
+	assertEqual(t, s1.PostActions[1].ActionParam, "S002", "Service1/PostActions1/Param")
+	assertEqual(t, s2.Description, "STATION->LEFT", "Service2/Description")
+	assertEqual(t, len(s2.PostActions), 0, "Service2/len(PostActions)")
+}
+
 func TestLoadSignalLibrary(t *testing.T) {
 	var sim Simulation
-	if err := json.Unmarshal([]byte(simJson), &sim); err != nil {
+	if err := json.Unmarshal(loadSim(), &sim); err != nil {
 		t.Errorf("SignalLibrary: error while loading JSON: %s", err)
 	}
 	assertEqual(t, len(sim.SignalLib.Types), 2, "SignalLibrary: Not all types loaded")

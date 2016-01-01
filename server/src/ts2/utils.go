@@ -42,6 +42,8 @@ func (dg *DelayGenerator) UnmarshalJSON(data []byte) error {
 
 /*
 Time type for the simulation (HH:MM:SS).
+
+Valid Time objects start on 0000-01-02.
 */
 type Time struct{ time.Time }
 
@@ -50,12 +52,20 @@ func (h *Time) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &hourStr); err != nil {
 		return fmt.Errorf("Times should be encoded as 00:00:00 strings in JSON, got %s instead", data)
 	}
-	t, err := time.Parse("15:04:05", hourStr)
-	if err != nil {
-		return fmt.Errorf("Invalid time %s", hourStr)
-	}
-	h.Time = t
+	*h = ParseTime(hourStr)
 	return nil
+}
+
+/*
+ParseTime returns a Time object from its string representation in format 15:04:05
+ */
+func ParseTime(data string) Time {
+	t, err := time.Parse("15:04:05", data)
+	if err != nil {
+		return Time{}
+	}
+	// We add 24 hours to make a difference between 00:00:00 and an empty Time
+	return Time{t.Add(24 * time.Hour)}
 }
 
 /*
