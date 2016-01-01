@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"ts2"
+	"github.com/ts2/ts2/server/ts2"
 )
 
 func main() {
