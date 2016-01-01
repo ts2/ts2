@@ -1,3 +1,22 @@
+/*   Copyright (C) 2008-2016 by Nicolas Piganeau and the TS2 TEAM
+ *   (See AUTHORS file)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the
+ *   Free Software Foundation, Inc.,
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
 package ts2
 
 import (
@@ -24,19 +43,6 @@ type Position struct {
 	PreviousItem TrackItem
 	PositionOnTI float64
 }
-
-//func (pos *Position) UnmarshalJSON(data []byte) error {
-//	type auxPos [3]float64
-//
-//	var rawPos auxPos
-//	if err := json.Unmarshal(data, &rawPos); err != nil {
-//		return fmt.Errorf("Unable to decode simulation JSON: %s", err)
-//	}
-//	pos.TrackItemId = int(rawPos[0])
-//	pos.PreviousItemId = int(rawPos[1])
-//	pos.PositionOnTI = rawPos[2]
-//	return nil
-//}
 
 /*
 IsValid returns true if this is a valid position (i.e. items are connected, and
@@ -76,21 +82,31 @@ func (pos Position) Reversed() Position {
 }
 
 /*
-NewPosition returns a pointer to a Position defined by the given Simulation pointer,
-TrackItem Id, previous TrackItem Id and distance.
+NewPosition returns a pointer to a Position defined by the given Simulation
+pointer and PositionRepr.
 */
-func NewPosition(sim *Simulation, tiId int, ptiId int, distance float64) (*Position, error) {
-	ti, ok := sim.TrackItems[tiId]
+func NewPosition(sim *Simulation, posRepr PositionRepr) (*Position, error) {
+	ti, ok := sim.TrackItems[posRepr.TrackItemId]
 	if !ok {
-		return nil, fmt.Errorf("Unknown item with ID: %i", tiId)
+		return nil, fmt.Errorf("Unknown item with ID: %i", posRepr.TrackItemId)
 	}
-	pti, ok := sim.TrackItems[ptiId]
+	pti, ok := sim.TrackItems[posRepr.PreviousItemId]
 	if !ok {
-		return nil, fmt.Errorf("Unknown item with ID: %i", ptiId)
+		return nil, fmt.Errorf("Unknown item with ID: %i", posRepr.PreviousItemId)
 	}
-	newPos := Position{ti, pti, distance}
+	newPos := Position{ti, pti, posRepr.PositionOnTi}
 	if !newPos.IsValid() {
-		return nil, fmt.Errorf("Position (%i, %i, %f) is not valid", tiId, ptiId, distance)
+		return nil, fmt.Errorf("Position (%i, %i, %f) is not valid", posRepr.TrackItemId, posRepr.PreviousItemId, posRepr.PositionOnTi)
 	}
 	return &newPos, nil
+}
+
+/*
+PositionRepr is a representation of a Position that is independant of a Simulation
+Object.
+*/
+type PositionRepr struct {
+	TrackItemId    int     `json:"trackItem"`
+	PreviousItemId int     `json:"previousTI"`
+	PositionOnTi   float64 `json:"positionOnTI"`
 }

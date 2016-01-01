@@ -1,3 +1,22 @@
+/*   Copyright (C) 2008-2016 by Nicolas Piganeau and the TS2 TEAM
+ *   (See AUTHORS file)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the
+ *   Free Software Foundation, Inc.,
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
 package ts2
 
 import (
@@ -12,8 +31,8 @@ func TestLoadOptions(t *testing.T) {
 	}
 	assertEqual(t, sim.Options.CurrentScore, 12, "Options/currentScore")
 	assertEqual(t, sim.Options.CurrentTime, ParseTime("06:00:00"), "Options/currentTime")
-	assertTrue(t, sim.Options.DefaultDelayAtEntry.equals(DelayGenerator{[]tuplet{{0, 0, 100}}}), "Options/defaultDelayAtEntry")
-	assertTrue(t, sim.Options.DefaultMinimumStopTime.equals(DelayGenerator{[]tuplet{{20, 40, 90}, {40, 120, 10}}}), "Options/defaultMinimumStopTime")
+	assertTrue(t, sim.Options.DefaultDelayAtEntry.Equals(DelayGenerator{[]tuplet{{0, 0, 100}}}), "Options/defaultDelayAtEntry")
+	assertTrue(t, sim.Options.DefaultMinimumStopTime.Equals(DelayGenerator{[]tuplet{{20, 40, 90}, {40, 120, 10}}}), "Options/defaultMinimumStopTime")
 	assertEqual(t, sim.Options.DefaultMaxSpeed, 18.06, "Options/defaultMaxSpeed")
 	assertEqual(t, sim.Options.DefaultSignalVisibility, 100.0, "Options/defaultSignalVisibility")
 	assertEqual(t, sim.Options.Description, "This simulation is a demo sim !", "Options/description")
@@ -29,9 +48,6 @@ func TestLoadRoutes(t *testing.T) {
 	if err := json.Unmarshal(loadSim(), &sim); err != nil {
 		t.Errorf("Options: error while loading JSON: %s", err)
 	}
-	//	if err := sim.initialize(); err != nil {
-	//		t.Errorf("Error while initializing simulation: %s", err)
-	//	}
 	assertEqual(t, len(sim.Routes), 4, "Routes: Not all loaded")
 	r1, ok := sim.Routes[1]
 	assertTrue(t, ok, "Routes: 1 not loaded")
@@ -198,7 +214,7 @@ func TestLoadTrackItems(t *testing.T) {
 func TestLoadTrainTypes(t *testing.T) {
 	var sim Simulation
 	if err := json.Unmarshal(loadSim(), &sim); err != nil {
-		t.Errorf("SignalLibrary: error while loading JSON: %s", err)
+		t.Errorf("TrainTypes: error while loading JSON: %s", err)
 	}
 	assertEqual(t, len(sim.TrainTypes), 2, "TrainTypes: Not all loaded")
 	tt, ok := sim.TrainTypes["UT"]
@@ -220,7 +236,7 @@ func TestLoadTrainTypes(t *testing.T) {
 func TestLoadServices(t *testing.T) {
 	var sim Simulation
 	if err := json.Unmarshal(loadSim(), &sim); err != nil {
-		t.Errorf("SignalLibrary: error while loading JSON: %s", err)
+		t.Errorf("Services: error while loading JSON: %s", err)
 	}
 	assertEqual(t, len(sim.Services), 2, "Services: Not all loaded")
 	s1, ok := sim.Services["S001"]
@@ -246,6 +262,25 @@ func TestLoadServices(t *testing.T) {
 	assertEqual(t, s1.PostActions[1].ActionParam, "S002", "Service1/PostActions1/Param")
 	assertEqual(t, s2.Description, "STATION->LEFT", "Service2/Description")
 	assertEqual(t, len(s2.PostActions), 0, "Service2/len(PostActions)")
+}
+
+func TestLoadTrains(t *testing.T) {
+	var sim Simulation
+	if err := json.Unmarshal(loadSim(), &sim); err != nil {
+		t.Errorf("Trains: error while loading JSON: %s", err)
+	}
+	assertEqual(t, len(sim.Trains), 1, "Trains: Not all loaded")
+	tr := sim.Trains[0]
+	assertEqual(t, tr.Service(), sim.Services["S001"], "Train1/Service")
+	assertEqual(t, tr.TrainType(), sim.TrainTypes["UT"], "Train1/TrainType")
+	assertEqual(t, *tr.TrainHead, Position{sim.TrackItems[2], sim.TrackItems[1], 3.0}, "Train1/TrainHead")
+	assertEqual(t, tr.AppearTime, ParseTime("06:00:00"), "Train1/AppearTime")
+	assertTrue(t, tr.InitialDelay.Equals(DelayGenerator{[]tuplet{{-60, 60, 60}, {60, 180, 40}}}) , "Train1/AppearTime")
+	assertEqual(t, tr.InitialSpeed, 5.0, "Train1/InitialSpeed")
+	assertEqual(t, tr.Speed, 5.0, "Train1/Speed")
+	assertEqual(t, tr.NextPlaceIndex, 0, "Train1/NextPlaceIndex")
+	assertEqual(t, tr.Status, INACTIVE, "Train1/Status")
+	assertEqual(t, tr.StoppedTime, 0, "Train1/StoppedTime")
 }
 
 func TestLoadSignalLibrary(t *testing.T) {

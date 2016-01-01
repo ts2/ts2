@@ -1,3 +1,22 @@
+/*   Copyright (C) 2008-2016 by Nicolas Piganeau and the TS2 TEAM
+ *   (See AUTHORS file)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the
+ *   Free Software Foundation, Inc.,
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
 package ts2
 
 import (
@@ -15,6 +34,7 @@ type Simulation struct {
 	Routes     map[int]*Route
 	TrainTypes map[string]*TrainType
 	Services   map[string]*Service
+	Trains     []*Train
 }
 
 func (sim *Simulation) UnmarshalJSON(data []byte) error {
@@ -27,6 +47,7 @@ func (sim *Simulation) UnmarshalJSON(data []byte) error {
 		Routes     map[string]*Route     `json:"routes"`
 		TrainTypes map[string]*TrainType `json:"trainTypes"`
 		Services   map[string]*Service   `json:"services"`
+		Trains     []*Train              `json:"trains"`
 	}
 
 	var rawSim auxSim
@@ -102,6 +123,10 @@ func (sim *Simulation) UnmarshalJSON(data []byte) error {
 	sim.Services = rawSim.Services
 	for _, s := range sim.Services {
 		s.setSimulation(sim)
+	}
+	sim.Trains = rawSim.Trains
+	for _, t := range sim.Trains {
+		t.setSimulation(sim)
 	}
 	return nil
 }
