@@ -48,6 +48,5 @@ temp/
 
 # TS2 files (should be in ts2-data)
 *.ts2
-*.json
 *.tsl
 *.tsg
