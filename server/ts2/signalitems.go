@@ -29,7 +29,7 @@ import (
 signalLineStyle holds the possible representation shapes for the line at the
 base of the signal.
 */
-type signalLineStyle int
+type signalLineStyle uint8
 
 const (
 	LINE   signalLineStyle = 0
@@ -39,7 +39,7 @@ const (
 /*
 signalShape holds the possible representation shapes for signal lights.
 */
-type signalShape int
+type signalShape uint8
 
 const (
 	NONE       signalShape = 0
@@ -64,7 +64,7 @@ const (
 ActionTarget defines when a speed limit associated with a signal aspect must be
 applied.
 */
-type ActionTarget int
+type ActionTarget uint8
 
 const (
 	ASAP               ActionTarget = 0

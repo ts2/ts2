@@ -77,7 +77,7 @@ func (h *Time) UnmarshalJSON(data []byte) error {
 
 /*
 ParseTime returns a Time object from its string representation in format 15:04:05
- */
+*/
 func ParseTime(data string) Time {
 	t, err := time.Parse("15:04:05", data)
 	if err != nil {

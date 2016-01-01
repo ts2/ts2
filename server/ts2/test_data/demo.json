@@ -2,7 +2,13 @@
 	"__type__": "Simulation",
 	"messageLogger": {
 		"__type__": "MessageLogger",
-		"messages": []
+		"messages": [
+            {
+                "__type__": "Message",
+                "msgType": 1,
+                "msgText": "Test message"
+            }
+        ]
 	},
 	"options": {
 		"currentScore": 12,

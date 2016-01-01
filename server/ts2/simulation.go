@@ -26,28 +26,33 @@ import (
 	"strings"
 )
 
+/*
+Simulation holds all the game logic.
+*/
 type Simulation struct {
-	SignalLib  SignalLibrary
-	TrackItems map[int]TrackItem
-	Places     map[string]Place
-	Options    options
-	Routes     map[int]*Route
-	TrainTypes map[string]*TrainType
-	Services   map[string]*Service
-	Trains     []*Train
+	SignalLib     SignalLibrary
+	TrackItems    map[int]TrackItem
+	Places        map[string]Place
+	Options       options
+	Routes        map[int]*Route
+	TrainTypes    map[string]*TrainType
+	Services      map[string]*Service
+	Trains        []*Train
+	MessageLogger *MessageLogger
 }
 
 func (sim *Simulation) UnmarshalJSON(data []byte) error {
 	type auxItem map[string]json.RawMessage
 
 	type auxSim struct {
-		TrackItems map[string]json.RawMessage
-		Options    options
-		SignalLib  SignalLibrary         `json:"signalLibrary"`
-		Routes     map[string]*Route     `json:"routes"`
-		TrainTypes map[string]*TrainType `json:"trainTypes"`
-		Services   map[string]*Service   `json:"services"`
-		Trains     []*Train              `json:"trains"`
+		TrackItems    map[string]json.RawMessage
+		Options       options
+		SignalLib     SignalLibrary         `json:"signalLibrary"`
+		Routes        map[string]*Route     `json:"routes"`
+		TrainTypes    map[string]*TrainType `json:"trainTypes"`
+		Services      map[string]*Service   `json:"services"`
+		Trains        []*Train              `json:"trains"`
+		MessageLogger *MessageLogger        `json:"messageLogger"`
 	}
 
 	var rawSim auxSim
@@ -128,5 +133,7 @@ func (sim *Simulation) UnmarshalJSON(data []byte) error {
 	for _, t := range sim.Trains {
 		t.setSimulation(sim)
 	}
+	sim.MessageLogger = rawSim.MessageLogger
+	sim.MessageLogger.setSimulation(sim)
 	return nil
 }

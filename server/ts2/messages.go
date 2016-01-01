@@ -1,4 +1,4 @@
-/*   Copyright (C) 2008-2016 by Nicolas Piganeau and the TS2 TEAM
+/*   Copyright (C) 2008-2016 by Nicolas Piganeau and the TS2 team
  *   (See AUTHORS file)
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -19,38 +19,34 @@
 
 package ts2
 
-import (
-	"io/ioutil"
-	"testing"
+type MessageType uint8
+
+const (
+	SOFTWARE_MSG       MessageType = 0
+	PLAYER_WARNING_MSG MessageType = 1
+	SIMULATION_MSG     MessageType = 2
 )
 
 /*
-Equals is a comparison function for DelayGenerator objects.
+Message is one message emitted to the Message Logger of the simulation.
 */
-func (a DelayGenerator) Equals(b DelayGenerator) bool {
-	for i := 0; i < len(a.data); i++ {
-		for j := 0; j < 3; j++ {
-			if a.data[i][j] != b.data[i][j] {
-				return false
-			}
-		}
-	}
-	return true
+type Message struct {
+	MsgType MessageType `json:"msgType"`
+	MsgText string      `json:"msgText"`
 }
 
-func assertTrue(t *testing.T, expr bool, msg string) {
-	if !expr {
-		t.Errorf("%v: expression is false", msg)
-	}
+/*
+MessageLogger holds all Message instances that have been emitted to it.
+ */
+type MessageLogger struct {
+	Messages []Message `json:"messages"`
+
+	simulation *Simulation
 }
 
-func assertEqual(t *testing.T, a interface{}, b interface{}, msg string) {
-	if a != b {
-		t.Errorf("%v: %v(%T) is not equal to %v(%T)", msg, a, a, b, b)
-	}
-}
-
-func loadSim() []byte {
-	data, _ := ioutil.ReadFile("test_data/demo.json")
-	return data
+/*
+setSimulation sets the Simulation this MessageLogger is part of.
+ */
+func (ml *MessageLogger) setSimulation(sim *Simulation) {
+	ml.simulation = sim
 }

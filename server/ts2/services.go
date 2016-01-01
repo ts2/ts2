@@ -19,7 +19,7 @@
 
 package ts2
 
-type ServiceActionCode int
+type ServiceActionCode uint8
 
 const (
 	// Reverse the train

@@ -19,7 +19,7 @@
 
 package ts2
 
-type TrainStatus int
+type TrainStatus uint8
 
 const (
 	//	Not yet entered on the scene

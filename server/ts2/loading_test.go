@@ -80,8 +80,8 @@ func TestLoadRoutes(t *testing.T) {
 	for i, pos := range r4.positions {
 		assertEqual(t, pos.TrackItem.TiId(), items[i], "Route 4/Positions")
 	}
-	assertEqual(t, r4.InitialState, DESACTIVATED, "Route 4/InitialState")
-	assertEqual(t, r4.State, DESACTIVATED, "Route 4/state")
+	assertEqual(t, r4.InitialState, DEACTIVATED, "Route 4/InitialState")
+	assertEqual(t, r4.State, DEACTIVATED, "Route 4/state")
 }
 
 func TestLoadTrackItems(t *testing.T) {
@@ -275,12 +275,21 @@ func TestLoadTrains(t *testing.T) {
 	assertEqual(t, tr.TrainType(), sim.TrainTypes["UT"], "Train1/TrainType")
 	assertEqual(t, *tr.TrainHead, Position{sim.TrackItems[2], sim.TrackItems[1], 3.0}, "Train1/TrainHead")
 	assertEqual(t, tr.AppearTime, ParseTime("06:00:00"), "Train1/AppearTime")
-	assertTrue(t, tr.InitialDelay.Equals(DelayGenerator{[]tuplet{{-60, 60, 60}, {60, 180, 40}}}) , "Train1/AppearTime")
+	assertTrue(t, tr.InitialDelay.Equals(DelayGenerator{[]tuplet{{-60, 60, 60}, {60, 180, 40}}}), "Train1/AppearTime")
 	assertEqual(t, tr.InitialSpeed, 5.0, "Train1/InitialSpeed")
 	assertEqual(t, tr.Speed, 5.0, "Train1/Speed")
 	assertEqual(t, tr.NextPlaceIndex, 0, "Train1/NextPlaceIndex")
 	assertEqual(t, tr.Status, INACTIVE, "Train1/Status")
 	assertEqual(t, tr.StoppedTime, 0, "Train1/StoppedTime")
+}
+
+func TestLoadMessageLogger(t *testing.T) {
+	var sim Simulation
+	if err := json.Unmarshal(loadSim(), &sim); err != nil {
+		t.Errorf("MessageLogger: error while loading JSON: %s", err)
+	}
+	assertEqual(t, len(sim.MessageLogger.Messages), 1, "Messages: Not all loaded")
+	assertEqual(t, sim.MessageLogger.Messages[0], Message{PLAYER_WARNING_MSG, "Test message"}, "Messages/Message1")
 }
 
 func TestLoadSignalLibrary(t *testing.T) {
