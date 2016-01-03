@@ -17,36 +17,44 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package ts2
+package main
 
-type MessageType uint8
-
-const (
-	SOFTWARE_MSG       MessageType = 0
-	PLAYER_WARNING_MSG MessageType = 1
-	SIMULATION_MSG     MessageType = 2
+import (
+	"github.com/gorilla/websocket"
+	"log"
+	"net/http"
 )
 
-/*
-Message is one message emitted to the Message Logger of the simulation.
-*/
-type Message struct {
-	MsgType MessageType `json:"msgType"`
-	MsgText string      `json:"msgText"`
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
 }
 
 /*
-MessageLogger holds all Message instances that have been emitted to it.
+serveWs serves the WebSocket endpoint of the server.
 */
-type MessageLogger struct {
-	Messages []Message `json:"messages"`
+func serveWs(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer func() {
+		conn.Close()
+	}()
 
-	simulation *Simulation
-}
-
-/*
-setSimulation sets the Simulation this MessageLogger is part of.
-*/
-func (ml *MessageLogger) setSimulation(sim *Simulation) {
-	ml.simulation = sim
+	for {
+		// TODO : this is just a stupid echo server for now !
+		mt, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("read:", err)
+			break
+		}
+		log.Printf("recv: %s", message)
+		err = conn.WriteMessage(mt, message)
+		if err != nil {
+			log.Println("write:", err)
+			break
+		}
+	}
 }

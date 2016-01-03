@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script>
+        window.addEventListener("load", function (evt) {
+            var output = document.getElementById("output");
+            var input = document.getElementById("input");
+            var ws;
+            var print = function (message) {
+                var d = document.createElement("div");
+                d.innerHTML = message;
+                output.appendChild(d);
+            };
+            document.getElementById("open").onclick = function (evt) {
+                if (ws) {
+                    return false;
+                }
+                ws = new WebSocket("{{.Host}}");
+                ws.onopen = function (evt) {
+                    print("OPEN");
+                };
+                ws.onclose = function (evt) {
+                    print("CLOSE");
+                    ws = null;
+                };
+                ws.onmessage = function (evt) {
+                    print("RESPONSE: " + evt.data);
+                };
+                ws.onerror = function (evt) {
+                    print("ERROR: " + evt.data);
+                };
+                return false;
+            };
+            document.getElementById("send").onclick = function (evt) {
+                if (!ws) {
+                    return false;
+                }
+                print("SEND: " + input.value);
+                ws.send(input.value);
+                input.value = "";
+                return false;
+            };
+            document.getElementById("close").onclick = function (evt) {
+                if (!ws) {
+                    return false;
+                }
+                ws.close();
+                return false;
+            };
+        });
+    </script>
+</head>
+<body>
+<h1>TS2 Sim Server</h1>
+<p>
+    TS2 Sim Server is running !
+</p>
+<h2>Simulation</h2>
+<table>
+    <tr>
+        <th>Title:</th>
+        <td>{{ .Title }}</td>
+    </tr>
+    <tr>
+        <th>Description:</th>
+        <td>{{ .Description }}</td>
+    </tr>
+</table>
+
+<h2>Test WebSocket Connection</h2>
+<table>
+    <tr>
+        <td valign="top" width="50%">
+            <p>
+                WebSocket server: {{ .Host }}
+            </p>
+            <p>
+                Click "Open" to create a connection to the server,
+                "Send" to send a message to the server and "Close" to close the connection.
+                You can change the message and send multiple times.
+            </p>
+            <form>
+                <p>
+                    <button id="open">Open</button>
+                    <button id="close">Close</button>
+                </p>
+                <p>
+                    <input id="input" type="text"/>
+                    <button id="send">Send</button>
+                </p>
+            </form>
+        </td>
+        <td valign="top" width="50%">
+            <div id="output"></div>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
