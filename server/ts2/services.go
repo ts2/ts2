@@ -24,11 +24,14 @@ type ServiceActionCode uint8
 const (
 	// Reverse the train
 	ACTION_REVERSE ServiceActionCode = 1
+
 	// Set the given service. ActionParam is the new service code
 	ACTION_SET_SERVICE ServiceActionCode = 2
+
 	// Split the train at the given position. ActionParam is the element after
 	// which to split (integer).
 	ACTION_SPLIT ServiceActionCode = 3
+
 	// Join the train. ActionParam is 'ahead' if to join with the train in
 	// front or 'behind' otherwise.
 	ACTION_JOIN ServiceActionCode = 4
@@ -55,7 +58,7 @@ type ServiceLine struct {
 }
 
 /*
-Place returns the place interface associated with this service line
+Returns the Place interface associated with this service line
 */
 func (sl *ServiceLine) Place() Place {
 	return sl.service.simulation.Places[sl.PlaceCode]
@@ -64,6 +67,7 @@ func (sl *ServiceLine) Place() Place {
 /*
 A Service is mainly a predefined schedule that trains are supposed to
 follow with a few additional informations.
+
 The schedule is composed of several "lines" of type ServiceLine
 */
 type Service struct {
@@ -83,7 +87,7 @@ func (s *Service) PlannedTrainType() *TrainType {
 }
 
 /*
-setSimulation sets the Simulation this Service is part of.
+sets a pointer to the Simulation this Service is part of.
 */
 func (s *Service) setSimulation(sim *Simulation) {
 	s.simulation = sim
