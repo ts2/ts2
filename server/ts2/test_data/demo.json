@@ -13,11 +13,13 @@
 	"options": {
 		"currentScore": 12,
 		"currentTime": "06:00:00",
+        "clientToken": "client-secret",
 		"defaultDelayAtEntry": 0,
 		"defaultMaxSpeed": 18.06,
 		"defaultMinimumStopTime": [[20,40,90],[40,120,10]],
 		"defaultSignalVisibility": 100,
 		"description": "This simulation is a demo sim !",
+        "managerToken": "manager-secret",
 		"timeFactor": 5,
 		"title": "Demo Sim",
 		"trackCircuitBased": false,

@@ -21,6 +21,7 @@ package ts2
 
 type options struct {
 	TrackCircuitBased       bool           `json:"trackCircuitBased"`
+	ClientToken             string         `json:"clientToken"`
 	CurrentScore            int            `json:"currentScore"`
 	CurrentTime             Time           `json:"currentTime"`
 	DefaultDelayAtEntry     DelayGenerator `json:"defaultDelayAtEntry"`
@@ -28,6 +29,7 @@ type options struct {
 	DefaultMinimumStopTime  DelayGenerator `json:"defaultMinimumStopTime"`
 	DefaultSignalVisibility float64        `json:"defaultSignalVisibility"`
 	Description             string         `json:"description"`
+	ManagerToken            string         `json:"managerToken"`
 	TimeFactor              int            `json:"timeFactor"`
 	Title                   string         `json:"title"`
 	Version                 string         `json:"version"`

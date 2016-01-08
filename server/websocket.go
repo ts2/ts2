@@ -32,29 +32,38 @@ var upgrader = websocket.Upgrader{
 
 /*
 serveWs serves the WebSocket endpoint of the server.
+
+It reads JSON from the client and sends a Request object to the hub.
+It receives Response objects from the hub and send JSON to the client.
 */
 func serveWs(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	conn := &connection{*ws, make(chan []byte, 256), ClientType(""), ManagerType("")}
 	defer func() {
 		conn.Close()
 	}()
 
+	if err := conn.loginClient(); err != nil {
+		// Try to notify client
+		conn.writeError(err)
+		log.Println(err)
+		return
+	}
+	defer func() {
+		ts2Hub.unregisterChan <- conn
+	}()
+
 	for {
-		// TODO : this is just a stupid echo server for now !
-		mt, message, err := conn.ReadMessage()
+		req := new(Request)
+		err := conn.ReadJSON(req)
 		if err != nil {
 			log.Println("read:", err)
-			break
+			conn.writeError(err)
 		}
-		log.Printf("recv: %s", message)
-		err = conn.WriteMessage(mt, message)
-		if err != nil {
-			log.Println("write:", err)
-			break
-		}
+		ts2Hub.readChan <- req
 	}
 }

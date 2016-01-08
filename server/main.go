@@ -30,7 +30,10 @@ import (
 	"os/signal"
 )
 
-var sim ts2.Simulation
+var (
+	sim    ts2.Simulation
+	ts2Hub Hub
+)
 
 func main() {
 	// Command line arguments
@@ -73,6 +76,7 @@ OPTIONS:
 	}
 
 	go HttpdStart(*addr, *port)
+	go ts2Hub.run()
 
 	// Route all messages
 	for {
