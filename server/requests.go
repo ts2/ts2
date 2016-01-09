@@ -31,3 +31,21 @@ type Request struct {
 	Action string          `json:"action"`
 	Params json.RawMessage `json:"params"`
 }
+
+/*
+ParamsLogin is the struct of the Request Params for a RequestLogin
+*/
+type ParamsLogin struct {
+	ClientType    ClientType  `json:"type"`
+	ClientSubType ManagerType `json:"subType"`
+	Token         string      `json:"token"`
+}
+
+/*
+RequestLogin is a request made by a websocket client to log onto the server.
+*/
+type RequestLogin struct {
+	Object string      `json:"object"`
+	Action string      `json:"action"`
+	Params ParamsLogin `json:"params"`
+}

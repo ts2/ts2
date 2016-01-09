@@ -76,11 +76,7 @@ func (conn *connection) loginClient() error {
 		return fmt.Errorf("Client should call Server/login before all other requests")
 	}
 
-	loginParams := struct {
-		ClientType    ClientType  `json:"type"`
-		ClientSubType ManagerType `json:"subType"`
-		Token         string      `json:"token"`
-	}{}
+	loginParams := ParamsLogin{}
 	if err := json.Unmarshal(req.Params, &loginParams); err != nil {
 		return fmt.Errorf("Unable to parse login params: %s", err)
 	}
@@ -106,9 +102,9 @@ func (conn *connection) loginClient() error {
 writeError sends an error message to the client as a response to its request.
 */
 func (conn *connection) writeError(e error) error {
-	sr := StatusResponse{
+	sr := ResponseStatus{
 		MsgType: RESPONSE,
-		Data: StatusData{
+		Data: DataStatus{
 			KO,
 			fmt.Sprintf("Error: %s", e),
 		},
@@ -120,9 +116,9 @@ func (conn *connection) writeError(e error) error {
 writeOk sends a OK status message to the client as a response to its request
 */
 func (conn *connection) writeOk() error {
-	sr := StatusResponse{
+	sr := ResponseStatus{
 		MsgType: RESPONSE,
-		Data: StatusData{
+		Data: DataStatus{
 			OK,
 			"",
 		},

@@ -19,33 +19,41 @@
 
 package main
 
-type StatusCode string
-
-const (
-	OK StatusCode = "OK"
-	KO StatusCode = "KO"
+import (
+	"encoding/json"
+	"github.com/gorilla/websocket"
+	"io/ioutil"
+	"net/url"
+	"testing"
 )
 
-type MessageType string
-
-const (
-	RESPONSE MessageType = "response"
-	EVENT    MessageType = "event"
-	REQUEST  MessageType = "request"
-)
-
-/*
-DataStatus is the Data part of a ResponseStatus message
-*/
-type DataStatus struct {
-	Status  StatusCode `json:"status"`
-	Message string     `json:"message"`
+func assertTrue(t *testing.T, expr bool, msg string) {
+	if !expr {
+		t.Errorf("%v: expression is false", msg)
+	}
 }
 
-/*
-ResponseStatus is a status message sent to a websocket client
-*/
-type ResponseStatus struct {
-	MsgType MessageType `json:"msgType"`
-	Data    DataStatus  `json:"data"`
+func assertEqual(t *testing.T, a interface{}, b interface{}, msg string) {
+	if a != b {
+		t.Errorf("%v: %v(%T) is not equal to %v(%T)", msg, a, a, b, b)
+	}
+}
+
+func runServer(t *testing.T) {
+	data, err := ioutil.ReadFile("ts2/test_data/demo.json")
+	if err != nil {
+		t.Error(err)
+	}
+	json.Unmarshal(data, &sim)
+	go HttpdStart("0.0.0.0", "22222")
+	go ts2Hub.run()
+}
+
+func clientDial(t *testing.T) *websocket.Conn {
+	u := url.URL{Scheme: "ws", Host: "127.0.0.1:22222", Path: "/ws"}
+	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		t.Error(err)
+	}
+	return conn
 }
