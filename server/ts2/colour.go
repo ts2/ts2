@@ -9,19 +9,7 @@ import (
 
 
 
-/*
-Point type represents a point on the scenery
-*/
-type Point struct {
-	X float64
-	Y float64
-}
-
-func Add(p1 Point, p2 Point) Point {
-	return Point{p1.X + p2.X, p1.Y + p2.Y}
-}
-
-// A color stored as RGB values
+// A Colour stored as RGB values
 type Color struct {
 	R, G, B uint8
 }
@@ -35,12 +23,12 @@ func (col Color) RGBA() (r, g, b, a uint32) {
 	return
 }
 
-// Hex returns the hex "html" representation of the color, as in #ff0080.
+// Color.Hex() returns the hex "html" representation of the color, as in #ff0080.
 func (col Color) Hex() string {
 	return fmt.Sprintf("#%02x%02x%02x", uint8(col.R), uint8(col.G), uint8(col.B))
 }
 
-// FromHex parses a "html" hex color-string, either in the 3 "#f0c" or 6 "#ff1034" digits form.
+// FromHex() parses a "css/html" hex color-string, either in the 3 "#f0c" or 6 "#ff1034" digits form.
 func FromHex(scol string) (Color, error) {
 	format := "#%02x%02x%02x"
 
@@ -55,6 +43,8 @@ func FromHex(scol string) (Color, error) {
 
 	return Color{r, g, b}, nil
 }
+
+
 
 // UnmarshalJSON for the Color type
 func (c *Color) UnmarshalJSON(data []byte) error {
