@@ -42,28 +42,12 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	conn := &connection{*ws, make(chan []byte, 256), ClientType(""), ManagerType("")}
+	conn := &connection{
+		Conn:     *ws,
+		pushChan: make(chan interface{}, 256),
+	}
 	defer func() {
 		conn.Close()
 	}()
-
-	if err := conn.loginClient(); err != nil {
-		// Try to notify client
-		conn.writeError(err)
-		log.Println(err)
-		return
-	}
-	defer func() {
-		ts2Hub.unregisterChan <- conn
-	}()
-
-	for {
-		req := new(Request)
-		err := conn.ReadJSON(req)
-		if err != nil {
-			log.Println("read:", err)
-			conn.writeError(err)
-		}
-		ts2Hub.readChan <- req
-	}
+	conn.loop()
 }

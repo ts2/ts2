@@ -21,6 +21,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"io/ioutil"
 	"net/url"
@@ -39,11 +40,8 @@ func assertEqual(t *testing.T, a interface{}, b interface{}, msg string) {
 	}
 }
 
-func runServer(t *testing.T) {
-	data, err := ioutil.ReadFile("ts2/test_data/demo.json")
-	if err != nil {
-		t.Error(err)
-	}
+func runServer() {
+	data, _ := ioutil.ReadFile("ts2/test_data/demo.json")
 	json.Unmarshal(data, &sim)
 	go HttpdStart("0.0.0.0", "22222")
 	go ts2Hub.run()
@@ -56,4 +54,22 @@ func clientDial(t *testing.T) *websocket.Conn {
 		t.Error(err)
 	}
 	return conn
+}
+
+/*
+login dials to the server and logs the client in
+*/
+func login(t *testing.T, ct ClientType, mt ManagerType, token string) (*websocket.Conn, error) {
+	c := clientDial(t)
+	loginRequest := RequestLogin{"Server", "login", ParamsLogin{ct, mt, token}}
+	if err := c.WriteJSON(loginRequest); err != nil {
+		return nil, err
+	}
+	var expectedResponse ResponseStatus
+	c.ReadJSON(&expectedResponse)
+	if expectedResponse.Data.Status == OK {
+		return c, nil
+	} else {
+		return c, fmt.Errorf(expectedResponse.Data.Message)
+	}
 }

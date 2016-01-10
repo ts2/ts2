@@ -19,6 +19,10 @@
 
 package main
 
+import (
+	"fmt"
+)
+
 type StatusCode string
 
 const (
@@ -48,4 +52,32 @@ ResponseStatus is a status message sent to a websocket client
 type ResponseStatus struct {
 	MsgType MessageType `json:"msgType"`
 	Data    DataStatus  `json:"data"`
+}
+
+/*
+NewErrorResponse returns a ResponseStatus object corresponding to the given error.
+*/
+func NewErrorResponse(e error) *ResponseStatus {
+	sr := ResponseStatus{
+		MsgType: RESPONSE,
+		Data: DataStatus{
+			KO,
+			fmt.Sprintf("Error: %s", e),
+		},
+	}
+	return &sr
+}
+
+/*
+NewOkResponse returns a new ResponseStatus object with OK status and empty message.
+*/
+func NewOkResponse() *ResponseStatus {
+	sr := ResponseStatus{
+		MsgType: RESPONSE,
+		Data: DataStatus{
+			OK,
+			"",
+		},
+	}
+	return &sr
 }

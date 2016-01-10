@@ -58,9 +58,56 @@ connection is a wrapper around the websocket.Conn
 type connection struct {
 	websocket.Conn
 	// pushChan is the channel on which pushed messaged are sent
-	pushChan    chan []byte
+	pushChan    chan interface{}
 	clientType  ClientType
 	ManagerType ManagerType
+	LastRequest Request
+}
+
+/*
+loop starts the reading and writing loops of the connection.
+*/
+func (conn *connection) loop() {
+	if err := conn.loginClient(); err != nil {
+		// Try to notify client
+		conn.WriteJSON(NewErrorResponse(err))
+		log.Println(err)
+		return
+	}
+	go conn.processWrite()
+	conn.processRead()
+}
+
+/*
+processRead performs all read operations from the connection and forwards to the hub
+*/
+func (conn *connection) processRead() {
+	for {
+		err := conn.ReadJSON(&conn.LastRequest)
+		if err != nil {
+			if _, ok := err.(*websocket.CloseError); ok {
+				log.Printf("%s: Connection closed by peer", conn.RemoteAddr())
+				conn.Close()
+			} else {
+				log.Printf("%s: Error while reading: %s", conn.RemoteAddr(), err)
+				conn.pushChan <- NewErrorResponse(err)
+			}
+		} else {
+			ts2Hub.readChan <- conn
+		}
+	}
+}
+
+/*
+processWrite performs all the write operations to the connection sent by the hub
+*/
+func (conn *connection) processWrite() {
+	for {
+		req := <-conn.pushChan
+		if err := conn.WriteJSON(req); err != nil {
+			log.Printf("%s: Error while writing %+v: %s", conn.RemoteAddr(), req, err)
+		}
+	}
 }
 
 /*
@@ -73,12 +120,12 @@ func (conn *connection) loginClient() error {
 		return err
 	}
 	if req.Object != "Server" || req.Action != "login" {
-		return fmt.Errorf("Client should call Server/login before all other requests")
+		return fmt.Errorf("%s: Client should call Server/login before all other requests", conn.RemoteAddr())
 	}
 
 	loginParams := ParamsLogin{}
 	if err := json.Unmarshal(req.Params, &loginParams); err != nil {
-		return fmt.Errorf("Unable to parse login params: %s", err)
+		return fmt.Errorf("%s: Unable to parse login params: %s", conn.RemoteAddr(), err)
 	}
 
 	if loginParams.ClientType == CLIENT &&
@@ -90,38 +137,22 @@ func (conn *connection) loginClient() error {
 		conn.clientType = MANAGER
 		conn.ManagerType = loginParams.ClientSubType
 	} else {
-		return fmt.Errorf("Invalid login parameters")
+		return fmt.Errorf("%s: Invalid login parameters", conn.RemoteAddr())
 	}
-	conn.writeOk()
+	if err := conn.WriteJSON(NewOkResponse()); err != nil {
+		log.Printf("%s: Error while writing: %s", conn.RemoteAddr(), req, err)
+	}
 	ts2Hub.registerChan <- conn
 	log.Printf("%s: logged in as %s %s", conn.RemoteAddr(), conn.clientType, conn.ManagerType)
 	return nil
 }
 
 /*
-writeError sends an error message to the client as a response to its request.
+Close ends the connection and closes associated resources
 */
-func (conn *connection) writeError(e error) error {
-	sr := ResponseStatus{
-		MsgType: RESPONSE,
-		Data: DataStatus{
-			KO,
-			fmt.Sprintf("Error: %s", e),
-		},
-	}
-	return conn.WriteJSON(&sr)
-}
-
-/*
-writeOk sends a OK status message to the client as a response to its request
-*/
-func (conn *connection) writeOk() error {
-	sr := ResponseStatus{
-		MsgType: RESPONSE,
-		Data: DataStatus{
-			OK,
-			"",
-		},
-	}
-	return conn.WriteJSON(&sr)
+func (conn *connection) Close() error {
+	ts2Hub.unregisterChan <- conn
+	conn.Conn.Close()
+	close(conn.pushChan)
+	return nil
 }

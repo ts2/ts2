@@ -20,6 +20,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -36,7 +37,9 @@ type Hub struct {
 	// Unregister requests from connections.
 	unregisterChan chan *connection
 	// Received requests channel
-	readChan chan *Request
+	readChan chan *connection
+	// Objects received from simulation
+	writeChan chan interface{}
 }
 
 /*
@@ -44,18 +47,24 @@ run is the main loop of the hub dispatching requests and responses
 */
 func (h *Hub) run() {
 	log.Print("Hub: starting...")
+	// make connection maps
+	h.clientConnections = make(map[*connection]bool)
+	h.managerConnections = make(map[*connection]bool)
+	// make channels
 	h.registerChan = make(chan *connection)
 	h.unregisterChan = make(chan *connection)
-	h.readChan = make(chan *Request)
+	h.readChan = make(chan *connection)
+	h.writeChan = make(chan interface{}, 256)
 	for {
 		select {
+		case o := <-h.writeChan:
+			log.Printf("Object to write: %s", o)
+		case c := <-h.readChan:
+			go h.dispatchObject(c.LastRequest, c.pushChan)
 		case c := <-h.registerChan:
 			h.register(c)
-			log.Printf("Hub: registering connection from %s", c.RemoteAddr())
 		case c := <-h.unregisterChan:
 			h.unregister(c)
-		case req := <-h.readChan:
-			log.Printf("REQ: %s", req)
 		}
 	}
 }
@@ -63,10 +72,60 @@ func (h *Hub) run() {
 /*
 register registers the connection on the hub
 */
-func (h *Hub) register(c *connection) error {
-	return nil
+func (h *Hub) register(c *connection) {
+	switch c.clientType {
+	case CLIENT:
+		h.clientConnections[c] = true
+	case MANAGER:
+		h.managerConnections[c] = true
+	}
 }
 
-func (h *Hub) unregister(c *connection) error {
-	return nil
+/*
+unregister remove connection registration on the hub.
+Note that unregister does not close the connection.
+*/
+func (h *Hub) unregister(c *connection) {
+	switch c.clientType {
+	case CLIENT:
+		if _, ok := h.clientConnections[c]; ok {
+			delete(h.clientConnections, c)
+		}
+	case MANAGER:
+		if _, ok := h.managerConnections[c]; ok {
+			delete(h.managerConnections, c)
+		}
+	}
+}
+
+/*
+dispatchObject process a request and
+*/
+func (h *Hub) dispatchObject(req Request, ch chan interface{}) {
+	switch req.Object {
+	case "Server":
+		h.dispatchServer(req, ch)
+		//	case "Simulation":
+		//		h.dispatchSimulation(req, ch)
+		//	case "TrackItem":
+		//		h.dispatchTrackItem(req, ch)
+		//	case "Route":
+		//		h.dispatchRoute(req, ch)
+		//	case "TrainType":
+		//		h.dispatchTrainType(req, ch)
+		//	case "Service":
+		//		h.dispatchService(req, ch)
+		//	case "Train":
+		//		h.dispatchTrain(req, ch)
+	}
+}
+
+/*
+dispatchServer processes requests made on the Server object
+*/
+func (h *Hub) dispatchServer(req Request, ch chan interface{}) {
+	switch req.Action {
+	case "login":
+		ch <- NewErrorResponse(fmt.Errorf("Can't call login when already logged in"))
+	}
 }

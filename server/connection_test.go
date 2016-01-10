@@ -21,13 +21,19 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"testing"
 	"time"
+	"os"
 )
 
+func TestMain(m *testing.M) {
+	runServer()
+	os.Exit(m.Run())
+}
+
 func TestLogin(t *testing.T) {
-	runServer(t)
 	// Wait for server to come up
 	time.Sleep(100 * time.Millisecond)
 	c := clientDial(t)
@@ -42,19 +48,51 @@ func TestLogin(t *testing.T) {
 	}
 	var expectedResponse ResponseStatus
 	c.ReadJSON(&expectedResponse)
-	assertEqual(t, expectedResponse, ResponseStatus{RESPONSE, DataStatus{KO, "Error: Client should call Server/login before all other requests"}}, "Login/Incorrect")
+	expectedErrorMsg := fmt.Sprintf("Error: %s: Client should call Server/login before all other requests", c.LocalAddr())
+	assertEqual(t, expectedResponse, ResponseStatus{RESPONSE, DataStatus{KO, expectedErrorMsg}}, "Login/Wrong request")
 	_, _, err := c.ReadMessage()
 	if _, ok := err.(*websocket.CloseError); err == nil || !ok {
-		t.Errorf("Login/Incorrect/Connection should be closed")
+		t.Errorf("Login/Wrong request/Connection should be closed")
+	}
+	c.Close()
+
+	// Incorrect login
+	c, err = login(t, CLIENT, "", "wrong-token")
+	expectedErrorMsg = fmt.Sprintf("Error: %s: Invalid login parameters", c.LocalAddr())
+	if err == nil || err.Error() != expectedErrorMsg {
+		t.Errorf("Login/Incorrect: Unexpected behaviour")
+	}
+	_, _, err = c.ReadMessage()
+	if _, ok := err.(*websocket.CloseError); err == nil || !ok {
+		t.Errorf("Login/Wrong request/Connection should be closed")
 	}
 	c.Close()
 
 	// Correct login
-	c = clientDial(t)
-	loginRequest := RequestLogin{"Server", "login", ParamsLogin{CLIENT, "", "client-secret"}}
-	if err := c.WriteJSON(loginRequest); err != nil {
-		t.Error(err)
+	if _, err = login(t, CLIENT, "", "client-secret"); err != nil {
+		t.Errorf(err.Error())
 	}
-	c.ReadJSON(&expectedResponse)
-	assertEqual(t, expectedResponse, ResponseStatus{RESPONSE, DataStatus{OK, ""}}, "Login/Correct")
+}
+
+func TestDoubleLogin(t *testing.T) {
+	// Wait for server to come up
+	time.Sleep(100 * time.Millisecond)
+	c, err := login(t, CLIENT, "", "client-secret")
+	defer func() {
+		c.Close()
+	}()
+
+
+	if err != nil {
+		t.Errorf(err.Error())
+	} else {
+		c.WriteJSON(RequestLogin{"Server", "login", ParamsLogin{CLIENT, "", "client-secret"}})
+		var expectedResponse ResponseStatus
+		c.ReadJSON(&expectedResponse)
+		if expectedResponse.Data.Status != KO {
+			fmt.Errorf("Double login: should have failed")
+		} else if expectedResponse.Data.Message != "Error: Can't call login when already logged in" {
+			fmt.Errorf("Double login: Wrong error message")
+		}
+	}
 }
