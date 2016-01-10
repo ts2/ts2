@@ -63,14 +63,15 @@ type Service struct {
 }
 
 /*
-PlannedTrainType returns a pointer to the planned TrainType for this Service.
+Service.PlannedTrainType() returns a pointer to the planned TrainType for this Service.
 */
 func (s *Service) PlannedTrainType() *TrainType {
+    // TODO catch error
 	return s.simulation.TrainTypes[s.PlannedTrainTypeCode]
 }
 
 /*
-set a pointer to the Simulation this Service is part of
+Service.setSimulation() sets a pointer to the Simulation this Service to be part of
 */
 func (s *Service) setSimulation(sim *Simulation) {
 	s.simulation = sim

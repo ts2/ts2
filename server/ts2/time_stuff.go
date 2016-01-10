@@ -7,10 +7,10 @@ import (
 	"time"
 )
 
-type tuplet [3]int
+
 
 /*
-DelayGenerator is a probability distribution for a duration in seconds.
+DelayGenerator is a probability distribution for a duration in seconds; atmo
 
 It is used to have random delays of trains.
 
@@ -25,8 +25,10 @@ e.g. [[0 100 80] [100 500 20]] means that when a value will be yielded by
 this DelayGenerator, it will have 80% chance of being between 0 and 100, and
 20% chance of being between 100 and 500.
 */
+type delayTuplets [3]int
+
 type DelayGenerator struct {
-	data []tuplet
+	data []delayTuplets
 }
 
 func (dg *DelayGenerator) UnmarshalJSON(data []byte) error {

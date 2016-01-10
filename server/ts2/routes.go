@@ -11,13 +11,13 @@ import (
 type RouteState uint8
 
 const (
-	// DEACTIVATED: The route is not active
+	// DEACTIVATED =  The route is not active
 	DEACTIVATED RouteState = 0
 
-	// ACTIVATED: The route is active but will be destroyed by the first train using it
+	// ACTIVATED =  The route is active but will be destroyed by the first train using it
 	ACTIVATED RouteState = 1
 
-	// PERSISTENT: The route is set and will remain after train passage
+	// PERSISTENT =  The route is set and will remain after train passage
 	PERSISTENT RouteState = 2
 )
 
