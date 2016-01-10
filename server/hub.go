@@ -28,14 +28,18 @@ import (
 Hub makes the interface between the Simulation and the websocket clients
 */
 type Hub struct {
-	// Registered client connections.
+	// Registered client connections
 	clientConnections map[*connection]bool
-	// Registered train manager connections.
+
+	// Registered train manager connections
 	managerConnections map[*connection]bool
-	// Register requests from the connections.
+
+	// Register requests from the connection
 	registerChan chan *connection
-	// Unregister requests from connections.
+
+	// Unregister requests from connection
 	unregisterChan chan *connection
+
 	// Received requests channel
 	readChan chan *connection
 	// Objects received from simulation
@@ -43,7 +47,7 @@ type Hub struct {
 }
 
 /*
-run is the main loop of the hub dispatching requests and responses
+Hub.run() is the loop for handling dispatching requests and responses
 */
 func (h *Hub) run() {
 	log.Print("Hub: starting...")
@@ -70,7 +74,7 @@ func (h *Hub) run() {
 }
 
 /*
-register registers the connection on the hub
+Hub.register() registers the connection to this hub
 */
 func (h *Hub) register(c *connection) {
 	switch c.clientType {
@@ -82,8 +86,7 @@ func (h *Hub) register(c *connection) {
 }
 
 /*
-unregister remove connection registration on the hub.
-Note that unregister does not close the connection.
+Hub.unregister() unregisters the connection to this hub
 */
 func (h *Hub) unregister(c *connection) {
 	switch c.clientType {

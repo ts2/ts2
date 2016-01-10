@@ -23,9 +23,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"os"
 	"testing"
 	"time"
-	"os"
 )
 
 func TestMain(m *testing.M) {
@@ -81,7 +81,6 @@ func TestDoubleLogin(t *testing.T) {
 	defer func() {
 		c.Close()
 	}()
-
 
 	if err != nil {
 		t.Errorf(err.Error())

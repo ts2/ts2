@@ -19,31 +19,18 @@
 
 package ts2
 
+import (
+
+)
+
 /*
-TrainType defines a rolling stock type.
+Point type represents a point on the scenery
 */
-type TrainType struct {
-	Description  string   `json:"description"`
-	EmergBraking float64  `json:"emergBraking"`
-	Length       float64  `json:"length"`
-	MaxSpeed     float64  `json:"maxSpeed"`
-	StdAccel     float64  `json:"stdAccel"`
-	StdBraking   float64  `json:"stdBraking"`
-	ElementsStr  []string `json:"elements"`
-
-	simulation *Simulation
+type Point struct {
+	X float64
+	Y float64
 }
 
-// setSimulation() attaches the simulation this TrainType is part of
-func (tt *TrainType) setSimulation(sim *Simulation) {
-	tt.simulation = sim
-}
-
-// Elements() returns the train types this TrainType is composed of.
-func (tt *TrainType) Elements() []*TrainType {
-	res := make([]*TrainType, 0)
-	for _, code := range tt.ElementsStr {
-		res = append(res, tt.simulation.TrainTypes[code])
-	}
-	return res
+func Add(p1 Point, p2 Point) Point {
+	return Point{p1.X + p2.X, p1.Y + p2.Y}
 }

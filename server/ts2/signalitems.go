@@ -125,19 +125,21 @@ type SignalType struct {
 }
 
 /*
-SignalItem is the logical item for signals.
+SignalItem is the "logical" item for signals.
 It holds the logic of a signal defined by its SignalType.
 A signal is the item from and to which routes are created.
 */
 type SignalItem interface {
 	TrackItem
+
 	// BerthOrigin is the Point at which the berth of this signal must be
 	// displayed by clients. Berths are where train descriptors are displayed.
 	BerthOrigin() Point
+
 	// SignalType returns a pointer to the SignalType of this signal
 	SignalType() *SignalType
-	// Reversed returns true if the SignalItem is for trains coming from the
-	// right
+
+	// Reversed() return true if the SignalItem is for trains coming from the right
 	Reversed() bool
 }
 

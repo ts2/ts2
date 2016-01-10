@@ -25,24 +25,35 @@ import (
 	"strconv"
 )
 
-// RouteState represents the state of a Route at a given time.
+// RouteState represents the state of a Route at a given time and instance
 type RouteState uint8
 
 const (
-	// DEACTIVATED: The route is not active
+	// DEACTIVATED =  The route is not active
 	DEACTIVATED RouteState = 0
-	// ACTIVATED: The route is active but will be destroyed by the first train using it
+
+	// ACTIVATED =  The route is active but will be destroyed by the first train using it
 	ACTIVATED RouteState = 1
-	// PERSISTENT: The route is set and will remain after train passage
+
+	// PERSISTENT =  The route is set and will remain after train passage
 	PERSISTENT RouteState = 2
 )
 
-// Direction represents the position of a points, either normal or reversed
+// Direction are constants that represent the "state" of a points, either normal or reversed
 type Direction uint8
 
 const (
-	NORMAL   Direction = 0
+	// Rail change set at normal
+	NORMAL Direction = 0
+
+	// Rail change is set for cross over
 	REVERSED Direction = 1
+
+	// Point is moving and Unknown state
+	MOVING Direction = 10
+
+	// Point goes back to previous safe state.. and fail
+	BACKOFF Direction = 11
 )
 
 /*

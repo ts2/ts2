@@ -55,7 +55,7 @@ func (pos Position) IsValid() bool {
 	return false
 }
 
-// IsOut returns true if this position is out of the scene, going forward
+// IsOut() is true if this position is out of the scene and moving forward
 func (pos Position) IsOut() bool {
 	if pos.TrackItem.Type() == "EndItem" && pos.PreviousItem != nil {
 		return true
@@ -63,7 +63,7 @@ func (pos Position) IsOut() bool {
 	return false
 }
 
-// Next returns a position on the next TrackItem of this Position
+// Position.Next() is the Position on the next TrackItem with regard to this Position
 func (pos Position) Next(dir Direction) Position {
 	nextTi, _ := pos.TrackItem.FollowingItem(pos.PreviousItem, dir)
 	return Position{nextTi, pos.TrackItem, 0}

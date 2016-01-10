@@ -32,7 +32,7 @@ var homeTempl = template.Must(template.ParseFiles("home.html"))
 HttpdStart starts the server which serves on the following routes:
 
 / : Serves a HTTP home page with the server status and information about the loaded sim.
-It also includes a JavaScript WebSocket client to test the server.
+It also includes a JavaScript WebSocket client to communicate and manage the server.
 
 /ws : WebSocket endpoint for all TS2 clients and managers.
 */
@@ -45,7 +45,7 @@ func HttpdStart(addr, port string) {
 }
 
 /*
-serveHome serves the server's home page with integrated JS WebSocket client.
+serveHome() serves the html home.html page with integrated JS WebSocket client.
 */
 func serveHome(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
