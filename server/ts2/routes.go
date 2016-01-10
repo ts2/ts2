@@ -1,21 +1,3 @@
-/*   Copyright (C) 2008-2016 by Nicolas Piganeau and the TS2 TEAM
- *   (See AUTHORS file)
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the
- *   Free Software Foundation, Inc.,
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 
 package ts2
 
@@ -25,24 +7,36 @@ import (
 	"strconv"
 )
 
-// RouteState represents the state of a Route at a given time.
+// RouteState represents the state of a Route at a given time and instance
 type RouteState uint8
 
 const (
 	// DEACTIVATED: The route is not active
 	DEACTIVATED RouteState = 0
+
 	// ACTIVATED: The route is active but will be destroyed by the first train using it
 	ACTIVATED RouteState = 1
+
 	// PERSISTENT: The route is set and will remain after train passage
 	PERSISTENT RouteState = 2
 )
 
-// Direction represents the position of a points, either normal or reversed
+// Direction are constants that represent the "state" of a points, either normal or reversed
 type Direction uint8
 
 const (
+    // Rail change set at normal
 	NORMAL   Direction = 0
+
+	// Rail change is set for cross over
 	REVERSED Direction = 1
+
+	// Point is moving and Unknown state
+	MOVING Direction = 300
+
+	// Point goes back to previous safe state.. and fail
+	BACKOFF Direction = 1000
+
 )
 
 /*

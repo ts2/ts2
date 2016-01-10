@@ -1,21 +1,3 @@
-/*   Copyright (C) 2008-2016 by Nicolas Piganeau and the TS2 TEAM
- *   (See AUTHORS file)
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the
- *   Free Software Foundation, Inc.,
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 
 package ts2
 
@@ -125,19 +107,21 @@ type SignalType struct {
 }
 
 /*
-SignalItem is the logical item for signals.
+SignalItem is the "logical" item for signals.
 It holds the logic of a signal defined by its SignalType.
 A signal is the item from and to which routes are created.
 */
 type SignalItem interface {
 	TrackItem
+
 	// BerthOrigin is the Point at which the berth of this signal must be
 	// displayed by clients. Berths are where train descriptors are displayed.
 	BerthOrigin() Point
+
 	// SignalType returns a pointer to the SignalType of this signal
 	SignalType() *SignalType
-	// Reversed returns true if the SignalItem is for trains coming from the
-	// right
+
+	// Reversed() return true if the SignalItem is for trains coming from the right
 	Reversed() bool
 }
 

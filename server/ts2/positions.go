@@ -1,21 +1,3 @@
-/*   Copyright (C) 2008-2016 by Nicolas Piganeau and the TS2 TEAM
- *   (See AUTHORS file)
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the
- *   Free Software Foundation, Inc.,
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 
 package ts2
 
@@ -55,7 +37,7 @@ func (pos Position) IsValid() bool {
 	return false
 }
 
-// IsOut returns true if this position is out of the scene, going forward
+// IsOut() is true if this position is out of the scene and moving forward
 func (pos Position) IsOut() bool {
 	if pos.TrackItem.Type() == "EndItem" && pos.PreviousItem != nil {
 		return true
@@ -63,7 +45,7 @@ func (pos Position) IsOut() bool {
 	return false
 }
 
-// Next returns a position on the next TrackItem of this Position
+// Position.Next() is the Position on the next TrackItem with regard to this Position
 func (pos Position) Next(dir Direction) Position {
 	nextTi, _ := pos.TrackItem.FollowingItem(pos.PreviousItem, dir)
 	return Position{nextTi, pos.TrackItem, 0}

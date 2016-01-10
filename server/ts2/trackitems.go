@@ -1,21 +1,3 @@
-/*   Copyright (C) 2008-2016 by Nicolas Piganeau and the TS2 TEAM
- *   (See AUTHORS file)
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the
- *   Free Software Foundation, Inc.,
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 
 package ts2
 
@@ -33,8 +15,8 @@ const bigFloat = 1000000000.0
 type CustomProperty map[string][]int
 
 /*
-ItemsNotLinkedError is returned when two TrackItem instances that are assumed
-to be linked are not.
+An ItemsNotLinkedError is returned when two TrackItem instances that are assumed
+to be linked; are not.
 */
 type ItemsNotLinkedError struct {
 	item1 TrackItem
@@ -46,51 +28,64 @@ func (e ItemsNotLinkedError) Error() string {
 }
 
 /*
-A TrackItem is a piece of scenery and is a base interface. Each item
-has defined coordinates in the scenery layout and is connected to other
-items so that the trains can travel from one to another.
+A "TrackItem" is a piece of scenery and is "the base interface".
+
+Every item has defined coordinates in the scenery layout and is connected to other
+TrackItems's so that the trains can travel from one to another.
 
 The coordinates are expressed in pixels, the X-axis is from left to right and
 the Y-axis is from top to bottom.
 
-A TrackItem has an origin point defined by its X and Y fields.
+Every TrackItem has an origin() Point defined by its X and Y values.
 */
 type TrackItem interface {
-	// TiId returns the unique Id of this TrackItem which is the index of this
+
+	// TiId() returns the unique Id of this TrackItem, which is the index of this
 	// item in the Simulation TrackItems map.
 	TiId() int
-	// Type returns the name of the type of item this TrackItem is. This is
-	// also the name of the interface that this type of item will implement.
+
+	// Type() returns the name of the type of item this TrackItem is. This is
+	// also the name of the interface that this type of item can implement.
 	Type() string
-	// Name returns the human readable name of this item.
+
+	// Name() returns the human readable name of this item
 	Name() string
-	// setSimulation sets the simulation of the item.
+
+	// setSimulation() attaches this TrackItem to a Simulation instance
 	setSimulation(*Simulation)
-	// setId sets the item's internal id
+
+	// setId() sets the item's internal id
 	setId(int)
-	// NextItem returns the next item of this TrackItem. The next item is
-	// usually the item connected to the end of the item that is not the origin.
+
+	// NextItem() returns the next item of this TrackItem.
+	//
+	// The next item is usually the item connected to the end of the item that is not the Origin()
 	NextItem() TrackItem
-	// PreviousItem returns the previous item of this TrackItem. The
-	// previous item is usually the item connected to the origin of this item.
+
+	// PreviousItem returns the previous item of this TrackItem.
+	//
+	// The previous item is usually the item connected to the Origin() of this item.
 	PreviousItem() TrackItem
-	// MaxSpeed returns the maximum allowed speed on this TrackItem in meters
-	// per second.
+
+	// MaxSpeed() is the maximum allowed speed on this TrackItem in meters per second.
 	MaxSpeed() float64
-	// RealLength returns the length in meters that this TrackItem has in real
-	// life.
+
+	// RealLength() is the length in meters that this TrackItem has in real life track length
 	RealLength() float64
-	// Origin returns the two coordinates (x, y) of the origin point of this
-	// TrackItem.
+
+	// Origin() are the two coordinates (x, y) of the origin point of this TrackItem.
 	Origin() Point
+
 	// Returns the conflicting item of this TrackItem. The conflicting
 	// item is another item of the scenery on which a route must not be set if
 	// one is already active on this TrackItem (and vice-versa). This is
 	// particularly the case when two TrackItems cross over with no points.
 	ConflictItem() TrackItem
+
 	// Place returns the TrackItem of type Place associated with this item
 	// (as defined by PlaceCode).
 	Place() Place
+
 	// FollowingItem returns the following TrackItem linked to this one,
 	// knowing we come from precedingItem. Returned is either NextItem or
 	// PreviousItem, depending which way we come from.
@@ -98,9 +93,11 @@ type TrackItem interface {
 	// The second argument will return a ItemsNotLinkedError if the given
 	// precedingItem is not linked to this item.
 	FollowingItem(TrackItem, Direction) (TrackItem, error)
+
 	// IsConnected returns true if this TrackItem is connected to the given
 	// TrackItem, false otherwise
 	IsConnected(TrackItem) bool
+
 	// CustomProperty returns the custom property with the given key
 	CustomProperty(string) CustomProperty
 }
