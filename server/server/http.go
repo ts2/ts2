@@ -17,14 +17,28 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package main
+package server
 
 import (
 	"fmt"
+	"github.com/ts2/ts2/server/simulation"
 	"html/template"
 	"log"
 	"net/http"
 )
+
+var sim *simulation.Simulation
+var hub *Hub
+
+/*
+Run starts an http server and a hub for the given simulation, on the given address and port.
+*/
+func Run(s *simulation.Simulation, addr, port string) {
+	sim = s
+	hub = &Hub{}
+	go HttpdStart(addr, port)
+	hub.run()
+}
 
 var homeTempl = template.Must(template.ParseFiles("home.html"))
 

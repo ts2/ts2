@@ -17,21 +17,15 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package main
+package server
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"os"
 	"testing"
 	"time"
 )
-
-func TestMain(m *testing.M) {
-	runServer()
-	os.Exit(m.Run())
-}
 
 func TestLogin(t *testing.T) {
 	// Wait for server to come up

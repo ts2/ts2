@@ -17,35 +17,37 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package main
+package server
 
-import "encoding/json"
+import (
+	"github.com/gorilla/websocket"
+	"log"
+	"net/http"
+)
 
-/*
-Request is a generic request made by a websocket client.
-
-It is used before dispatching and unmarshaling into a specific request type.
-*/
-type Request struct {
-	Object string          `json:"object"`
-	Action string          `json:"action"`
-	Params json.RawMessage `json:"params"`
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
 }
 
 /*
-ParamsLogin is the struct of the Request Params for a RequestLogin
-*/
-type ParamsLogin struct {
-	ClientType    ClientType  `json:"type"`
-	ClientSubType ManagerType `json:"subType"`
-	Token         string      `json:"token"`
-}
+serveWs serves the WebSocket endpoint of the server.
 
-/*
-RequestLogin is a request made by a websocket client to log onto the server.
+It reads JSON from the client and sends a Request object to the hub.
+It receives Response objects from the hub and send JSON to the client.
 */
-type RequestLogin struct {
-	Object string      `json:"object"`
-	Action string      `json:"action"`
-	Params ParamsLogin `json:"params"`
+func serveWs(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	conn := &connection{
+		Conn:     *ws,
+		pushChan: make(chan interface{}, 256),
+	}
+	defer func() {
+		conn.Close()
+	}()
+	conn.loop()
 }

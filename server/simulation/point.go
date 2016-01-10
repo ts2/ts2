@@ -17,11 +17,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package ts2
+package simulation
 
-import (
-
-)
+import ()
 
 /*
 Point type represents a point on the scenery

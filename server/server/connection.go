@@ -17,7 +17,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package main
+package server
 
 import (
 	"encoding/json"
@@ -93,7 +93,7 @@ func (conn *connection) processRead() {
 				conn.pushChan <- NewErrorResponse(err)
 			}
 		} else {
-			ts2Hub.readChan <- conn
+			hub.readChan <- conn
 		}
 	}
 }
@@ -142,7 +142,7 @@ func (conn *connection) loginClient() error {
 	if err := conn.WriteJSON(NewOkResponse()); err != nil {
 		log.Printf("%s: Error while writing: %s", conn.RemoteAddr(), req, err)
 	}
-	ts2Hub.registerChan <- conn
+	hub.registerChan <- conn
 	log.Printf("%s: logged in as %s %s", conn.RemoteAddr(), conn.clientType, conn.ManagerType)
 	return nil
 }
@@ -151,7 +151,7 @@ func (conn *connection) loginClient() error {
 Close ends the connection and closes associated resources
 */
 func (conn *connection) Close() error {
-	ts2Hub.unregisterChan <- conn
+	hub.unregisterChan <- conn
 	conn.Conn.Close()
 	close(conn.pushChan)
 	return nil

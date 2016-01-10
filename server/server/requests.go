@@ -17,36 +17,35 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package ts2
+package server
 
-type MessageType uint8
-
-const (
-	SOFTWARE_MSG       MessageType = 0
-	PLAYER_WARNING_MSG MessageType = 1
-	SIMULATION_MSG     MessageType = 2
-)
+import "encoding/json"
 
 /*
-Message is one message emitted to the Message Logger of the simulation.
+Request is a generic request made by a websocket client.
+
+It is used before dispatching and unmarshaling into a specific request type.
 */
-type Message struct {
-	MsgType MessageType `json:"msgType"`
-	MsgText string      `json:"msgText"`
+type Request struct {
+	Object string          `json:"object"`
+	Action string          `json:"action"`
+	Params json.RawMessage `json:"params"`
 }
 
 /*
-MessageLogger holds all Message instances that have been emitted to it.
+ParamsLogin is the struct of the Request Params for a RequestLogin
 */
-type MessageLogger struct {
-	Messages []Message `json:"messages"`
-
-	simulation *Simulation
+type ParamsLogin struct {
+	ClientType    ClientType  `json:"type"`
+	ClientSubType ManagerType `json:"subType"`
+	Token         string      `json:"token"`
 }
 
 /*
-setSimulation sets the Simulation this MessageLogger is part of.
+RequestLogin is a request made by a websocket client to log onto the server.
 */
-func (ml *MessageLogger) setSimulation(sim *Simulation) {
-	ml.simulation = sim
+type RequestLogin struct {
+	Object string      `json:"object"`
+	Action string      `json:"action"`
+	Params ParamsLogin `json:"params"`
 }

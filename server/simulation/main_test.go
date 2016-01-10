@@ -17,33 +17,40 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package ts2
+package simulation
+
+import (
+	"io/ioutil"
+	"testing"
+)
 
 /*
-TrainType defines a rolling stock type.
+Equals is a comparison function for DelayGenerator objects.
 */
-type TrainType struct {
-	Description  string   `json:"description"`
-	EmergBraking float64  `json:"emergBraking"`
-	Length       float64  `json:"length"`
-	MaxSpeed     float64  `json:"maxSpeed"`
-	StdAccel     float64  `json:"stdAccel"`
-	StdBraking   float64  `json:"stdBraking"`
-	ElementsStr  []string `json:"elements"`
-
-	simulation *Simulation
-}
-
-// setSimulation() attaches the simulation this TrainType is part of
-func (tt *TrainType) setSimulation(sim *Simulation) {
-	tt.simulation = sim
-}
-
-// Elements() returns the train types this TrainType is composed of.
-func (tt *TrainType) Elements() []*TrainType {
-	res := make([]*TrainType, 0)
-	for _, code := range tt.ElementsStr {
-		res = append(res, tt.simulation.TrainTypes[code])
+func (a DelayGenerator) Equals(b DelayGenerator) bool {
+	for i := 0; i < len(a.data); i++ {
+		for j := 0; j < 3; j++ {
+			if a.data[i][j] != b.data[i][j] {
+				return false
+			}
+		}
 	}
-	return res
+	return true
+}
+
+func assertTrue(t *testing.T, expr bool, msg string) {
+	if !expr {
+		t.Errorf("%v: expression is false", msg)
+	}
+}
+
+func assertEqual(t *testing.T, a interface{}, b interface{}, msg string) {
+	if a != b {
+		t.Errorf("%v: %v(%T) is not equal to %v(%T)", msg, a, a, b, b)
+	}
+}
+
+func loadSim() []byte {
+	data, _ := ioutil.ReadFile("test_data/demo.json")
+	return data
 }

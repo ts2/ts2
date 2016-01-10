@@ -23,16 +23,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/ts2/ts2/server/ts2"
+	"github.com/ts2/ts2/server/server"
+	"github.com/ts2/ts2/server/simulation"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
-)
-
-var (
-	sim    ts2.Simulation
-	ts2Hub Hub
 )
 
 func main() {
@@ -60,6 +56,7 @@ OPTIONS:
 	signal.Notify(killChan, os.Interrupt)
 
 	// Load the simulation
+	var sim simulation.Simulation
 	if len(flag.Args()) > 0 {
 		simFile := flag.Arg(0)
 		log.Printf("Loading simulation: %s\n", simFile)
@@ -75,8 +72,7 @@ OPTIONS:
 		os.Exit(1)
 	}
 
-	go HttpdStart(*addr, *port)
-	go ts2Hub.run()
+	go server.Run(&sim, *addr, *port)
 
 	// Route all messages
 	for {

@@ -17,37 +17,36 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package main
+package simulation
 
-import (
-	"github.com/gorilla/websocket"
-	"log"
-	"net/http"
+type MessageType uint8
+
+const (
+	SOFTWARE_MSG       MessageType = 0
+	PLAYER_WARNING_MSG MessageType = 1
+	SIMULATION_MSG     MessageType = 2
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+/*
+Message is one message emitted to the Message Logger of the simulation.
+*/
+type Message struct {
+	MsgType MessageType `json:"msgType"`
+	MsgText string      `json:"msgText"`
 }
 
 /*
-serveWs serves the WebSocket endpoint of the server.
-
-It reads JSON from the client and sends a Request object to the hub.
-It receives Response objects from the hub and send JSON to the client.
+MessageLogger holds all Message instances that have been emitted to it.
 */
-func serveWs(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	conn := &connection{
-		Conn:     *ws,
-		pushChan: make(chan interface{}, 256),
-	}
-	defer func() {
-		conn.Close()
-	}()
-	conn.loop()
+type MessageLogger struct {
+	Messages []Message `json:"messages"`
+
+	simulation *Simulation
+}
+
+/*
+setSimulation sets the Simulation this MessageLogger is part of.
+*/
+func (ml *MessageLogger) setSimulation(sim *Simulation) {
+	ml.simulation = sim
 }

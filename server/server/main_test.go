@@ -17,16 +17,26 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package main
+package server
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/ts2/ts2/server/simulation"
 	"io/ioutil"
 	"net/url"
+	"os"
 	"testing"
 )
+
+func TestMain(m *testing.M) {
+	data, _ := ioutil.ReadFile("../simulation/test_data/demo.json")
+	var s simulation.Simulation
+	json.Unmarshal(data, &s)
+	go Run(&s, "0.0.0.0", "22222")
+	os.Exit(m.Run())
+}
 
 func assertTrue(t *testing.T, expr bool, msg string) {
 	if !expr {
@@ -38,13 +48,6 @@ func assertEqual(t *testing.T, a interface{}, b interface{}, msg string) {
 	if a != b {
 		t.Errorf("%v: %v(%T) is not equal to %v(%T)", msg, a, a, b, b)
 	}
-}
-
-func runServer() {
-	data, _ := ioutil.ReadFile("ts2/test_data/demo.json")
-	json.Unmarshal(data, &sim)
-	go HttpdStart("0.0.0.0", "22222")
-	go ts2Hub.run()
 }
 
 func clientDial(t *testing.T) *websocket.Conn {
