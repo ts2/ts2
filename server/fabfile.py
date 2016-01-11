@@ -16,5 +16,5 @@ def c_tpl():
     
 def run_dev():
     """Launch and compile local development golang server"""
-    local("go run main.go ./simulation/test_data.json")
+    local("go run main.go ./simulation/test_data/demo.json")
     
