@@ -23,16 +23,18 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/ts2/ts2/server/server"
-	"github.com/ts2/ts2/server/simulation"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
+
+	"github.com/ts2/ts2/server/server"
+	"github.com/ts2/ts2/server/simulation"
 )
 
 func main() {
 	// Command line arguments
+	debug := flag.Bool("debug", false, "Enable debug mode") // required for go-bindata
 	port := flag.String("port", "22222", "The port on which the server will listen")
 	addr := flag.String("addr", "0.0.0.0", "The address on which the server will listen. Set to 0.0.0.0 to listen on all addresses.")
 
@@ -57,6 +59,7 @@ OPTIONS:
 
 	// Load the simulation
 	var sim simulation.Simulation
+	sim.Debug = debug
 	if len(flag.Args()) > 0 {
 		simFile := flag.Arg(0)
 		log.Printf("Loading simulation: %s\n", simFile)

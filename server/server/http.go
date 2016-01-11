@@ -21,10 +21,11 @@ package server
 
 import (
 	"fmt"
-	"github.com/ts2/ts2/server/simulation"
 	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/ts2/ts2/server/simulation"
 )
 
 var sim *simulation.Simulation
@@ -40,7 +41,28 @@ func Run(s *simulation.Simulation, addr, port string) {
 	hub.run()
 }
 
-var homeTempl = template.Must(template.ParseFiles("home.html"))
+var homeTempl *template.Template //= template.Must(template.ParseFiles("templates/home.html"))
+
+// get template from go-bindata and compile
+func getTemplate(template_path string) (*template.Template, error){
+	data, err := Asset(template_path)
+	if err != nil {
+		return nil, err
+	}
+	return template.Must(template.New(template_path).Parse(string(data))), nil
+
+}
+
+
+func init(){
+	var err error
+	homeTempl, err = getTemplate("templates/home.html")
+	if err != nil {
+		log.Println("home.html")
+	}
+
+}
+
 
 /*
 HttpdStart starts the server which serves on the following routes:

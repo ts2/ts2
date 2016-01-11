@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
 )
 
 /*
@@ -39,6 +40,7 @@ type Simulation struct {
 	Services      map[string]*Service
 	Trains        []*Train
 	MessageLogger *MessageLogger
+	Debug         *bool
 }
 
 func (sim *Simulation) UnmarshalJSON(data []byte) error {
