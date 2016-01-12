@@ -21,7 +21,6 @@ package server
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 
@@ -43,7 +42,7 @@ func Run(s *simulation.Simulation, addr, port string) {
 	hub.run()
 }
 
-var homeTempl = template.Must(template.ParseFiles("server/home.html"))
+
 
 /*
 StartHttpd-  starts the http server which currently serves on the following route paths: {WIP}
@@ -63,27 +62,3 @@ func StartHttpd(addr, port string) {
 	log.Fatal(http.ListenAndServe(serverAddress, nil))
 }
 
-/*
-H_Home() - handles the / html home.html page with integrated JS WebSocket client WIP
-*/
-func H_Home(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.Error(w, "Not found", 404)
-		return
-	}
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", 405)
-		return
-	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	data := struct {
-		Title       string
-		Description string
-		Host        string
-	}{
-		sim.Options.Title,
-		sim.Options.Description,
-		"ws://" + r.Host + "/ws",
-	}
-	homeTempl.Execute(w, data)
-}
