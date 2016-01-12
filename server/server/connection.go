@@ -22,8 +22,9 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"log"
+
+	"github.com/gorilla/websocket"
 )
 
 type ClientType string
@@ -148,7 +149,7 @@ func (conn *connection) loginClient() error {
 }
 
 /*
-Close ends the connection and closes associated resources
+Close() ends the connection and closes associated resources
 */
 func (conn *connection) Close() error {
 	hub.unregisterChan <- conn

@@ -20,9 +20,10 @@
 package server
 
 import (
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/websocket"
 )
 
 var upgrader = websocket.Upgrader{
@@ -31,12 +32,12 @@ var upgrader = websocket.Upgrader{
 }
 
 /*
-serveWs serves the WebSocket endpoint of the server.
+H_Websocket - handler that serves the http.WebSocket and Upgrade endpoint of the server
 
-It reads JSON from the client and sends a Request object to the hub.
-It receives Response objects from the hub and send JSON to the client.
+  - It recieves JSON from the client and sends a Request object to the hub.
+  - It receives Response objects from the hub and send JSON to the client.
 */
-func serveWs(w http.ResponseWriter, r *http.Request) {
+func H_Websocket(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)

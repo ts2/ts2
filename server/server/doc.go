@@ -17,37 +17,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+// Package `server` implements the http/websocket front end for ts2 simulator
 package server
 
-import (
-	"encoding/json"
-)
-
-/*
-Request is a generic request made by a websocket client.
-
-It is used before dispatching and unmarshaling into a specific request type.
-*/
-type Request struct {
-	Object string          `json:"object"`
-	Action string          `json:"action"`
-	Params json.RawMessage `json:"params"`
-}
-
-/*
-ParamsLogin is the struct of the Request Params for a RequestLogin
-*/
-type ParamsLogin struct {
-	ClientType    ClientType  `json:"type"`
-	ClientSubType ManagerType `json:"subType"`
-	Token         string      `json:"token"`
-}
-
-/*
-RequestLogin is a request made by a websocket client to log onto the server.
-*/
-type RequestLogin struct {
-	Object string      `json:"object"`
-	Action string      `json:"action"`
-	Params ParamsLogin `json:"params"`
-}

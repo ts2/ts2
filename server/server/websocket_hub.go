@@ -25,7 +25,7 @@ import (
 )
 
 /*
-Hub makes the interface between the Simulation and the websocket clients
+Hub is the interface between the simulation and websocket clients
 */
 type Hub struct {
 	// Registered client connections
@@ -42,31 +42,38 @@ type Hub struct {
 
 	// Received requests channel
 	readChan chan *connection
+
 	// Objects received from simulation
 	writeChan chan interface{}
 }
 
 /*
-Hub.run() is the loop for handling dispatching requests and responses
+Hub.run() - starts the loop for handling dispatching requests and responses
 */
 func (h *Hub) run() {
 	log.Print("Hub: starting...")
+
 	// make connection maps
 	h.clientConnections = make(map[*connection]bool)
 	h.managerConnections = make(map[*connection]bool)
+
 	// make channels
 	h.registerChan = make(chan *connection)
 	h.unregisterChan = make(chan *connection)
 	h.readChan = make(chan *connection)
 	h.writeChan = make(chan interface{}, 256)
+
 	for {
 		select {
 		case o := <-h.writeChan:
 			log.Printf("Object to write: %s", o)
+
 		case c := <-h.readChan:
 			go h.dispatchObject(c.LastRequest, c.pushChan)
+
 		case c := <-h.registerChan:
 			h.register(c)
+
 		case c := <-h.unregisterChan:
 			h.unregister(c)
 		}
@@ -74,7 +81,7 @@ func (h *Hub) run() {
 }
 
 /*
-Hub.register() registers the connection to this hub
+Hub.register() - registers a client connection to this hub
 */
 func (h *Hub) register(c *connection) {
 	switch c.clientType {
@@ -86,7 +93,7 @@ func (h *Hub) register(c *connection) {
 }
 
 /*
-Hub.unregister() unregisters the connection to this hub
+Hub.unregister() - unregisters a client connection to this hub
 */
 func (h *Hub) unregister(c *connection) {
 	switch c.clientType {
