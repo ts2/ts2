@@ -42,9 +42,10 @@ class RoutesEditorView(QtWidgets.QTableView):
         """Called when the user changes the selection. Emits the routeSelected
         signal"""
         super().selectionChanged(selected, deselected)
-        index = selected.indexes()[0]
-        if index.isValid():
-            self.routeSelected.emit(index.data())
+        if selected.indexes():
+            index = selected.indexes()[0]
+            if index.isValid():
+                self.routeSelected.emit(index.data())
 
 
 class TrainTypesEditorView(QtWidgets.QTableView):
@@ -99,11 +100,12 @@ class ServicesEditorView(QtWidgets.QTableView):
         """Called when the user changes the selection. Emits the
         serviceSelected signal"""
         super().selectionChanged(selected, deselected)
-        index = selected.indexes()[0]
-        if index.isValid():
-            self.serviceSelected.emit(index.data())
-        else:
-            self.serviceSelected.emit(None)
+        if selected.indexes():
+            index = selected.indexes()[0]
+            if index.isValid():
+                self.serviceSelected.emit(index.data())
+                return
+        self.serviceSelected.emit(None)
 
     def setModel(self, model):
         """Sets model and also setup cols"""
@@ -150,9 +152,10 @@ class TrainsEditorView(QtWidgets.QTableView):
         """Called when the user changes the selection. Emits the
         trainSelected signal"""
         super().selectionChanged(selected, deselected)
-        index = selected.indexes()[0]
-        if index.isValid():
-            self.trainSelected.emit(self.model().index(index.row(), 0).data())
+        if selected.indexes():
+            index = selected.indexes()[0]
+            if index.isValid():
+                self.trainSelected.emit(self.model().index(index.row(), 0).data())
 
 
 class TrainsGraphicsView(QtWidgets.QGraphicsView):

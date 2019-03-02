@@ -146,7 +146,7 @@ class SignalItem(abstract.TrackItem):
 
     def __init__(self, parameters):
         """
-        :param dict paramaters:
+        :param dict parameters:
         """
         super().__init__(parameters)
         reverse = bool(parameters.get("reverse", 0))

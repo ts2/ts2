@@ -1246,7 +1246,7 @@ class Train(QtCore.QObject):
             ti = pos.trackItem
             if isinstance(ti, signalitem.SignalItem):
                 if ti.isOnPosition(pos) and \
-                   ti.activeAspect.meansProceed():
+                   not ti.activeAspect.meansProceed():
                     # We have a red signal here, no need to go further
                     return -1
             if ti.place == line.place:

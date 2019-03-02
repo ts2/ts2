@@ -614,7 +614,7 @@ class EditorWindow(QtWidgets.QMainWindow):
             else:
                 self.closed.emit()
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot()
     def setPropertiesModel(self):
         """Sets the TrackPropertiesModel related to the selection on the
         properties view"""

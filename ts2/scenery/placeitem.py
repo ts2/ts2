@@ -19,86 +19,15 @@
 #
 
 from Qt import QtGui, QtCore, QtWidgets, Qt
-
-from ts2.scenery import abstract, helper
 from ts2 import utils
+from ts2.scenery import abstract, helper
 
 translate = QtWidgets.qApp.translate
 
 
-class PlaceInfoModel(QtCore.QAbstractTableModel):
-    def __init__(self):
-        super().__init__()
-        self._place = None
-
-    def rowCount(self, parent=None, *args, **kwargs):
-        if self._place is not None:
-            return len(self._place.timetable)
-        else:
-            return 0
-
-    def columnCount(self, parent=None, *args, **kwargs):
-        if self._place is not None:
-            return 5
-        else:
-            return 0
-
-    def data(self, index, role=Qt.DisplayRole):
-        if self._place is not None and role == Qt.DisplayRole:
-            line = self._place.timetable[index.row() - 2]
-            if index.column() == 0:
-                return line.scheduledDepartureTime
-            elif index.column() == 1:
-                return line.service.serviceCode
-            elif index.column() == 2:
-                return line.service.exitPlaceName
-            elif index.column() == 3:
-                return line.trackCode
-            elif index.column() == 4:
-                if not line.mustStop:
-                    return self.tr("Non-stop")
-                else:
-                    return ""
-        return None
-
-    def headerData(self, column, orientation, role=Qt.DisplayRole):
-        if self._place is not None \
-           and orientation == Qt.Horizontal \
-           and role == Qt.DisplayRole:
-            if column == 0:
-                return self.tr("Time")
-            elif column == 1:
-                return self.tr("Code")
-            elif column == 2:
-                return self.tr("Destination")
-            elif column == 3:
-                return self.tr("Platform")
-            elif column == 4:
-                return self.tr("Remarks")
-            else:
-                return ""
-        return None
-
-    def flags(self, index):
-        return Qt.ItemIsEnabled
-
-    @property
-    def place(self):
-        return self._place
-
-    @place.setter
-    def place(self, place):
-        self.beginResetModel()
-        self._place = place
-        self.endResetModel()
-
-    @QtCore.pyqtSlot(str)
-    def setPlace(self, place):
-        self.place = place
-
-
 class PlacesModel(QtCore.QAbstractTableModel):
     """Model listing places to be used in item delegates."""
+
     def __init__(self, editor):
         super().__init__()
         self._editor = editor
@@ -119,6 +48,7 @@ class Place(abstract.TrackItem):
     """A Place is a place where trains will have a schedule (mainly station,
     but can also be a main junction for example)
     """
+
     def __init__(self, parameters):
         """Constructor for the Place class"""
         super().__init__(parameters)
@@ -140,8 +70,6 @@ class Place(abstract.TrackItem):
         return abstract.TrackItem.getProperties() + [
             helper.TIProperty("placeCode", translate("Place", "Place code"))
         ]
-
-    selectedPlaceModel = PlaceInfoModel()
 
     def for_json(self):
         """Dumps this place item to JSON."""
@@ -229,3 +157,77 @@ class Place(abstract.TrackItem):
         pen.setColor(Qt.white)
         p.setPen(pen)
         p.drawText(self._rect.bottomLeft(), self.name)
+
+
+class PlaceInfoModel(QtCore.QAbstractTableModel):
+    def __init__(self):
+        super().__init__()
+        self._place = None
+
+    def rowCount(self, parent=None, *args, **kwargs):
+        if self._place is not None:
+            return len(self._place.timetable)
+        else:
+            return 0
+
+    def columnCount(self, parent=None, *args, **kwargs):
+        if self._place is not None:
+            return 5
+        else:
+            return 0
+
+    def data(self, index, role=Qt.DisplayRole):
+        if self._place is not None and role == Qt.DisplayRole:
+            line = self._place.timetable[index.row() - 2]
+            if index.column() == 0:
+                return line.scheduledDepartureTime
+            elif index.column() == 1:
+                return line.service.serviceCode
+            elif index.column() == 2:
+                return line.service.exitPlaceName
+            elif index.column() == 3:
+                return line.trackCode
+            elif index.column() == 4:
+                if not line.mustStop:
+                    return self.tr("Non-stop")
+                else:
+                    return ""
+        return None
+
+    def headerData(self, column, orientation, role=Qt.DisplayRole):
+        if self._place is not None \
+                and orientation == Qt.Horizontal \
+                and role == Qt.DisplayRole:
+            if column == 0:
+                return self.tr("Time")
+            elif column == 1:
+                return self.tr("Code")
+            elif column == 2:
+                return self.tr("Destination")
+            elif column == 3:
+                return self.tr("Platform")
+            elif column == 4:
+                return self.tr("Remarks")
+            else:
+                return ""
+        return None
+
+    def flags(self, index):
+        return Qt.ItemIsEnabled
+
+    @property
+    def place(self):
+        return self._place
+
+    @place.setter
+    def place(self, place):
+        self.beginResetModel()
+        self._place = place
+        self.endResetModel()
+
+    @QtCore.pyqtSlot(Place)
+    def setPlace(self, place):
+        self.place = place
+
+
+Place.selectedPlaceModel = PlaceInfoModel()
