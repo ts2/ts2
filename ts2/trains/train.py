@@ -896,6 +896,8 @@ class Train(QtCore.QObject):
             newSignalAhead = self.findNextSignal()
             if newSignalAhead is not None:
                 newSignalAhead.trainId = self.trainId
+            self._signalActions = [(0, 999)]
+            self.updateSignalActions()
 
     @QtCore.pyqtSlot()
     def reassignService(self):
@@ -1379,11 +1381,11 @@ class Train(QtCore.QObject):
         self._speed = max(0.0, self._speed + self._accel * secs)
 
         # ### DEBUG ###
-        # print("SC:%s, Secs:%f, Accel=%f; ts=%f, speed=%f,"
-        # "dtnStation:%f, dtnSignal:%f, dtnLimit:%f, dtnTrain:%f,
-        # appl.action=%s" % (self.serviceCode, secs, self._accel, ts,
-        # self._speed, distanceToNextStation, distanceToNextSignal,
-        # distanceToNextLimit, distanceToNextTrain, str(applicableAction)))
+        # print("SC:%s, Secs:%f, Accel=%f; ts=%f, speed=%f,dtnStation:%f,"
+        #       " dtnSignal:%f, dtnLimit:%f, dtnTrain:%f,appl.action=%s" % (
+        #         self.serviceCode, secs, self._accel, ts,
+        #         self._speed, distanceToNextStation, distanceToNextSignal,
+        #         distanceToNextLimit, distanceToNextTrain, str(applicableAction)))
 
     def targetSpeed(self, secs, targetDistance=-1, targetSpeedAtPos=0):
         """Defines the current target speed of the train depending on the
