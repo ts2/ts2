@@ -500,8 +500,11 @@ class Service:
         """Constructor for the Service class"""
         self._serviceCode = parameters["serviceCode"]
         self._description = parameters["description"]
-        self._nextServiceCode = parameters["nextServiceCode"]
-        self._autoReverse = parameters["autoReverse"]
+        for action in parameters["postActions"]:
+            if action["actionCode"] == "REVERSE":
+                self._autoReverse = True
+            elif action["actionCode"] == "SET_SERVICE":
+                self._nextServiceCode = action["actionParam"]
         self._plannedTrainType = parameters.get("plannedTrainType")
         self._current = None
         self.simulation = None

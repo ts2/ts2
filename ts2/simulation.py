@@ -18,20 +18,21 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from math import sqrt
 import collections
 import zipfile
+from math import sqrt
+
 import simplejson as json
 
 from Qt import QtCore, QtWidgets
-
 from ts2 import __FILE_FORMAT__
 from ts2 import utils, trains
-from ts2.routing import route, position
 from ts2.game import logger, scorer
+from ts2.routing import route, position
 from ts2.scenery import placeitem, lineitem, platformitem, invisiblelinkitem, \
     enditem, pointsitem, textitem
 from ts2.scenery.signals import signalitem
+from ts2.trains import traintype, service
 
 translate = QtWidgets.qApp.translate
 
@@ -59,43 +60,29 @@ def json_hook(dct):
         return Simulation(dct['options'], dct['trackItems'], dct['routes'],
                           dct['trainTypes'], dct['services'], dct['trains'],
                           dct['messageLogger'])
-    elif dct['__type__'] == "SignalItem":
-        return signalitem.SignalItem(parameters=dct)
-    elif dct['__type__'] == "EndItem":
-        return enditem.EndItem(parameters=dct)
-    elif dct['__type__'] == "InvisibleLinkItem":
-        return invisiblelinkitem.InvisibleLinkItem(parameters=dct)
-    elif dct['__type__'] == "LineItem":
-        return lineitem.LineItem(parameters=dct)
-    elif dct['__type__'] == "Place":
-        return placeitem.Place(parameters=dct)
-    elif dct['__type__'] == "PlatformItem":
-        return platformitem.PlatformItem(parameters=dct)
-    elif dct['__type__'] == "PointsItem":
-        return pointsitem.PointsItem(parameters=dct)
-    elif dct['__type__'] == "TextItem":
-        return textitem.TextItem(parameters=dct)
-    elif dct['__type__'] == "Route":
-        return route.Route(parameters=dct)
-    elif dct['__type__'] == "Position":
-        return position.Position(parameters=dct)
-    elif dct['__type__'] == "TrainType":
-        return trains.TrainType(parameters=dct)
-    elif dct['__type__'] == "Service":
-        return trains.Service(parameters=dct)
-    elif dct['__type__'] == "ServiceLine":
-        return trains.ServiceLine(parameters=dct)
-    elif dct['__type__'] == "Train":
-        return trains.Train(parameters=dct)
-    elif dct['__type__'] == "MessageLogger":
-        return logger.MessageLogger(parameters=dct)
-    elif dct['__type__'] == "Message":
-        return logger.Message(dct)
+    # elif dct['__type__'] == "Route":
+    #     return route.Route(parameters=dct)
+    # elif dct['__type__'] == "Position":
+    #     return position.Position(parameters=dct)
+    # elif dct['__type__'] == "TrainType":
+    #     return trains.TrainType(parameters=dct)
+    # elif dct['__type__'] == "Service":
+    #     return trains.Service(parameters=dct)
+    # elif dct['__type__'] == "ServiceLine":
+    #     return trains.ServiceLine(parameters=dct)
+    # elif dct['__type__'] == "Train":
+    #     return trains.Train(parameters=dct)
+    # elif dct['__type__'] == "MessageLogger":
+    #     return logger.MessageLogger(parameters=dct)
+    # elif dct['__type__'] == "Message":
+    #     return logger.Message(dct)
+    # else:
+    #     raise utils.FormatException(
+    #         translate("json_hook",
+    #                   "Unknown __type__ '%s' in JSON file") % dct['__type__']
+    #     )
     else:
-        raise utils.FormatException(
-            translate("json_hook",
-                      "Unknown __type__ '%s' in JSON file") % dct['__type__']
-        )
+        return dct
 
 
 def load(simulationWindow, jsonStream):
@@ -143,25 +130,25 @@ class Simulation(QtCore.QObject):
         self.simulationWindow = None
         self._scene = QtWidgets.QGraphicsScene()
         self._timer = QtCore.QTimer(self)
-        self._messageLogger = messageLogger
+        self._messageLogger = None
+        self.loadMessageLogger(messageLogger)
         self._scorer = scorer.Scorer(self)
         self._selectedSignal = None
         self._options = collections.OrderedDict()
         self._options.update(BUILTIN_OPTIONS)
         self._options.update(options)
         self._routes = collections.OrderedDict()
-        for key, value in routes.items():
-            self._routes[int(key)] = value
+        self.loadRoutes(routes)
         self._trackItems = collections.OrderedDict()
-        for key, value in trackItems.items():
-            self._trackItems[int(key)] = value
+        self.loadTrackItems(trackItems)
         self.activeRouteNumbers = []
         self._trainTypes = collections.OrderedDict()
-        self._trainTypes.update(trainTypes)
+        self.loadTrainTypes(trainTypes)
         self._services = collections.OrderedDict()
-        self._services.update(services)
+        self.loadServices(services)
         self._places = collections.OrderedDict()
-        self._trains = trns
+        self._trains = []
+        self.loadTrains(trns)
         self.signalLibrary = signalitem.signalLibrary
         self._time = QtCore.QTime()
         self._startTime = QtCore.QTime()
@@ -169,6 +156,61 @@ class Simulation(QtCore.QObject):
         self._selectedServiceModel = trains.ServiceInfoModel(self)
         self._trainListModel = trains.TrainListModel(self)
         self._selectedTrainModel = trains.TrainInfoModel(self)
+
+    def loadMessageLogger(self, messageLogger):
+        messages = []
+        for msg in messageLogger["messages"]:
+            messages.append(logger.Message(msg))
+        messageLogger["messages"] = messages
+        self._messageLogger = logger.MessageLogger(messageLogger)
+
+    def loadRoutes(self, routes):
+        for key, dct in routes.items():
+            dct['routeNum'] = key
+            rte = route.Route(dct)
+            self._routes[int(key)] = rte
+
+    def loadTrackItems(self, trackItems):
+        for key, dct in trackItems.items():
+            dct["tiId"] = int(key)
+            trackItem = None
+            if dct['__type__'] == "SignalItem":
+                trackItem = signalitem.SignalItem(parameters=dct)
+            elif dct['__type__'] == "EndItem":
+                trackItem = enditem.EndItem(parameters=dct)
+            elif dct['__type__'] == "InvisibleLinkItem":
+                trackItem = invisiblelinkitem.InvisibleLinkItem(parameters=dct)
+            elif dct['__type__'] == "LineItem":
+                trackItem = lineitem.LineItem(parameters=dct)
+            elif dct['__type__'] == "Place":
+                trackItem = placeitem.Place(parameters=dct)
+            elif dct['__type__'] == "PlatformItem":
+                trackItem = platformitem.PlatformItem(parameters=dct)
+            elif dct['__type__'] == "PointsItem":
+                trackItem = pointsitem.PointsItem(parameters=dct)
+            elif dct['__type__'] == "TextItem":
+                trackItem = textitem.TextItem(parameters=dct)
+            self._trackItems[int(key)] = trackItem
+
+    def loadTrainTypes(self, trainTypes):
+        for code, dct in trainTypes.items():
+            dct["code"] = code
+            self._trainTypes[code] = traintype.TrainType(dct)
+
+    def loadServices(self, services):
+        for serviceCode, dct in services.items():
+            dct["serviceCode"] = serviceCode
+            lines = []
+            for line in dct["lines"]:
+                lines.append(service.ServiceLine(line))
+            dct["lines"] = lines
+            self._services[serviceCode] = service.Service(dct)
+
+    def loadTrains(self, trns):
+        for dct in trns:
+            th = position.Position(parameters=dct["trainHead"])
+            dct["trainHead"] = th
+            self._trains.append(trains.Train(dct))
 
     def initialize(self, simulationWindow):
         """Initializes the simulation.
@@ -205,9 +247,9 @@ class Simulation(QtCore.QObject):
         for train in self.trains:
             train.initialize(self)
         self._trains.sort(key=lambda x:
-                          x.currentService.lines and
-                          x.currentService.lines[0].scheduledDepartureTimeStr or
-                          x.currentService.serviceCode)
+        x.currentService.lines and
+        x.currentService.lines[0].scheduledDepartureTimeStr or
+        x.currentService.serviceCode)
         self.messageLogger.initialize(self)
 
         self._scene.update()
@@ -585,7 +627,7 @@ class Simulation(QtCore.QObject):
 
     def updatePlaces(self):
         """Updates the places dictionary from TrackItem data."""
-        self._places = {}
+        self._places = collections.OrderedDict()
         for ti in self.trackItems.values():
             if isinstance(ti, placeitem.Place):
                 self._places[ti.placeCode] = ti

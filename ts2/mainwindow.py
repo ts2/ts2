@@ -17,21 +17,25 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-
-import zipfile
+import io
 import os
+import sys
+import time
+
+import simplejson as json
+import websocket
 
 from Qt import QtCore, QtGui, QtWidgets, Qt
-
-from ts2 import simulation, utils
+from ts2 import __PROJECT_WWW__, __PROJECT_HOME__, __PROJECT_BUGS__, \
+    __ORG_CONTACT__, __VERSION__
+from ts2 import simulation
+from ts2.editor import editorwindow
 from ts2.gui import dialogs, trainlistview, servicelistview, widgets, \
     opendialog, settingsdialog
 from ts2.scenery import placeitem
-from ts2.editor import editorwindow
 from ts2.utils import settings
 
-from ts2 import __PROJECT_WWW__, __PROJECT_HOME__, __PROJECT_BUGS__, \
-    __ORG_CONTACT__, __VERSION__
+WS_TIMEOUT = 10
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -59,6 +63,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Simulation
         self.simulation = None
+        self.webSocket = None
+        self.wsThread = None
+        if settings.debug:
+            websocket.enableTrace(True)
 
         # Actions  ======================================
         self.openAction = QtWidgets.QAction(self.tr("&Open..."), self)
@@ -414,6 +422,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 # here we call after window is shown
         QtCore.QTimer.singleShot(100, self.onAfterShow)
 
+        # FIXME DEBUG - to remove
+        self.fileName = "/home/npiganeau/Progs/ts2/simulations/France/gretz-armainvilliers.ts2"
+
     @staticmethod
     def instance():
         return MainWindow._self
@@ -443,58 +454,70 @@ class MainWindow(QtWidgets.QMainWindow):
 
         """
         if fileName:
-
             # TODO check it exists and normalise path
-            self.fileName = fileName
+            # self.fileName = fileName
+            #
+            # QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
+            #
+            # if self.simulation is not None:
+            #     self.simulationDisconnect()
+            #     self.simulation = None
+            #
+            # try:
+            #     if zipfile.is_zipfile(fileName):
+            #         with zipfile.ZipFile(fileName) as zipArchive:
+            #             with zipArchive.open("simulation.json") as file:
+            #                 self.simulation = simulation.load(self, file)
+            #     else:
+            #         with open(fileName) as file:
+            #             self.simulation = simulation.load(self, file)
 
+            # except (utils.FormatException,
+            #         utils.MissingDependencyException) as err:
+            #     QtWidgets.QMessageBox.critical(
+            #         self,
+            #         self.tr("Error while loading the simulation"),
+            #         str(err),
+            #         QtWidgets.QMessageBox.Ok
+            #     )
+            #     self.simulation = None
+            # except Exception as err:
+            #     dialogs.ExceptionDialog.popupException(self, err)
+            #     self.simulation = None
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
+            settings.addRecent(fileName)
+            self.setWindowTitle(self.tr(
+                "ts2 - Train Signalling Simulator - %s") % fileName)
 
-            if self.simulation is not None:
-                self.simulationDisconnect()
-                self.simulation = None
-
-            try:
-                if zipfile.is_zipfile(fileName):
-                    with zipfile.ZipFile(fileName) as zipArchive:
-                        with zipArchive.open("simulation.json") as file:
-                            self.simulation = simulation.load(self, file)
-                else:
-                    with open(fileName) as file:
-                        self.simulation = simulation.load(self, file)
-            except (utils.FormatException,
-                    utils.MissingDependencyException) as err:
-                QtWidgets.QMessageBox.critical(
-                    self,
-                    self.tr("Error while loading the simulation"),
-                    str(err),
-                    QtWidgets.QMessageBox.Ok
-                )
-                self.simulation = None
-            except Exception as err:
-                dialogs.ExceptionDialog.popupException(self, err)
-                self.simulation = None
-            else:
-                self.setWindowTitle(self.tr(
-                    "ts2 - Train Signalling Simulator - %s") % fileName)
-                self.lblTitle.setText(self.simulation.option("title"))
-                self.simulationConnect()
-                self.simulationLoaded.emit(self.simulation)
-
-                self.buttPause.toggled.connect(self.simulation.pause)
-                self.buttPause.toggled.connect(self.setPauseButtonText)
-                self.timeFactorSpinBox.valueChanged.connect(
-                    self.simulation.setTimeFactor
-                )
-                self.timeFactorSpinBox.setValue(
-                   float(self.simulation.option("timeFactor"))
-                )
-                settings.addRecent(fileName)
-                self.refreshRecent()
-                self.setControlsDisabled(False)
-            finally:
-                QtWidgets.QApplication.restoreOverrideCursor()
+            self.webSocket = WebSocketController("ws://localhost:22222/ws")
+            self.webSocket.connectionReady.connect(self.simulationLoad)
         else:
             self.onOpenSimulation()
+
+    @QtCore.pyqtSlot()
+    def simulationLoad(self):
+        def load_sim(data):
+            simData = json.dumps(data)
+            self.simulation = simulation.load(self, io.StringIO(simData))
+            self.lblTitle.setText(self.simulation.option("title"))
+            self.simulationConnect()
+            self.simulationLoaded.emit(self.simulation)
+
+            self.buttPause.toggled.connect(self.simulation.pause)
+            self.buttPause.toggled.connect(self.setPauseButtonText)
+            self.timeFactorSpinBox.valueChanged.connect(
+                self.simulation.setTimeFactor
+            )
+            self.timeFactorSpinBox.setValue(
+                float(self.simulation.option("timeFactor"))
+            )
+
+            self.refreshRecent()
+            self.setControlsDisabled(False)
+
+            QtWidgets.QApplication.restoreOverrideCursor()
+
+        self.webSocket.sendRequest("simulation", "dump", callback=load_sim)
 
     def simulationConnect(self):
         """Connects the signals and slots to the simulation."""
@@ -625,10 +648,10 @@ class MainWindow(QtWidgets.QMainWindow):
             "Copyright 2008-%s, NPi (%s)\n"
             "%s\n\n"
             "TS2 is licensed under the terms of the GNU GPL v2\n""") %
-                                    (__VERSION__,
-                                     QtCore.QDate.currentDate().year(),
-                                     __ORG_CONTACT__,
-                                     __PROJECT_WWW__))
+            (__VERSION__,
+             QtCore.QDate.currentDate().year(),
+             __ORG_CONTACT__,
+             __PROJECT_WWW__))
         if self.editorOpened:
             self.editorWindow.activateWindow()
 
@@ -708,6 +731,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """Save window postions on close"""
         settings.saveWindow(self)
         settings.sync()
+        self.wsThread.exit()
         super().closeEvent(event)
 
     def onWheelChanged(self, direction):
@@ -762,3 +786,106 @@ class MainWindow(QtWidgets.QMainWindow):
             if train.isOnScenery():
                 trackItem = train.trainHead.trackItem
                 self.view.centerOn(trackItem.graphicsItem)
+
+
+def wsOnMessage(ws, message):
+    if settings.debug:
+        print("<", message)
+    ws.onMessage(message)
+
+
+def wsOnError(ws, error):
+    print("WS Error", error)
+
+
+def wsOnClose(ws):
+    print("WS Closed")
+
+
+class WebSocketConnection(websocket.WebSocketApp, QtCore.QObject):
+
+    def __init__(self, controller, url):
+        websocket.WebSocketApp.__init__(self, url, on_message=wsOnMessage, on_error=wsOnError, on_close=wsOnClose)
+        QtCore.QObject.__init__(self)
+        self.controller = controller
+        self.ready = False
+
+    messageReceived = QtCore.pyqtSignal(str)
+    connectionReady = QtCore.pyqtSignal()
+
+    def onMessage(self, message):
+        self.messageReceived.emit(message)
+
+
+class WebSocketController(QtCore.QObject):
+
+    def __init__(self, url, parent=None):
+        super().__init__(parent)
+        self._requests = []
+        self._callbacks = {}
+        self._counter = 1
+        self.conn = WebSocketConnection(self, url)
+        self.conn.messageReceived.connect(self.executeCallback)
+        self.conn.connectionReady.connect(self.connectionReady)
+
+        def login(w):
+            def setReady(msg):
+                if msg["status"] == "OK":
+                    w.connectionReady.emit()
+                else:
+                    raise Exception("Error while connecting to simulation server", msg["message"])
+
+            w.controller.sendRequest("server", "register", {"type": "client", "token": "client-secret"},
+                                     callback=setReady)
+
+        self.conn.on_open = login
+        self.wsThread = WebSocketThread(self.conn)
+        self.wsThread.start()
+
+    connectionReady = QtCore.pyqtSignal()
+
+    def sendRequest(self, obj, action, params=None, callback=None):
+        """Send a websocket request. Response will be handled by given callback.
+        :param obj: server object to call
+        :param action: server action to execute
+        :param params: parameters to send for action as dict
+        :param callback: function taking a msg dict as argument
+        """
+        data = {
+            "id": self._counter,
+            "object": obj,
+            "action": action,
+            "params": params,
+        }
+        msg = json.dumps(data)
+        if settings.debug:
+            print(">", msg)
+        self.conn.send(msg)
+        self._callbacks[self._counter] = callback
+        self._counter += 1
+
+    @QtCore.pyqtSlot(str)
+    def executeCallback(self, message):
+        """Call the callback with the given id and remove it from the registry.
+        :param message: raw JSON message received
+        """
+        msg = json.loads(message)
+        msgID = msg["id"]
+        msgData = msg["data"]
+        if msgID not in self._callbacks:
+            if settings.debug:
+                print("msgID not in registry: %s", msgID)
+            return
+        if self._callbacks[msgID]:
+            self._callbacks[msgID](msgData)
+        del self._callbacks[msgID]
+
+
+class WebSocketThread(QtCore.QThread):
+
+    def __init__(self, ws, parent=None):
+        super(WebSocketThread, self).__init__(parent)
+        self.websocket = ws
+
+    def run(self):
+        self.websocket.run_forever()

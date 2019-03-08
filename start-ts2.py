@@ -19,9 +19,10 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-import sys
 import argparse
+import sys
 
+import websocket
 
 if __name__ == '__main__':
 

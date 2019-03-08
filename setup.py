@@ -35,7 +35,7 @@ setup(
     version=__VERSION__,
     packages=find_packages(),
     install_requires=[
-        "simplejson >= 3.2"
+        "simplejson >= 3.2", 'websocket'
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
