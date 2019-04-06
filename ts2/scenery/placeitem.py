@@ -142,7 +142,7 @@ class Place(abstract.TrackItem):
         if self.name is None or self.name == "":
             return super().boundingRect()
         else:
-            if self.tiId < 0:
+            if self.tiId.startswith("__EDITOR__"):
                 # Toolbox item
                 return QtCore.QRectF(-32, -15, 100, 50)
             else:

@@ -1138,12 +1138,12 @@ class EditorWindow(QtWidgets.QMainWindow):
         transform.scale(percent/100, percent/100)
         self.sceneryView.setTransform(transform)
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
     def openReassignServiceWindow(self, trainId):
         """To conform to Mainwindow morphism."""
         pass
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
     def openSplitTrainWindow(self, trainId):
         """To conform to Mainwindow morphism."""
         pass

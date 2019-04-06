@@ -34,7 +34,7 @@ class TrainListView(QtWidgets.QTreeView):
         self.setHeaderHidden(False)
         self.setSortingEnabled(True)
 
-    trainSelected = QtCore.pyqtSignal(int)
+    trainSelected = QtCore.pyqtSignal(str)
 
     @QtCore.pyqtSlot(int)
     def updateTrainSelection(self, trainId):

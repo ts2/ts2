@@ -22,6 +22,7 @@ from Qt import QtCore, Qt
 
 from ts2 import utils
 from ts2.game import logger
+from ts2.game.logger import Message
 from ts2.scenery import pointsitem
 from . import position
 
@@ -29,6 +30,7 @@ from . import position
 class RoutesModel(QtCore.QAbstractTableModel):
     """The ``RoutesModel`` is a table model for routes that is used in the editor
     """
+
     def __init__(self, editor):
         """Constructor for the RoutesModel class"""
         super().__init__()
@@ -99,6 +101,7 @@ class Route(QtCore.QObject):
     are static and defined in the game file. The player can only activate or
     deactivate them.
     """
+
     def __init__(self, parameters):
         """After construction, the directions
         dictionary must be filled and then the _positions list must be
@@ -129,7 +132,7 @@ class Route(QtCore.QObject):
         self._positions = [bsp, esp]
         if not self.createPositionsList():
             simulation.messageLogger.addMessage(
-                self.tr("Invalid simulation: Route %i is not valid."
+                self.tr("Invalid simulation: Route %s is not valid."
                         % self.routeNum), logger.Message.SOFTWARE_MSG
             )
         self._parameters = None
@@ -208,7 +211,7 @@ class Route(QtCore.QObject):
                 - 2 = Activated, persistent
         """
         if self.beginSignal.nextActiveRoute is not None and \
-           self.beginSignal.nextActiveRoute == self:
+                self.beginSignal.nextActiveRoute == self:
             if self._persistent:
                 return 2
             else:
@@ -254,7 +257,7 @@ class Route(QtCore.QObject):
                         and cur.trackItem.tiId not in self._directions:
                     self._directions[cur.trackItem.tiId] = 0
             cur = cur.next(0, self._directions.get(cur.trackItem.tiId, -1))
-        QtCore.qCritical(self.tr("Invalid route %i. Impossible to link "
+        QtCore.qCritical(self.tr("Invalid route %s. Impossible to link "
                                  "beginSignal with endSignal" % self.routeNum))
         return False
 
@@ -272,22 +275,32 @@ class Route(QtCore.QObject):
     def activate(self, persistent=False):
         """ Called by the simulation when the route is
         activated."""
-        for pos in self._positions:
-            pos.trackItem.setActiveRoute(self, pos.previousTI)
-        self.endSignal.previousActiveRoute = self
-        self.beginSignal.nextActiveRoute = self
+
+        def doRouteActivate(msg):
+            if msg["status"] != 'OK':
+                self.simulation.messageLogger.addMessage(msg["message"], Message.PLAYER_WARNING_MSG)
+                return
+
+        self.simulation.simulationWindow.webSocket.sendRequest("route", "activate", params={"id": self.routeNum,
+                                                                                            "persistent": persistent},
+                                                               callback=doRouteActivate)
+
+    def onActivated(self, persistent):
         self.persistent = persistent
-        self.routeSelected.emit()
 
     def desactivate(self):
         """Called by the simulation when the route is
         desactivated."""
-        self.beginSignal.resetNextActiveRoute(self)
-        self.endSignal.resetPreviousActiveRoute()
-        for pos in self._positions:
-            if pos.trackItem.activeRoute is None or \
-               pos.trackItem.activeRoute == self:
-                pos.trackItem.resetActiveRoute()
+
+        def onRouteDeactivated(msg):
+            if msg["status"] != 'OK':
+                self.simulation.messageLogger.addMessage(msg["message"], Message.PLAYER_WARNING_MSG)
+                return
+
+        self.simulation.simulationWindow.webSocket.sendRequest("route", "deactivate", params={"id": self.routeNum},
+                                                               callback=onRouteDeactivated)
+
+    def onDeactivated(self):
         self.routeUnselected.emit()
 
     def isActivable(self):
@@ -298,9 +311,9 @@ class Route(QtCore.QObject):
         flag = False
         for pos in self._positions:
             if pos.trackItem != self.beginSignal and \
-               pos.trackItem != self.endSignal:
+                    pos.trackItem != self.endSignal:
                 if pos.trackItem.conflictTI is not None \
-                   and pos.trackItem.conflictTI.activeRoute is not None:
+                        and pos.trackItem.conflictTI.activeRoute is not None:
                     # The trackItem has a conflict item and this conflict item
                     # has an active route
                     return False
@@ -349,8 +362,8 @@ class Route(QtCore.QObject):
                      beginSignal and endSignal are equal
         """
         if (self.routeNum == other.routeNum or
-            (self.beginSignal == other.beginSignal and
-             self.endSignal == other.endSignal)):
+                (self.beginSignal == other.beginSignal and
+                 self.endSignal == other.endSignal)):
             return True
         else:
             return False
@@ -359,8 +372,8 @@ class Route(QtCore.QObject):
         """Two routes are not equal if they have different routeNum and if
         at least one of beginSignal or endSignal is different"""
         if (self.routeNum != other.routeNum and
-            (self.beginSignal != other.beginSignal or
-             self.endSignal != other.endSignal)):
+                (self.beginSignal != other.beginSignal or
+                 self.endSignal != other.endSignal)):
             return True
         else:
             return False

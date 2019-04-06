@@ -41,7 +41,7 @@ nosetests.xml
 .project
 .pydevproject
 
-.idea
+.idea/
 .kdev4
 .settings
 temp/

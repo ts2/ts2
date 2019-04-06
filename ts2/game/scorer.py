@@ -75,10 +75,10 @@ class Scorer(QtCore.QObject):
         else:
             return 5
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
     def trainArrivedAtStation(self, trainId):
         """Updates the score when a train arrives at a station."""
-        train = self.simulation.trains[trainId]
+        train = self.simulation.trains[int(trainId)]
         serviceLine = train.currentService.lines[train.nextPlaceIndex]
         place = train.trainHead.trackItem.place
         plannedPlatform = serviceLine.trackCode
@@ -109,10 +109,10 @@ class Scorer(QtCore.QObject):
                 (train.serviceCode, place.placeName)
             )
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
     def trainExitedArea(self, trainId):
         """Updates the score when the train exits the area."""
-        train = self.simulation.trains[trainId]
+        train = self.simulation.trains[int(trainId)]
         if train.nextPlaceIndex is not None:
             self.score += self.wrongDestinationPenalty
             self.simulation.messageLogger.addMessage(

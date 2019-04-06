@@ -165,10 +165,10 @@ class TrainListModel(QtCore.QAbstractTableModel):
         """Returns the flags of the model"""
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
     def update(self, trainId):
         """Emits the dataChanged signal for the train defined by trainId."""
-        row = trainId
+        row = int(trainId)
         self.dataChanged.emit(self.index(row, 0), self.index(row, 7))
 
 
@@ -391,12 +391,12 @@ class TrainInfoModel(QtCore.QAbstractTableModel):
         """Returns the train instance associated with this model"""
         return self._train
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
     def setTrainByTrainId(self, trainId):
         """Sets the train instance associated with this model from its
         trainId"""
         self.beginResetModel()
-        self._train = self.simulation.trains[trainId]
+        self._train = self.simulation.trains[int(trainId)]
         self.endResetModel()
 
     @QtCore.pyqtSlot()
@@ -517,12 +517,12 @@ class Train(QtCore.QObject):
             "stoppedTime": self.stoppedTime
         }
 
-    trainStoppedAtStation = QtCore.pyqtSignal(int)
-    trainDepartedFromStation = QtCore.pyqtSignal(int)
-    trainStatusChanged = QtCore.pyqtSignal(int)
-    trainExitedArea = QtCore.pyqtSignal(int)
-    reassignServiceRequested = QtCore.pyqtSignal(int)
-    splitTrainRequested = QtCore.pyqtSignal(int)
+    trainStoppedAtStation = QtCore.pyqtSignal(str)
+    trainDepartedFromStation = QtCore.pyqtSignal(str)
+    trainStatusChanged = QtCore.pyqtSignal(str)
+    trainExitedArea = QtCore.pyqtSignal(str)
+    reassignServiceRequested = QtCore.pyqtSignal(str)
+    splitTrainRequested = QtCore.pyqtSignal(str)
 
     # ## Properties ######################################################
 
@@ -531,9 +531,9 @@ class Train(QtCore.QObject):
         """Returns the train Id which is index of this train inside the train
         list of the simulation."""
         try:
-            trainId = self.simulation.trains.index(self)
+            trainId = str(self.simulation.trains.index(self))
         except ValueError:
-            trainId = None
+            trainId = ""
         return trainId
 
     @property
@@ -832,8 +832,6 @@ class Train(QtCore.QObject):
             advanceLength = self._speed * secs
             self._trainHead += advanceLength
             self.updateStatus(secs)
-            self.drawTrain(advanceLength)
-            self.executeActions(advanceLength)
 
     @QtCore.pyqtSlot(QtCore.QTime)
     def activate(self, time):
@@ -864,7 +862,6 @@ class Train(QtCore.QObject):
                     self.status = TrainStatus.RUNNING
                 if self.currentService:
                     self.nextPlaceIndex = 0
-                self.drawTrain()
                 self.executeActions(0)
                 # Print messages
                 if abs(self.initialDelay) < 60:
@@ -1069,16 +1066,11 @@ class Train(QtCore.QObject):
                                 # Train does not stop at this place
                                 self.jumpToNextPlace()
                                 self.trainStatusChanged.emit(self.trainId)
-            if self.isActive():
-                ti.trainHeadActions(self.trainId)
         if self._trainHead.isOut():
             trainExiting = True
         # Train tail
         tt = self._trainHead - self._trainType.length
         ott = tt - advanceLength
-        for ti in ott.trackItemsToPosition(tt):
-            if self.isActive():
-                ti.trainTailActions(self.trainId)
         if tt.isOut() and trainExiting:
             self.status = TrainStatus.OUT
             self.trainExitedArea.emit(self.trainId)
@@ -1147,25 +1139,6 @@ class Train(QtCore.QObject):
             else:
                 # Train is stopped but not assigned any service
                 self.status = TrainStatus.WAITING
-
-    def drawTrain(self, advanceLength=0):
-        """This function draws the train on the scene by setting the correct
-        trainHead and trainTail to the different trackItems met.
-
-        :param advanceLength : The length that the train has advanced since
-        the last call to this function."""
-        trainTail = self.trainHead - self.trainType.length
-        oldTrainTail = trainTail - advanceLength
-        # Register train on new items (even if to be unregistered just behind)
-        for ti in trainTail.trackItemsToPosition(self.trainHead):
-            ti.registerTrain(self)
-        # Unregister train on left behind items:
-        for ti in oldTrainTail.trackItemsToPosition(trainTail):
-            if ti != trainTail.trackItem:
-                ti.unRegisterTrain(self)
-        # Update head and tails for all
-        for ti in oldTrainTail.trackItemsToPosition(self.trainHead):
-            ti.updateTrainHeadAndTail()
 
     def getNextSignalInfo(self, pos=None):
         """

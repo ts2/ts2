@@ -178,7 +178,7 @@ class LineItem(abstract.ResizableItem):
         rx = max(x1, x2) + 5.0
         ty = min(y1, y2) - 5.0
         by = max(y1, y2) + 5.0
-        if self.tiId < 0:
+        if self.tiId.startswith("__EDITOR__"):
             # Library item in editor
             lx -= 15
             rx += 15

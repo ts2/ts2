@@ -214,6 +214,24 @@ class SignalItem(abstract.TrackItem):
         self.trainSelected.connect(simulation.trainSelected)
         super().initialize(simulation)
 
+    def updateData(self, msg):
+        super(SignalItem, self).updateData(msg)
+        if "nextActiveRoute" in msg:
+            if msg["nextActiveRoute"]:
+                self.nextActiveRoute = self.simulation.routes[msg["nextActiveRoute"]]
+            else:
+                self.nextActiveRoute = None
+        if "previousActiveRoute" in msg:
+            if msg["previousActiveRoute"]:
+                self.previousActiveRoute = self.simulation.routes[msg["previousActiveRoute"]]
+            else:
+                self.previousActiveRoute = None
+        if "activeAspect" in msg:
+            if msg["activeAspect"]:
+                self._activeAspect = signalLibrary.signalAspects[msg["activeAspect"]]
+            else:
+                self._activeAspect = None
+
     @staticmethod
     def getProperties():
         signalTypeNames = sorted(
@@ -247,13 +265,13 @@ class SignalItem(abstract.TrackItem):
         })
         return jsonData
 
-    signalSelected = QtCore.pyqtSignal(int, bool, bool)
+    signalSelected = QtCore.pyqtSignal(str, bool, bool)
     """pyqtSignal(int, bool, bool)"""
 
-    signalUnselected = QtCore.pyqtSignal(int)
+    signalUnselected = QtCore.pyqtSignal(str)
     """pyqtSignal(int)"""
 
-    trainSelected = QtCore.pyqtSignal(int)
+    trainSelected = QtCore.pyqtSignal(str)
     """pyqtSignal(int)"""
 
     aspectChanged = QtCore.pyqtSignal()
@@ -428,7 +446,7 @@ class SignalItem(abstract.TrackItem):
         """Returns the trainServiceCode of this signal. This is for display
         only."""
         if self._trainId is not None:
-            return self.simulation.trains[self._trainId].serviceCode
+            return self.simulation.trains[int(self._trainId)].serviceCode
         else:
             return ""
 
@@ -476,100 +494,12 @@ class SignalItem(abstract.TrackItem):
         """ Returns true if there is a train ahead of this signalItem and
         before the end of the next active route or the next signal if no route
         is set."""
-        if self.nextActiveRoute is not None:
-            for pos in self.nextActiveRoute.positions:
-                if pos.trackItem.trainPresent():
-                    return True
-        else:
-            cur = self.getFollowingItem(self.previousItem)
-            prev = self
-            while cur:
-                if cur.trainPresent():
-                    return True
-                if isinstance(cur, SignalItem):
-                    if prev == cur.previousItem:
-                        break
-                elif isinstance(cur, enditem.EndItem):
-                    break
-                oldPrev = prev
-                prev = cur
-                cur = cur.getFollowingItem(oldPrev)
         return False
-
-    def trainHeadActions(self, trainId):
-        """Actions to be performed when the train head reaches this signal.
-
-        Pushes the train code to the next signal."""
-        train = self.simulation.trains[trainId]
-        # Check that signal is in same direction as trainHead to push the train
-        # descriptor only this case
-        pos = train.trainHead
-        # We do not use isOut, because we are backwards
-        while not isinstance(pos.trackItem, enditem.EndItem):
-            if pos.trackItem == self:
-                if self.isOnPosition(pos):
-                    nextSignal = self.getNextSignal()
-                    if nextSignal:
-                        nextSignal.trainId = trainId
-                    if self.trainId == trainId:
-                        # Only reset train descriptor if it is ours, as it may
-                        # be the one of a train behind in the same block
-                        self.resetTrainId()
-                else:
-                    return
-            pos = pos.previous()
-        # Update signal state to close the signal if applicable
-        self.updateSignalState()
-        super().trainHeadActions(trainId)
-
-    def trainTailActions(self, trainId):
-        """Actions that are to be done when a train tail reaches this signal.
-        It deals with desactivating this signal."""
-        if (self.activeRoute is not None and
-                (self.activeRoutePreviousItem != self.previousItem or
-                 (self.activeRoute.beginSignal != self and
-                  self.activeRoute.endSignal != self))):
-            # The line is highlighted by an opposite direction route or this
-            # signal is not the starting/ending signal of this route.
-            # => base TrackItem actions
-            super().trainTailActions(trainId)
-        else:
-            # For cleaning purposes: activeRoute not used in this direction
-            self.resetActiveRoute()
-
-            if (self.previousActiveRoute is not None) and \
-               (not self.previousActiveRoute.persistent):
-                beginSignalNextRoute = \
-                    self.previousActiveRoute.beginSignal.nextActiveRoute
-                if beginSignalNextRoute is None or \
-                   beginSignalNextRoute != self.previousActiveRoute:
-                    # Only reset previous route if the user did not
-                    # reactivate it in the meantime
-                    self.previousItem.resetActiveRoute()
-                    self.resetPreviousActiveRoute()
-            if (self.nextActiveRoute is not None) and \
-               (not self.nextActiveRoute.persistent):
-                self.resetNextActiveRoute()
-            self.updateSignalState()
-            # We emit aspectChanged here to recalculate previous signal, even if
-            # this signal aspect did not change, since the train just left the
-            # block.
-            self.aspectChanged.emit()
 
     @QtCore.pyqtSlot()
     def unselect(self):
         """Unselect the signal."""
         self.selected = False
-
-    def setActiveRoute(self, r, previous):
-        """Overridden here to update signal state."""
-        super().setActiveRoute(r, previous)
-        self.updateSignalState()
-
-    def resetActiveRoute(self):
-        """Overridden here to update signal state."""
-        super().resetActiveRoute()
-        self.updateSignalState()
 
     def updateSignalParams(self):
         """Updates signal custom parameters according to the SignalType."""
@@ -578,21 +508,10 @@ class SignalItem(abstract.TrackItem):
     @QtCore.pyqtSlot()
     def updateSignalState(self):
         """Update the signal current aspect."""
-        oldAspect = self.activeAspect
-        self._activeAspect = self.signalType.getAspect(self)
-
-        if self.activeAspect != oldAspect:
-            self.aspectChanged.emit()
-
-        if self.previousActiveRoute is not None:
-            self.previousActiveRoute.beginSignal.updateSignalState()
-
         self.updateGraphics()
 
     def setupTriggers(self):
         """Create the triggers necessary for this Item."""
-        for trigger in self.simulation.signalLibrary.triggers.values():
-            trigger(self)
         self.updateSignalState()
 
     # ## Graphics Methods ################################################

@@ -17,10 +17,9 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
+
 import io
 import os
-import sys
-import time
 
 import simplejson as json
 import websocket
@@ -64,7 +63,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # Simulation
         self.simulation = None
         self.webSocket = None
-        self.wsThread = None
         if settings.debug:
             websocket.enableTrace(True)
 
@@ -648,10 +646,10 @@ class MainWindow(QtWidgets.QMainWindow):
             "Copyright 2008-%s, NPi (%s)\n"
             "%s\n\n"
             "TS2 is licensed under the terms of the GNU GPL v2\n""") %
-            (__VERSION__,
-             QtCore.QDate.currentDate().year(),
-             __ORG_CONTACT__,
-             __PROJECT_WWW__))
+                                    (__VERSION__,
+                                     QtCore.QDate.currentDate().year(),
+                                     __ORG_CONTACT__,
+                                     __PROJECT_WWW__))
         if self.editorOpened:
             self.editorWindow.activateWindow()
 
@@ -698,7 +696,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if not paused:
                 self.buttPause.click()
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
     def openReassignServiceWindow(self, trainId):
         """Opens the reassign service window."""
         if self.simulation is not None:
@@ -706,7 +704,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.simulation, trainId
             )
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
     def openSplitTrainWindow(self, trainId):
         """Opens the split train dialog window."""
         if self.simulation is not None:
@@ -731,7 +729,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """Save window postions on close"""
         settings.saveWindow(self)
         settings.sync()
-        self.wsThread.exit()
+        self.webSocket.wsThread.exit()
         super().closeEvent(event)
 
     def onWheelChanged(self, direction):
@@ -823,6 +821,7 @@ class WebSocketController(QtCore.QObject):
         super().__init__(parent)
         self._requests = []
         self._callbacks = {}
+        self._handlers = {}
         self._counter = 1
         self.conn = WebSocketConnection(self, url)
         self.conn.messageReceived.connect(self.executeCallback)
@@ -870,15 +869,25 @@ class WebSocketController(QtCore.QObject):
         :param message: raw JSON message received
         """
         msg = json.loads(message)
-        msgID = msg["id"]
-        msgData = msg["data"]
-        if msgID not in self._callbacks:
-            if settings.debug:
-                print("msgID not in registry: %s", msgID)
-            return
-        if self._callbacks[msgID]:
-            self._callbacks[msgID](msgData)
-        del self._callbacks[msgID]
+        if msg["msgType"] == "response":
+            msgID = msg["id"]
+            msgData = msg["data"]
+            if msgID not in self._callbacks:
+                if settings.debug:
+                    print("msgID not in registry: %s" % msgID)
+                return
+            if self._callbacks[msgID]:
+                self._callbacks[msgID](msgData)
+            del self._callbacks[msgID]
+        elif msg["msgType"] == "notification":
+            msgData = msg["data"]
+            if self._handlers[msgData["name"]]:
+                hData = self._handlers[msgData["name"]]
+                hData[1](hData[0], msgData["object"])
+
+    def registerHandler(self, eventName, sim, handler):
+        self.sendRequest("server", "addListener", params={"event": "%s" % eventName})
+        self._handlers[eventName] = (sim, handler)
 
 
 class WebSocketThread(QtCore.QThread):
