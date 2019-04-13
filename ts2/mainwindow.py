@@ -780,7 +780,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def centerViewOnTrain(self, trainId):
         """Centers the graphics view on the given train."""
         if self.simulation:
-            train = self.simulation.trains[trainId]
+            train = self.simulation.trains[int(trainId)]
             if train.isOnScenery():
                 trackItem = train.trainHead.trackItem
                 self.view.centerOn(trackItem.graphicsItem)

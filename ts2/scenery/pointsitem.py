@@ -105,9 +105,9 @@ class PointsItem(abstract.TrackItem):
         super().initialize(simulation)
 
     def updateData(self, msg):
-        super(PointsItem, self).updateData(msg)
         if "reversed" in msg:
             self.pointsReversed = msg["reversed"]
+        super(PointsItem, self).updateData(msg)
 
     @staticmethod
     def getProperties():

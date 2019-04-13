@@ -265,8 +265,7 @@ class LineItem(abstract.ResizableItem):
     def drawTrain(self):
         """Draws the train(s) on the line, if any"""
         tlines = []
-        if self.simulation.context == utils.Context.GAME and \
-           self.trainPresent():
+        if self.simulation.context == utils.Context.GAME:
             if int(self.simulation.option("trackCircuitBased")) == 0:
                 for i in range(len(self._trainHeads)):
                     tlines.append(QtCore.QLineF(

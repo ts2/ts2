@@ -215,7 +215,6 @@ class SignalItem(abstract.TrackItem):
         super().initialize(simulation)
 
     def updateData(self, msg):
-        super(SignalItem, self).updateData(msg)
         if "nextActiveRoute" in msg:
             if msg["nextActiveRoute"]:
                 self.nextActiveRoute = self.simulation.routes[msg["nextActiveRoute"]]
@@ -231,6 +230,12 @@ class SignalItem(abstract.TrackItem):
                 self._activeAspect = signalLibrary.signalAspects[msg["activeAspect"]]
             else:
                 self._activeAspect = None
+        if "trainID" in msg:
+            if msg["trainID"]:
+                self._trainId = msg["trainID"]
+            else:
+                self._trainId = None
+        super(SignalItem, self).updateData(msg)
 
     @staticmethod
     def getProperties():
@@ -393,8 +398,8 @@ class SignalItem(abstract.TrackItem):
         """Resets the nextActiveRoute information. If route is not None, do
         this only if the nextActiveRoute is equal to route."""
         if (route is None or
-            (self.nextActiveRoute is not None and
-             self.nextActiveRoute == route)):
+                (self.nextActiveRoute is not None and
+                 self.nextActiveRoute == route)):
             self._nextActiveRoute = None
             self.updateSignalState()
 
@@ -414,8 +419,8 @@ class SignalItem(abstract.TrackItem):
         """Reset the previousActiveRoute information. If route is not None, do
         this only if the previousActiveRoute is equal to route."""
         if (route is None or
-            (self.previousActiveRoute is not None and
-             self.previousActiveRoute == route)):
+                (self.previousActiveRoute is not None and
+                 self.previousActiveRoute == route)):
             self._previousActiveRoute = None
             self.updateSignalState()
 
@@ -623,7 +628,7 @@ class SignalItem(abstract.TrackItem):
         super().graphicsMouseMoveEvent(event, itemId)
         if itemId == SignalItem.BERTH_GRAPHIC_ITEM:
             if event.buttons() == Qt.LeftButton and \
-               self.simulation.context == utils.Context.EDITOR_SCENERY:
+                    self.simulation.context == utils.Context.EDITOR_SCENERY:
                 if QtCore.QLineF(
                         event.scenePos(),
                         event.buttonDownScenePos(Qt.LeftButton)).length() < 3.0:

@@ -135,9 +135,10 @@ class TrackItem(QtCore.QObject):
             else:
                 self.activeRoutePreviousItem = None
         if "trainEndsFW" in msg:
-            self._trainHeads = msg["trainEndsFW"]
-        if "trainEncsBK" in msg:
-            self._trainTails = msg["trainEndsBK"]
+            self._trainHeads = [v for v in msg["trainEndsFW"].values()]
+        if "trainEndsBK" in msg:
+            self._trainTails = [v for v in msg["trainEndsBK"].values()]
+        self.updateGraphics()
 
     trainEntersItem = QtCore.pyqtSignal()
     trainLeavesItem = QtCore.pyqtSignal()
@@ -397,7 +398,7 @@ class TrackItem(QtCore.QObject):
         :return: ``True`` if at least one train is present on this TrackItem.
         :rtype: bool
         """
-        return self._trains
+        return self._trainHeads or self._trainTails
 
     def distanceToTrainEnd(self, pos):
         """

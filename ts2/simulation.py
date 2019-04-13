@@ -20,9 +20,9 @@
 
 import collections
 import zipfile
-from math import sqrt
 
 import simplejson as json
+from math import sqrt
 
 from Qt import QtCore, QtWidgets
 from ts2 import __FILE_FORMAT__
@@ -94,7 +94,6 @@ def load(simulationWindow, jsonStream):
 def onTrackItemChanged(sim, msg):
     item = sim.trackItems[msg["id"]]
     item.updateData(msg)
-    item.updateGraphics()
 
 
 def onRouteActivated(sim, msg):
@@ -105,6 +104,16 @@ def onRouteActivated(sim, msg):
 def onRouteDeactivated(sim, msg):
     rte = sim.routes[msg["id"]]
     rte.onDeactivated()
+
+
+def onClockChanged(sim, msg):
+    sim._time = QtCore.QTime().fromString(msg, 'hh:mm:ss')
+    sim.timerOut()
+
+
+def onTrainChanged(sim, msg):
+    train = sim.trains[int(msg["id"])]
+    train.updateData(msg)
 
 
 class Simulation(QtCore.QObject):
@@ -124,7 +133,6 @@ class Simulation(QtCore.QObject):
         super().__init__()
         self.simulationWindow = None
         self._scene = QtWidgets.QGraphicsScene()
-        self._timer = QtCore.QTimer(self)
         self._messageLogger = None
         self.loadMessageLogger(messageLogger)
         self._scorer = scorer.Scorer(self)
@@ -255,6 +263,8 @@ class Simulation(QtCore.QObject):
         self.simulationWindow.webSocket.registerHandler("trackItemChanged", self, onTrackItemChanged)
         self.simulationWindow.webSocket.registerHandler("routeActivated", self, onRouteActivated)
         self.simulationWindow.webSocket.registerHandler("routeDeactivated", self, onRouteDeactivated)
+        self.simulationWindow.webSocket.registerHandler("clock", self, onClockChanged)
+        self.simulationWindow.webSocket.registerHandler("trainChanged", self, onTrainChanged)
 
         self.messageLogger.addMessage(self.tr("Simulation loaded"),
                                       logger.Message.SOFTWARE_MSG)
@@ -579,20 +589,29 @@ class Simulation(QtCore.QObject):
 
         :param paused: If paused is ``True`` pause the game, else continue.
         """
-        if paused:
-            self._timer.stop()
-        else:
-            self._timer.start()
+        def onIsStarted(msg):
+            if paused and msg:
+                self.simulationWindow.webSocket.sendRequest("simulation", "pause")
+            elif not paused and not msg:
+                self.simulationWindow.webSocket.sendRequest("simulation", "start")
+
+        self.simulationWindow.webSocket.sendRequest("simulation", "isStarted", callback=onIsStarted)
 
     @QtCore.pyqtSlot(int)
     def setTimeFactor(self, timeFactor):
         """
         :param int timeFactor: Sets the time factor to timeFactor.
         """
-        self._timer.stop()
-        self.setOption("timeFactor", min(timeFactor, 10))
+        self.pause(True)
+
+        def timeFactorSet(msg):
+            if msg["status"] == "Ok":
+                self.setOption("timeFactor", min(timeFactor, 10))
+
+        self.simulationWindow.webSocket.sendRequest("option", "set", {"name": "timeFactor",
+                                                                      "value": min(timeFactor, 10)}, timeFactorSet)
         if timeFactor != 0:
-            self._timer.start()
+            self.pause(False)
 
     @QtCore.pyqtSlot()
     def timerOut(self):
@@ -600,9 +619,8 @@ class Simulation(QtCore.QObject):
         timeElapsed signals
         This function is normally connected to the timer timeout signal."""
         timeFactor = float(self.option("timeFactor"))
-        self._time = self._time.addMSecs((self._timer.interval()) * timeFactor)
         self.timeChanged.emit(self._time)
-        secs = self._timer.interval() * timeFactor / 1000
+        secs = float(timeFactor) / 2
         self.timeElapsed.emit(secs)
 
     def updateSelection(self):
