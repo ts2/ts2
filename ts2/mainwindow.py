@@ -217,7 +217,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.scoreDisplay.setFrameShadow(QtWidgets.QFrame.Plain)
         self.scoreDisplay.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
         self.scoreDisplay.setNumDigits(5)
-        self.scoreDisplay.resize(70, 25)
+        self.scoreDisplay.setMinimumHeight(30)
         tbg.addWidget(self.scoreDisplay)
 
         # =========
@@ -507,7 +507,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.simulation.setTimeFactor
             )
             self.timeFactorSpinBox.setValue(
-                float(self.simulation.option("timeFactor"))
+                int(self.simulation.option("timeFactor"))
             )
 
             self.refreshRecent()

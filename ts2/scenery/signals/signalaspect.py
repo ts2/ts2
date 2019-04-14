@@ -64,7 +64,7 @@ class SignalAspect:
 
     def __init__(self, parameters):
         """Constructor for the SignalAspect class."""
-        self.name = "__UNNAMED__"
+        self.name = parameters["name"]
         self.lineStyle = parameters["lineStyle"]
         self.outerShapes = parameters["outerShapes"]
         self.outerColors = parameters["outerColors"]

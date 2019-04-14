@@ -18,19 +18,18 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
+import collections
 import copy
 import os
-import collections
+
 import simplejson as json
 
 from Qt import QtCore, QtGui, QtWidgets, Qt
-
 from ts2 import utils
 from ts2.scenery import abstract, helper, enditem
 from . import signalaspect
 
 translate = QtWidgets.qApp.translate
-
 
 BUILTIN_SIGNAL_LIBRARY = """{
     "__type__": "SignalLibrary",
@@ -113,24 +112,6 @@ BUILTIN_SIGNAL_LIBRARY = """{
         }
     }
 }"""
-
-
-def json_hook(dct):
-    """Hook method for json loading of signal library.
-    :param dict dct: the dictionary to load
-    :return: An class of ``__type__``
-    :rtype: Class instance
-    """
-    if not dct.get('__type__'):
-        return dct
-    elif dct['__type__'] == "SignalLibrary":
-        return SignalLibrary(parameters=dct)
-    elif dct['__type__'] == "SignalType":
-        return SignalType(parameters=dct)
-    elif dct['__type__'] == "SignalState":
-        return SignalState(parameters=dct)
-    elif dct['__type__'] == "SignalAspect":
-        return signalaspect.SignalAspect(parameters=dct)
 
 
 class SignalItem(abstract.TrackItem):
@@ -549,7 +530,7 @@ class SignalItem(abstract.TrackItem):
             elif itemId == SignalItem.BERTH_GRAPHIC_ITEM:
                 # The train code is right-clicked
                 if self._trainId is not None:
-                    train = self.simulation.trains[self._trainId]
+                    train = self.simulation.trains[int(self._trainId)]
                     if train is not None:
                         train.showTrainActionsMenu(
                             self.simulation.simulationWindow.view, e.screenPos()
@@ -696,10 +677,13 @@ class SignalType:
 
     def __init__(self, parameters):
         """
-        :param dict paramaters:
+        :param dict parameters: dict with the data of the signal type
         """
-        self.name = "__UNNAMED__"
-        self.states = parameters["states"]
+        self.name = parameters["name"]
+        self.states = []
+        for ssDict in parameters["states"]:
+            ss = SignalState(ssDict)
+            self.states.append(ss)
 
     def initialize(self, signalLib):
         """Initializes this SignalType once
@@ -778,12 +762,18 @@ class SignalLibrary:
 
     def __init__(self, parameters):
         """Constructor for the SignalLibrary class."""
-        self.signalAspects = parameters["signalAspects"]
-        for name, sa in self.signalAspects.items():
-            sa.name = name
-        self.signalTypes = parameters["signalTypes"]
-        for name, st in self.signalTypes.items():
-            st.name = name
+        self.signalAspects = {}
+        self.signalTypes = {}
+        signalAspects = parameters["signalAspects"]
+        for name, saDict in signalAspects.items():
+            saDict["name"] = name
+            sa = signalaspect.SignalAspect(saDict)
+            self.signalAspects[name] = sa
+        signalTypes = parameters["signalTypes"]
+        for name, stDict in signalTypes.items():
+            stDict["name"] = name
+            st = SignalType(stDict)
+            self.signalTypes[name] = st
 
     def initialize(self):
         """Initializes the SignalLibrary once it is totally loaded."""
@@ -816,8 +806,8 @@ class SignalLibrary:
     def createSignalLibrary():
         """Returns a SignalLibrary with the builtin signal types and those
         defined in tsl files in the data directory."""
-        builtinLibrary = json.loads(BUILTIN_SIGNAL_LIBRARY,
-                                    object_hook=json_hook, encoding="utf-8")
+        builtinLibraryDict = json.loads(BUILTIN_SIGNAL_LIBRARY, encoding="utf-8")
+        builtinLibrary = SignalLibrary(builtinLibraryDict)
         # General data directory
         tslGenFiles = [os.path.join("data", f) for f in os.listdir("data")
                        if f.endswith('.tsl')]
@@ -830,9 +820,8 @@ class SignalLibrary:
         tslFiles.sort()
         for tslFile in tslFiles:
             with open(tslFile) as fileStream:
-                sl = json.load(fileStream, object_hook=json_hook,
-                               encoding="utf-8")
-                builtinLibrary.update(sl)
+                sl = json.load(fileStream, encoding="utf-8")
+                builtinLibrary.update(SignalLibrary(sl))
 
         builtinLibrary.initialize()
         return builtinLibrary
@@ -1043,7 +1032,7 @@ class TrainPresentOnItems:
                     translate("TrainPresentOnItems",
                               "Error in simulation definition: SignalItem %s "
                               "references unknown track item %s") %
-                              (signalItem.tiId, str(err))
+                    (signalItem.tiId, str(err))
                 )
 
 
@@ -1095,7 +1084,7 @@ class RouteSetCondition:
                     translate("RouteSetCondition",
                               "Error in simulation definition: SignalItem %s "
                               "references unknown route %s") %
-                              (signalItem.tiId, str(err))
+                    (signalItem.tiId, str(err))
                 )
 
 

@@ -59,7 +59,7 @@ def json_hook(dct):
     elif dct['__type__'] == "Simulation":
         return Simulation(dct['options'], dct['trackItems'], dct['routes'],
                           dct['trainTypes'], dct['services'], dct['trains'],
-                          dct['messageLogger'])
+                          dct['messageLogger'], dct["signalLibrary"])
     else:
         return dct
 
@@ -116,11 +116,19 @@ def onTrainChanged(sim, msg):
     train.updateData(msg)
 
 
+def onMessageReceived(sim, msg):
+    sim.messageLogger.addMessage(msg["msgText"], msg["msgType"])
+
+
+def onScoreChanged(sim, msg):
+    sim.scorer.score = msg["value"]
+
+
 class Simulation(QtCore.QObject):
     """The ``Simulation`` class holds all the game logic."""
 
     def __init__(self, options, trackItems, routes, trainTypes, services,
-                 trns, messageLogger):
+                 trns, messageLogger, signalLibrary):
         """
         :param options:
         :param trackItems:
@@ -152,7 +160,8 @@ class Simulation(QtCore.QObject):
         self._places = collections.OrderedDict()
         self._trains = []
         self.loadTrains(trns)
-        self.signalLibrary = signalitem.signalLibrary
+        self.signalLibrary = signalitem.SignalLibrary(signalLibrary)
+        signalitem.signalLibrary = self.signalLibrary
         self._time = QtCore.QTime()
         self._startTime = QtCore.QTime()
         self._serviceListModel = trains.ServiceListModel(self)
@@ -223,23 +232,17 @@ class Simulation(QtCore.QObject):
         self.messageLogger.addMessage(self.tr("Simulation initializing"),
                                       logger.Message.SOFTWARE_MSG)
         self.simulationWindow = simulationWindow
+        self.signalLibrary.initialize()
         self.updatePlaces()
         for ti in self._trackItems.values():
             ti.initialize(self)
         if not self.checkTrackItemsLinks():
-            self.messageLogger.addMessage(
-                self.tr("Invalid simulation: Not all items are linked."),
-                logger.Message.SOFTWARE_MSG
-            )
             raise utils.FormatException(
                 self.tr("Invalid simulation: Not all items are linked.")
             )
 
         for rte in self.routes.values():
             rte.initialize(self)
-        for rte in self.routes.values():
-            # We need routes initialized before setting them up
-            rte.setToInitialState()
         for ti in self.trackItems.values():
             # We need trackItems linked and routes set before setting triggers
             ti.setupTriggers()
@@ -265,6 +268,8 @@ class Simulation(QtCore.QObject):
         self.simulationWindow.webSocket.registerHandler("routeDeactivated", self, onRouteDeactivated)
         self.simulationWindow.webSocket.registerHandler("clock", self, onClockChanged)
         self.simulationWindow.webSocket.registerHandler("trainChanged", self, onTrainChanged)
+        self.simulationWindow.webSocket.registerHandler("messageReceived", self, onMessageReceived)
+        self.simulationWindow.webSocket.registerHandler("scoreChanged", self, onScoreChanged)
 
         self.messageLogger.addMessage(self.tr("Simulation loaded"),
                                       logger.Message.SOFTWARE_MSG)
@@ -589,6 +594,7 @@ class Simulation(QtCore.QObject):
 
         :param paused: If paused is ``True`` pause the game, else continue.
         """
+
         def onIsStarted(msg):
             if paused and msg:
                 self.simulationWindow.webSocket.sendRequest("simulation", "pause")
@@ -602,8 +608,6 @@ class Simulation(QtCore.QObject):
         """
         :param int timeFactor: Sets the time factor to timeFactor.
         """
-        self.pause(True)
-
         def timeFactorSet(msg):
             if msg["status"] == "Ok":
                 self.setOption("timeFactor", min(timeFactor, 10))
@@ -655,8 +659,6 @@ class Simulation(QtCore.QObject):
         """Find the items that are linked together through their coordinates
         and populate the _nextItem and _previousItem variables of each items.
         """
-        self.messageLogger.addMessage(self.tr("Creating TrackItem links"),
-                                      logger.Message.SOFTWARE_MSG)
         for ki, vi in self._trackItems.items():
             for kj, vj in self._trackItems.items():
                 if ki < kj:
@@ -695,25 +697,13 @@ class Simulation(QtCore.QObject):
 
         """
         result = True
-        self.messageLogger.addMessage(self.tr("Checking TrackItem links"),
-                                      logger.Message.SOFTWARE_MSG)
         for ti in self._trackItems.values():
             if not isinstance(ti, placeitem.Place) \
                     and not isinstance(ti, platformitem.PlatformItem) \
                     and not isinstance(ti, textitem.TextItem):
                 if ti.nextItem is None and not isinstance(ti, enditem.EndItem):
-                    self.messageLogger.addMessage(
-                        self.tr("TrackItem %i is unlinked at (%f, %f)" %
-                                (ti.tiId, ti.end.x(), ti.end.y())),
-                        logger.Message.SOFTWARE_MSG
-                    )
                     result = False
                 if ti.previousItem is None:
-                    self.messageLogger.addMessage(
-                        self.tr("TrackItem %i is unlinked at (%f, %f)" %
-                                (ti.tiId, ti.origin.x(), ti.origin.y())),
-                        logger.Message.SOFTWARE_MSG
-                    )
                     result = False
         return result
 

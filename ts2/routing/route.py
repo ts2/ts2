@@ -137,14 +137,6 @@ class Route(QtCore.QObject):
             )
         self._parameters = None
 
-    def setToInitialState(self):
-        """Setup routes according to their initial state."""
-        if self.simulation.context == utils.Context.GAME:
-            if self.initialState == 2:
-                self.activate(True)
-            elif self.initialState == 1:
-                self.activate(False)
-
     def for_json(self):
         """Dumps this route to JSON."""
         if self.simulation.context == utils.Context.GAME:
