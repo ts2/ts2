@@ -499,6 +499,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.simulation = simulation.load(self, io.StringIO(simData))
             self.lblTitle.setText(self.simulation.option("title"))
             self.simulationConnect()
+            self.webSocket.sendRequest("server", "renotify")
             self.simulationLoaded.emit(self.simulation)
 
             self.buttPause.toggled.connect(self.simulation.pause)
@@ -881,7 +882,7 @@ class WebSocketController(QtCore.QObject):
             del self._callbacks[msgID]
         elif msg["msgType"] == "notification":
             msgData = msg["data"]
-            if self._handlers[msgData["name"]]:
+            if self._handlers.get(msgData["name"]):
                 hData = self._handlers[msgData["name"]]
                 hData[1](hData[0], msgData["object"])
 
