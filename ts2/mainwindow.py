@@ -673,7 +673,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.buttPause.isChecked():
             self.buttPause.click()
         if not self.editorOpened:
-            self.editorWindow = editorwindow.EditorWindow(self, fileName)
+            self.editorWindow = editorwindow.EditorWindow(self, fileName=fileName)
             self.editorWindow.simulationConnect()
             self.editorWindow.closed.connect(self.onEditorClosed)
             self.editorOpened = True

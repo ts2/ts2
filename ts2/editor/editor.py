@@ -22,17 +22,16 @@ import copy
 import zipfile
 
 import simplejson as json
-from Qt import QtCore, QtWidgets, Qt
 
+from Qt import QtCore, QtWidgets, Qt
 from ts2 import __FILE_FORMAT__
 from ts2 import simulation
 from ts2 import utils, trains
+from ts2.editor import editorscenebackground
 from ts2.routing import position, route
 from ts2.scenery import abstract, placeitem, lineitem, platformitem, \
     invisiblelinkitem, enditem, pointsitem, textitem
 from ts2.scenery.signals import signalitem
-from ts2.editor import editorscenebackground
-from ts2.game import logger
 
 translate = QtWidgets.qApp.translate
 
@@ -70,6 +69,7 @@ def load(editorWindow, jsonStream):
 
 class WhiteLineItem(QtWidgets.QGraphicsLineItem):
     """Shortcut class to make a white line item and add to scene"""
+
     def __init__(self, x1, y1, x2, y2, parent, scene):
         """Constructor for the WhiteLineItem class"""
         super().__init__(x1, y1, x2, y2, parent)
@@ -81,6 +81,7 @@ class WhiteLineItem(QtWidgets.QGraphicsLineItem):
 class OptionsModel(QtCore.QAbstractTableModel):
     """Model for editing options in the editor.
     """
+
     def __init__(self, editor):
         """Constructor for the OptionsModel class"""
         super().__init__()
@@ -136,9 +137,10 @@ class Editor(simulation.Simulation):
     """The Editor class holds all the logic behind the simulation editor. It
     is a subclass of the Simulation class.
     """
+
     def __init__(self, options=None, trackItems=None, routes=None,
                  trainTypes=None, services=None, trns=None, messageLogger=None,
-                 fileName=None):
+                 signalLibrary=None, fileName=None):
         """Constructor for the Editor class"""
         options = options or simulation.BUILTIN_OPTIONS
         trackItems = trackItems or {}
@@ -146,9 +148,10 @@ class Editor(simulation.Simulation):
         trainTypes = trainTypes or {}
         services = services or {}
         trns = trns or []
-        messageLogger = messageLogger or logger.MessageLogger({})
+        messageLogger = messageLogger or {"messages": []}
+        signalLibrary = signalitem.SignalLibrary.createSignalLibrary()
         super().__init__(options, trackItems, routes, trainTypes, services,
-                         trns, messageLogger)
+                         trns, messageLogger, signalLibrary)
 
         self._context = utils.Context.EDITOR_GENERAL
         self._libraryScene = QtWidgets.QGraphicsScene(0, 0, 200, 250, self)
@@ -270,8 +273,8 @@ class Editor(simulation.Simulation):
         for train in self.trains:
             train.initialize(self)
         self._trains.sort(key=lambda x: x.currentService.lines and
-                          x.currentService.lines[0].scheduledDepartureTimeStr or
-                          x.currentService.serviceCode)
+                                        x.currentService.lines[0].scheduledDepartureTimeStr or
+                                        x.currentService.serviceCode)
         self.messageLogger.initialize(self)
 
         self._scene.update()
@@ -496,7 +499,7 @@ class Editor(simulation.Simulation):
         :type graphicItem: QtCore.QGraphicsItem
         """
         if hasattr(graphicItem, "trackItem") and \
-           graphicItem.trackItem.tiId < 0:
+                graphicItem.trackItem.tiId < 0:
             self._libraryScene.addItem(graphicItem)
         else:
             self._scene.addItem(graphicItem)
@@ -635,9 +638,9 @@ class Editor(simulation.Simulation):
         """Expands the EditorSceneBackground to 300px around the given
         TrackItem, if it is not already the case."""
         tl = trackItem.graphicsItem.boundingRect().topLeft() + \
-            trackItem.graphicsItem.pos() + QtCore.QPointF(-300, -300)
+             trackItem.graphicsItem.pos() + QtCore.QPointF(-300, -300)
         br = trackItem.graphicsItem.boundingRect().bottomRight() + \
-            trackItem.graphicsItem.pos() + QtCore.QPointF(300, 300)
+             trackItem.graphicsItem.pos() + QtCore.QPointF(300, 300)
         rect = self._sceneBackground.rect()
         if not rect.contains(tl):
             rect.setLeft(min(tl.x(), rect.left()))
@@ -685,7 +688,7 @@ class Editor(simulation.Simulation):
         """
         if self.context == utils.Context.EDITOR_ROUTES:
             if (self._preparedRoute is not None) and \
-               (self._preparedRoute not in self._routes.values()):
+                    (self._preparedRoute not in self._routes.values()):
                 routeNum = self._preparedRoute.routeNum
                 self._routes[routeNum] = self._preparedRoute
                 self.deselectRoute()
@@ -854,7 +857,7 @@ class Editor(simulation.Simulation):
         serviceList = list(self.services.keys())
         for s in self.services.values():
             if s.nextServiceCode is not None and \
-               s.nextServiceCode != "":
+                    s.nextServiceCode != "":
                 try:
                     serviceList.remove(s.nextServiceCode)
                 except ValueError:
@@ -941,11 +944,11 @@ class Editor(simulation.Simulation):
 
         # QtCore.qDebug(">> List of selected TI")
         # for ti in self.selectedItems:
-            # QtCore.qDebug("TI selected: %i" %ti.tiId )
+        # QtCore.qDebug("TI selected: %i" %ti.tiId )
         # QtCore.qDebug("> List of selected GI")
         # for gi in self.scene.selectedItems():
-            # QtCore.qDebug("GI selected: %i:%i" %
-            #               (gi.trackItem.tiId, gi.itemId ))
+        # QtCore.qDebug("GI selected: %i:%i" %
+        #               (gi.trackItem.tiId, gi.itemId ))
         # QtCore.qDebug("---------")
 
     @QtCore.pyqtSlot()
@@ -997,7 +1000,7 @@ class Editor(simulation.Simulation):
         else:
             refPos = QtCore.QPointF(0, 0)
         translation = refPos + QtCore.QPointF(100, 100) - \
-            self._clipbooard[0].origin
+                      self._clipbooard[0].origin
         for ti in self._clipbooard:
             newTi = self.createTrackItem(ti.tiTypeStr,
                                          ti.origin + translation,
