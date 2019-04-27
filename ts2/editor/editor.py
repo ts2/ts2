@@ -149,7 +149,7 @@ class Editor(simulation.Simulation):
         services = services or {}
         trns = trns or []
         messageLogger = messageLogger or {"messages": []}
-        signalLibrary = signalitem.SignalLibrary.createSignalLibrary()
+        signalLibrary = signalitem.signalLibraryDict
         super().__init__(options, trackItems, routes, trainTypes, services,
                          trns, messageLogger, signalLibrary)
 
@@ -175,38 +175,38 @@ class Editor(simulation.Simulation):
 
         # Items
         self.librarySignalItem = signalitem.SignalItem({
-            "tiId": -1, "name": "Signal", "x": 65, "y": 25, "reverse": 0,
-            "xn": 20, "yn": 30, "signalType": "UK_3_ASPECTS", "maxSpeed": 0.0,
+            "tiId": "__EDITOR__1", "name": "Signal", "x": 65, "y": 25, "reverse": 0,
+            "xn": 20, "yn": 30, "signalType": "UK_3_ASPECTS", "activeAspect": "UK_DANGER", "maxSpeed": 0.0,
             "routesSetParams": "{}", "trainNotPresentParams": "{}"
         })
         self.libraryLineItem = lineitem.LineItem({
-            "tiId": -5, "name": "Line", "x": 120, "y": 25, "xf": 180, "yf": 25,
+            "tiId": "__EDITOR__5", "name": "Line", "x": 120, "y": 25, "xf": 180, "yf": 25,
             "maxSpeed": 0.0, "realLength": 1.0, "placeCode": None,
             "trackCode": None
         })
         self.libraryPointsItem = pointsitem.PointsItem({
-            "tiId": -3, "name": "Points", "maxSpeed": 0.0, "x": 50, "y": 75,
+            "tiId": "__EDITOR__3", "name": "Points", "maxSpeed": 0.0, "x": 50, "y": 75,
             "xf": -5, "yf": 0, "xn": 5, "yn": 0, "xr": 5, "yr": -5
         })
         self.libraryPlatformItem = platformitem.PlatformItem({
-            "tiId": -6, "name": "Platform", "x": 120, "y": 65, "xf": 180,
+            "tiId": "__EDITOR__6", "name": "Platform", "x": 120, "y": 65, "xf": 180,
             "yf": 85, "maxSpeed": 0.0, "realLength": 1.0, "placeCode": None,
             "trackCode": None
         })
         self.libraryPlaceItem = placeitem.Place({
-            "tiId": -8, "name": "PLACE", "placeCode": "", "maxSpeed": 0.0,
+            "tiId": "__EDITOR__8", "name": "PLACE", "placeCode": "", "maxSpeed": 0.0,
             "x": 132, "y": 115, "xf": 0, "yf": 0
         })
         self.libraryEndItem = enditem.EndItem({
-            "tiId": -7, "name": "End", "maxSpeed": 0.0, "x": 50, "y": 125,
+            "tiId": "__EDITOR__7", "name": "End", "maxSpeed": 0.0, "x": 50, "y": 125,
             "xf": 0, "yf": 0
         })
         self.libraryTextItem = textitem.TextItem({
-            "tiId": -11, "name": "TEXT", "x": 36, "y": 165, "maxSpeed": 0.0,
+            "tiId": "__EDITOR__11", "name": "TEXT", "x": 36, "y": 165, "maxSpeed": 0.0,
             "realLength": 1.0
         })
         self.libraryInvisibleLinkItem = invisiblelinkitem.InvisibleLinkItem({
-            "tiId": -10, "name": "Invisible link", "x": 120, "y": 175,
+            "tiId": "__EDITOR__10", "name": "Invisible link", "x": 120, "y": 175,
             "xf": 180, "yf": 175, "maxSpeed": 0.0, "realLength": 1.0,
             "placeCode": None, "trackCode": None
         })
@@ -499,7 +499,7 @@ class Editor(simulation.Simulation):
         :type graphicItem: QtCore.QGraphicsItem
         """
         if hasattr(graphicItem, "trackItem") and \
-                graphicItem.trackItem.tiId < 0:
+                graphicItem.trackItem.tiId.startswith("__EDITOR__"):
             self._libraryScene.addItem(graphicItem)
         else:
             self._scene.addItem(graphicItem)
@@ -550,7 +550,7 @@ class Editor(simulation.Simulation):
             else:
                 posEnd = QtCore.QPointF(0, 0)
         parameters = {
-            "tiId": self._nextId,
+            "tiId": str(self._nextId),
             "name": "%i" % self._nextId,
             "x": pos.x(),
             "y": pos.y(),
@@ -566,6 +566,7 @@ class Editor(simulation.Simulation):
             "placeCode": None,
             "trackCode": None,
             "signalType": "UK_3_ASPECTS",
+            "activeAspect": "UK_DANGER",
             "routesSetParams": "{}",
             "trainNotPresentParams": "{}"
         }
@@ -702,7 +703,7 @@ class Editor(simulation.Simulation):
             self.deselectRoute()
             del self._routes[routeNum]
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
     def prepareRoute(self, signalId):
         """Prepares the route starting with the SignalItem given by
         _selectedSignal and ending at signalId. Sets _selectedSignal to signalId

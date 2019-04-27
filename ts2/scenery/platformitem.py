@@ -87,7 +87,6 @@ class PlatformItem(abstract.ResizableItem):
         })
         return jsonData
 
-
     # ## Properties #####################################################
 
     @property

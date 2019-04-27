@@ -148,7 +148,7 @@ class SignalItem(abstract.TrackItem):
         self._berthOrigin = QtCore.QPointF(xb, yb)
         self._berthRect = None
         self.setBerthRect()
-        self._activeAspect = None
+        self._activeAspect = signalLibrary.signalAspects.get(parameters.get("activeAspect"))
         self._reverse = reverse
         self._previousActiveRoute = None
         self._nextActiveRoute = None
@@ -185,10 +185,10 @@ class SignalItem(abstract.TrackItem):
                         "missing files from the server in File->Open dialog" %
                         (str(err)))
             )
-        self._activeAspect = self._signalType.getDefaultAspect()
         if simulation.context == utils.Context.GAME:
             self.signalSelected.connect(simulation.activateRoute)
             self.signalUnselected.connect(simulation.desactivateRoute)
+            self._activeAspect = self._signalType.getDefaultAspect()
         else:
             self.signalSelected.connect(simulation.prepareRoute)
             self.signalUnselected.connect(simulation.deselectRoute)
@@ -793,21 +793,21 @@ class SignalLibrary:
             "signalTypes": self.signalTypes
         }
 
-    def update(self, other):
-        """Updates this SignalLibrary instance by adding signal aspects and
+    @staticmethod
+    def update(libDict, other):
+        """Updates this SignalLibrary dict by adding signal aspects and
         signal types from the other SignalLibrary. If signal aspects or signal
         types of the same name exists in both SignalLibrary instance, the data
         in the other SignalLibray will overwrite the data of this SignalLibrary.
         """
-        self.signalAspects.update(other.signalAspects)
-        self.signalTypes.update(other.signalTypes)
+        libDict["signalAspects"].update(other["signalAspects"])
+        libDict["signalTypes"].update(other["signalTypes"])
 
     @staticmethod
     def createSignalLibrary():
-        """Returns a SignalLibrary with the builtin signal types and those
+        """Returns a SignalLibrary dict with the builtin signal types and those
         defined in tsl files in the data directory."""
         builtinLibraryDict = json.loads(BUILTIN_SIGNAL_LIBRARY, encoding="utf-8")
-        builtinLibrary = SignalLibrary(builtinLibraryDict)
         # General data directory
         tslGenFiles = [os.path.join("data", f) for f in os.listdir("data")
                        if f.endswith('.tsl')]
@@ -821,13 +821,12 @@ class SignalLibrary:
         for tslFile in tslFiles:
             with open(tslFile) as fileStream:
                 sl = json.load(fileStream, encoding="utf-8")
-                builtinLibrary.update(SignalLibrary(sl))
-
-        builtinLibrary.initialize()
-        return builtinLibrary
+                SignalLibrary.update(builtinLibraryDict, sl)
+        return builtinLibraryDict
 
 
-signalLibrary = SignalLibrary.createSignalLibrary()
+signalLibraryDict = SignalLibrary.createSignalLibrary()
+signalLibrary = SignalLibrary(signalLibraryDict)
 
 
 def condition(cls):

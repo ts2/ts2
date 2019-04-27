@@ -88,7 +88,7 @@ class EndItem(abstract.TrackItem):
         :rtype: ``QRectF``
         """
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            if self.tiId < 0:
+            if self.tiId.startswith("__EDITOR__"):
                 # Toolbox itemId
                 return QtCore.QRectF(-50, -25, 100, 50)
             else:

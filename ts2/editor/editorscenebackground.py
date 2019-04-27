@@ -44,7 +44,7 @@ class EditorSceneBackground(QtWidgets.QGraphicsRectItem):
         """dragMoveEvent handler for the EditorSceneBackground."""
         if event.mimeData().hasText():
             tiType, tiId, ox, oy, point = event.mimeData().text().split("#")
-            if int(tiId) > 0:
+            if not tiId.startswith("__EDITOR__"):
                 clickPos = QtCore.QPointF(float(ox), float(oy))
                 self.editor.moveTrackItem(tiId, event.scenePos(),
                                           clickPos, point)
@@ -56,7 +56,7 @@ class EditorSceneBackground(QtWidgets.QGraphicsRectItem):
         created."""
         if event.mimeData().hasText():
             tiType, tiId, ox, oy, point = event.mimeData().text().split("#")
-            if int(tiId) < 0:
+            if tiId.startswith("__EDITOR__"):
                 event.setDropAction(Qt.CopyAction)
                 event.accept()
                 self.editor.createTrackItem(tiType, event.scenePos())

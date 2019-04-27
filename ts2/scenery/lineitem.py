@@ -211,7 +211,7 @@ class LineItem(abstract.ResizableItem):
         """
         path = QtGui.QPainterPath(self._boundingRect.topLeft())
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            if self.tiId < 0:
+            if self.tiId.startswith("__EDITOR__"):
                 # Tool box item
                 d = 20
             else:
