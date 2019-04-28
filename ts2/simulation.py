@@ -124,12 +124,8 @@ def onOptionsChanged(sim, msg):
     sim.onOptionsChanged(msg)
 
 
-def onSimulationPaused(sim, msg):
-    sim.onPause(True)
-
-
-def onSimulationStarted(sim, msg):
-    sim.onPause(False)
+def onStateChanged(sim, msg):
+    sim.onPause(not msg["value"])
 
 
 class Simulation(QtCore.QObject):
@@ -278,8 +274,7 @@ class Simulation(QtCore.QObject):
         self.simulationWindow.webSocket.registerHandler("trainChanged", self, onTrainChanged)
         self.simulationWindow.webSocket.registerHandler("messageReceived", self, onMessageReceived)
         self.simulationWindow.webSocket.registerHandler("optionsChanged", self, onOptionsChanged)
-        self.simulationWindow.webSocket.registerHandler("simulationPaused", self, onSimulationPaused)
-        self.simulationWindow.webSocket.registerHandler("simulationStarted", self, onSimulationStarted)
+        self.simulationWindow.webSocket.registerHandler("stateChanged", self, onStateChanged)
 
         self.messageLogger.addMessage(self.tr("Simulation loaded"),
                                       logger.Message.SOFTWARE_MSG)
@@ -632,8 +627,6 @@ class Simulation(QtCore.QObject):
 
         self.simulationWindow.webSocket.sendRequest("option", "set", {"name": "timeFactor",
                                                                       "value": min(timeFactor, 10)}, timeFactorSet)
-        if timeFactor != 0:
-            self.pause(False)
 
     @QtCore.pyqtSlot()
     def timerOut(self):

@@ -242,6 +242,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.buttPause.setCheckable(True)
         self.buttPause.setAutoRaise(True)
         self.buttPause.setMaximumWidth(50)
+        self.buttPause.setChecked(True)
         tbg.addWidget(self.buttPause)
 
         # Clock Widget
@@ -493,15 +494,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.webSocket.sendRequest("server", "renotify")
             self.simulationLoaded.emit(self.simulation)
 
-            self.buttPause.toggled.connect(self.simulation.pause)
-            self.buttPause.toggled.connect(self.setPauseButtonText)
-            self.timeFactorSpinBox.valueChanged.connect(
-                self.simulation.setTimeFactor
-            )
-            self.timeFactorSpinBox.setValue(
-                int(self.simulation.option("timeFactor"))
-            )
-
             self.refreshRecent()
             self.setControlsDisabled(False)
 
@@ -559,6 +551,13 @@ class MainWindow(QtWidgets.QMainWindow):
         )
         self.scoreDisplay.display(self.simulation.scorer.score)
         self.simulation.timeFactorChanged.connect(self.timeFactorSpinBox.setValue)
+        self.buttPause.toggled.connect(self.simulation.pause)
+        self.timeFactorSpinBox.valueChanged.connect(
+            self.simulation.setTimeFactor
+        )
+        self.timeFactorSpinBox.setValue(
+            int(self.simulation.option("timeFactor"))
+        )
 
         # Menus
         self.saveGameAsAction.setEnabled(True)
@@ -604,13 +603,42 @@ class MainWindow(QtWidgets.QMainWindow):
             self.simulation.scorer.scoreChanged.disconnect()
         except TypeError:
             pass
+        # Panel
+        try:
+            self.simulation.timeChanged.disconnect()
+        except TypeError:
+            pass
+        try:
+            self.simulation.simulationPaused.disconnect()
+        except TypeError:
+            pass
+        try:
+            self.simulation.scorer.scoreChanged.disconnect()
+        except TypeError:
+            pass
+        self.scoreDisplay.display(0)
+        try:
+            self.simulation.timeFactorChanged.disconnect()
+        except TypeError:
+            pass
+        try:
+            self.buttPause.toggled.disconnect()
+        except TypeError:
+            pass
+        try:
+            self.timeFactorSpinBox.valueChanged.disconnect()
+        except TypeError:
+            pass
+        self.timeFactorSpinBox.setValue(1)
+        self.buttPause.setChecked(True)
+
         # Menus
         self.saveGameAsAction.setEnabled(False)
         self.propertiesAction.setEnabled(False)
         # Clock
         self.clockWidget.setTime(QtCore.QTime())
-        if not self.buttPause.isChecked():
-            self.buttPause.click()
+
+        self.webSocket.removeHandlers()
 
     def simulationClose(self):
         if self.simulation is not None:
@@ -624,7 +652,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def saveGame(self):
         """Saves the current game to file."""
         if self.simulation is not None:
-            self.panel.pauseButton.click()
             fileName, _ = QtWidgets.QFileDialog.getSaveFileName(
                 self,
                 self.tr("Save the simulation as"),
@@ -678,8 +705,6 @@ class MainWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def openEditor(self, fileName=None):
         """This slot opens the editor window if it is not already opened"""
-        if not self.buttPause.isChecked():
-            self.buttPause.click()
         if not self.editorOpened:
             self.editorWindow = editorwindow.EditorWindow(self, fileName=fileName)
             self.editorWindow.simulationConnect()
@@ -695,20 +720,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def checkPauseButton(self, paused):
-        if (not paused and self.buttPause.isChecked()) or (paused and not self.buttPause.isChecked()):
-            self.buttPause.click()
+        self.buttPause.setChecked(paused)
 
     @QtCore.pyqtSlot()
     def openPropertiesDialog(self):
         """Pops-up the simulation properties dialog."""
         if self.simulation is not None:
-            paused = self.buttPause.isChecked()
-            if not paused:
-                self.buttPause.click()
             propertiesDialog = dialogs.PropertiesDialog(self, self.simulation)
             propertiesDialog.exec_()
-            if not paused:
-                self.buttPause.click()
 
     @QtCore.pyqtSlot(str)
     def openReassignServiceWindow(self, trainId):
@@ -743,6 +762,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """Save window postions on close"""
         settings.saveWindow(self)
         settings.sync()
+        self.simulationClose()
         if self.webSocket:
             self.webSocket.wsThread.exit()
         super().closeEvent(event)
@@ -767,13 +787,6 @@ class MainWindow(QtWidgets.QMainWindow):
         tbg = widgets.ToolBarGroup(self, title=title, bg=bg, fg=fg)
         tbar.addWidget(tbg)
         return tbar, tbg
-
-    @QtCore.pyqtSlot(bool)
-    def setPauseButtonText(self, paused):
-        if paused:
-            self.buttPause.setText(self.tr("Paused"))
-        else:
-            self.buttPause.setText(self.tr("Pause"))
 
     def onServiceSelected(self, serviceCode):
         serv = self.simulation.service(serviceCode)
@@ -906,6 +919,11 @@ class WebSocketController(QtCore.QObject):
     def registerHandler(self, eventName, sim, handler):
         self.sendRequest("server", "addListener", params={"event": "%s" % eventName})
         self._handlers[eventName] = (sim, handler)
+
+    def removeHandlers(self):
+        for eventName in self._handlers.keys():
+            self.sendRequest("server", "removeListener", params={"event": "%s" % eventName})
+            self._handlers = {}
 
     def onClosed(self):
         QtWidgets.QApplication.restoreOverrideCursor()
