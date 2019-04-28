@@ -37,6 +37,9 @@ class ClockWidget(QtWidgets.QLCDNumber):
 
     @QtCore.pyqtSlot(QtCore.QTime)
     def setTime(self, t):
+        if t.isNull():
+            self.display("--:--:--")
+            return
         self.display(t.toString("hh:mm:ss"))
 
 

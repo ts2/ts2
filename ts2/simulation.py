@@ -120,8 +120,16 @@ def onMessageReceived(sim, msg):
     sim.messageLogger.addMessage(msg["msgText"], msg["msgType"])
 
 
-def onScoreChanged(sim, msg):
-    sim.scorer.score = msg["value"]
+def onOptionsChanged(sim, msg):
+    sim.onOptionsChanged(msg)
+
+
+def onSimulationPaused(sim, msg):
+    sim.onPause(True)
+
+
+def onSimulationStarted(sim, msg):
+    sim.onPause(False)
 
 
 class Simulation(QtCore.QObject):
@@ -269,7 +277,9 @@ class Simulation(QtCore.QObject):
         self.simulationWindow.webSocket.registerHandler("clock", self, onClockChanged)
         self.simulationWindow.webSocket.registerHandler("trainChanged", self, onTrainChanged)
         self.simulationWindow.webSocket.registerHandler("messageReceived", self, onMessageReceived)
-        self.simulationWindow.webSocket.registerHandler("scoreChanged", self, onScoreChanged)
+        self.simulationWindow.webSocket.registerHandler("optionsChanged", self, onOptionsChanged)
+        self.simulationWindow.webSocket.registerHandler("simulationPaused", self, onSimulationPaused)
+        self.simulationWindow.webSocket.registerHandler("simulationStarted", self, onSimulationStarted)
 
         self.messageLogger.addMessage(self.tr("Simulation loaded"),
                                       logger.Message.SOFTWARE_MSG)
@@ -512,6 +522,10 @@ class Simulation(QtCore.QObject):
     selectionChanged = QtCore.pyqtSignal()
     """pyqtSignal()"""
 
+    simulationPaused = QtCore.pyqtSignal(bool)
+
+    timeFactorChanged = QtCore.pyqtSignal(int)
+
     @QtCore.pyqtSlot(int)
     def updateContext(self, tabNum):
         """Updates the context of the simulation. Does nothing in the base
@@ -589,6 +603,10 @@ class Simulation(QtCore.QObject):
             r.desactivate()
 
     @QtCore.pyqtSlot(bool)
+    def onPause(self, paused):
+        self.simulationPaused.emit(paused)
+
+    @QtCore.pyqtSlot(bool)
     def pause(self, paused=True):
         """Toggle pause.
 
@@ -626,6 +644,12 @@ class Simulation(QtCore.QObject):
         self.timeChanged.emit(self._time)
         secs = float(timeFactor) / 2
         self.timeElapsed.emit(secs)
+
+    def onOptionsChanged(self, msg):
+        self.scorer.score = msg["currentScore"]
+        del msg["currentScore"]
+        self._options.update(msg)
+        self.timeFactorChanged.emit(int(msg["timeFactor"]))
 
     def updateSelection(self):
         """Updates the trackItem selection. Does nothing in the base

@@ -26,12 +26,14 @@ class NAV:
     sims = 0
     recent = 1
     filesystem = 2
+    network = 3
 
 
 class OpenDialog(QtWidgets.QDialog):
     """Open sim file dialog"""
 
     openFile = QtCore.pyqtSignal(str)
+    connectToServer = QtCore.pyqtSignal(str, str)
 
     def __init__(self, parent, tab=0):
         """Constructor for the OpenDialog."""
@@ -63,6 +65,9 @@ class OpenDialog(QtWidgets.QDialog):
         self.leftBar.addWidget(
             self._make_nav_button(self.tr("Browse"), NAV.filesystem)
         )
+        self.leftBar.addWidget(
+            self._make_nav_button(self.tr("Network"), NAV.network)
+        )
         self.leftBar.addStretch(20)
 
         # ==================================================================================
@@ -89,7 +94,7 @@ class OpenDialog(QtWidgets.QDialog):
         self.txtUrl.setText(ts2.get_info().get('simulations_repo'))
         tbBrowse.addWidget(self.txtUrl)
 
-        self.buttDownload = tbBrowse.addAction("Download", self.onDownload)
+        self.buttDownload = tbBrowse.addAction(self.tr("Download"), self.onDownload)
 
         self.treeSims = QtWidgets.QTreeWidget()
         self.downloadLayout.addWidget(self.treeSims)
@@ -129,6 +134,42 @@ class OpenDialog(QtWidgets.QDialog):
         self.treeFiles.doubleClicked.connect(
             self.onTreeBrowseItemDblClicked
         )
+
+        # =================================
+        # Network
+        self.networkWidget = QtWidgets.QWidget()
+        self.networkLayout = QtWidgets.QVBoxLayout()
+        self.networkLayout.setContentsMargins(0, 0, 0, 0)
+        self.networkWidget.setLayout(self.networkLayout)
+        self.stackWidget.addWidget(self.networkWidget)
+
+        networkLabel = QtWidgets.QLabel(self.tr("Connect to simulation server"))
+        networkLabel.setStyleSheet("font-size: 15px; font-weight: bold;")
+        labelLayout = QtWidgets.QHBoxLayout()
+        labelLayout.addStretch(1)
+        labelLayout.addWidget(networkLabel)
+        labelLayout.addStretch(1)
+        self.networkLayout.addLayout(labelLayout)
+
+        tbNetworkBarLayout = QtWidgets.QHBoxLayout()
+        self.networkLayout.addLayout(tbNetworkBarLayout)
+
+        tbNetworkBarLayout.addWidget(QtWidgets.QLabel(self.tr("Host:")))
+        self.networkServer = QtWidgets.QLineEdit(self)
+        self.networkServer.setText("localhost")
+        tbNetworkBarLayout.addWidget(self.networkServer, 2)
+        tbNetworkBarLayout.addWidget(QtWidgets.QLabel(self.tr("Port:")))
+        self.networkPort = QtWidgets.QLineEdit(self)
+        self.networkPort.setInputMask("00000")
+        self.networkPort.setText("22222")
+        tbNetworkBarLayout.addWidget(self.networkPort, 1)
+
+        self.connectAction = QtWidgets.QAction(self.tr("Connect"))
+        self.connectAction.triggered.connect(self.onConnect)
+        btn = QtWidgets.QToolButton()
+        btn.setDefaultAction(self.connectAction)
+        self.buttConnect = tbNetworkBarLayout.addWidget(btn)
+        self.networkLayout.addStretch(1)
 
         # =================================
         # Bottom status
@@ -264,6 +305,10 @@ class OpenDialog(QtWidgets.QDialog):
             self.openFile.emit(filePath)
             self.accept()
 
+    def onConnect(self):
+        self.connectToServer.emit(self.networkServer.text(), self.networkPort.text())
+        self.close()
+
     def _make_nav_button(self, txt, idx):
         butt = QtWidgets.QToolButton()
         butt.setText(txt)
@@ -271,7 +316,7 @@ class OpenDialog(QtWidgets.QDialog):
         butt.setCheckable(True)
         butt.setStyleSheet("font-weight: bold; text-align: center;"
                            " font-size: 14pt;")
-        butt.setFixedWidth(100)
+        # butt.setFixedWidth(100)
         butt.setAutoRaise(True)
         self.buttGroup.addButton(butt, idx)
         return butt
