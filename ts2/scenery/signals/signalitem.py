@@ -185,10 +185,10 @@ class SignalItem(abstract.TrackItem):
                         "missing files from the server in File->Open dialog" %
                         (str(err)))
             )
+        self._activeAspect = self._signalType.getDefaultAspect()
         if simulation.context == utils.Context.GAME:
             self.signalSelected.connect(simulation.activateRoute)
             self.signalUnselected.connect(simulation.desactivateRoute)
-            self._activeAspect = self._signalType.getDefaultAspect()
         else:
             self.signalSelected.connect(simulation.prepareRoute)
             self.signalUnselected.connect(simulation.deselectRoute)

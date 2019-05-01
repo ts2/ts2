@@ -500,6 +500,8 @@ class Service:
         """Constructor for the Service class"""
         self._serviceCode = parameters["serviceCode"]
         self._description = parameters["description"]
+        self._nextServiceCode = None
+        self._autoReverse = None
         for action in parameters["postActions"]:
             if action["actionCode"] == "REVERSE":
                 self._autoReverse = True

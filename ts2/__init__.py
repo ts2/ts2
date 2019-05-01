@@ -19,17 +19,18 @@
 #
 
 ###############################################################
-### Please try and not include any imports here
-### As this file may be loaded in any enviroment
-### such as a packager, docs compile etc
+# Please try and not include any imports here
+# As this file may be loaded in any enviroment
+# such as a packager, docs compile etc
 ###############################################################
 
 
-__VERSION__ = "0.6.0"
-__FILE_FORMAT__ = 0.6
+__VERSION__ = "0.7.0"
+__FILE_FORMAT__ = 0.7
 __APP_SHORT__ = "ts2"
 __APP_LONG__ = "Train Signalling Simulation"
-__APP_DESCRIPTION__ = "A railway simulation game where you have to dispatch trains across an area and keep them on schedule"
+__APP_DESCRIPTION__ = "A railway simulation game where you have to dispatch trains across an area and keep them on " \
+                      "schedule"
 
 __ORG_NAME__ = "TS2 Team"
 __ORG_CONTACT__ = "npiganeau@github.com"
@@ -49,14 +50,14 @@ def get_info():
     :rtype: `dict`
     """
     return dict(
-        version = __VERSION__,
-        app_short = __APP_SHORT__,
-        app_long = __APP_LONG__,
-        app_description = __APP_DESCRIPTION__,
-        project_domain = __PROJECT_DOMAIN__,
-        project_www = __PROJECT_WWW__,
-        project_home = __PROJECT_HOME__,
-        project_bugs = __PROJECT_BUGS__,
-        project_api_docs = __PROJECT_API_DOCS__,
-        simulations_repo = __SIMULATIONS_REPO__
+        version=__VERSION__,
+        app_short=__APP_SHORT__,
+        app_long=__APP_LONG__,
+        app_description=__APP_DESCRIPTION__,
+        project_domain=__PROJECT_DOMAIN__,
+        project_www=__PROJECT_WWW__,
+        project_home=__PROJECT_HOME__,
+        project_bugs=__PROJECT_BUGS__,
+        project_api_docs=__PROJECT_API_DOCS__,
+        simulations_repo=__SIMULATIONS_REPO__
     )

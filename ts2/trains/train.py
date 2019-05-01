@@ -425,7 +425,7 @@ class Train(QtCore.QObject):
         self.simulation = None
         self._serviceCode = parameters["serviceCode"]
         self._trainType = None
-        self._speed = parameters['speed']
+        self._speed = parameters.get('speed')
         self._initialSpeed = parameters.get("initialSpeed", 0.0)
         self._accel = 0
         self._trainHead = parameters["trainHead"]

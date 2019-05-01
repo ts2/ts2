@@ -43,7 +43,7 @@ def json_hook(dct):
     elif dct['__type__'] == "Simulation":
         return Editor(dct['options'], dct['trackItems'], dct['routes'],
                       dct['trainTypes'], dct['services'], dct['trains'],
-                      dct['messageLogger'])
+                      dct['messageLogger'], dct['signalLibrary'])
     else:
         return simulation.json_hook(dct)
 
@@ -149,7 +149,10 @@ class Editor(simulation.Simulation):
         services = services or {}
         trns = trns or []
         messageLogger = messageLogger or {"messages": []}
-        signalLibrary = signalitem.signalLibraryDict
+        if signalLibrary:
+            signalitem.SignalLibrary.update(signalitem.signalLibraryDict, signalLibrary)
+        else:
+            signalLibrary = signalitem.signalLibraryDict
         super().__init__(options, trackItems, routes, trainTypes, services,
                          trns, messageLogger, signalLibrary)
 
@@ -239,13 +242,14 @@ class Editor(simulation.Simulation):
     def initialize(self, editorWindow):
         """Initialize the simulation."""
         self.simulationWindow = editorWindow
+        self.signalLibrary.initialize()
 
         self.updatePlaces()
         for ti in self.trackItems.values():
             ti.initialize(self)
         self.adjustSceneBackground()
         try:
-            self._nextId = max(self._trackItems.keys()) + 1
+            self._nextId = max([int(x) for x in self._trackItems.keys()]) + 1
         except ValueError:
             self._nextId = 1
 
@@ -263,7 +267,7 @@ class Editor(simulation.Simulation):
             for rte in self.routes.values():
                 rte.initialize(self)
             try:
-                self._nextRouteId = max(self._routes.keys()) + 1
+                self._nextRouteId = max([int(x) for x in self._routes.keys()]) + 1
             except ValueError:
                 self._nextRouteId = 1
         for trainType in self.trainTypes.values():

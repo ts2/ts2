@@ -648,43 +648,43 @@ class EditorWindow(QtWidgets.QMainWindow):
 
             # TODO: This is same code used elsewhere
             # maybe there is a clever way to share this in utils or alike
-            try:
-                if zipfile.is_zipfile(fileName):
-                    with zipfile.ZipFile(fileName) as zipArchive:
-                        with zipArchive.open("simulation.json") as file:
-                            self.editor = editor.load(self, file)
-                else:
-                    with open(fileName) as file:
+            # try:
+            if zipfile.is_zipfile(fileName):
+                with zipfile.ZipFile(fileName) as zipArchive:
+                    with zipArchive.open("simulation.json") as file:
                         self.editor = editor.load(self, file)
-            except (utils.FormatException,
-                    utils.MissingDependencyException) as err:
-                QtWidgets.QMessageBox.critical(
-                    self,
-                    self.tr("Error while loading the simulation"),
-                    str(err),
-                    QtWidgets.QMessageBox.Ok
-                )
-                self.editor = None
-            except Exception as err:
-                dialogs.ExceptionDialog.popupException(self, err)
-                self.editor = None
             else:
-                self.editor.fileName = fileName
-                self.setWindowTitle(
-                    self.tr("ts2 - Editor - %s")
-                    % fileName
-                )
-                self.simulationConnect()
+                with open(fileName) as file:
+                    self.editor = editor.load(self, file)
+            # except (utils.FormatException,
+            #         utils.MissingDependencyException) as err:
+            #     QtWidgets.QMessageBox.critical(
+            #         self,
+            #         self.tr("Error while loading the simulation"),
+            #         str(err),
+            #         QtWidgets.QMessageBox.Ok
+            #     )
+            #     self.editor = None
+            # except Exception as err:
+            #     dialogs.ExceptionDialog.popupException(self, err)
+            #     self.editor = None
+            # else:
+            self.editor.fileName = fileName
+            self.setWindowTitle(
+                self.tr("ts2 - Editor - %s")
+                % fileName
+            )
+            self.simulationConnect()
 
-                self.optionsView.resizeColumnsToContents()
-                self.trainTypesView.resizeColumnsToContents()
+            self.optionsView.resizeColumnsToContents()
+            self.trainTypesView.resizeColumnsToContents()
 
-                self.statusBar().showMessage(self.tr("Ready") + " :-)", info=True,
-                                             timeout=2)
-                self.statusBar().showBusy(False)
-                self._dirty = False
-            finally:
-                QtWidgets.qApp.restoreOverrideCursor()
+            self.statusBar().showMessage(self.tr("Ready") + " :-)", info=True,
+                                         timeout=2)
+            self.statusBar().showBusy(False)
+            self._dirty = False
+            # finally:
+            QtWidgets.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
     def saveSimulation(self):

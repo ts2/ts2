@@ -150,7 +150,6 @@ class StatusBar(QtWidgets.QStatusBar):
 
     @QtCore.pyqtSlot()
     def onProgressTimeout(self):
-        print("onTimer")
         QtWidgets.qApp.processEvents()
 
     def showBusy(self, is_busy):
