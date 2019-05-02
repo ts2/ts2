@@ -79,7 +79,7 @@ class SignalAspect:
             "lineStyle": self.lineStyle,
             "outerShapes": self.outerShapes,
             "outerColors": self.outerColors,
-            "shapes": self.outerShapes,
+            "shapes": self.shapes,
             "shapesColors": self.shapesColors,
             "actions": self.actions
         }

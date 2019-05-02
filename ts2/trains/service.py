@@ -284,7 +284,7 @@ class ServiceLine:
         self._scheduledDepartureTime = \
             QtCore.QTime.fromString(parameters["scheduledDepartureTime"])
         self._trackCode = parameters["trackCode"]
-        self._stop = int(parameters["mustStop"])
+        self._stop = parameters["mustStop"]
         self._service = None
         self.simulation = None
 
@@ -521,14 +521,24 @@ class Service:
 
     def for_json(self):
         """Data for JSON dump."""
+        postActions = []
+        if self.nextServiceCode:
+            postActions.append({
+                "actionCode": "SET_SERVICE",
+                "actionParam": self.nextServiceCode,
+            })
+        if self.autoReverse:
+            postActions.append({
+                "actionCode": "REVERSE",
+                "actionParam": None,
+            })
         return {
             "__type__": "Service",
             "serviceCode": self.serviceCode,
             "description": self.description,
-            "nextServiceCode": self.nextServiceCode,
-            "autoReverse": self.autoReverse,
             "plannedTrainType": self.plannedTrainType,
-            "lines": self.lines
+            "lines": self.lines,
+            "postActions": postActions,
         }
 
     @property

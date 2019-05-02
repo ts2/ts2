@@ -244,7 +244,7 @@ class SignalItem(abstract.TrackItem):
         for customProp in signalCustomProperties:
             jsonData[customProp.name[:-3]] = getattr(self, customProp.name[:-3])
         jsonData.update({
-            "reverse": int(self.reverse),
+            "reverse": self.reverse,
             "signalType": self.signalTypeStr,
             "xn": self.berthOrigin.x(),
             "yn": self.berthOrigin.y()

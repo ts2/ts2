@@ -221,13 +221,13 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
 
     @place.setter
     def place(self, place):
-        self.beginResetModel()
-        self._place = place
-        self.endResetModel()
+        self.setPlace(place)
 
     @QtCore.pyqtSlot(Place)
     def setPlace(self, place):
-        self.place = place
+        self.beginResetModel()
+        self._place = place
+        self.endResetModel()
 
 
 Place.selectedPlaceModel = PlaceInfoModel()

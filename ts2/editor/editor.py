@@ -104,7 +104,7 @@ class OptionsModel(QtCore.QAbstractTableModel):
             if index.column() == 0:
                 return optionKeys[index.row()]
             elif index.column() == 1:
-                return optionValues[index.row()]
+                return str(optionValues[index.row()])
         return None
 
     def setData(self, index, value, role=None):
@@ -335,10 +335,10 @@ class Editor(simulation.Simulation):
     def selectedRoute(self, value):
         """Setter function for the selectedRoute property"""
         if self._selectedRoute is not None:
-            self._selectedRoute.desactivate()
+            self._selectedRoute.unhighlight()
         self._selectedRoute = value
         if self._selectedRoute is not None:
-            self._selectedRoute.activate()
+            self._selectedRoute.highlight()
 
     @property
     def selectedItems(self):
@@ -733,7 +733,7 @@ class Editor(simulation.Simulation):
                     if ti == si:
                         if ti.isOnPosition(cur):
                             self._preparedRoute = route.Route({
-                                "routeNum": self._nextRouteId,
+                                "routeNum": str(self._nextRouteId),
                                 "beginSignal": self._selectedSignal.tiId,
                                 "endSignal": signalId,
                                 "directions": directions,
@@ -747,7 +747,7 @@ class Editor(simulation.Simulation):
                             return
                     cur = cur.next()
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
     def selectRoute(self, routeNum):
         """Selects the route given by routeNum in the routes editor."""
         if self.context == utils.Context.EDITOR_ROUTES:

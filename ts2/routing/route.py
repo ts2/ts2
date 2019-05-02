@@ -114,10 +114,9 @@ class Route(QtCore.QObject):
         self._parameters = parameters
         self._routeNum = parameters['routeNum']
         self._directions = {}
-        for key, value in parameters['directions'].items():
-            self._directions[int(key)] = value
+        self._directions = parameters['directions']
         self._initialState = parameters.get('initialState', 0)
-        self._persistent = False
+        self.persistent = False
         self._positions = []
 
     def initialize(self, simulation):
@@ -204,7 +203,7 @@ class Route(QtCore.QObject):
         """
         if self.beginSignal.nextActiveRoute is not None and \
                 self.beginSignal.nextActiveRoute == self:
-            if self._persistent:
+            if self.persistent:
                 return 2
             else:
                 return 1
@@ -336,16 +335,24 @@ class Route(QtCore.QObject):
                     return False
         return True
 
-    @property
-    def persistent(self):
-        """
-        :return: ``True``  if this route is persistent"""
-        return self._persistent
+    def highlight(self):
+        for pos in self._positions:
+            pos.trackItem.activeRoute = self
+            if isinstance(pos.trackItem, pointsitem.PointsItem):
+                if self.direction(pos.trackItem.tiId) == 0:
+                    pos.trackItem.pointsReversed = False
+                else:
+                    pos.trackItem.pointsReversed = True
+            pos.trackItem.updateGraphics()
+        self.endSignal.previousActiveRoute = self
+        self.beginSignal.nextActiveRoute = self
 
-    @persistent.setter
-    def persistent(self, p=True):
-        """Setter function for the ``persistent`` property"""
-        self._persistent = p
+    def unhighlight(self):
+        self.beginSignal.resetNextActiveRoute(self)
+        self.endSignal.resetPreviousActiveRoute()
+        for pos in self._positions:
+            pos.trackItem.activeRoute = None
+            pos.trackItem.updateGraphics()
 
     def __eq__(self, other):
         """

@@ -348,15 +348,6 @@ class PointsItem(abstract.TrackItem):
             raise Exception("Items not linked: %s and %s" %
                             (self.tiId, precedingItem.tiId))
 
-    def setActiveRoute(self, r, previous):
-        """Sets the active route information (see TrackItem.setActiveRoute()).
-        Here, this function also changes the points direction."""
-        if r.direction(self.tiId) == 0:
-            self.pointsReversed = False
-        else:
-            self.pointsReversed = True
-        super().setActiveRoute(r, previous)
-
     # ## Graphics methods ###############################################
 
     def graphicsPaint(self, p, options, itemId, widget=None):

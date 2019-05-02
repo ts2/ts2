@@ -492,7 +492,7 @@ class Train(QtCore.QObject):
                 self.status == TrainStatus.INACTIVE:
             speed = self.initialSpeed
             appearTime = self.appearTimeStr
-            initialDelay = self.initialDelayStr
+            initialDelay = self.initialDelay
         elif self.status == TrainStatus.OUT:
             speed = 0
             appearTime = "00:00:00"

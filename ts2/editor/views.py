@@ -36,7 +36,7 @@ class RoutesEditorView(QtWidgets.QTableView):
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
 
-    routeSelected = QtCore.pyqtSignal(int)
+    routeSelected = QtCore.pyqtSignal(str)
 
     def selectionChanged(self, selected, deselected):
         """Called when the user changes the selection. Emits the routeSelected
@@ -45,7 +45,7 @@ class RoutesEditorView(QtWidgets.QTableView):
         if selected.indexes():
             index = selected.indexes()[0]
             if index.isValid():
-                self.routeSelected.emit(index.data())
+                self.routeSelected.emit(str(index.data()))
 
 
 class TrainTypesEditorView(QtWidgets.QTableView):

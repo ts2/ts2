@@ -39,16 +39,20 @@ translate = QtWidgets.qApp.translate
 BUILTIN_OPTIONS = {
     "title": "",
     "description": "",
+    "clientToken": "client-secret",
     "version": __FILE_FORMAT__,
     "timeFactor": 5,
     "currentTime": "06:00:00",
     "warningSpeed": 8.3,
     "currentScore": 0,
     "defaultMaxSpeed": 44.44,
-    "defaultMinimumStopTime": "[(45,75,70),(75,90,30)]",
-    "defaultDelayAtEntry": "[(-60,0,50),(0,60,50)]",
+    "defaultMinimumStopTime": [(45, 75, 70), (75, 90, 30)],
+    "defaultDelayAtEntry": [(-60, 0, 50), (0, 60, 50)],
     "trackCircuitBased": 0,
-    "defaultSignalVisibility": 100
+    "defaultSignalVisibility": 100,
+    "wrongPlatformPenalty": 5,
+    "wrongDestinationPenalty": 100,
+    "latePenalty": 1
 }
 
 
@@ -295,7 +299,8 @@ class Simulation(QtCore.QObject):
             "trainTypes": self.trainTypes,
             "services": self.services,
             "trains": self.trains,
-            "messageLogger": self.messageLogger
+            "messageLogger": self.messageLogger,
+            "signalLibrary": self.signalLibrary
         }
 
     def saveGame(self, fileName):
@@ -355,7 +360,11 @@ class Simulation(QtCore.QObject):
         return self._options.get(key)
 
     def setOption(self, key, value):
-        self._options[key] = value
+        if isinstance(BUILTIN_OPTIONS[key], str) or not isinstance(value, str):
+            val = value
+        else:
+            val = eval(value)
+        self._options[key] = val
 
     @property
     def startTime(self):
@@ -621,6 +630,7 @@ class Simulation(QtCore.QObject):
         """
         :param int timeFactor: Sets the time factor to timeFactor.
         """
+
         def timeFactorSet(msg):
             if msg["status"] == "Ok":
                 self.setOption("timeFactor", min(timeFactor, 10))

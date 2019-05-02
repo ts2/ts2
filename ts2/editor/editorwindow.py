@@ -831,7 +831,7 @@ class EditorWindow(QtWidgets.QMainWindow):
                 self,
                 self.tr("Delete route"),
                 self.tr("Are you sure you want "
-                        "to delete route %i?") % routeNum,
+                        "to delete route %s?") % routeNum,
                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
             ) == QtWidgets.QMessageBox.Yes:
                 model.beginRemoveRows(QtCore.QModelIndex(), rowIndex.row(),
