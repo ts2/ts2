@@ -132,11 +132,11 @@ class SignalItem(abstract.TrackItem):
         super().__init__(parameters)
         reverse = bool(parameters.get("reverse", 0))
         self._signalType = None
-        for customProperty in signalLibrary.tiProperties.values():
+        for key, customProperty in signalLibrary.tiProperties.items():
             # Initialize backend vars for custom properties
             propName = "_" + customProperty.name[:-3]
-            setattr(self, propName,
-                    eval(str(parameters.get(customProperty.name[:-3], {}))))
+            customProps = parameters.get("customProperties") or {}
+            setattr(self, propName, eval(str(customProps.get(key, {}))))
         try:
             xb = float(parameters.get("xn", ""))
         except ValueError:
@@ -240,10 +240,12 @@ class SignalItem(abstract.TrackItem):
     def for_json(self):
         """Dumps the signalItem to JSON."""
         jsonData = super().for_json()
-        signalCustomProperties = list(signalLibrary.tiProperties.values())
-        for customProp in signalCustomProperties:
-            jsonData[customProp.name[:-3]] = getattr(self, customProp.name[:-3])
+        signalCustomProperties = {}
+        for key, customProp in signalLibrary.tiProperties.items():
+            if customProp:
+                signalCustomProperties[key] = getattr(self, customProp.name[:-3])
         jsonData.update({
+            "customProperties": signalCustomProperties,
             "reverse": self.reverse,
             "signalType": self.signalTypeStr,
             "xn": self.berthOrigin.x(),
