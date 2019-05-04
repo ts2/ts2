@@ -121,7 +121,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.editorAction.triggered.connect(self.openEditor)
 
         self.editorCurrAction = QtWidgets.QAction(self.tr("&Edit"), self)
-        # self.editorCurrAction.setShortcut(QtGui.QKeySequence(self.tr("Ctrl+")))
         self.editorCurrAction.setToolTip(self.tr("Open this sim in editor"))
         self.editorCurrAction.triggered.connect(self.onEditorCurrent)
 
@@ -644,9 +643,11 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.simulation is not None:
             self.simulationDisconnect()
             self.simulation = None
+            self.fileName = None
             if self.serverPID:
                 os.kill(self.serverPID, signal.SIGTERM)
                 self.serverPID = None
+            self.setControlsDisabled(True)
 
     @QtCore.pyqtSlot()
     def saveGame(self):
@@ -798,8 +799,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lblPlaceInfoName.setText(place.name)
 
     def setControlsDisabled(self, state):
-        self.editorCurrAction.setDisabled(state)
+        if not state and self.fileName:
+            self.editorCurrAction.setDisabled(False)
+        else:
+            self.editorCurrAction.setDisabled(True)
         self.zoomWidget.setDisabled(state)
+        self.timeFactorSpinBox.setDisabled(state)
+        self.buttPause.setDisabled(state)
+        self.clockWidget.setDisabled(state)
 
     def openSettingsDialog(self):
         d = settingsdialog.SettingsDialog(self)
@@ -928,12 +935,14 @@ class WebSocketController(QtCore.QObject):
     def onClosed(self):
         QtWidgets.QApplication.restoreOverrideCursor()
         mainWindow = self.parent()
-        QtWidgets.QMessageBox.critical(
-            mainWindow,
-            mainWindow.tr("Connection closed"),
-            mainWindow.tr("The server closed the connection to the simulation."),
-            QtWidgets.QMessageBox.Ok
-        )
+        if not mainWindow.fileName:
+            # Only notify if we are connected to a network simulation
+            QtWidgets.QMessageBox.critical(
+                mainWindow,
+                mainWindow.tr("Connection closed"),
+                mainWindow.tr("The server closed the connection to the simulation."),
+                QtWidgets.QMessageBox.Ok
+            )
         mainWindow.simulationClose()
 
 

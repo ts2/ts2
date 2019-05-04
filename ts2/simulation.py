@@ -291,6 +291,8 @@ class Simulation(QtCore.QObject):
                 "currentTime": self.currentTime.toString("hh:mm:ss"),
                 "currentScore": self.scorer.score
             })
+        appSignalLibrary = self.signalLibrary.filtered(set([s.signalType for s in self.trackItems.values()
+                                                            if isinstance(s, signalitem.SignalItem)]))
         return {
             "__type__": "Simulation",
             "options": savedOptions,
@@ -300,7 +302,7 @@ class Simulation(QtCore.QObject):
             "services": self.services,
             "trains": self.trains,
             "messageLogger": self.messageLogger,
-            "signalLibrary": self.signalLibrary
+            "signalLibrary": appSignalLibrary
         }
 
     def saveGame(self, fileName):

@@ -103,8 +103,8 @@ class TrackItem(QtCore.QObject):
         self._conflictTrackItem = None
         self._gi = {}
         self.toBeDeselected = False
-        self.properties = self.getProperties()
-        self.multiProperties = self.getMultiProperties()
+        self.properties = []
+        self.multiProperties = []
 
     def initialize(self, simulation):
         """Initialize the item after all items are loaded."""
@@ -119,6 +119,8 @@ class TrackItem(QtCore.QObject):
             params.get('conflictTiId')
         )
         self._parameters = None
+        self.properties = self.getProperties()
+        self.multiProperties = self.getMultiProperties()
         for gi in self._gi.values():
             simulation.registerGraphicsItem(gi)
         self.updateGraphics()

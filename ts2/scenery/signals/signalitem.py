@@ -38,36 +38,36 @@ BUILTIN_SIGNAL_LIBRARY = """{
             "__type__": "SignalAspect",
             "lineStyle": 1,
             "outerShapes": [0, 0, 0, 0, 0, 0],
-            "outerColors": [0, 0, 0, 0, 0, 0],
+            "outerColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "shapes": [0, 0, 0, 0, 0, 0],
-            "shapesColors": [0, 0, 0, 0, 0, 0],
+            "shapesColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "actions": [[1, 0]]
         },
         "UK_DANGER": {
             "__type__": "SignalAspect",
             "lineStyle": 0,
             "outerShapes": [0, 0, 0, 0, 0, 0],
-            "outerColors": [0, 0, 0, 0, 0, 0],
+            "outerColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "shapes": [1, 0, 0, 0, 0, 0],
-            "shapesColors": ["#FF0000", 0, 0, 0, 0, 0],
+            "shapesColors": ["#FF0000", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "actions": [[1, 0]]
         },
         "UK_CAUTION": {
             "__type__": "SignalAspect",
             "lineStyle": 0,
             "outerShapes": [0, 0, 0, 0, 0, 0],
-            "outerColors": [0, 0, 0, 0, 0, 0],
+            "outerColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "shapes": [1, 0, 0, 0, 0, 0],
-            "shapesColors": ["#FFFF00", 0, 0, 0, 0, 0],
+            "shapesColors": ["#FFFF00", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "actions": [[2, 0]]
         },
         "UK_CLEAR": {
             "__type__": "SignalAspect",
             "lineStyle": 0,
             "outerShapes": [0, 0, 0, 0, 0, 0],
-            "outerColors": [0, 0, 0, 0, 0, 0],
+            "outerColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "shapes": [1, 0, 0, 0, 0, 0],
-            "shapesColors": ["#00FF00", 0, 0, 0, 0, 0],
+            "shapesColors": ["#00FF00", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "actions": [[0, 999]]
         }
     },
@@ -794,6 +794,22 @@ class SignalLibrary:
             "signalAspects": self.signalAspects,
             "signalTypes": self.signalTypes
         }
+
+    def filtered(self, signalTypes):
+        """Returns a new SignalLibrary with only the given signalTypes.
+        It automatically gets the needed signal aspects."""
+        res = copy.deepcopy(self)
+        aspects = []
+        for name, st in self.signalTypes.items():
+            if st in signalTypes:
+                aspects.extend([s.aspect for s in st.states])
+            else:
+                del res.signalTypes[name]
+        aspects = set(aspects)
+        for name, asp in self.signalAspects.items():
+            if asp not in aspects:
+                del res.signalAspects[name]
+        return res
 
     @staticmethod
     def update(libDict, other):

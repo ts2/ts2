@@ -151,8 +151,7 @@ class Editor(simulation.Simulation):
         messageLogger = messageLogger or {"messages": []}
         if signalLibrary:
             signalitem.SignalLibrary.update(signalitem.signalLibraryDict, signalLibrary)
-        else:
-            signalLibrary = signalitem.signalLibraryDict
+        signalLibrary = signalitem.signalLibraryDict
         super().__init__(options, trackItems, routes, trainTypes, services,
                          trns, messageLogger, signalLibrary)
 
