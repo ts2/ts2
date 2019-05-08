@@ -185,10 +185,7 @@ class OpenDialog(QtWidgets.QDialog):
         """Downloads zip when Download button clicked"""
         QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
 
-        if settings.debug:
-            url = "http://localhost/~ts2/ts2-data-master.zip"
-        else:
-            url = "%s/archive/%s.zip" % (self.txtUrl.text().strip('/'), ts2.__FILE_FORMAT__)
+        url = "%s/archive/%s.zip" % (self.txtUrl.text().strip('/'), ts2.__FILE_FORMAT__)
 
         self.statusBar.showBusy(True)
         self.statusBar.showMessage("Requesting %s" % url)

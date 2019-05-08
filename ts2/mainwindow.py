@@ -470,7 +470,20 @@ class MainWindow(QtWidgets.QMainWindow):
             logLevel = "info"
             if settings.debug:
                 logLevel = "dbug"
-            serverCmd = subprocess.Popen(["ts2-sim-server", "-loglevel", logLevel, fileName])
+            try:
+                serverCmd = subprocess.Popen(
+                    [path.join(settings.serverDir, "ts2-sim-server"), "-loglevel", logLevel, fileName]
+                )
+            except FileNotFoundError:
+                QtWidgets.qApp.restoreOverrideCursor()
+                QtWidgets.QMessageBox.critical(self, "Configuration Error",
+                                               "ts2-sim-server executable not found in the server directory.\n"
+                                               "Download and place it in the server directory")
+                raise
+            except OSError as e:
+                QtWidgets.qApp.restoreOverrideCursor()
+                dialogs.ExceptionDialog.popupException(self, e)
+                raise
             self.serverPID = serverCmd.pid
             settings.addRecent(self.fileName)
             time.sleep(1)

@@ -117,6 +117,10 @@ class XSettings(QtCore.QSettings):
     def userDataDir(self):
         return os.path.join(self._getUserDataDirectory(), "data")
 
+    @property
+    def serverDir(self):
+        return os.path.join(self._getUserDataDirectory(), "server")
+
     def i(self, ki, default=None):
         """Return  value as int"""
         v = self.value(ki, default)
