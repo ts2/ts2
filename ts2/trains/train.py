@@ -794,6 +794,8 @@ class Train(QtCore.QObject):
             newSignalAhead = self.findNextSignal()
             if newSignalAhead is not None:
                 newSignalAhead.trainId = self.trainId
+            self._signalActions = [(0, 999)]
+            self.updateSignalActions()
 
     @QtCore.pyqtSlot()
     def reassignService(self):
