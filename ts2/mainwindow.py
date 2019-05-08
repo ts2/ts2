@@ -22,8 +22,10 @@ import io
 import os
 import signal
 import subprocess
+import tempfile
 import time
 import zipfile
+from os import path
 
 import simplejson as json
 import websocket
@@ -430,9 +432,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 # here we call after window is shown
         QtCore.QTimer.singleShot(100, self.onAfterShow)
 
-        # FIXME DEBUG - to remove
-        # self.fileName = "/home/npiganeau/Progs/ts2/simulations/France/gretz-armainvilliers.ts2"
-
     @staticmethod
     def instance():
         return MainWindow._self
@@ -462,13 +461,18 @@ class MainWindow(QtWidgets.QMainWindow):
         """This is where the simulation server is spawn"""
         if fileName:
             self.fileName = fileName
+            if zipfile.is_zipfile(fileName):
+                with zipfile.ZipFile(fileName) as zipArchive:
+                    zipArchive.extract("simulation.json", path=tempfile.gettempdir())
+                fileName = path.join(tempfile.gettempdir(), "simulation.json")
+
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
             logLevel = "info"
             if settings.debug:
                 logLevel = "dbug"
-            serverCmd = subprocess.Popen(["ts2-sim-server", "-loglevel", logLevel, self.fileName])
+            serverCmd = subprocess.Popen(["ts2-sim-server", "-loglevel", logLevel, fileName])
             self.serverPID = serverCmd.pid
-            settings.addRecent(fileName)
+            settings.addRecent(self.fileName)
             time.sleep(1)
             QtWidgets.qApp.restoreOverrideCursor()
             self.connectToServer("localhost", "22222")
@@ -823,7 +827,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 def wsOnMessage(ws, message):
     if settings.debug:
-        QtCore.qDebug("< %s" % message)
+        print("< %s" % message)
     ws.onMessage(message)
 
 
@@ -896,7 +900,7 @@ class WebSocketController(QtCore.QObject):
         }
         msg = json.dumps(data)
         if settings.debug:
-            QtCore.qDebug("> %s" % data)
+            print("> %s" % data)
         self.conn.send(msg)
         self._callbacks[self._counter] = callback
         self._counter += 1

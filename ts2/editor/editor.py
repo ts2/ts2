@@ -32,6 +32,7 @@ from ts2.routing import position, route
 from ts2.scenery import abstract, placeitem, lineitem, platformitem, \
     invisiblelinkitem, enditem, pointsitem, textitem
 from ts2.scenery.signals import signalitem
+from ts2.simulation import BUILTIN_OPTIONS
 
 translate = QtWidgets.qApp.translate
 
@@ -43,7 +44,7 @@ def json_hook(dct):
     elif dct['__type__'] == "Simulation":
         return Editor(dct['options'], dct['trackItems'], dct['routes'],
                       dct['trainTypes'], dct['services'], dct['trains'],
-                      dct['messageLogger'], dct['signalLibrary'])
+                      dct['messageLogger'], dct.get('signalLibrary'))
     else:
         return simulation.json_hook(dct)
 
@@ -143,6 +144,11 @@ class Editor(simulation.Simulation):
                  signalLibrary=None, fileName=None):
         """Constructor for the Editor class"""
         options = options or simulation.BUILTIN_OPTIONS
+        options["version"] = str(options["version"])
+        if options and options["version"] < __FILE_FORMAT__:
+            options, trackItems, routes, trainTypes, services, trns, messageLogger, signalLibrary, fileName = \
+                self.upgradeSimulation(options, trackItems, routes, trainTypes, services, trns, messageLogger,
+                                       signalLibrary, fileName)
         trackItems = trackItems or {}
         routes = routes or {}
         trainTypes = trainTypes or {}
@@ -276,11 +282,94 @@ class Editor(simulation.Simulation):
         for train in self.trains:
             train.initialize(self)
         self._trains.sort(key=lambda x: x.currentService.lines and
-                                        x.currentService.lines[0].scheduledDepartureTimeStr or
-                                        x.currentService.serviceCode)
+                          x.currentService.lines[0].scheduledDepartureTimeStr or
+                          x.currentService.serviceCode)
         self.messageLogger.initialize(self)
 
         self._scene.update()
+
+    def upgradeSimulation(self, options=None, trackItems=None, routes=None,
+                          trainTypes=None, services=None, trns=None, messageLogger=None,
+                          signalLibrary=None, fileName=None):
+        if options["version"] == "0.6":
+            return self.upgradeSimulationFrom06(options, trackItems, routes, trainTypes, services, trns, messageLogger,
+                                                signalLibrary, fileName)
+        else:
+            raise utils.FormatException(
+                translate('editor.upgradeSimulation',
+                          "Simulation files with version %s are not managed") % options["version"]
+            )
+
+    def upgradeSimulationFrom06(self, options=None, trackItems=None, routes=None,
+                                trainTypes=None, services=None, trns=None, messageLogger=None,
+                                signalLibrary=None, fileName=None):
+        # Options
+        options["version"] = "0.7"
+        for optName, opt in options.items():
+            if optName == "trackCircuitBased":
+                if isinstance(opt, str):
+                    opt = eval(opt)
+                options[optName] = bool(opt)
+                continue
+            if not isinstance(BUILTIN_OPTIONS[optName], str) and isinstance(opt, str):
+                options[optName] = eval(opt)
+        # TrackItems
+        tiFields = ["conflictTiId", "nextTiId", "previousTiId", "reverseTiId"]
+        customProperties = [
+            ("routesSetParams", "ROUTES_SET"),
+            ("trainPresentParams", "TRAIN_PRESENT_ON_ITEMS"),
+            ("trainNotPresentParams", "TRAIN_NOT_PRESENT_ON_ITEMS"),
+        ]
+        for tiID, ti in trackItems.copy().items():
+            for field in tiFields:
+                if ti.get(field):
+                    trackItems[tiID][field] = str(ti[field])
+            cp = {}
+            for pName, pCode in customProperties:
+                if ti.get(pName):
+                    if isinstance(ti[pName], str):
+                        ti[pName] = eval(ti[pName])
+                    for sn, lst in ti[pName].items():
+                        ti[pName][sn] = [str(v) for v in lst]
+                    cp[pCode] = ti[pName]
+                    del trackItems[tiID][pName]
+            if cp:
+                trackItems[tiID]["customProperties"] = cp
+        # Routes
+        rteFields = ["beginSignal", "endSignal"]
+        for rID, rte in routes.items():
+            for field in rteFields:
+                if rte.get(field):
+                    routes[rID][field] = str(rte[field])
+        # Services
+        for sID, srv in services.copy().items():
+            pa = []
+            if srv.get("autoReverse"):
+                pa.append({
+                    "actionCode": "REVERSE",
+                    "actionParam": None,
+                })
+                del services[sID]["autoReverse"]
+            if srv.get("nextServiceCode"):
+                pa.append({
+                    "actionCode": "SET_SERVICE",
+                    "actionParam": srv.get("nextServiceCode"),
+                })
+                del services[sID]["nextServiceCode"]
+            if not isinstance(srv["plannedTrainType"], str):
+                services[sID]["plannedTrainType"] = ""
+            services[sID]["postActions"] = pa
+            for i, sl in enumerate(srv["lines"]):
+                services[sID]["lines"][i]["mustStop"] = bool(sl["mustStop"])
+        # Trains
+        for i, trn in enumerate(trns):
+            th = trn["trainHead"]
+            th["trackItem"] = str(th["trackItem"])
+            th["previousTI"] = str(th["previousTI"])
+            trns[i]["trainHead"] = th
+            trns[i]["stoppedTime"] = int(trn["stoppedTime"])
+
+        return options, trackItems, routes, trainTypes, services, trns, messageLogger, signalLibrary, fileName
 
     sceneryIsValidated = QtCore.pyqtSignal(bool)
     trainsChanged = QtCore.pyqtSignal()
@@ -642,9 +731,9 @@ class Editor(simulation.Simulation):
         """Expands the EditorSceneBackground to 300px around the given
         TrackItem, if it is not already the case."""
         tl = trackItem.graphicsItem.boundingRect().topLeft() + \
-             trackItem.graphicsItem.pos() + QtCore.QPointF(-300, -300)
+            trackItem.graphicsItem.pos() + QtCore.QPointF(-300, -300)
         br = trackItem.graphicsItem.boundingRect().bottomRight() + \
-             trackItem.graphicsItem.pos() + QtCore.QPointF(300, 300)
+            trackItem.graphicsItem.pos() + QtCore.QPointF(300, 300)
         rect = self._sceneBackground.rect()
         if not rect.contains(tl):
             rect.setLeft(min(tl.x(), rect.left()))
@@ -1004,7 +1093,7 @@ class Editor(simulation.Simulation):
         else:
             refPos = QtCore.QPointF(0, 0)
         translation = refPos + QtCore.QPointF(100, 100) - \
-                      self._clipbooard[0].origin
+            self._clipbooard[0].origin
         for ti in self._clipbooard:
             newTi = self.createTrackItem(ti.tiTypeStr,
                                          ti.origin + translation,
