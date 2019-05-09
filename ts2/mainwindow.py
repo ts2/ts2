@@ -472,14 +472,13 @@ class MainWindow(QtWidgets.QMainWindow):
             if settings.debug:
                 logLevel = "dbug"
 
-            if self.simServer == None:
+            if not self.simServer:
                 cmd = path.join(settings.serverDir, "ts2-sim-server")
                 if os.name == 'nt':
                     cmd += ".exe"
             else:
                 cmd = self.simServer
-            # TODO check exe exists and executable
-
+  
             try:
                 serverCmd = subprocess.Popen([cmd, "-loglevel", logLevel, fileName])
             except FileNotFoundError:
