@@ -269,6 +269,22 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.validateSceneryBtn.clicked.connect(self.validateSceneryBtnClicked)
         toolbarScenery.addWidget(self.validateSceneryBtn)
 
+        toolbarScenery.addSeparator()
+
+        # Export CSV
+        self.exportTrackItemsBtn = QtWidgets.QToolButton(self.sceneryWidget)
+        self.exportTrackItemsBtn.setText(self.tr("Export"))
+        self.exportTrackItemsBtn.clicked.connect(self.exportTrackItemsBtnClicked)
+        toolbarScenery.addWidget(self.exportTrackItemsBtn)
+
+        # Import CSV
+        self.importTrackItemsBtn = QtWidgets.QToolButton(self.sceneryWidget)
+        self.importTrackItemsBtn.setText(self.tr("Import"))
+        self.importTrackItemsBtn.clicked.connect(self.importTrackItemsBtnClicked)
+        toolbarScenery.addWidget(self.importTrackItemsBtn)
+
+        toolbarScenery.addSeparator()
+
         self.zoomWidget = widgets.ZoomWidget(self.sceneryWidget)
         self.zoomWidget.valueChanged.connect(self.zoom)
         toolbarScenery.addWidget(self.zoomWidget)
@@ -1063,6 +1079,42 @@ class EditorWindow(QtWidgets.QMainWindow):
         )
         if fileName:
             self.editor.exportServicesToFile(fileName)
+
+    @QtCore.pyqtSlot()
+    def importTrackItemsBtnClicked(self):
+        """Calls an open file dialog for the user to select the file to import
+        track items from and asks the editor to actually do the import"""
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            self.tr("Import track items"),
+            QtCore.QDir.currentPath(),
+            self.tr("CSV files (*.csv)")
+        )
+        if fileName:
+            if QtWidgets.QMessageBox.warning(
+                self,
+                self.tr("Import track items"),
+                self.tr("This will erase any existing item\n"
+                        "Are you sure you want to continue?"),
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            ) == QtWidgets.QMessageBox.Yes:
+                QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
+                self.editor.importTrackItemsFromFile(fileName)
+                QtWidgets.qApp.restoreOverrideCursor()
+
+    @QtCore.pyqtSlot()
+    def exportTrackItemsBtnClicked(self):
+        """Calls a save file dialog for the user to give the filanme to which
+        to export the trackItems and asks the editor to actually do the export.
+        """
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self,
+            self.tr("Export track items"),
+            QtCore.QDir.currentPath(),
+            self.tr("CSV files (*.csv)")
+        )
+        if fileName:
+            self.editor.exportTrackItemsToFile(fileName)
 
     @QtCore.pyqtSlot()
     def setupTrainsBtnClicked(self):

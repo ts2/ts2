@@ -19,9 +19,11 @@
 #
 
 import copy
+import csv
 import zipfile
 
 import simplejson as json
+import collections
 
 from Qt import QtCore, QtWidgets, Qt
 from ts2 import __FILE_FORMAT__
@@ -503,6 +505,47 @@ class Editor(simulation.Simulation):
                 json.dump(self, f, separators=(', ', ': '), indent=4,
                           sort_keys=True, for_json=True, encoding='utf-8')
 
+    def exportTrackItemsToFile(self, fileName):
+        with open(fileName, 'w', newline='') as csvfile:
+            fieldnames = [
+                "tiId", "name", "nextTiId", "previousTiId", "reverseTiId", "x", "y", "xf", "yf", "xn", "yn", "xr", "yr",
+                "conflictTiId", "maxSpeed", "placeCode", "realLength", "trackCode", "signalType", "customProperties",
+                "reverse", "__type__"
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for ti in self.trackItems.values():
+                data = ti.for_json()
+                writer.writerow(data)
+
+    def importTrackItemsFromFile(self, fileName):
+        with open(fileName, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            self._trackItems = collections.OrderedDict()
+            trackItems = {}
+            for row in reader:
+                ti = row.copy()
+                numFields = ["x", "y", "xf", "yf", "xn", "yn", "xr", "yr", "maxSpeed", "realLength"]
+                for f in numFields:
+                    ti[f] = ti[f] and eval(ti[f]) or 0
+                boolFields = ["reverse"]
+                for f in boolFields:
+                    ti[f] = ti[f] == "True"
+                objectFields = ["customProperties"]
+                for f in objectFields:
+                    ti[f] = ti[f] and eval(ti[f]) or {}
+                trackItems[ti['tiId']] = ti
+        self.loadTrackItems(trackItems)
+        maxID = 1
+        for ti in self.trackItems.values():
+            try:
+                maxID = max(int(ti.tiId), maxID)
+            except ValueError:
+                pass
+            ti.initialize(self)
+            self.expandBackgroundTo(ti)
+        self._nextId = maxID + 1
+
     def exportServicesToFile(self, fileName):
         """Exports the services to the file with the given fileName in ts2
         services CSV format"""
@@ -684,14 +727,13 @@ class Editor(simulation.Simulation):
             ti = abstract.TrackItem(parameters)
         ti.initialize(self)
         self.expandBackgroundTo(ti)
-        self._trackItems[self._nextId] = ti
+        self._trackItems[str(self._nextId)] = ti
         self._nextId += 1
         self.updateSelection()
         return ti
 
     def deleteTrackItem(self, tiId):
         """Delete the TrackItem given by tiId."""
-        tiId = int(tiId)
         self._trackItems[tiId].removeAllGraphicsItems()
         del self._trackItems[tiId]
 
@@ -715,7 +757,7 @@ class Editor(simulation.Simulation):
         point is the property of the TrackItem that will be modified."""
         if len(self.selectedItems) > 1:
             point = "origin"
-        trackItem = self.trackItem(int(tiId))
+        trackItem = self.trackItem(tiId)
         if point.endswith("rigin"):
             pos -= clickPos
         pos = QtCore.QPointF(round(pos.x() / self.grid) * self.grid,
