@@ -53,6 +53,7 @@ class MainWindow(QtWidgets.QMainWindow):
         MainWindow._self = self
 
         self.fileName = None
+        self.simServer = args.server
 
         if args:
             settings.setDebug(args.debug)
@@ -470,10 +471,16 @@ class MainWindow(QtWidgets.QMainWindow):
             logLevel = "info"
             if settings.debug:
                 logLevel = "dbug"
+
+            if not self.simServer:
+                cmd = path.join(settings.serverDir, "ts2-sim-server")
+                if os.name == 'nt':
+                    cmd += ".exe"
+            else:
+                cmd = self.simServer
+  
             try:
-                serverCmd = subprocess.Popen(
-                    [path.join(settings.serverDir, "ts2-sim-server"), "-loglevel", logLevel, fileName]
-                )
+                serverCmd = subprocess.Popen([cmd, "-loglevel", logLevel, fileName])
             except FileNotFoundError:
                 QtWidgets.qApp.restoreOverrideCursor()
                 QtWidgets.QMessageBox.critical(self, "Configuration Error",
