@@ -588,6 +588,41 @@ class Editor(simulation.Simulation):
         self._nextRouteId = maxID + 1
         self.routesModel.endResetModel()
 
+    def exportTrainTypesToFile(self, fileName):
+        with open(fileName, 'w', newline='') as csvfile:
+            fieldnames = [
+                "code", "description", "emergBraking", "length", "maxSpeed", "stdAccel", "stdBraking", "elements",
+                "__type__"
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for tt in self.trainTypes.values():
+                data = tt.for_json()
+                writer.writerow(data)
+
+    def importTrainTypesFromFile(self, fileName):
+        self.trainTypesModel.beginResetModel()
+        with open(fileName, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            self._trainTypes = collections.OrderedDict()
+            trainTypes = {}
+            for row in reader:
+                tt = row.copy()
+                numFields = ["emergBraking", "length", "maxSpeed", "stdAccel", "stdBraking"]
+                for f in numFields:
+                    tt[f] = tt[f] and eval(tt[f]) or 0
+                boolFields = []
+                for f in boolFields:
+                    tt[f] = tt[f] == "True"
+                objectFields = ["elements"]
+                for f in objectFields:
+                    tt[f] = tt[f] and eval(tt[f]) or []
+                trainTypes[tt['code']] = tt
+        self.loadTrainTypes(trainTypes)
+        for tt in self.trainTypes.values():
+            tt.initialize(self)
+        self.trainTypesModel.endResetModel()
+
     def exportServicesToFile(self, fileName):
         """Exports the services to the file with the given fileName in ts2
         services CSV format"""
@@ -962,7 +997,7 @@ class Editor(simulation.Simulation):
     def setSelectedTrainHead(self, pos):
         """Sets the trainHead of the selectedTrain to position if valid"""
         if self.context == utils.Context.EDITOR_TRAINS:
-            if self._selectedTrain is not None and pos is not None:
+            if self._selectedTrain and pos is not None:
                 self._selectedTrain.trainHead = pos
                 self.selectTrain(self.trains.index(self._selectedTrain))
 
@@ -995,7 +1030,8 @@ class Editor(simulation.Simulation):
                 "serviceCode": code,
                 "description": "<Service description>",
                 "nextServiceCode": "",
-                "autoReverse": 0
+                "autoReverse": 0,
+                "postActions": {},
             }
             self._services[code] = trains.Service(parameters)
             self._services[code].initialize(self)
@@ -1030,11 +1066,11 @@ class Editor(simulation.Simulation):
         """Removes all trains instances and creates a train for each relevant
         service, that is each service which is not following another one (i.e
         a service which is not the nextService of another service)."""
+        self.trainsModel.beginResetModel()
         self._trains = []
         serviceList = list(self.services.keys())
         for s in self.services.values():
-            if s.nextServiceCode is not None and \
-                    s.nextServiceCode != "":
+            if s.nextServiceCode:
                 try:
                     serviceList.remove(s.nextServiceCode)
                 except ValueError:
@@ -1064,6 +1100,7 @@ class Editor(simulation.Simulation):
                 train.appearTimeStr = service.lines[0].scheduledArrivalTimeStr
             else:
                 train.appearTimeStr = "00:00:00"
+        self.trainsModel.endResetModel()
 
     def reverseSelectedTrain(self):
         """Reverses the selectedTrain direction."""

@@ -18,11 +18,10 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from Qt import QtCore, QtGui, QtWidgets, Qt
-
-from ts2.scenery import helper, abstract
-import ts2.utils as utils
 import ts2.routing.position
+import ts2.utils as utils
+from Qt import QtCore, QtGui, QtWidgets, Qt
+from ts2.scenery import helper, abstract
 
 translate = QtWidgets.qApp.translate
 
@@ -33,6 +32,7 @@ class LineItem(abstract.ResizableItem):
     have in real life, since this will determine the time the train takes to
     travel on it.
     """
+
     def __init__(self, parameters):
         """Constructor for the LineItem class"""
         super().__init__(parameters)
@@ -321,9 +321,9 @@ class LineItem(abstract.ResizableItem):
         if event.button() == Qt.LeftButton:
             # and self.graphicsItem.shape().contains(pos):
             if (self.simulation.context == utils.Context.EDITOR_TRAINS and
-               self.tiId > 0):
+                    not self.tiId.startswith("__EDITOR__")):
                 x = event.buttonDownPos(Qt.LeftButton).x()
-                ratio = (x - self.line.x1())/(self.line.x2() - self.line.x1())
+                ratio = (x - self.line.x1()) / (self.line.x2() - self.line.x1())
                 self.positionSelected.emit(
                     ts2.routing.position.Position(self, self.previousItem,
                                                   self.realLength * ratio)

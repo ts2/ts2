@@ -169,10 +169,10 @@ class ServicesModel(QtCore.QAbstractTableModel):
     """
     class C:
         serviceCode = 0
-        nextServiceCode = 1
-        autoReverse = 2
-        plannedTrainType = 3
-        description = 4
+        description = 1
+        nextServiceCode = 2
+        autoReverse = 3
+        plannedTrainType = 4
 
     def __init__(self, editor):
         """Constructor for the ServicesModel class"""
@@ -206,10 +206,10 @@ class ServicesModel(QtCore.QAbstractTableModel):
                 return service.nextServiceCode
 
             elif index.column() == self.C.autoReverse:
-                return service.autoReverse
+                return bool(service.autoReverse)
 
             elif index.column() == self.C.plannedTrainType:
-                return bool(service.plannedTrainType)
+                return service.plannedTrainType
 
             elif index.column() == self.C.description:
                 return service.description
@@ -232,7 +232,6 @@ class ServicesModel(QtCore.QAbstractTableModel):
 
             elif index.column() == self.C.description:
                 self._editor.services[code].description = value
-
             else:
                 return False
             self.dataChanged.emit(index, index)

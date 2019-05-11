@@ -697,8 +697,8 @@ class Train(QtCore.QObject):
         """Setter function for the trainHeadStr property."""
         if self.simulation.context == utils.Context.EDITOR_TRAINS:
             tiId, ptiId, posOnTI = eval(value.strip('()'))
-            trackItem = self.simulation.trackItem(tiId)
-            previousTI = self.simulation.trackItem(ptiId)
+            trackItem = self.simulation.trackItem(str(tiId))
+            previousTI = self.simulation.trackItem(str(ptiId))
             self.trainHead = position.Position(trackItem, previousTI, posOnTI)
 
     trainHeadStr = property(_getTrainHeadStr, _setTrainHeadStr)
