@@ -343,6 +343,8 @@ class Editor(simulation.Simulation):
             for field in rteFields:
                 if rte.get(field):
                     routes[rID][field] = str(rte[field])
+            routes[rID]["id"] = rID
+            del routes[rID]["routeNum"]
         # Services
         for sID, srv in services.copy().items():
             pa = []
@@ -545,6 +547,46 @@ class Editor(simulation.Simulation):
             ti.initialize(self)
             self.expandBackgroundTo(ti)
         self._nextId = maxID + 1
+
+    def exportRoutesToFile(self, fileName):
+        with open(fileName, 'w', newline='') as csvfile:
+            fieldnames = [
+                "id", "beginSignal", "endSignal", "initialState", "directions", "__type__"
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for rte in self.routes.values():
+                data = rte.for_json()
+                writer.writerow(data)
+
+    def importRoutesFromFile(self, fileName):
+        self.routesModel.beginResetModel()
+        with open(fileName, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            self._routes = collections.OrderedDict()
+            routes = {}
+            for row in reader:
+                rte = row.copy()
+                numFields = ["initialState"]
+                for f in numFields:
+                    rte[f] = rte[f] and eval(rte[f]) or 0
+                boolFields = []
+                for f in boolFields:
+                    rte[f] = rte[f] == "True"
+                objectFields = ["directions"]
+                for f in objectFields:
+                    rte[f] = rte[f] and eval(rte[f]) or {}
+                routes[rte['id']] = rte
+        self.loadRoutes(routes)
+        maxID = 1
+        for rte in self.routes.values():
+            try:
+                maxID = max(int(rte.routeNum), maxID)
+            except ValueError:
+                pass
+            rte.initialize(self)
+        self._nextRouteId = maxID + 1
+        self.routesModel.endResetModel()
 
     def exportServicesToFile(self, fileName):
         """Exports the services to the file with the given fileName in ts2

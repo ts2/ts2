@@ -112,7 +112,7 @@ class Route(QtCore.QObject):
         super().__init__()
         self.simulation = None
         self._parameters = parameters
-        self._routeNum = parameters['routeNum']
+        self._routeNum = parameters['id']
         self._directions = {}
         self._directions = parameters['directions']
         self._initialState = parameters.get('initialState', 0)
@@ -144,7 +144,7 @@ class Route(QtCore.QObject):
             initialState = self.initialState
         return {
             "__type__": "Route",
-            "routeNum": self.routeNum,
+            "id": self.routeNum,
             "beginSignal": self.beginSignal.tiId,
             "endSignal": self.endSignal.tiId,
             "directions": self.directions,

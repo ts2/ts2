@@ -316,21 +316,35 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.routesGraphicView.setAcceptDrops(True)
         self.routesGraphicView.setBackgroundBrush(QtGui.QBrush(Qt.black))
         self.routesGraphicView.setSizePolicy(sizePolicy)
+
+        hgrid = QtWidgets.QToolBar()
+        hgrid.setContentsMargins(0, 0, 0, 0)
         self.addRouteBtn = QtWidgets.QPushButton(self.tr("Add Route"),
                                                  self.routesWidget)
         self.addRouteBtn.clicked.connect(self.addRouteBtnClicked)
+        hgrid.addWidget(self.addRouteBtn)
         self.delRouteBtn = QtWidgets.QPushButton(self.tr("Delete Route"),
                                                  self.routesWidget)
         self.delRouteBtn.clicked.connect(self.delRouteBtnClicked)
-        hgrid = QtWidgets.QHBoxLayout()
-        hgrid.setContentsMargins(0, 0, 0, 0)
-        hgrid.addWidget(self.addRouteBtn)
         hgrid.addWidget(self.delRouteBtn)
-        hgrid.addStretch()
+        hgrid.addSeparator()
+
+        # Export CSV
+        self.exportRoutesBtn = QtWidgets.QToolButton(self.sceneryWidget)
+        self.exportRoutesBtn.setText(self.tr("Export"))
+        self.exportRoutesBtn.clicked.connect(self.exportRoutesBtnClicked)
+        hgrid.addWidget(self.exportRoutesBtn)
+
+        # Import CSV
+        self.importRoutesBtn = QtWidgets.QToolButton(self.sceneryWidget)
+        self.importRoutesBtn.setText(self.tr("Import"))
+        self.importRoutesBtn.clicked.connect(self.importRoutesBtnClicked)
+        hgrid.addWidget(self.importRoutesBtn)
+
         self.routesView = ts2.editor.views.RoutesEditorView(self.routesWidget)
 
         self.routesWidget.addWidget(self.routesGraphicView)
-        self.routesWidget.addLayout(hgrid)
+        self.routesWidget.addWidget(hgrid)
         self.routesWidget.addWidget(self.routesView)
         self.routesWidget.setEnabled(False)
         self.tabWidget.addTab(self.routesWidget, self.tr("Routes"))
@@ -1115,6 +1129,42 @@ class EditorWindow(QtWidgets.QMainWindow):
         )
         if fileName:
             self.editor.exportTrackItemsToFile(fileName)
+
+    @QtCore.pyqtSlot()
+    def importRoutesBtnClicked(self):
+        """Calls an open file dialog for the user to select the file to import
+        routes from and asks the editor to actually do the import"""
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            self.tr("Import track items"),
+            QtCore.QDir.currentPath(),
+            self.tr("CSV files (*.csv)")
+        )
+        if fileName:
+            if QtWidgets.QMessageBox.warning(
+                self,
+                self.tr("Import route"),
+                self.tr("This will erase any existing item\n"
+                        "Are you sure you want to continue?"),
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            ) == QtWidgets.QMessageBox.Yes:
+                QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
+                self.editor.importRoutesFromFile(fileName)
+                QtWidgets.qApp.restoreOverrideCursor()
+
+    @QtCore.pyqtSlot()
+    def exportRoutesBtnClicked(self):
+        """Calls a save file dialog for the user to give the filanme to which
+        to export the routes and asks the editor to actually do the export.
+        """
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self,
+            self.tr("Export routes"),
+            QtCore.QDir.currentPath(),
+            self.tr("CSV files (*.csv)")
+        )
+        if fileName:
+            self.editor.exportRoutesToFile(fileName)
 
     @QtCore.pyqtSlot()
     def setupTrainsBtnClicked(self):
