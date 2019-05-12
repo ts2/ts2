@@ -266,23 +266,20 @@ class LineItem(abstract.ResizableItem):
         """Draws the train(s) on the line, if any"""
         tlines = []
         if self.simulation.context == utils.Context.GAME:
-            if int(self.simulation.option("trackCircuitBased")) == 0:
-                for i in range(len(self._trainHeads)):
-                    tlines.append(QtCore.QLineF(
-                        self.sceneLine.pointAt(self._trainHeads[i] /
-                                               self._realLength),
-                        self.sceneLine.pointAt(self._trainTails[i] /
-                                               self._realLength)
-                    ))
-                    if tlines[i].length() < 5.0 and self._trainTails[i] != 0:
-                        # Make sure that the train representation is always
-                        # at least 5 pixel long.
-                        tlines[i].setLength(
-                            min(5.0,
-                                (1 - self._trainTails[i] / self._realLength) *
-                                self.sceneLine.length()))
-            else:
-                tlines = [self.sceneLine]
+            for i in range(len(self._trainHeads)):
+                tlines.append(QtCore.QLineF(
+                    self.sceneLine.pointAt(self._trainHeads[i] /
+                                           self._realLength),
+                    self.sceneLine.pointAt(self._trainTails[i] /
+                                           self._realLength)
+                ))
+                if tlines[i].length() < 5.0 and self._trainTails[i] != 0:
+                    # Make sure that the train representation is always
+                    # at least 5 pixel long.
+                    tlines[i].setLength(
+                        min(5.0,
+                            (1 - self._trainTails[i] / self._realLength) *
+                            self.sceneLine.length()))
         self.showTrainLineItem(tlines)
 
     def showTrainLineItem(self, lines):
