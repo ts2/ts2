@@ -186,7 +186,7 @@ class Simulation(QtCore.QObject):
 
     def loadRoutes(self, routes):
         for key, dct in routes.items():
-            dct['routeNum'] = key
+            dct['id'] = key
             rte = route.Route(dct)
             self._routes[key] = rte
 

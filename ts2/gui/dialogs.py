@@ -45,6 +45,8 @@ class ExceptionDialog:
             message += message.join(traceback.format_tb(sys.exc_info()[2]))
         else:
             message += message.join(traceback.format_exc())
+        if settings.debug:
+            print(message)
         return QtWidgets.QMessageBox.critical(parent, title, message)
 
 
