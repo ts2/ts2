@@ -300,7 +300,7 @@ class ServiceLine:
             "scheduledArrivalTime": self.scheduledArrivalTimeStr,
             "scheduledDepartureTime": self.scheduledDepartureTimeStr,
             "trackCode": self.trackCode,
-            "mustStop": self.mustStop
+            "mustStop": bool(self.mustStop)
         }
 
     @property
@@ -442,7 +442,7 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
             elif index.column() == 3:
                 line.scheduledDepartureTimeStr = value
             elif index.column() == 4:
-                line.mustStop = value
+                line.mustStop = bool(value)
             else:
                 return False
             self.dataChanged.emit(index, index)
