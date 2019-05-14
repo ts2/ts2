@@ -478,7 +478,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     cmd += ".exe"
             else:
                 cmd = self.simServer
-  
+
+            self.simulationClose()
             try:
                 serverCmd = subprocess.Popen([cmd, "-loglevel", logLevel, fileName])
             except FileNotFoundError:
@@ -501,7 +502,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def connectToServer(self, host, port):
         QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
-        self.simulationClose()
         self.webSocket = WebSocketController("ws://%s:%s/ws" % (host, port), self)
         self.webSocket.connectionReady.connect(self.simulationLoad)
 

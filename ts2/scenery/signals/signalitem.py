@@ -167,6 +167,7 @@ class SignalItem(abstract.TrackItem):
         bgi.setCursor(Qt.PointingHandCursor)
         bgi.setZValue(self.defaultZValue)
         self._gi[SignalItem.BERTH_GRAPHIC_ITEM] = bgi
+        self.lightOn = True
 
     def initialize(self, simulation):
         """Initialize the signal item once everything is loaded."""
@@ -193,6 +194,7 @@ class SignalItem(abstract.TrackItem):
             self.signalSelected.connect(simulation.prepareRoute)
             self.signalUnselected.connect(simulation.deselectRoute)
         self.trainSelected.connect(simulation.trainSelected)
+        simulation.timeChanged.connect(self.updateBlink)
         super().initialize(simulation)
 
     def updateData(self, msg):
@@ -494,6 +496,11 @@ class SignalItem(abstract.TrackItem):
         self.signalType.updateParams(self)
 
     @QtCore.pyqtSlot()
+    def updateBlink(self):
+        self.lightOn = not self.lightOn
+        self.updateGraphics()
+
+    @QtCore.pyqtSlot()
     def updateSignalState(self):
         """Update the signal current aspect."""
         self.updateGraphics()
@@ -573,7 +580,7 @@ class SignalItem(abstract.TrackItem):
 
             persistent = (self.nextActiveRoute is not None and
                           self.nextActiveRoute.persistent)
-            self.activeAspect.drawAspect(p, linePen, shapePen, persistent)
+            self.activeAspect.drawAspect(p, linePen, shapePen, persistent, self.lightOn)
 
             # Draw the connection rects
             if isEditorScenery:

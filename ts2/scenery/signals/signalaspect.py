@@ -70,6 +70,7 @@ class SignalAspect:
         self.outerColors = parameters["outerColors"]
         self.shapes = parameters["shapes"]
         self.shapesColors = parameters["shapesColors"]
+        self.blink = parameters.get("blink") or []
         self.actions = [tuple(x) for x in parameters["actions"]]
 
     def for_json(self):
@@ -81,7 +82,8 @@ class SignalAspect:
             "outerColors": self.outerColors,
             "shapes": self.shapes,
             "shapesColors": self.shapesColors,
-            "actions": self.actions
+            "actions": self.actions,
+            "blink": self.blink
         }
 
     def meansProceed(self):
@@ -94,7 +96,10 @@ class SignalAspect:
             return self.actions[0] != (Target.ASAP, 0) \
                 and self.actions[0] != (Target.BEFORE_THIS_SIGNAL, 0)
 
-    def drawAspect(self, p, linePen, shapePen, persistent=False):
+    def isBlinking(self):
+        return any(b for b in self.blink)
+
+    def drawAspect(self, p, linePen, shapePen, persistent=False, lightOn=True):
         """Draws the aspect on the given painter p. Draws the line with
         linePen and the shapes with shapePen."""
         if self.lineStyle == SignalLineStyle.BUFFER:
@@ -122,7 +127,10 @@ class SignalAspect:
                 brush.setColor(QtGui.QColor(self.outerColors[i]))
                 p.setBrush(brush)
                 self.drawShape(p, self.outerShapes[i], r)
-                brush.setColor(QtGui.QColor(self.shapesColors[i]))
+                if lightOn or not self.blink[i]:
+                    brush.setColor(QtGui.QColor(self.shapesColors[i]))
+                else:
+                    brush.setColor(Qt.black)
                 p.setBrush(brush)
                 self.drawShape(p, self.shapes[i], r)
 
