@@ -455,6 +455,8 @@ class Train(QtCore.QObject):
         self.reverseAction.triggered.connect(self.reverse)
         self.splitAction = QtWidgets.QAction(self.tr("Split train"), self)
         self.splitAction.triggered.connect(self.splitTrainPopUp)
+        self.proceedAction = QtWidgets.QAction(self.tr("Proceed with caution"), self)
+        self.proceedAction.triggered.connect(self.proceedWithCaution)
 
     def initialize(self, simulation):
         """Initialize the train once everything else is loaded.
@@ -772,30 +774,17 @@ class Train(QtCore.QObject):
     def showTrainActionsMenu(self, widget, pos):
         """Pops-up the train actions menu on the given QWidget"""
         contextMenu = QtWidgets.QMenu(widget)
+        contextMenu.addAction(self.proceedAction)
+        contextMenu.addAction(self.reverseAction)
         contextMenu.addAction(self.assignAction)
         contextMenu.addAction(self.resetServiceAction)
-        contextMenu.addAction(self.reverseAction)
-        contextMenu.addAction(self.splitAction)
+        # contextMenu.addAction(self.splitAction)
         contextMenu.exec_(pos)
 
     @QtCore.pyqtSlot()
     def reverse(self):
         """Reverses the train direction."""
-        if self._speed == 0:
-            signalAhead = self.findNextSignal()
-            if signalAhead is not None:
-                signalAhead.resetTrainId()
-            activeRoute = self.trainHead.trackItem.activeRoute
-            if activeRoute is not None:
-                activeRoute.desactivate()
-            trainTail = self._trainHead - self._trainType.length
-            self._trainHead = trainTail.reversed()
-            self._speed = 0
-            newSignalAhead = self.findNextSignal()
-            if newSignalAhead is not None:
-                newSignalAhead.trainId = self.trainId
-            self._signalActions = [(0, 999)]
-            self.updateSignalActions()
+        self.simulation.simulationWindow.webSocket.sendRequest("train", "reverse", {'id': int(self.trainId)})
 
     @QtCore.pyqtSlot()
     def reassignService(self):
@@ -815,7 +804,11 @@ class Train(QtCore.QObject):
                         % self.serviceCode),
                 QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel
                 ) == QtWidgets.QMessageBox.Ok:
-            self.nextPlaceIndex = 0
+            self.simulation.simulationWindow.webSocket.sendRequest("train", "resetService", {'id': int(self.trainId)})
+
+    @QtCore.pyqtSlot()
+    def proceedWithCaution(self):
+        self.simulation.simulationWindow.webSocket.sendRequest("train", "proceed", {'id': int(self.trainId)})
 
     @QtCore.pyqtSlot()
     def splitTrainPopUp(self):
