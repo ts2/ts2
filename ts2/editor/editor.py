@@ -940,7 +940,7 @@ class Editor(simulation.Simulation):
                     if ti == si:
                         if ti.isOnPosition(cur):
                             self._preparedRoute = route.Route({
-                                "routeNum": str(self._nextRouteId),
+                                "id": str(self._nextRouteId),
                                 "beginSignal": self._selectedSignal.tiId,
                                 "endSignal": signalId,
                                 "directions": directions,
