@@ -70,7 +70,7 @@ class SignalAspect:
         self.outerColors = parameters["outerColors"]
         self.shapes = parameters["shapes"]
         self.shapesColors = parameters["shapesColors"]
-        self.blink = parameters.get("blink") or []
+        self.blink = parameters.get("blink") or [False] * 6
         self.actions = [tuple(x) for x in parameters["actions"]]
 
     def for_json(self):

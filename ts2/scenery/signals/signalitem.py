@@ -41,6 +41,7 @@ BUILTIN_SIGNAL_LIBRARY = """{
             "outerColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "shapes": [0, 0, 0, 0, 0, 0],
             "shapesColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
+            "blink": [false, false, false, false, false, false],
             "actions": [[1, 0]]
         },
         "UK_DANGER": {
@@ -50,6 +51,7 @@ BUILTIN_SIGNAL_LIBRARY = """{
             "outerColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "shapes": [1, 0, 0, 0, 0, 0],
             "shapesColors": ["#FF0000", "#000000", "#000000", "#000000", "#000000", "#000000"],
+            "blink": [false, false, false, false, false, false],
             "actions": [[1, 0]]
         },
         "UK_CAUTION": {
@@ -59,6 +61,7 @@ BUILTIN_SIGNAL_LIBRARY = """{
             "outerColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "shapes": [1, 0, 0, 0, 0, 0],
             "shapesColors": ["#FFFF00", "#000000", "#000000", "#000000", "#000000", "#000000"],
+            "blink": [false, false, false, false, false, false],
             "actions": [[2, 0]]
         },
         "UK_CLEAR": {
@@ -68,6 +71,7 @@ BUILTIN_SIGNAL_LIBRARY = """{
             "outerColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "shapes": [1, 0, 0, 0, 0, 0],
             "shapesColors": ["#00FF00", "#000000", "#000000", "#000000", "#000000", "#000000"],
+            "blink": [false, false, false, false, false, false],
             "actions": [[0, 999]]
         }
     },

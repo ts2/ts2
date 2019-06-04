@@ -776,6 +776,8 @@ class MainWindow(QtWidgets.QMainWindow):
         menu.clear()
         act = []
         for fileName in settings.getRecent():
+            if not fileName:
+                continue
             if os.path.exists(fileName):
                 act.append(menu.addAction(fileName))
 
