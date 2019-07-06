@@ -473,9 +473,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 logLevel = "dbug"
 
             if not self.simServer:
-                cmd = path.join(settings.serverDir, "ts2-sim-server")
-                if os.name == 'nt':
-                    cmd += ".exe"
+                cmd = settings.serverLoc
             else:
                 cmd = self.simServer
 

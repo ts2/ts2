@@ -26,6 +26,7 @@
 
 
 __VERSION__ = "0.7.0"
+__SERVER_VERSION__ = "0.7.2"
 __FILE_FORMAT__ = "0.7"
 __APP_SHORT__ = "ts2"
 __APP_LONG__ = "Train Signalling Simulation"
@@ -42,6 +43,7 @@ __PROJECT_BUGS__ = "https://github.com/ts2/ts2/issues"
 __PROJECT_API_DOCS__ = "http://docs-ts2.rhcloud.com/"
 
 __SIMULATIONS_REPO__ = "https://github.com/ts2/ts2-data"
+__SERVER_REPO__ = "https://github.com/ts2/ts2-sim-server"
 
 
 def get_info():
@@ -51,6 +53,7 @@ def get_info():
     """
     return dict(
         version=__VERSION__,
+        server_version=__SERVER_VERSION__,
         app_short=__APP_SHORT__,
         app_long=__APP_LONG__,
         app_description=__APP_DESCRIPTION__,
@@ -59,5 +62,6 @@ def get_info():
         project_home=__PROJECT_HOME__,
         project_bugs=__PROJECT_BUGS__,
         project_api_docs=__PROJECT_API_DOCS__,
-        simulations_repo=__SIMULATIONS_REPO__
+        simulations_repo=__SIMULATIONS_REPO__,
+        server_repo=__SERVER_REPO__,
     )

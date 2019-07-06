@@ -19,14 +19,12 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-ArchitecturesAllowed=x64 ia64
-ArchitecturesInstallIn64BitMode=x64 ia64
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName=Train Signalling Simulation
 DisableProgramGroupPage=yes
 LicenseFile=build\exe.win32-{#PythonVersion}\doc\COPYING.txt
 OutputDir=dist
-OutputBaseFilename={#MyAppName}-{#MyAppVersion}-x64-setup
+OutputBaseFilename={#MyAppName}-{#MyAppVersion}-setup
 Compression=lzma
 SolidCompression=yes
 

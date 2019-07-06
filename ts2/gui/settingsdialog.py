@@ -17,11 +17,24 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
+import sys
+import zipfile
+from io import BytesIO
+from os import path
 
+import requests
+
+import ts2
 from Qt import QtWidgets, Qt
-
-from ts2.utils import settings
 from ts2.gui import widgets
+from ts2.utils import settings
+
+
+PLATFORMS_MAP = {
+    'linux': 'Linux',
+    'win32': 'Windows',
+    'darwin': 'Darwin',
+}
 
 
 class SettingsDialog(QtWidgets.QDialog):
@@ -67,9 +80,30 @@ class SettingsDialog(QtWidgets.QDialog):
         grid.addWidget(self.chkLoadLast, row, 1, 1, 1)
 
         # ======================
+        # Server Options
+        grp = QtWidgets.QGroupBox()
+        grp.setTitle(self.tr("Server"))
+        grp.setFlat(True)
+        middleLayout.addWidget(grp)
+
+        grid = QtWidgets.QHBoxLayout()
+        grp.setLayout(grid)
+
+        self.btnDownloadServer = QtWidgets.QToolButton()
+        self.btnDownloadServer.clicked.connect(self.downloadServer)
+        self.btnDownloadServer.setText(self.tr("Download server"))
+        grid.addWidget(self.btnDownloadServer)
+
+        self.txtServerFound = QtWidgets.QLabel('<span style="color: green;">Server found in Server Dir</span>')
+        self.txtServerFound.setVisible(path.isfile(settings.serverLoc))
+        grid.addWidget(self.txtServerFound)
+
+        grid.addStretch(1)
+
+        # ======================
         # Path Options
         grp = QtWidgets.QGroupBox()
-        grp.setTitle("Directories - TODO")
+        grp.setTitle("Directories")
         grp.setFlat(True)
         middleLayout.addWidget(grp)
 
@@ -82,7 +116,21 @@ class SettingsDialog(QtWidgets.QDialog):
                        Qt.AlignRight)
 
         self.txtDataDir = QtWidgets.QLineEdit()
+        self.txtDataDir.setEnabled(False)
         grid.addWidget(self.txtDataDir, row, 1, 1, 1)
+
+        butt = QtWidgets.QToolButton()
+        butt.setText(self.tr("Default"))
+        grid.addWidget(butt, row, 2, 1, 1)
+
+        # Server dir
+        row += 1
+        grid.addWidget(QtWidgets.QLabel(self.tr("Server Dir")), row, 0, 1, 1,
+                       Qt.AlignRight)
+
+        self.txtServerDir = QtWidgets.QLineEdit()
+        self.txtServerDir.setEnabled(False)
+        grid.addWidget(self.txtServerDir, row, 1, 1, 1)
 
         butt = QtWidgets.QToolButton()
         butt.setText(self.tr("Default"))
@@ -93,6 +141,7 @@ class SettingsDialog(QtWidgets.QDialog):
         grid.addWidget(QtWidgets.QLabel(self.tr("Simulations Dir")), row, 0, 1,
                        1, Qt.AlignRight)
         self.txtSimsDir = QtWidgets.QLineEdit()
+        self.txtSimsDir.setEnabled(False)
         grid.addWidget(self.txtSimsDir, row, 1, 1, 1)
 
         butt = QtWidgets.QToolButton()
@@ -114,6 +163,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
         self.txtDataDir.setText(settings.userDataDir)
         self.txtSimsDir.setText(settings.simulationsDir)
+        self.txtServerDir.setText(settings.serverDir)
 
     def onLoadLast(self):
         v = 1 if self.chkLoadLast.isChecked() else 0
@@ -123,3 +173,27 @@ class SettingsDialog(QtWidgets.QDialog):
     def closeEvent(self, ev):
         settings.setValue(settings.INITIAL_SETUP, "1")
         settings.sync()
+
+    def downloadServer(self):
+        QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
+        if sys.maxsize > 2**32:
+            bits = 'x86_64'
+        else:
+            bits = 'i386'
+
+        url = path.join(
+            ts2.get_info()['server_repo'],
+            "releases/download/v%s" % ts2.get_info()['server_version'],
+            "ts2-sim-server_%s_%s_%s.zip" % (ts2.get_info()['server_version'],
+                                             PLATFORMS_MAP[sys.platform],
+                                             bits)
+        )
+
+        response = requests.get(url)
+
+        with zipfile.ZipFile(BytesIO(response.content)) as zf:
+            zf.extract(settings.serverFileName, settings.serverDir)
+
+        self.txtServerFound.setVisible(path.isfile(settings.serverLoc))
+
+        QtWidgets.qApp.restoreOverrideCursor()
