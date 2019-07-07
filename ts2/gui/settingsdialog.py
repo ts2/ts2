@@ -185,18 +185,26 @@ class SettingsDialog(QtWidgets.QDialog):
         else:
             bits = 'i386'
 
-        url = path.join(
+        url = "%s/releases/download/v%s/ts2-sim-server_%s_%s_%s.zip" % (
             ts2.get_info()['server_repo'],
-            "releases/download/v%s" % ts2.get_info()['server_version'],
-            "ts2-sim-server_%s_%s_%s.zip" % (ts2.get_info()['server_version'],
-                                             ts2.PLATFORMS_MAP[sys.platform],
-                                             bits)
+            ts2.get_info()['server_version'],
+            ts2.get_info()['server_version'],
+            ts2.PLATFORMS_MAP[sys.platform],
+            bits
         )
 
         response = requests.get(url)
 
-        with zipfile.ZipFile(BytesIO(response.content)) as zf:
-            zf.extract(settings.serverFileName, settings.serverDir)
+        try:
+            with zipfile.ZipFile(BytesIO(response.content)) as zf:
+                zf.extract(settings.serverFileName, settings.serverDir)
+        except zipfile.BadZipFile:
+            QtWidgets.QMessageBox.critical(self, "Download Error",
+                                           "Error while downloading %s."
+                                           "Download server manually and put the executable in the server dir" % url)
+            self.updateServerLabel()
+            QtWidgets.qApp.restoreOverrideCursor()
+            return
 
         st = os.stat(settings.serverLoc)
         os.chmod(settings.serverLoc, st.st_mode | stat.S_IEXEC)

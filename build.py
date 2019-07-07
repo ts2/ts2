@@ -22,7 +22,7 @@ print("############# Freezing TS2 as an executable ###################")
 build_exe_options = {
     "includes": ["atexit"],
     "excludes": ["tkinter", "test"],
-    "packages": ["re", "simplejson", "websocket"],
+    "packages": ["re", "simplejson", "websocket", "requests", "idna", "queue"],
     "include_files": [
         ("README.md", "doc/README.txt"),
         ("README_fr.md", "doc/README_fr.txt"),
@@ -36,8 +36,8 @@ build_exe_options = {
 }
 
 base = None
-if sys.platform == "win32":
-    base = "Win32GUI"
+# if sys.platform == "win32":
+#     base = "Win32GUI"
 
 setup(
     name=__APP_SHORT__,
