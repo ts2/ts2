@@ -41,8 +41,7 @@ nosetests.xml
 .project
 .pydevproject
 
-.idea
-*.iml
+.idea/
 .kdev4
 .settings
 temp/
@@ -52,3 +51,5 @@ temp/
 *.json
 *.tsl
 *.tsg
+
+server/ts2-sim-server

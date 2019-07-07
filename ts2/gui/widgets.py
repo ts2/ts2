@@ -37,6 +37,9 @@ class ClockWidget(QtWidgets.QLCDNumber):
 
     @QtCore.pyqtSlot(QtCore.QTime)
     def setTime(self, t):
+        if t.isNull():
+            self.display("--:--:--")
+            return
         self.display(t.toString("hh:mm:ss"))
 
 
@@ -147,7 +150,6 @@ class StatusBar(QtWidgets.QStatusBar):
 
     @QtCore.pyqtSlot()
     def onProgressTimeout(self):
-        print("onTimer")
         QtWidgets.qApp.processEvents()
 
     def showBusy(self, is_busy):

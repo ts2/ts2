@@ -169,10 +169,10 @@ class ServicesModel(QtCore.QAbstractTableModel):
     """
     class C:
         serviceCode = 0
-        nextServiceCode = 1
-        autoReverse = 2
-        plannedTrainType = 3
-        description = 4
+        description = 1
+        nextServiceCode = 2
+        autoReverse = 3
+        plannedTrainType = 4
 
     def __init__(self, editor):
         """Constructor for the ServicesModel class"""
@@ -206,10 +206,10 @@ class ServicesModel(QtCore.QAbstractTableModel):
                 return service.nextServiceCode
 
             elif index.column() == self.C.autoReverse:
-                return service.autoReverse
+                return bool(service.autoReverse)
 
             elif index.column() == self.C.plannedTrainType:
-                return bool(service.plannedTrainType)
+                return service.plannedTrainType
 
             elif index.column() == self.C.description:
                 return service.description
@@ -232,7 +232,6 @@ class ServicesModel(QtCore.QAbstractTableModel):
 
             elif index.column() == self.C.description:
                 self._editor.services[code].description = value
-
             else:
                 return False
             self.dataChanged.emit(index, index)
@@ -284,7 +283,7 @@ class ServiceLine:
         self._scheduledDepartureTime = \
             QtCore.QTime.fromString(parameters["scheduledDepartureTime"])
         self._trackCode = parameters["trackCode"]
-        self._stop = int(parameters["mustStop"])
+        self._stop = parameters["mustStop"]
         self._service = None
         self.simulation = None
 
@@ -301,7 +300,7 @@ class ServiceLine:
             "scheduledArrivalTime": self.scheduledArrivalTimeStr,
             "scheduledDepartureTime": self.scheduledDepartureTimeStr,
             "trackCode": self.trackCode,
-            "mustStop": self.mustStop
+            "mustStop": bool(self.mustStop)
         }
 
     @property
@@ -443,7 +442,7 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
             elif index.column() == 3:
                 line.scheduledDepartureTimeStr = value
             elif index.column() == 4:
-                line.mustStop = value
+                line.mustStop = bool(value)
             else:
                 return False
             self.dataChanged.emit(index, index)
@@ -500,8 +499,13 @@ class Service:
         """Constructor for the Service class"""
         self._serviceCode = parameters["serviceCode"]
         self._description = parameters["description"]
-        self._nextServiceCode = parameters["nextServiceCode"]
-        self._autoReverse = parameters["autoReverse"]
+        self._nextServiceCode = None
+        self._autoReverse = None
+        for action in parameters["postActions"]:
+            if action["actionCode"] == "REVERSE":
+                self._autoReverse = True
+            elif action["actionCode"] == "SET_SERVICE":
+                self._nextServiceCode = action["actionParam"]
         self._plannedTrainType = parameters.get("plannedTrainType")
         self._current = None
         self.simulation = None
@@ -516,14 +520,24 @@ class Service:
 
     def for_json(self):
         """Data for JSON dump."""
+        postActions = []
+        if self.nextServiceCode:
+            postActions.append({
+                "actionCode": "SET_SERVICE",
+                "actionParam": self.nextServiceCode,
+            })
+        if self.autoReverse:
+            postActions.append({
+                "actionCode": "REVERSE",
+                "actionParam": None,
+            })
         return {
             "__type__": "Service",
             "serviceCode": self.serviceCode,
             "description": self.description,
-            "nextServiceCode": self.nextServiceCode,
-            "autoReverse": self.autoReverse,
             "plannedTrainType": self.plannedTrainType,
-            "lines": self.lines
+            "lines": self.lines,
+            "postActions": postActions,
         }
 
     @property

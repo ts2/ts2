@@ -103,8 +103,8 @@ class TrackItem(QtCore.QObject):
         self._conflictTrackItem = None
         self._gi = {}
         self.toBeDeselected = False
-        self.properties = self.getProperties()
-        self.multiProperties = self.getMultiProperties()
+        self.properties = []
+        self.multiProperties = []
 
     def initialize(self, simulation):
         """Initialize the item after all items are loaded."""
@@ -119,8 +119,27 @@ class TrackItem(QtCore.QObject):
             params.get('conflictTiId')
         )
         self._parameters = None
+        self.properties = self.getProperties()
+        self.multiProperties = self.getMultiProperties()
         for gi in self._gi.values():
             simulation.registerGraphicsItem(gi)
+        self.updateGraphics()
+
+    def updateData(self, msg):
+        if "activeRoute" in msg:
+            if msg["activeRoute"]:
+                self.activeRoute = self.simulation.routes[msg["activeRoute"]]
+            else:
+                self.activeRoute = None
+        if "activeRoutePreviousItem" in msg:
+            if msg["activeRoutePreviousItem"]:
+                self.activeRoutePreviousItem = self.simulation.trackItems[msg["activeRoutePreviousItem"]]
+            else:
+                self.activeRoutePreviousItem = None
+        if "trainEndsFW" in msg:
+            self._trainHeads = [v for v in msg["trainEndsFW"].values()]
+        if "trainEndsBK" in msg:
+            self._trainTails = [v for v in msg["trainEndsBK"].values()]
         self.updateGraphics()
 
     trainEntersItem = QtCore.pyqtSignal()
@@ -376,84 +395,12 @@ class TrackItem(QtCore.QObject):
             raise Exception("Items not linked: %s and %s" %
                             (self.tiId, precedingItem.tiId))
 
-    def setActiveRoute(self, r, previous):
-        """Sets the activeRoute and activeRoutePreviousItem informations. It
-        is called upon Route activation. These information are used when other
-        routes are activated in order to check the potential conflicts.
-
-        :param r: The newly active Route on this TrackItem.
-        :param previous: The previous :class:`~ts2.scenery.abstract.TrackItem`
-               on this route (to know the direction)."""
-        self.activeRoute = r
-        self.activeRoutePreviousItem = previous
-        self.updateGraphics()
-
-    def resetActiveRoute(self):
-        """Resets the activeRoute and activeRoutePreviousItem informations. It
-        is called upon route desactivation."""
-        self.activeRoute = None
-        self.activeRoutePreviousItem = None
-        self.updateGraphics()
-
-    def registerTrain(self, train):
-        """Registers the given train on this trackItem.
-
-        :param train: Train instance to register
-        """
-        hadTrains = bool(self._trains)
-        if train not in self._trains:
-            self._trains.append(train)
-            if not hadTrains:
-                self.trainEntersItem.emit()
-        self.updateTrainHeadAndTail()
-
-    def unRegisterTrain(self, train):
-        """Removes the given train from the registry of this item.
-
-        :param train: Train instance to unregister
-        """
-        trainTail = train.trainHead - train.trainType.length
-        if trainTail.trackItem != self and train in self._trains:
-            self._trains.remove(train)
-            if not self._trains:
-                self.trainLeavesItem.emit()
-        self.updateTrainHeadAndTail()
-
-    def updateTrainHeadAndTail(self):
-        """Updates the _trainHeads and _trainTails lists from the _trains
-        data. _trainHeads are always the closest to
-        :func:`~ts2.scenery.abstract.TrackItem.nextItem` whereas _trainTails
-        are always the closest to
-        :func:`~ts2.scenery.abstract.TrackItem.previousItem`, whatever the
-        trains' direction and real trainHead and trainTail.
-        """
-        self._trainHeads = []
-        self._trainTails = []
-        for train in self._trains:
-            th = self._realLength
-            tt = 0
-            trainHead = train.trainHead
-            if trainHead.trackItem == self:
-                if trainHead.previousTI == self.previousItem:
-                    th = trainHead.positionOnTI
-                else:
-                    tt = self.realLength - trainHead.positionOnTI
-            trainTail = train.trainHead - train.trainType.length
-            if trainTail.trackItem == self:
-                if trainTail.previousTI == self.previousItem:
-                    tt = trainTail.positionOnTI
-                else:
-                    th = self.realLength - trainTail.positionOnTI
-            self._trainHeads.append(th)
-            self._trainTails.append(tt)
-        self.updateTrain()
-
     def trainPresent(self):
         """
         :return: ``True`` if at least one train is present on this TrackItem.
         :rtype: bool
         """
-        return self._trains
+        return self._trainHeads or self._trainTails
 
     def distanceToTrainEnd(self, pos):
         """
@@ -483,28 +430,6 @@ class TrackItem(QtCore.QObject):
         if p.trackItem() == self:
             return True
         return False
-
-    def trainHeadActions(self, trainId):
-        """Performs the actions to be done when a train head reaches this
-        TrackItem"""
-        pass
-
-    def trainTailActions(self, trainId):
-        """Performs the actions to be done when a train tail reaches this
-        TrackItem"""
-        if self.activeRoute is not None:
-            if not self.activeRoute.persistent:
-                beginSignalNextRoute = \
-                    self.activeRoute.beginSignal.nextActiveRoute
-                if beginSignalNextRoute is None or \
-                   beginSignalNextRoute != self.activeRoute:
-                    # The first signal of the route has no route set or it is a
-                    # different route than this one
-                    if self.activeRoutePreviousItem.activeRoute is not None \
-                       and self.activeRoutePreviousItem.activeRoute \
-                       == self.activeRoute:
-                        self.activeRoutePreviousItem.resetActiveRoute()
-                        self.updateGraphics()
 
     def setupTriggers(self):
         """Creates the triggers necessary for this trackItem.

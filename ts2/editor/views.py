@@ -36,7 +36,7 @@ class RoutesEditorView(QtWidgets.QTableView):
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
 
-    routeSelected = QtCore.pyqtSignal(int)
+    routeSelected = QtCore.pyqtSignal(str)
 
     def selectionChanged(self, selected, deselected):
         """Called when the user changes the selection. Emits the routeSelected
@@ -45,7 +45,12 @@ class RoutesEditorView(QtWidgets.QTableView):
         if selected.indexes():
             index = selected.indexes()[0]
             if index.isValid():
-                self.routeSelected.emit(index.data())
+                self.routeSelected.emit(str(index.data()))
+
+    def setModel(self, model):
+        """Sets model and also setup cols"""
+        super().setModel(model)
+        self.resizeColumnsToContents()
 
 
 class TrainTypesEditorView(QtWidgets.QTableView):
@@ -60,6 +65,11 @@ class TrainTypesEditorView(QtWidgets.QTableView):
         self.setSizePolicy(sizePolicy)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+
+    def setModel(self, model):
+        """Sets model and also setup cols"""
+        super().setModel(model)
+        self.resizeColumnsToContents()
 
 
 class PropertiesView(QtWidgets.QTableView):
@@ -76,6 +86,11 @@ class PropertiesView(QtWidgets.QTableView):
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.setItemDelegateForColumn(1, delegates.PropertyValuesDelegate(self))
+
+    def setModel(self, model):
+        """Sets model and also setup cols"""
+        super().setModel(model)
+        self.resizeColumnsToContents()
 
 
 class ServicesEditorView(QtWidgets.QTableView):
@@ -126,6 +141,11 @@ class ServiceLinesEditorView(QtWidgets.QTableView):
         self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.setItemDelegateForColumn(0, delegates.PlacesDelegate(self))
 
+    def setModel(self, model):
+        """Sets model and also setup cols"""
+        super().setModel(model)
+        self.resizeColumnsToContents()
+
 
 class TrainsEditorView(QtWidgets.QTableView):
     """Table view with specific options for editing trains in the editor
@@ -156,6 +176,11 @@ class TrainsEditorView(QtWidgets.QTableView):
             index = selected.indexes()[0]
             if index.isValid():
                 self.trainSelected.emit(self.model().index(index.row(), 0).data())
+
+    def setModel(self, model):
+        """Sets model and also setup cols"""
+        super().setModel(model)
+        self.resizeColumnsToContents()
 
 
 class TrainsGraphicsView(QtWidgets.QGraphicsView):

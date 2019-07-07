@@ -48,13 +48,13 @@ def Main(args=None):
     app.installTranslator(ts2Translator)
     QtCore.qDebug(QtCore.QLocale.system().name())
     # TODO: Uncomment in production
-    # try:
-    mw = mainwindow.MainWindow(args=args)
-    mw.show()
-    return app.exec_()
-    # except:
-    #     dialogs.ExceptionDialog.popupException(None)
-    #     return 1
+    try:
+        mw = mainwindow.MainWindow(args=args)
+        mw.show()
+        return app.exec_()
+    except:
+        dialogs.ExceptionDialog.popupException(None)
+        return 1
 
 if __name__ == "__main__":
     Main()

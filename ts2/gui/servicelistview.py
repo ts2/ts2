@@ -35,12 +35,12 @@ class ServiceListView(QtWidgets.QTreeView):
 
     serviceSelected = QtCore.pyqtSignal(str)
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
     def updateServiceSelection(self, trainId):
         """Update the selection by selecting the service of the train given by
         trainId. """
         if self.simulation is not None:
-            serviceCode = self.simulation.trains[trainId].serviceCode
+            serviceCode = self.simulation.trains[int(trainId)].serviceCode
             for i in range(self.model().rowCount()):
                 index = self.model().index(i, 0)
                 if self.model().data(index) == serviceCode:

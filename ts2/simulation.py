@@ -18,36 +18,41 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from math import sqrt
 import collections
 import zipfile
+
 import simplejson as json
+from math import sqrt
 
 from Qt import QtCore, QtWidgets
-
 from ts2 import __FILE_FORMAT__
 from ts2 import utils, trains
-from ts2.routing import route, position
 from ts2.game import logger, scorer
+from ts2.routing import route, position
 from ts2.scenery import placeitem, lineitem, platformitem, invisiblelinkitem, \
     enditem, pointsitem, textitem
 from ts2.scenery.signals import signalitem
+from ts2.trains import traintype, service
 
 translate = QtWidgets.qApp.translate
 
 BUILTIN_OPTIONS = {
     "title": "",
     "description": "",
+    "clientToken": "client-secret",
     "version": __FILE_FORMAT__,
     "timeFactor": 5,
     "currentTime": "06:00:00",
     "warningSpeed": 8.3,
     "currentScore": 0,
     "defaultMaxSpeed": 44.44,
-    "defaultMinimumStopTime": "[(45,75,70),(75,90,30)]",
-    "defaultDelayAtEntry": "[(-60,0,50),(0,60,50)]",
-    "trackCircuitBased": 0,
-    "defaultSignalVisibility": 100
+    "defaultMinimumStopTime": [(45, 75, 70), (75, 90, 30)],
+    "defaultDelayAtEntry": [(-60, 0, 50), (0, 60, 50)],
+    "trackCircuitBased": False,
+    "defaultSignalVisibility": 100,
+    "wrongPlatformPenalty": 5,
+    "wrongDestinationPenalty": 100,
+    "latePenalty": 1
 }
 
 
@@ -58,44 +63,9 @@ def json_hook(dct):
     elif dct['__type__'] == "Simulation":
         return Simulation(dct['options'], dct['trackItems'], dct['routes'],
                           dct['trainTypes'], dct['services'], dct['trains'],
-                          dct['messageLogger'])
-    elif dct['__type__'] == "SignalItem":
-        return signalitem.SignalItem(parameters=dct)
-    elif dct['__type__'] == "EndItem":
-        return enditem.EndItem(parameters=dct)
-    elif dct['__type__'] == "InvisibleLinkItem":
-        return invisiblelinkitem.InvisibleLinkItem(parameters=dct)
-    elif dct['__type__'] == "LineItem":
-        return lineitem.LineItem(parameters=dct)
-    elif dct['__type__'] == "Place":
-        return placeitem.Place(parameters=dct)
-    elif dct['__type__'] == "PlatformItem":
-        return platformitem.PlatformItem(parameters=dct)
-    elif dct['__type__'] == "PointsItem":
-        return pointsitem.PointsItem(parameters=dct)
-    elif dct['__type__'] == "TextItem":
-        return textitem.TextItem(parameters=dct)
-    elif dct['__type__'] == "Route":
-        return route.Route(parameters=dct)
-    elif dct['__type__'] == "Position":
-        return position.Position(parameters=dct)
-    elif dct['__type__'] == "TrainType":
-        return trains.TrainType(parameters=dct)
-    elif dct['__type__'] == "Service":
-        return trains.Service(parameters=dct)
-    elif dct['__type__'] == "ServiceLine":
-        return trains.ServiceLine(parameters=dct)
-    elif dct['__type__'] == "Train":
-        return trains.Train(parameters=dct)
-    elif dct['__type__'] == "MessageLogger":
-        return logger.MessageLogger(parameters=dct)
-    elif dct['__type__'] == "Message":
-        return logger.Message(dct)
+                          dct['messageLogger'], dct["signalLibrary"])
     else:
-        raise utils.FormatException(
-            translate("json_hook",
-                      "Unknown __type__ '%s' in JSON file") % dct['__type__']
-        )
+        return dct
 
 
 def load(simulationWindow, jsonStream):
@@ -125,11 +95,48 @@ def load(simulationWindow, jsonStream):
     return simulation
 
 
+def onTrackItemChanged(sim, msg):
+    item = sim.trackItems[msg["id"]]
+    item.updateData(msg)
+
+
+def onRouteActivated(sim, msg):
+    rte = sim.routes[msg["id"]]
+    rte.onActivated(msg["state"] == 2)
+
+
+def onRouteDeactivated(sim, msg):
+    rte = sim.routes[msg["id"]]
+    rte.onDeactivated()
+
+
+def onClockChanged(sim, msg):
+    sim._time = QtCore.QTime().fromString(msg, 'hh:mm:ss')
+    sim.timerOut()
+
+
+def onTrainChanged(sim, msg):
+    train = sim.trains[int(msg["id"])]
+    train.updateData(msg)
+
+
+def onMessageReceived(sim, msg):
+    sim.messageLogger.addMessage(msg["msgText"], msg["msgType"])
+
+
+def onOptionsChanged(sim, msg):
+    sim.onOptionsChanged(msg)
+
+
+def onStateChanged(sim, msg):
+    sim.onPause(not msg["value"])
+
+
 class Simulation(QtCore.QObject):
     """The ``Simulation`` class holds all the game logic."""
 
     def __init__(self, options, trackItems, routes, trainTypes, services,
-                 trns, messageLogger):
+                 trns, messageLogger, signalLibrary):
         """
         :param options:
         :param trackItems:
@@ -142,33 +149,88 @@ class Simulation(QtCore.QObject):
         super().__init__()
         self.simulationWindow = None
         self._scene = QtWidgets.QGraphicsScene()
-        self._timer = QtCore.QTimer(self)
-        self._messageLogger = messageLogger
+        self._messageLogger = None
+        self.loadMessageLogger(messageLogger)
         self._scorer = scorer.Scorer(self)
         self._selectedSignal = None
         self._options = collections.OrderedDict()
         self._options.update(BUILTIN_OPTIONS)
         self._options.update(options)
         self._routes = collections.OrderedDict()
-        for key, value in routes.items():
-            self._routes[int(key)] = value
+        self.loadRoutes(routes)
         self._trackItems = collections.OrderedDict()
-        for key, value in trackItems.items():
-            self._trackItems[int(key)] = value
+        self.loadTrackItems(trackItems)
         self.activeRouteNumbers = []
         self._trainTypes = collections.OrderedDict()
-        self._trainTypes.update(trainTypes)
+        self.loadTrainTypes(trainTypes)
         self._services = collections.OrderedDict()
-        self._services.update(services)
+        self.loadServices(services)
         self._places = collections.OrderedDict()
-        self._trains = trns
-        self.signalLibrary = signalitem.signalLibrary
+        self._trains = []
+        self.loadTrains(trns)
+        self.signalLibrary = signalitem.SignalLibrary(signalLibrary)
+        signalitem.signalLibrary = self.signalLibrary
         self._time = QtCore.QTime()
         self._startTime = QtCore.QTime()
         self._serviceListModel = trains.ServiceListModel(self)
         self._selectedServiceModel = trains.ServiceInfoModel(self)
         self._trainListModel = trains.TrainListModel(self)
         self._selectedTrainModel = trains.TrainInfoModel(self)
+
+    def loadMessageLogger(self, messageLogger):
+        messages = []
+        for msg in messageLogger["messages"]:
+            messages.append(logger.Message(msg))
+        messageLogger["messages"] = messages
+        self._messageLogger = logger.MessageLogger(messageLogger)
+
+    def loadRoutes(self, routes):
+        for key, dct in routes.items():
+            dct['id'] = key
+            rte = route.Route(dct)
+            self._routes[key] = rte
+
+    def loadTrackItems(self, trackItems):
+        for key, dct in trackItems.items():
+            dct["tiId"] = key
+            trackItem = None
+            if dct['__type__'] == "SignalItem":
+                trackItem = signalitem.SignalItem(parameters=dct)
+            elif dct['__type__'] == "EndItem":
+                trackItem = enditem.EndItem(parameters=dct)
+            elif dct['__type__'] == "InvisibleLinkItem":
+                trackItem = invisiblelinkitem.InvisibleLinkItem(parameters=dct)
+            elif dct['__type__'] == "LineItem":
+                trackItem = lineitem.LineItem(parameters=dct)
+            elif dct['__type__'] == "Place":
+                trackItem = placeitem.Place(parameters=dct)
+            elif dct['__type__'] == "PlatformItem":
+                trackItem = platformitem.PlatformItem(parameters=dct)
+            elif dct['__type__'] == "PointsItem":
+                trackItem = pointsitem.PointsItem(parameters=dct)
+            elif dct['__type__'] == "TextItem":
+                trackItem = textitem.TextItem(parameters=dct)
+            self._trackItems[key] = trackItem
+
+    def loadTrainTypes(self, trainTypes):
+        for code, dct in trainTypes.items():
+            dct["code"] = code
+            self._trainTypes[code] = traintype.TrainType(dct)
+
+    def loadServices(self, services):
+        for serviceCode, dct in services.items():
+            dct["serviceCode"] = serviceCode
+            lines = []
+            for line in dct["lines"]:
+                lines.append(service.ServiceLine(line))
+            dct["lines"] = lines
+            self._services[serviceCode] = service.Service(dct)
+
+    def loadTrains(self, trns):
+        for dct in trns:
+            th = position.Position(parameters=dct["trainHead"])
+            dct["trainHead"] = th
+            self._trains.append(trains.Train(dct))
 
     def initialize(self, simulationWindow):
         """Initializes the simulation.
@@ -178,23 +240,17 @@ class Simulation(QtCore.QObject):
         self.messageLogger.addMessage(self.tr("Simulation initializing"),
                                       logger.Message.SOFTWARE_MSG)
         self.simulationWindow = simulationWindow
+        self.signalLibrary.initialize()
         self.updatePlaces()
         for ti in self._trackItems.values():
             ti.initialize(self)
         if not self.checkTrackItemsLinks():
-            self.messageLogger.addMessage(
-                self.tr("Invalid simulation: Not all items are linked."),
-                logger.Message.SOFTWARE_MSG
-            )
             raise utils.FormatException(
                 self.tr("Invalid simulation: Not all items are linked.")
             )
 
         for rte in self.routes.values():
             rte.initialize(self)
-        for rte in self.routes.values():
-            # We need routes initialized before setting them up
-            rte.setToInitialState()
         for ti in self.trackItems.values():
             # We need trackItems linked and routes set before setting triggers
             ti.setupTriggers()
@@ -214,11 +270,16 @@ class Simulation(QtCore.QObject):
         self._startTime = QtCore.QTime.fromString(self.option("currentTime"),
                                                   "hh:mm:ss")
         self._time = self._startTime
-        self._timer.timeout.connect(self.timerOut)
-        interval = 500
-        self._timer.setInterval(interval)
-        self._timer.start()
         self._scorer.score = self.option("currentScore")
+        self.simulationWindow.webSocket.registerHandler("trackItemChanged", self, onTrackItemChanged)
+        self.simulationWindow.webSocket.registerHandler("routeActivated", self, onRouteActivated)
+        self.simulationWindow.webSocket.registerHandler("routeDeactivated", self, onRouteDeactivated)
+        self.simulationWindow.webSocket.registerHandler("clock", self, onClockChanged)
+        self.simulationWindow.webSocket.registerHandler("trainChanged", self, onTrainChanged)
+        self.simulationWindow.webSocket.registerHandler("messageReceived", self, onMessageReceived)
+        self.simulationWindow.webSocket.registerHandler("optionsChanged", self, onOptionsChanged)
+        self.simulationWindow.webSocket.registerHandler("stateChanged", self, onStateChanged)
+
         self.messageLogger.addMessage(self.tr("Simulation loaded"),
                                       logger.Message.SOFTWARE_MSG)
 
@@ -230,6 +291,8 @@ class Simulation(QtCore.QObject):
                 "currentTime": self.currentTime.toString("hh:mm:ss"),
                 "currentScore": self.scorer.score
             })
+        appSignalLibrary = self.signalLibrary.filtered(set([s.signalType for s in self.trackItems.values()
+                                                            if isinstance(s, signalitem.SignalItem)]))
         return {
             "__type__": "Simulation",
             "options": savedOptions,
@@ -238,7 +301,8 @@ class Simulation(QtCore.QObject):
             "trainTypes": self.trainTypes,
             "services": self.services,
             "trains": self.trains,
-            "messageLogger": self.messageLogger
+            "messageLogger": self.messageLogger,
+            "signalLibrary": appSignalLibrary
         }
 
     def saveGame(self, fileName):
@@ -298,7 +362,11 @@ class Simulation(QtCore.QObject):
         return self._options.get(key)
 
     def setOption(self, key, value):
-        self._options[key] = value
+        if isinstance(BUILTIN_OPTIONS[key], str) or not isinstance(value, str):
+            val = value
+        else:
+            val = eval(value)
+        self._options[key] = val
 
     @property
     def startTime(self):
@@ -451,14 +519,18 @@ class Simulation(QtCore.QObject):
     timeElapsed = QtCore.pyqtSignal(float)
     """pyqtSignal(float)"""
 
-    trainSelected = QtCore.pyqtSignal(int)
+    trainSelected = QtCore.pyqtSignal(str)
     """pyqtSignal(int)"""
 
-    trainStatusChanged = QtCore.pyqtSignal(int)
+    trainStatusChanged = QtCore.pyqtSignal(str)
     """pyqtSignal(int)"""
 
     selectionChanged = QtCore.pyqtSignal()
     """pyqtSignal()"""
+
+    simulationPaused = QtCore.pyqtSignal(bool)
+
+    timeFactorChanged = QtCore.pyqtSignal(int)
 
     @QtCore.pyqtSlot(int)
     def updateContext(self, tabNum):
@@ -466,7 +538,7 @@ class Simulation(QtCore.QObject):
         class."""
         pass
 
-    @QtCore.pyqtSlot(int, bool, bool)
+    @QtCore.pyqtSlot(str, bool, bool)
     def activateRoute(self, siId, persistent=False, force=False):
         """This slot is normally connected to a
         :class:`~ts2.scenery.signals.signalitem.SignalItem`
@@ -502,20 +574,10 @@ class Simulation(QtCore.QObject):
             r = self.findRoute(self._selectedSignal, si)
             if r is not None:
                 # There exists a route between both signals
-                if r.isActivable() or force:
-                    # We can activate it
-                    r.activate(persistent)
-                    self._selectedSignal.unselect()
-                    self._selectedSignal = None
-                    si.unselect()
-                else:
-                    # We cannot activate it (another route is conflicting)
-                    self.conflictingRoute.emit(r)
-                    si.unselect()
-                    self.messageLogger.addMessage(
-                        self.tr("Conflicting route"),
-                        logger.Message.PLAYER_WARNING_MSG
-                    )
+                r.activate(persistent)
+                self._selectedSignal.unselect()
+                self._selectedSignal = None
+                si.unselect()
             else:
                 # No route between both signals
                 self.noRouteBetweenSignals.emit(self._selectedSignal, si)
@@ -526,7 +588,7 @@ class Simulation(QtCore.QObject):
                     logger.Message.PLAYER_WARNING_MSG
                 )
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
     def desactivateRoute(self, siId):
         """ This slot is normally connected to the
         :class:`~ts2.scenery.signals.signalitem.SignalItem`'s
@@ -547,25 +609,36 @@ class Simulation(QtCore.QObject):
             r.desactivate()
 
     @QtCore.pyqtSlot(bool)
+    def onPause(self, paused):
+        self.simulationPaused.emit(paused)
+
+    @QtCore.pyqtSlot(bool)
     def pause(self, paused=True):
         """Toggle pause.
 
         :param paused: If paused is ``True`` pause the game, else continue.
         """
-        if paused:
-            self._timer.stop()
-        else:
-            self._timer.start()
+
+        def onIsStarted(msg):
+            if paused and msg:
+                self.simulationWindow.webSocket.sendRequest("simulation", "pause")
+            elif not paused and not msg:
+                self.simulationWindow.webSocket.sendRequest("simulation", "start")
+
+        self.simulationWindow.webSocket.sendRequest("simulation", "isStarted", callback=onIsStarted)
 
     @QtCore.pyqtSlot(int)
     def setTimeFactor(self, timeFactor):
         """
         :param int timeFactor: Sets the time factor to timeFactor.
         """
-        self._timer.stop()
-        self.setOption("timeFactor", min(timeFactor, 10))
-        if timeFactor != 0:
-            self._timer.start()
+
+        def timeFactorSet(msg):
+            if msg["status"] == "Ok":
+                self.setOption("timeFactor", min(timeFactor, 10))
+
+        self.simulationWindow.webSocket.sendRequest("option", "set", {"name": "timeFactor",
+                                                                      "value": min(timeFactor, 10)}, timeFactorSet)
 
     @QtCore.pyqtSlot()
     def timerOut(self):
@@ -573,10 +646,15 @@ class Simulation(QtCore.QObject):
         timeElapsed signals
         This function is normally connected to the timer timeout signal."""
         timeFactor = float(self.option("timeFactor"))
-        self._time = self._time.addMSecs((self._timer.interval()) * timeFactor)
         self.timeChanged.emit(self._time)
-        secs = self._timer.interval() * timeFactor / 1000
+        secs = float(timeFactor) / 2
         self.timeElapsed.emit(secs)
+
+    def onOptionsChanged(self, msg):
+        self.scorer.score = msg["currentScore"]
+        del msg["currentScore"]
+        self._options.update(msg)
+        self.timeFactorChanged.emit(int(msg["timeFactor"]))
 
     def updateSelection(self):
         """Updates the trackItem selection. Does nothing in the base
@@ -585,7 +663,7 @@ class Simulation(QtCore.QObject):
 
     def updatePlaces(self):
         """Updates the places dictionary from TrackItem data."""
-        self._places = {}
+        self._places = collections.OrderedDict()
         for ti in self.trackItems.values():
             if isinstance(ti, placeitem.Place):
                 self._places[ti.placeCode] = ti
@@ -610,8 +688,6 @@ class Simulation(QtCore.QObject):
         """Find the items that are linked together through their coordinates
         and populate the _nextItem and _previousItem variables of each items.
         """
-        self.messageLogger.addMessage(self.tr("Creating TrackItem links"),
-                                      logger.Message.SOFTWARE_MSG)
         for ki, vi in self._trackItems.items():
             for kj, vj in self._trackItems.items():
                 if ki < kj:
@@ -650,25 +726,13 @@ class Simulation(QtCore.QObject):
 
         """
         result = True
-        self.messageLogger.addMessage(self.tr("Checking TrackItem links"),
-                                      logger.Message.SOFTWARE_MSG)
         for ti in self._trackItems.values():
             if not isinstance(ti, placeitem.Place) \
                     and not isinstance(ti, platformitem.PlatformItem) \
                     and not isinstance(ti, textitem.TextItem):
                 if ti.nextItem is None and not isinstance(ti, enditem.EndItem):
-                    self.messageLogger.addMessage(
-                        self.tr("TrackItem %i is unlinked at (%f, %f)" %
-                                (ti.tiId, ti.end.x(), ti.end.y())),
-                        logger.Message.SOFTWARE_MSG
-                    )
                     result = False
                 if ti.previousItem is None:
-                    self.messageLogger.addMessage(
-                        self.tr("TrackItem %i is unlinked at (%f, %f)" %
-                                (ti.tiId, ti.origin.x(), ti.origin.y())),
-                        logger.Message.SOFTWARE_MSG
-                    )
                     result = False
         return result
 

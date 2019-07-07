@@ -87,7 +87,6 @@ class PlatformItem(abstract.ResizableItem):
         })
         return jsonData
 
-
     # ## Properties #####################################################
 
     @property
@@ -96,7 +95,7 @@ class PlatformItem(abstract.ResizableItem):
         if self._place is not None:
             return self.tr("%s\nPlatform %s") % \
                 (self._place.placeName, self.trackCode)
-        elif self.tiId < 0:
+        elif self.tiId.startswith("__EDITOR__"):
             return "Platform"
         else:
             return ""

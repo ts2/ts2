@@ -120,6 +120,10 @@ class DurationProba(QtCore.QObject):
         """
         return str(self._probaList)
 
+    def list(self):
+        """Returns the DurationProba list"""
+        return self._probaList
+
     def isNull(self):
         """
         :return: True if the DurationProba instance has no data.

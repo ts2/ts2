@@ -18,11 +18,10 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from Qt import QtCore, QtGui, QtWidgets, Qt
-
-from ts2.scenery import helper, abstract
-import ts2.utils as utils
 import ts2.routing.position
+import ts2.utils as utils
+from Qt import QtCore, QtGui, QtWidgets, Qt
+from ts2.scenery import helper, abstract
 
 translate = QtWidgets.qApp.translate
 
@@ -33,10 +32,11 @@ class LineItem(abstract.ResizableItem):
     have in real life, since this will determine the time the train takes to
     travel on it.
     """
+
     def __init__(self, parameters):
         """Constructor for the LineItem class"""
         super().__init__(parameters)
-        self._placeCode = parameters["placeCode"]
+        self._placeCode = parameters.get("placeCode")
         self._trackCode = ""
         self._realLength = parameters.get('realLength', 1.0)
         self.defaultZValue = 1
@@ -52,7 +52,7 @@ class LineItem(abstract.ResizableItem):
     def initialize(self, simulation):
         """Initialize the item after all items are loaded."""
         self._place = simulation.place(self._placeCode)
-        trackCode = self._parameters["trackCode"]
+        trackCode = self._parameters.get("trackCode")
         if self._place is not None:
             self._trackCode = trackCode
             self._place.addTrack(self)
@@ -178,7 +178,7 @@ class LineItem(abstract.ResizableItem):
         rx = max(x1, x2) + 5.0
         ty = min(y1, y2) - 5.0
         by = max(y1, y2) + 5.0
-        if self.tiId < 0:
+        if self.tiId.startswith("__EDITOR__"):
             # Library item in editor
             lx -= 15
             rx += 15
@@ -211,7 +211,7 @@ class LineItem(abstract.ResizableItem):
         """
         path = QtGui.QPainterPath(self._boundingRect.topLeft())
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            if self.tiId < 0:
+            if self.tiId.startswith("__EDITOR__"):
                 # Tool box item
                 d = 20
             else:
@@ -265,25 +265,21 @@ class LineItem(abstract.ResizableItem):
     def drawTrain(self):
         """Draws the train(s) on the line, if any"""
         tlines = []
-        if self.simulation.context == utils.Context.GAME and \
-           self.trainPresent():
-            if int(self.simulation.option("trackCircuitBased")) == 0:
-                for i in range(len(self._trainHeads)):
-                    tlines.append(QtCore.QLineF(
-                        self.sceneLine.pointAt(self._trainHeads[i] /
-                                               self._realLength),
-                        self.sceneLine.pointAt(self._trainTails[i] /
-                                               self._realLength)
-                    ))
-                    if tlines[i].length() < 5.0 and self._trainTails[i] != 0:
-                        # Make sure that the train representation is always
-                        # at least 5 pixel long.
-                        tlines[i].setLength(
-                            min(5.0,
-                                (1 - self._trainTails[i] / self._realLength) *
-                                self.sceneLine.length()))
-            else:
-                tlines = [self.sceneLine]
+        if self.simulation.context == utils.Context.GAME:
+            for i in range(len(self._trainHeads)):
+                tlines.append(QtCore.QLineF(
+                    self.sceneLine.pointAt(self._trainHeads[i] /
+                                           self._realLength),
+                    self.sceneLine.pointAt(self._trainTails[i] /
+                                           self._realLength)
+                ))
+                if tlines[i].length() < 5.0 and self._trainTails[i] != 0:
+                    # Make sure that the train representation is always
+                    # at least 5 pixel long.
+                    tlines[i].setLength(
+                        min(5.0,
+                            (1 - self._trainTails[i] / self._realLength) *
+                            self.sceneLine.length()))
         self.showTrainLineItem(tlines)
 
     def showTrainLineItem(self, lines):
@@ -322,9 +318,9 @@ class LineItem(abstract.ResizableItem):
         if event.button() == Qt.LeftButton:
             # and self.graphicsItem.shape().contains(pos):
             if (self.simulation.context == utils.Context.EDITOR_TRAINS and
-               self.tiId > 0):
+                    not self.tiId.startswith("__EDITOR__")):
                 x = event.buttonDownPos(Qt.LeftButton).x()
-                ratio = (x - self.line.x1())/(self.line.x2() - self.line.x1())
+                ratio = (x - self.line.x1()) / (self.line.x2() - self.line.x1())
                 self.positionSelected.emit(
                     ts2.routing.position.Position(self, self.previousItem,
                                                   self.realLength * ratio)

@@ -45,6 +45,8 @@ class ExceptionDialog:
             message += message.join(traceback.format_tb(sys.exc_info()[2]))
         else:
             message += message.join(traceback.format_exc())
+        if settings.debug:
+            print(message)
         return QtWidgets.QMessageBox.critical(parent, title, message)
 
 
@@ -145,8 +147,8 @@ class ServiceAssignDialog(QtWidgets.QDialog):
         if sad.exec_() == QtWidgets.QDialog.Accepted:
             newServiceCode = sad.getServiceCode()
             if newServiceCode != "":
-                train = simulation.trains[trainId]
-                train.serviceCode = newServiceCode
+                simulation.simulationWindow.webSocket.sendRequest("train", "setService",
+                                                                  {'id': int(trainId), 'service': newServiceCode})
 
     def closeEvent(self, event):
         """Save window postions on close"""

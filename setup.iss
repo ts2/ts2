@@ -2,11 +2,11 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "TS2"
-#define MyAppVersion "0.6"
+#define MyAppVersion "0.7"
 #define MyAppPublisher "TS2 Team"
 #define MyAppURL "http://ts2.github.io"
 #define MyAppExeName "ts2.exe"
-#define PythonVersion "3.4"
+#define PythonVersion "3.6"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -19,27 +19,25 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-ArchitecturesAllowed=x64 ia64
-ArchitecturesInstallIn64BitMode=x64 ia64
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName=Train Signalling Simulation
 DisableProgramGroupPage=yes
-LicenseFile=C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-{#PythonVersion}\doc\COPYING.txt
+LicenseFile=build\exe.win32-{#PythonVersion}\doc\COPYING.txt
 OutputDir=dist
-OutputBaseFilename={#MyAppName}-{#MyAppVersion}-x64-setup
+OutputBaseFilename={#MyAppName}-{#MyAppVersion}-setup
 Compression=lzma
 SolidCompression=yes
 
 [Languages]
-Name: "english"; MessagesFile: "compiler:Default.isl"; InfoAfterFile: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-{#PythonVersion}\doc\README.txt"
-Name: "french"; MessagesFile: "compiler:Languages\French.isl"; InfoAfterFile: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-{#PythonVersion}\doc\README_fr.txt"
+Name: "english"; MessagesFile: "compiler:Default.isl"; InfoAfterFile: "build\exe.win32-{#PythonVersion}\doc\README.txt"
+Name: "french"; MessagesFile: "compiler:Languages\French.isl"; InfoAfterFile: "build\exe.win32-{#PythonVersion}\doc\README_fr.txt"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-{#PythonVersion}\ts2.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Nicolas\Documents\Progs\GitHub\ts2\build\exe.win-amd64-{#PythonVersion}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "build\exe.win32-{#PythonVersion}\ts2.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "build\exe.win32-{#PythonVersion}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

@@ -18,19 +18,18 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
+import collections
 import copy
 import os
-import collections
+
 import simplejson as json
 
 from Qt import QtCore, QtGui, QtWidgets, Qt
-
 from ts2 import utils
 from ts2.scenery import abstract, helper, enditem
 from . import signalaspect
 
 translate = QtWidgets.qApp.translate
-
 
 BUILTIN_SIGNAL_LIBRARY = """{
     "__type__": "SignalLibrary",
@@ -39,36 +38,40 @@ BUILTIN_SIGNAL_LIBRARY = """{
             "__type__": "SignalAspect",
             "lineStyle": 1,
             "outerShapes": [0, 0, 0, 0, 0, 0],
-            "outerColors": [0, 0, 0, 0, 0, 0],
+            "outerColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "shapes": [0, 0, 0, 0, 0, 0],
-            "shapesColors": [0, 0, 0, 0, 0, 0],
+            "shapesColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
+            "blink": [false, false, false, false, false, false],
             "actions": [[1, 0]]
         },
         "UK_DANGER": {
             "__type__": "SignalAspect",
             "lineStyle": 0,
             "outerShapes": [0, 0, 0, 0, 0, 0],
-            "outerColors": [0, 0, 0, 0, 0, 0],
+            "outerColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "shapes": [1, 0, 0, 0, 0, 0],
-            "shapesColors": ["#FF0000", 0, 0, 0, 0, 0],
+            "shapesColors": ["#FF0000", "#000000", "#000000", "#000000", "#000000", "#000000"],
+            "blink": [false, false, false, false, false, false],
             "actions": [[1, 0]]
         },
         "UK_CAUTION": {
             "__type__": "SignalAspect",
             "lineStyle": 0,
             "outerShapes": [0, 0, 0, 0, 0, 0],
-            "outerColors": [0, 0, 0, 0, 0, 0],
+            "outerColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "shapes": [1, 0, 0, 0, 0, 0],
-            "shapesColors": ["#FFFF00", 0, 0, 0, 0, 0],
+            "shapesColors": ["#FFFF00", "#000000", "#000000", "#000000", "#000000", "#000000"],
+            "blink": [false, false, false, false, false, false],
             "actions": [[2, 0]]
         },
         "UK_CLEAR": {
             "__type__": "SignalAspect",
             "lineStyle": 0,
             "outerShapes": [0, 0, 0, 0, 0, 0],
-            "outerColors": [0, 0, 0, 0, 0, 0],
+            "outerColors": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
             "shapes": [1, 0, 0, 0, 0, 0],
-            "shapesColors": ["#00FF00", 0, 0, 0, 0, 0],
+            "shapesColors": ["#00FF00", "#000000", "#000000", "#000000", "#000000", "#000000"],
+            "blink": [false, false, false, false, false, false],
             "actions": [[0, 999]]
         }
     },
@@ -115,24 +118,6 @@ BUILTIN_SIGNAL_LIBRARY = """{
 }"""
 
 
-def json_hook(dct):
-    """Hook method for json loading of signal library.
-    :param dict dct: the dictionary to load
-    :return: An class of ``__type__``
-    :rtype: Class instance
-    """
-    if not dct.get('__type__'):
-        return dct
-    elif dct['__type__'] == "SignalLibrary":
-        return SignalLibrary(parameters=dct)
-    elif dct['__type__'] == "SignalType":
-        return SignalType(parameters=dct)
-    elif dct['__type__'] == "SignalState":
-        return SignalState(parameters=dct)
-    elif dct['__type__'] == "SignalAspect":
-        return signalaspect.SignalAspect(parameters=dct)
-
-
 class SignalItem(abstract.TrackItem):
     """Logical item for signals.
 
@@ -151,11 +136,11 @@ class SignalItem(abstract.TrackItem):
         super().__init__(parameters)
         reverse = bool(parameters.get("reverse", 0))
         self._signalType = None
-        for customProperty in signalLibrary.tiProperties.values():
+        for key, customProperty in signalLibrary.tiProperties.items():
             # Initialize backend vars for custom properties
             propName = "_" + customProperty.name[:-3]
-            setattr(self, propName,
-                    eval(str(parameters.get(customProperty.name[:-3], {}))))
+            customProps = parameters.get("customProperties") or {}
+            setattr(self, propName, eval(str(customProps.get(key, {}))))
         try:
             xb = float(parameters.get("xn", ""))
         except ValueError:
@@ -167,7 +152,7 @@ class SignalItem(abstract.TrackItem):
         self._berthOrigin = QtCore.QPointF(xb, yb)
         self._berthRect = None
         self.setBerthRect()
-        self._activeAspect = None
+        self._activeAspect = signalLibrary.signalAspects.get(parameters.get("activeAspect"))
         self._reverse = reverse
         self._previousActiveRoute = None
         self._nextActiveRoute = None
@@ -186,6 +171,7 @@ class SignalItem(abstract.TrackItem):
         bgi.setCursor(Qt.PointingHandCursor)
         bgi.setZValue(self.defaultZValue)
         self._gi[SignalItem.BERTH_GRAPHIC_ITEM] = bgi
+        self.lightOn = True
 
     def initialize(self, simulation):
         """Initialize the signal item once everything is loaded."""
@@ -212,7 +198,31 @@ class SignalItem(abstract.TrackItem):
             self.signalSelected.connect(simulation.prepareRoute)
             self.signalUnselected.connect(simulation.deselectRoute)
         self.trainSelected.connect(simulation.trainSelected)
+        simulation.timeChanged.connect(self.updateBlink)
         super().initialize(simulation)
+
+    def updateData(self, msg):
+        if "nextActiveRoute" in msg:
+            if msg["nextActiveRoute"]:
+                self.nextActiveRoute = self.simulation.routes[msg["nextActiveRoute"]]
+            else:
+                self.nextActiveRoute = None
+        if "previousActiveRoute" in msg:
+            if msg["previousActiveRoute"]:
+                self.previousActiveRoute = self.simulation.routes[msg["previousActiveRoute"]]
+            else:
+                self.previousActiveRoute = None
+        if "activeAspect" in msg:
+            if msg["activeAspect"]:
+                self._activeAspect = signalLibrary.signalAspects[msg["activeAspect"]]
+            else:
+                self._activeAspect = None
+        if "trainID" in msg:
+            if msg["trainID"]:
+                self._trainId = msg["trainID"]
+            else:
+                self._trainId = None
+        super(SignalItem, self).updateData(msg)
 
     @staticmethod
     def getProperties():
@@ -236,24 +246,26 @@ class SignalItem(abstract.TrackItem):
     def for_json(self):
         """Dumps the signalItem to JSON."""
         jsonData = super().for_json()
-        signalCustomProperties = list(signalLibrary.tiProperties.values())
-        for customProp in signalCustomProperties:
-            jsonData[customProp.name[:-3]] = getattr(self, customProp.name[:-3])
+        signalCustomProperties = {}
+        for key, customProp in signalLibrary.tiProperties.items():
+            if customProp:
+                signalCustomProperties[key] = getattr(self, customProp.name[:-3])
         jsonData.update({
-            "reverse": int(self.reverse),
+            "customProperties": signalCustomProperties,
+            "reverse": self.reverse,
             "signalType": self.signalTypeStr,
             "xn": self.berthOrigin.x(),
             "yn": self.berthOrigin.y()
         })
         return jsonData
 
-    signalSelected = QtCore.pyqtSignal(int, bool, bool)
+    signalSelected = QtCore.pyqtSignal(str, bool, bool)
     """pyqtSignal(int, bool, bool)"""
 
-    signalUnselected = QtCore.pyqtSignal(int)
+    signalUnselected = QtCore.pyqtSignal(str)
     """pyqtSignal(int)"""
 
-    trainSelected = QtCore.pyqtSignal(int)
+    trainSelected = QtCore.pyqtSignal(str)
     """pyqtSignal(int)"""
 
     aspectChanged = QtCore.pyqtSignal()
@@ -375,8 +387,8 @@ class SignalItem(abstract.TrackItem):
         """Resets the nextActiveRoute information. If route is not None, do
         this only if the nextActiveRoute is equal to route."""
         if (route is None or
-            (self.nextActiveRoute is not None and
-             self.nextActiveRoute == route)):
+                (self.nextActiveRoute is not None and
+                 self.nextActiveRoute == route)):
             self._nextActiveRoute = None
             self.updateSignalState()
 
@@ -396,8 +408,8 @@ class SignalItem(abstract.TrackItem):
         """Reset the previousActiveRoute information. If route is not None, do
         this only if the previousActiveRoute is equal to route."""
         if (route is None or
-            (self.previousActiveRoute is not None and
-             self.previousActiveRoute == route)):
+                (self.previousActiveRoute is not None and
+                 self.previousActiveRoute == route)):
             self._previousActiveRoute = None
             self.updateSignalState()
 
@@ -428,7 +440,7 @@ class SignalItem(abstract.TrackItem):
         """Returns the trainServiceCode of this signal. This is for display
         only."""
         if self._trainId is not None:
-            return self.simulation.trains[self._trainId].serviceCode
+            return self.simulation.trains[int(self._trainId)].serviceCode
         else:
             return ""
 
@@ -476,123 +488,29 @@ class SignalItem(abstract.TrackItem):
         """ Returns true if there is a train ahead of this signalItem and
         before the end of the next active route or the next signal if no route
         is set."""
-        if self.nextActiveRoute is not None:
-            for pos in self.nextActiveRoute.positions:
-                if pos.trackItem.trainPresent():
-                    return True
-        else:
-            cur = self.getFollowingItem(self.previousItem)
-            prev = self
-            while cur:
-                if cur.trainPresent():
-                    return True
-                if isinstance(cur, SignalItem):
-                    if prev == cur.previousItem:
-                        break
-                elif isinstance(cur, enditem.EndItem):
-                    break
-                oldPrev = prev
-                prev = cur
-                cur = cur.getFollowingItem(oldPrev)
         return False
-
-    def trainHeadActions(self, trainId):
-        """Actions to be performed when the train head reaches this signal.
-
-        Pushes the train code to the next signal."""
-        train = self.simulation.trains[trainId]
-        # Check that signal is in same direction as trainHead to push the train
-        # descriptor only this case
-        pos = train.trainHead
-        # We do not use isOut, because we are backwards
-        while not isinstance(pos.trackItem, enditem.EndItem):
-            if pos.trackItem == self:
-                if self.isOnPosition(pos):
-                    nextSignal = self.getNextSignal()
-                    if nextSignal:
-                        nextSignal.trainId = trainId
-                    if self.trainId == trainId:
-                        # Only reset train descriptor if it is ours, as it may
-                        # be the one of a train behind in the same block
-                        self.resetTrainId()
-                else:
-                    return
-            pos = pos.previous()
-        # Update signal state to close the signal if applicable
-        self.updateSignalState()
-        super().trainHeadActions(trainId)
-
-    def trainTailActions(self, trainId):
-        """Actions that are to be done when a train tail reaches this signal.
-        It deals with desactivating this signal."""
-        if (self.activeRoute is not None and
-                (self.activeRoutePreviousItem != self.previousItem or
-                 (self.activeRoute.beginSignal != self and
-                  self.activeRoute.endSignal != self))):
-            # The line is highlighted by an opposite direction route or this
-            # signal is not the starting/ending signal of this route.
-            # => base TrackItem actions
-            super().trainTailActions(trainId)
-        else:
-            # For cleaning purposes: activeRoute not used in this direction
-            self.resetActiveRoute()
-
-            if (self.previousActiveRoute is not None) and \
-               (not self.previousActiveRoute.persistent):
-                beginSignalNextRoute = \
-                    self.previousActiveRoute.beginSignal.nextActiveRoute
-                if beginSignalNextRoute is None or \
-                   beginSignalNextRoute != self.previousActiveRoute:
-                    # Only reset previous route if the user did not
-                    # reactivate it in the meantime
-                    self.previousItem.resetActiveRoute()
-                    self.resetPreviousActiveRoute()
-            if (self.nextActiveRoute is not None) and \
-               (not self.nextActiveRoute.persistent):
-                self.resetNextActiveRoute()
-            self.updateSignalState()
-            # We emit aspectChanged here to recalculate previous signal, even if
-            # this signal aspect did not change, since the train just left the
-            # block.
-            self.aspectChanged.emit()
 
     @QtCore.pyqtSlot()
     def unselect(self):
         """Unselect the signal."""
         self.selected = False
 
-    def setActiveRoute(self, r, previous):
-        """Overridden here to update signal state."""
-        super().setActiveRoute(r, previous)
-        self.updateSignalState()
-
-    def resetActiveRoute(self):
-        """Overridden here to update signal state."""
-        super().resetActiveRoute()
-        self.updateSignalState()
-
     def updateSignalParams(self):
         """Updates signal custom parameters according to the SignalType."""
         self.signalType.updateParams(self)
 
     @QtCore.pyqtSlot()
+    def updateBlink(self):
+        self.lightOn = not self.lightOn
+        self.updateGraphics()
+
+    @QtCore.pyqtSlot()
     def updateSignalState(self):
         """Update the signal current aspect."""
-        oldAspect = self.activeAspect
-        self._activeAspect = self.signalType.getAspect(self)
-
-        if self.activeAspect != oldAspect:
-            self.aspectChanged.emit()
-
-        if self.previousActiveRoute is not None:
-            self.previousActiveRoute.beginSignal.updateSignalState()
-
         self.updateGraphics()
 
     def setupTriggers(self):
         """Create the triggers necessary for this Item."""
-        for trigger in self.simulation.signalLibrary.triggers.values():
-            trigger(self)
         self.updateSignalState()
 
     # ## Graphics Methods ################################################
@@ -625,7 +543,7 @@ class SignalItem(abstract.TrackItem):
             elif itemId == SignalItem.BERTH_GRAPHIC_ITEM:
                 # The train code is right-clicked
                 if self._trainId is not None:
-                    train = self.simulation.trains[self._trainId]
+                    train = self.simulation.trains[int(self._trainId)]
                     if train is not None:
                         train.showTrainActionsMenu(
                             self.simulation.simulationWindow.view, e.screenPos()
@@ -666,7 +584,7 @@ class SignalItem(abstract.TrackItem):
 
             persistent = (self.nextActiveRoute is not None and
                           self.nextActiveRoute.persistent)
-            self.activeAspect.drawAspect(p, linePen, shapePen, persistent)
+            self.activeAspect.drawAspect(p, linePen, shapePen, persistent, self.lightOn)
 
             # Draw the connection rects
             if isEditorScenery:
@@ -704,7 +622,7 @@ class SignalItem(abstract.TrackItem):
         super().graphicsMouseMoveEvent(event, itemId)
         if itemId == SignalItem.BERTH_GRAPHIC_ITEM:
             if event.buttons() == Qt.LeftButton and \
-               self.simulation.context == utils.Context.EDITOR_SCENERY:
+                    self.simulation.context == utils.Context.EDITOR_SCENERY:
                 if QtCore.QLineF(
                         event.scenePos(),
                         event.buttonDownScenePos(Qt.LeftButton)).length() < 3.0:
@@ -772,10 +690,13 @@ class SignalType:
 
     def __init__(self, parameters):
         """
-        :param dict paramaters:
+        :param dict parameters: dict with the data of the signal type
         """
-        self.name = "__UNNAMED__"
-        self.states = parameters["states"]
+        self.name = parameters["name"]
+        self.states = []
+        for ssDict in parameters["states"]:
+            ss = SignalState(ssDict)
+            self.states.append(ss)
 
     def initialize(self, signalLib):
         """Initializes this SignalType once
@@ -854,12 +775,18 @@ class SignalLibrary:
 
     def __init__(self, parameters):
         """Constructor for the SignalLibrary class."""
-        self.signalAspects = parameters["signalAspects"]
-        for name, sa in self.signalAspects.items():
-            sa.name = name
-        self.signalTypes = parameters["signalTypes"]
-        for name, st in self.signalTypes.items():
-            st.name = name
+        self.signalAspects = {}
+        self.signalTypes = {}
+        signalAspects = parameters["signalAspects"]
+        for name, saDict in signalAspects.items():
+            saDict["name"] = name
+            sa = signalaspect.SignalAspect(saDict)
+            self.signalAspects[name] = sa
+        signalTypes = parameters["signalTypes"]
+        for name, stDict in signalTypes.items():
+            stDict["name"] = name
+            st = SignalType(stDict)
+            self.signalTypes[name] = st
 
     def initialize(self):
         """Initializes the SignalLibrary once it is totally loaded."""
@@ -879,21 +806,37 @@ class SignalLibrary:
             "signalTypes": self.signalTypes
         }
 
-    def update(self, other):
-        """Updates this SignalLibrary instance by adding signal aspects and
+    def filtered(self, signalTypes):
+        """Returns a new SignalLibrary with only the given signalTypes.
+        It automatically gets the needed signal aspects."""
+        res = copy.deepcopy(self)
+        aspects = []
+        for name, st in self.signalTypes.items():
+            if st in signalTypes:
+                aspects.extend([s.aspect for s in st.states])
+            else:
+                del res.signalTypes[name]
+        aspects = set(aspects)
+        for name, asp in self.signalAspects.items():
+            if asp not in aspects:
+                del res.signalAspects[name]
+        return res
+
+    @staticmethod
+    def update(libDict, other):
+        """Updates this SignalLibrary dict by adding signal aspects and
         signal types from the other SignalLibrary. If signal aspects or signal
         types of the same name exists in both SignalLibrary instance, the data
         in the other SignalLibray will overwrite the data of this SignalLibrary.
         """
-        self.signalAspects.update(other.signalAspects)
-        self.signalTypes.update(other.signalTypes)
+        libDict["signalAspects"].update(other["signalAspects"])
+        libDict["signalTypes"].update(other["signalTypes"])
 
     @staticmethod
     def createSignalLibrary():
-        """Returns a SignalLibrary with the builtin signal types and those
+        """Returns a SignalLibrary dict with the builtin signal types and those
         defined in tsl files in the data directory."""
-        builtinLibrary = json.loads(BUILTIN_SIGNAL_LIBRARY,
-                                    object_hook=json_hook, encoding="utf-8")
+        builtinLibraryDict = json.loads(BUILTIN_SIGNAL_LIBRARY, encoding="utf-8")
         # General data directory
         tslGenFiles = [os.path.join("data", f) for f in os.listdir("data")
                        if f.endswith('.tsl')]
@@ -906,15 +849,13 @@ class SignalLibrary:
         tslFiles.sort()
         for tslFile in tslFiles:
             with open(tslFile) as fileStream:
-                sl = json.load(fileStream, object_hook=json_hook,
-                               encoding="utf-8")
-                builtinLibrary.update(sl)
-
-        builtinLibrary.initialize()
-        return builtinLibrary
+                sl = json.load(fileStream, encoding="utf-8")
+                SignalLibrary.update(builtinLibraryDict, sl)
+        return builtinLibraryDict
 
 
-signalLibrary = SignalLibrary.createSignalLibrary()
+signalLibraryDict = SignalLibrary.createSignalLibrary()
+signalLibrary = SignalLibrary(signalLibraryDict)
 
 
 def condition(cls):
@@ -1119,7 +1060,7 @@ class TrainPresentOnItems:
                     translate("TrainPresentOnItems",
                               "Error in simulation definition: SignalItem %s "
                               "references unknown track item %s") %
-                              (signalItem.tiId, str(err))
+                    (signalItem.tiId, str(err))
                 )
 
 
@@ -1171,7 +1112,7 @@ class RouteSetCondition:
                     translate("RouteSetCondition",
                               "Error in simulation definition: SignalItem %s "
                               "references unknown route %s") %
-                              (signalItem.tiId, str(err))
+                    (signalItem.tiId, str(err))
                 )
 
 

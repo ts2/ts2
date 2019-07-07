@@ -142,7 +142,7 @@ class Place(abstract.TrackItem):
         if self.name is None or self.name == "":
             return super().boundingRect()
         else:
-            if self.tiId < 0:
+            if self.tiId.startswith("__EDITOR__"):
                 # Toolbox item
                 return QtCore.QRectF(-32, -15, 100, 50)
             else:
@@ -221,13 +221,13 @@ class PlaceInfoModel(QtCore.QAbstractTableModel):
 
     @place.setter
     def place(self, place):
-        self.beginResetModel()
-        self._place = place
-        self.endResetModel()
+        self.setPlace(place)
 
     @QtCore.pyqtSlot(Place)
     def setPlace(self, place):
-        self.place = place
+        self.beginResetModel()
+        self._place = place
+        self.endResetModel()
 
 
 Place.selectedPlaceModel = PlaceInfoModel()

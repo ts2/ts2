@@ -19,20 +19,22 @@
 #
 
 import copy
+import csv
 import zipfile
 
 import simplejson as json
-from Qt import QtCore, QtWidgets, Qt
+import collections
 
+from Qt import QtCore, QtWidgets, Qt
 from ts2 import __FILE_FORMAT__
 from ts2 import simulation
 from ts2 import utils, trains
+from ts2.editor import editorscenebackground
 from ts2.routing import position, route
 from ts2.scenery import abstract, placeitem, lineitem, platformitem, \
     invisiblelinkitem, enditem, pointsitem, textitem
 from ts2.scenery.signals import signalitem
-from ts2.editor import editorscenebackground
-from ts2.game import logger
+from ts2.simulation import BUILTIN_OPTIONS
 
 translate = QtWidgets.qApp.translate
 
@@ -44,7 +46,7 @@ def json_hook(dct):
     elif dct['__type__'] == "Simulation":
         return Editor(dct['options'], dct['trackItems'], dct['routes'],
                       dct['trainTypes'], dct['services'], dct['trains'],
-                      dct['messageLogger'])
+                      dct['messageLogger'], dct.get('signalLibrary'))
     else:
         return simulation.json_hook(dct)
 
@@ -70,6 +72,7 @@ def load(editorWindow, jsonStream):
 
 class WhiteLineItem(QtWidgets.QGraphicsLineItem):
     """Shortcut class to make a white line item and add to scene"""
+
     def __init__(self, x1, y1, x2, y2, parent, scene):
         """Constructor for the WhiteLineItem class"""
         super().__init__(x1, y1, x2, y2, parent)
@@ -81,6 +84,7 @@ class WhiteLineItem(QtWidgets.QGraphicsLineItem):
 class OptionsModel(QtCore.QAbstractTableModel):
     """Model for editing options in the editor.
     """
+
     def __init__(self, editor):
         """Constructor for the OptionsModel class"""
         super().__init__()
@@ -103,7 +107,7 @@ class OptionsModel(QtCore.QAbstractTableModel):
             if index.column() == 0:
                 return optionKeys[index.row()]
             elif index.column() == 1:
-                return optionValues[index.row()]
+                return str(optionValues[index.row()])
         return None
 
     def setData(self, index, value, role=None):
@@ -136,19 +140,28 @@ class Editor(simulation.Simulation):
     """The Editor class holds all the logic behind the simulation editor. It
     is a subclass of the Simulation class.
     """
+
     def __init__(self, options=None, trackItems=None, routes=None,
                  trainTypes=None, services=None, trns=None, messageLogger=None,
-                 fileName=None):
+                 signalLibrary=None, fileName=None):
         """Constructor for the Editor class"""
         options = options or simulation.BUILTIN_OPTIONS
+        options["version"] = str(options["version"])
+        if options and options["version"] < __FILE_FORMAT__:
+            options, trackItems, routes, trainTypes, services, trns, messageLogger, signalLibrary, fileName = \
+                self.upgradeSimulation(options, trackItems, routes, trainTypes, services, trns, messageLogger,
+                                       signalLibrary, fileName)
         trackItems = trackItems or {}
         routes = routes or {}
         trainTypes = trainTypes or {}
         services = services or {}
         trns = trns or []
-        messageLogger = messageLogger or logger.MessageLogger({})
+        messageLogger = messageLogger or {"messages": []}
+        if signalLibrary:
+            signalitem.SignalLibrary.update(signalitem.signalLibraryDict, signalLibrary)
+        signalLibrary = signalitem.signalLibraryDict
         super().__init__(options, trackItems, routes, trainTypes, services,
-                         trns, messageLogger)
+                         trns, messageLogger, signalLibrary)
 
         self._context = utils.Context.EDITOR_GENERAL
         self._libraryScene = QtWidgets.QGraphicsScene(0, 0, 200, 250, self)
@@ -172,38 +185,38 @@ class Editor(simulation.Simulation):
 
         # Items
         self.librarySignalItem = signalitem.SignalItem({
-            "tiId": -1, "name": "Signal", "x": 65, "y": 25, "reverse": 0,
-            "xn": 20, "yn": 30, "signalType": "UK_3_ASPECTS", "maxSpeed": 0.0,
+            "tiId": "__EDITOR__1", "name": "Signal", "x": 65, "y": 25, "reverse": 0,
+            "xn": 20, "yn": 30, "signalType": "UK_3_ASPECTS", "activeAspect": "UK_DANGER", "maxSpeed": 0.0,
             "routesSetParams": "{}", "trainNotPresentParams": "{}"
         })
         self.libraryLineItem = lineitem.LineItem({
-            "tiId": -5, "name": "Line", "x": 120, "y": 25, "xf": 180, "yf": 25,
+            "tiId": "__EDITOR__5", "name": "Line", "x": 120, "y": 25, "xf": 180, "yf": 25,
             "maxSpeed": 0.0, "realLength": 1.0, "placeCode": None,
             "trackCode": None
         })
         self.libraryPointsItem = pointsitem.PointsItem({
-            "tiId": -3, "name": "Points", "maxSpeed": 0.0, "x": 50, "y": 75,
+            "tiId": "__EDITOR__3", "name": "Points", "maxSpeed": 0.0, "x": 50, "y": 75,
             "xf": -5, "yf": 0, "xn": 5, "yn": 0, "xr": 5, "yr": -5
         })
         self.libraryPlatformItem = platformitem.PlatformItem({
-            "tiId": -6, "name": "Platform", "x": 120, "y": 65, "xf": 180,
+            "tiId": "__EDITOR__6", "name": "Platform", "x": 120, "y": 65, "xf": 180,
             "yf": 85, "maxSpeed": 0.0, "realLength": 1.0, "placeCode": None,
             "trackCode": None
         })
         self.libraryPlaceItem = placeitem.Place({
-            "tiId": -8, "name": "PLACE", "placeCode": "", "maxSpeed": 0.0,
+            "tiId": "__EDITOR__8", "name": "PLACE", "placeCode": "", "maxSpeed": 0.0,
             "x": 132, "y": 115, "xf": 0, "yf": 0
         })
         self.libraryEndItem = enditem.EndItem({
-            "tiId": -7, "name": "End", "maxSpeed": 0.0, "x": 50, "y": 125,
+            "tiId": "__EDITOR__7", "name": "End", "maxSpeed": 0.0, "x": 50, "y": 125,
             "xf": 0, "yf": 0
         })
         self.libraryTextItem = textitem.TextItem({
-            "tiId": -11, "name": "TEXT", "x": 36, "y": 165, "maxSpeed": 0.0,
+            "tiId": "__EDITOR__11", "name": "TEXT", "x": 36, "y": 165, "maxSpeed": 0.0,
             "realLength": 1.0
         })
         self.libraryInvisibleLinkItem = invisiblelinkitem.InvisibleLinkItem({
-            "tiId": -10, "name": "Invisible link", "x": 120, "y": 175,
+            "tiId": "__EDITOR__10", "name": "Invisible link", "x": 120, "y": 175,
             "xf": 180, "yf": 175, "maxSpeed": 0.0, "realLength": 1.0,
             "placeCode": None, "trackCode": None
         })
@@ -236,13 +249,14 @@ class Editor(simulation.Simulation):
     def initialize(self, editorWindow):
         """Initialize the simulation."""
         self.simulationWindow = editorWindow
+        self.signalLibrary.initialize()
 
         self.updatePlaces()
         for ti in self.trackItems.values():
             ti.initialize(self)
         self.adjustSceneBackground()
         try:
-            self._nextId = max(self._trackItems.keys()) + 1
+            self._nextId = max([int(x) for x in self._trackItems.keys()]) + 1
         except ValueError:
             self._nextId = 1
 
@@ -260,7 +274,7 @@ class Editor(simulation.Simulation):
             for rte in self.routes.values():
                 rte.initialize(self)
             try:
-                self._nextRouteId = max(self._routes.keys()) + 1
+                self._nextRouteId = max([int(x) for x in self._routes.keys()]) + 1
             except ValueError:
                 self._nextRouteId = 1
         for trainType in self.trainTypes.values():
@@ -275,6 +289,91 @@ class Editor(simulation.Simulation):
         self.messageLogger.initialize(self)
 
         self._scene.update()
+
+    def upgradeSimulation(self, options=None, trackItems=None, routes=None,
+                          trainTypes=None, services=None, trns=None, messageLogger=None,
+                          signalLibrary=None, fileName=None):
+        if options["version"] == "0.6":
+            return self.upgradeSimulationFrom06(options, trackItems, routes, trainTypes, services, trns, messageLogger,
+                                                signalLibrary, fileName)
+        else:
+            raise utils.FormatException(
+                translate('editor.upgradeSimulation',
+                          "Simulation files with version %s are not managed") % options["version"]
+            )
+
+    def upgradeSimulationFrom06(self, options=None, trackItems=None, routes=None,
+                                trainTypes=None, services=None, trns=None, messageLogger=None,
+                                signalLibrary=None, fileName=None):
+        # Options
+        options["version"] = "0.7"
+        for optName, opt in options.items():
+            if optName == "trackCircuitBased":
+                if isinstance(opt, str):
+                    opt = eval(opt)
+                options[optName] = bool(opt)
+                continue
+            if not isinstance(BUILTIN_OPTIONS[optName], str) and isinstance(opt, str):
+                options[optName] = eval(opt)
+        # TrackItems
+        tiFields = ["conflictTiId", "nextTiId", "previousTiId", "reverseTiId"]
+        customProperties = [
+            ("routesSetParams", "ROUTES_SET"),
+            ("trainPresentParams", "TRAIN_PRESENT_ON_ITEMS"),
+            ("trainNotPresentParams", "TRAIN_NOT_PRESENT_ON_ITEMS"),
+        ]
+        for tiID, ti in trackItems.copy().items():
+            for field in tiFields:
+                if ti.get(field):
+                    trackItems[tiID][field] = str(ti[field])
+            cp = {}
+            for pName, pCode in customProperties:
+                if ti.get(pName):
+                    if isinstance(ti[pName], str):
+                        ti[pName] = eval(ti[pName])
+                    for sn, lst in ti[pName].items():
+                        ti[pName][sn] = [str(v) for v in lst]
+                    cp[pCode] = ti[pName]
+                    del trackItems[tiID][pName]
+            if cp:
+                trackItems[tiID]["customProperties"] = cp
+        # Routes
+        rteFields = ["beginSignal", "endSignal"]
+        for rID, rte in routes.items():
+            for field in rteFields:
+                if rte.get(field):
+                    routes[rID][field] = str(rte[field])
+            routes[rID]["id"] = rID
+            del routes[rID]["routeNum"]
+        # Services
+        for sID, srv in services.copy().items():
+            pa = []
+            if srv.get("autoReverse"):
+                pa.append({
+                    "actionCode": "REVERSE",
+                    "actionParam": None,
+                })
+                del services[sID]["autoReverse"]
+            if srv.get("nextServiceCode"):
+                pa.append({
+                    "actionCode": "SET_SERVICE",
+                    "actionParam": srv.get("nextServiceCode"),
+                })
+                del services[sID]["nextServiceCode"]
+            if not isinstance(srv["plannedTrainType"], str):
+                services[sID]["plannedTrainType"] = ""
+            services[sID]["postActions"] = pa
+            for i, sl in enumerate(srv["lines"]):
+                services[sID]["lines"][i]["mustStop"] = bool(sl["mustStop"])
+        # Trains
+        for i, trn in enumerate(trns):
+            th = trn["trainHead"]
+            th["trackItem"] = str(th["trackItem"])
+            th["previousTI"] = str(th["previousTI"])
+            trns[i]["trainHead"] = th
+            trns[i]["stoppedTime"] = int(trn["stoppedTime"])
+
+        return options, trackItems, routes, trainTypes, services, trns, messageLogger, signalLibrary, fileName
 
     sceneryIsValidated = QtCore.pyqtSignal(bool)
     trainsChanged = QtCore.pyqtSignal()
@@ -328,10 +427,10 @@ class Editor(simulation.Simulation):
     def selectedRoute(self, value):
         """Setter function for the selectedRoute property"""
         if self._selectedRoute is not None:
-            self._selectedRoute.desactivate()
+            self._selectedRoute.unhighlight()
         self._selectedRoute = value
         if self._selectedRoute is not None:
-            self._selectedRoute.activate()
+            self._selectedRoute.highlight()
 
     @property
     def selectedItems(self):
@@ -407,6 +506,122 @@ class Editor(simulation.Simulation):
             with open(self.fileName, 'w') as f:
                 json.dump(self, f, separators=(', ', ': '), indent=4,
                           sort_keys=True, for_json=True, encoding='utf-8')
+
+    def exportTrackItemsToFile(self, fileName):
+        with open(fileName, 'w', newline='') as csvfile:
+            fieldnames = [
+                "tiId", "name", "nextTiId", "previousTiId", "reverseTiId", "x", "y", "xf", "yf", "xn", "yn", "xr", "yr",
+                "conflictTiId", "maxSpeed", "placeCode", "realLength", "trackCode", "signalType", "customProperties",
+                "reverse", "__type__"
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for ti in self.trackItems.values():
+                data = ti.for_json()
+                writer.writerow(data)
+
+    def importTrackItemsFromFile(self, fileName):
+        with open(fileName, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            self._trackItems = collections.OrderedDict()
+            trackItems = {}
+            for row in reader:
+                ti = row.copy()
+                numFields = ["x", "y", "xf", "yf", "xn", "yn", "xr", "yr", "maxSpeed", "realLength"]
+                for f in numFields:
+                    ti[f] = ti[f] and eval(ti[f]) or 0
+                boolFields = ["reverse"]
+                for f in boolFields:
+                    ti[f] = ti[f] == "True"
+                objectFields = ["customProperties"]
+                for f in objectFields:
+                    ti[f] = ti[f] and eval(ti[f]) or {}
+                trackItems[ti['tiId']] = ti
+        self.loadTrackItems(trackItems)
+        maxID = 1
+        for ti in self.trackItems.values():
+            try:
+                maxID = max(int(ti.tiId), maxID)
+            except ValueError:
+                pass
+            ti.initialize(self)
+            self.expandBackgroundTo(ti)
+        self._nextId = maxID + 1
+
+    def exportRoutesToFile(self, fileName):
+        with open(fileName, 'w', newline='') as csvfile:
+            fieldnames = [
+                "id", "beginSignal", "endSignal", "initialState", "directions", "__type__"
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for rte in self.routes.values():
+                data = rte.for_json()
+                writer.writerow(data)
+
+    def importRoutesFromFile(self, fileName):
+        self.routesModel.beginResetModel()
+        with open(fileName, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            self._routes = collections.OrderedDict()
+            routes = {}
+            for row in reader:
+                rte = row.copy()
+                numFields = ["initialState"]
+                for f in numFields:
+                    rte[f] = rte[f] and eval(rte[f]) or 0
+                boolFields = []
+                for f in boolFields:
+                    rte[f] = rte[f] == "True"
+                objectFields = ["directions"]
+                for f in objectFields:
+                    rte[f] = rte[f] and eval(rte[f]) or {}
+                routes[rte['id']] = rte
+        self.loadRoutes(routes)
+        maxID = 1
+        for rte in self.routes.values():
+            try:
+                maxID = max(int(rte.routeNum), maxID)
+            except ValueError:
+                pass
+            rte.initialize(self)
+        self._nextRouteId = maxID + 1
+        self.routesModel.endResetModel()
+
+    def exportTrainTypesToFile(self, fileName):
+        with open(fileName, 'w', newline='') as csvfile:
+            fieldnames = [
+                "code", "description", "emergBraking", "length", "maxSpeed", "stdAccel", "stdBraking", "elements",
+                "__type__"
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for tt in self.trainTypes.values():
+                data = tt.for_json()
+                writer.writerow(data)
+
+    def importTrainTypesFromFile(self, fileName):
+        self.trainTypesModel.beginResetModel()
+        with open(fileName, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            self._trainTypes = collections.OrderedDict()
+            trainTypes = {}
+            for row in reader:
+                tt = row.copy()
+                numFields = ["emergBraking", "length", "maxSpeed", "stdAccel", "stdBraking"]
+                for f in numFields:
+                    tt[f] = tt[f] and eval(tt[f]) or 0
+                boolFields = []
+                for f in boolFields:
+                    tt[f] = tt[f] == "True"
+                objectFields = ["elements"]
+                for f in objectFields:
+                    tt[f] = tt[f] and eval(tt[f]) or []
+                trainTypes[tt['code']] = tt
+        self.loadTrainTypes(trainTypes)
+        for tt in self.trainTypes.values():
+            tt.initialize(self)
+        self.trainTypesModel.endResetModel()
 
     def exportServicesToFile(self, fileName):
         """Exports the services to the file with the given fileName in ts2
@@ -496,7 +711,7 @@ class Editor(simulation.Simulation):
         :type graphicItem: QtCore.QGraphicsItem
         """
         if hasattr(graphicItem, "trackItem") and \
-           graphicItem.trackItem.tiId < 0:
+                graphicItem.trackItem.tiId.startswith("__EDITOR__"):
             self._libraryScene.addItem(graphicItem)
         else:
             self._scene.addItem(graphicItem)
@@ -547,7 +762,7 @@ class Editor(simulation.Simulation):
             else:
                 posEnd = QtCore.QPointF(0, 0)
         parameters = {
-            "tiId": self._nextId,
+            "tiId": str(self._nextId),
             "name": "%i" % self._nextId,
             "x": pos.x(),
             "y": pos.y(),
@@ -563,6 +778,7 @@ class Editor(simulation.Simulation):
             "placeCode": None,
             "trackCode": None,
             "signalType": "UK_3_ASPECTS",
+            "activeAspect": "UK_DANGER",
             "routesSetParams": "{}",
             "trainNotPresentParams": "{}"
         }
@@ -588,14 +804,13 @@ class Editor(simulation.Simulation):
             ti = abstract.TrackItem(parameters)
         ti.initialize(self)
         self.expandBackgroundTo(ti)
-        self._trackItems[self._nextId] = ti
+        self._trackItems[str(self._nextId)] = ti
         self._nextId += 1
         self.updateSelection()
         return ti
 
     def deleteTrackItem(self, tiId):
         """Delete the TrackItem given by tiId."""
-        tiId = int(tiId)
         self._trackItems[tiId].removeAllGraphicsItems()
         del self._trackItems[tiId]
 
@@ -619,7 +834,7 @@ class Editor(simulation.Simulation):
         point is the property of the TrackItem that will be modified."""
         if len(self.selectedItems) > 1:
             point = "origin"
-        trackItem = self.trackItem(int(tiId))
+        trackItem = self.trackItem(tiId)
         if point.endswith("rigin"):
             pos -= clickPos
         pos = QtCore.QPointF(round(pos.x() / self.grid) * self.grid,
@@ -685,7 +900,7 @@ class Editor(simulation.Simulation):
         """
         if self.context == utils.Context.EDITOR_ROUTES:
             if (self._preparedRoute is not None) and \
-               (self._preparedRoute not in self._routes.values()):
+                    (self._preparedRoute not in self._routes.values()):
                 routeNum = self._preparedRoute.routeNum
                 self._routes[routeNum] = self._preparedRoute
                 self.deselectRoute()
@@ -699,7 +914,7 @@ class Editor(simulation.Simulation):
             self.deselectRoute()
             del self._routes[routeNum]
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
     def prepareRoute(self, signalId):
         """Prepares the route starting with the SignalItem given by
         _selectedSignal and ending at signalId. Sets _selectedSignal to signalId
@@ -725,7 +940,7 @@ class Editor(simulation.Simulation):
                     if ti == si:
                         if ti.isOnPosition(cur):
                             self._preparedRoute = route.Route({
-                                "routeNum": self._nextRouteId,
+                                "id": str(self._nextRouteId),
                                 "beginSignal": self._selectedSignal.tiId,
                                 "endSignal": signalId,
                                 "directions": directions,
@@ -739,7 +954,7 @@ class Editor(simulation.Simulation):
                             return
                     cur = cur.next()
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
     def selectRoute(self, routeNum):
         """Selects the route given by routeNum in the routes editor."""
         if self.context == utils.Context.EDITOR_ROUTES:
@@ -782,7 +997,7 @@ class Editor(simulation.Simulation):
     def setSelectedTrainHead(self, pos):
         """Sets the trainHead of the selectedTrain to position if valid"""
         if self.context == utils.Context.EDITOR_TRAINS:
-            if self._selectedTrain is not None and pos is not None:
+            if self._selectedTrain and pos is not None:
                 self._selectedTrain.trainHead = pos
                 self.selectTrain(self.trains.index(self._selectedTrain))
 
@@ -815,7 +1030,8 @@ class Editor(simulation.Simulation):
                 "serviceCode": code,
                 "description": "<Service description>",
                 "nextServiceCode": "",
-                "autoReverse": 0
+                "autoReverse": 0,
+                "postActions": {},
             }
             self._services[code] = trains.Service(parameters)
             self._services[code].initialize(self)
@@ -850,11 +1066,11 @@ class Editor(simulation.Simulation):
         """Removes all trains instances and creates a train for each relevant
         service, that is each service which is not following another one (i.e
         a service which is not the nextService of another service)."""
+        self.trainsModel.beginResetModel()
         self._trains = []
         serviceList = list(self.services.keys())
         for s in self.services.values():
-            if s.nextServiceCode is not None and \
-               s.nextServiceCode != "":
+            if s.nextServiceCode:
                 try:
                     serviceList.remove(s.nextServiceCode)
                 except ValueError:
@@ -884,6 +1100,7 @@ class Editor(simulation.Simulation):
                 train.appearTimeStr = service.lines[0].scheduledArrivalTimeStr
             else:
                 train.appearTimeStr = "00:00:00"
+        self.trainsModel.endResetModel()
 
     def reverseSelectedTrain(self):
         """Reverses the selectedTrain direction."""
@@ -941,11 +1158,11 @@ class Editor(simulation.Simulation):
 
         # QtCore.qDebug(">> List of selected TI")
         # for ti in self.selectedItems:
-            # QtCore.qDebug("TI selected: %i" %ti.tiId )
+        # QtCore.qDebug("TI selected: %i" %ti.tiId )
         # QtCore.qDebug("> List of selected GI")
         # for gi in self.scene.selectedItems():
-            # QtCore.qDebug("GI selected: %i:%i" %
-            #               (gi.trackItem.tiId, gi.itemId ))
+        # QtCore.qDebug("GI selected: %i:%i" %
+        #               (gi.trackItem.tiId, gi.itemId ))
         # QtCore.qDebug("---------")
 
     @QtCore.pyqtSlot()

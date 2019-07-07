@@ -19,9 +19,11 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-import sys
 import argparse
+import sys
+import os
 
+import websocket
 
 if __name__ == '__main__':
 
@@ -29,6 +31,8 @@ if __name__ == '__main__':
         sys.exit("ERROR: TS2 requires Python3")
 
     parser = argparse.ArgumentParser("ts2")
+    parser.add_argument("-s", "--server", dest="server",
+                        help="Path to ts2-sim-server", action="store", default=None)
     parser.add_argument("-d", "--debug", dest="debug",
                         help="Start with debug mode", action="store_true",
                         default=False)
@@ -40,6 +44,9 @@ if __name__ == '__main__':
 
     if args.edit and args.file is None:
         sys.exit("ERROR: Need a file with -e option")
+
+    if args.server and not os.path.exists(args.server):
+        sys.exit("ERROR: Path to ts-sim-server not at `%s`" % args.server)
 
     import ts2.application
     ts2.application.Main(args=args)

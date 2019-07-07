@@ -104,6 +104,11 @@ class PointsItem(abstract.TrackItem):
         self._reverseItem = simulation.trackItem(params.get('reverseTiId'))
         super().initialize(simulation)
 
+    def updateData(self, msg):
+        if "reversed" in msg:
+            self.pointsReversed = msg["reversed"]
+        super(PointsItem, self).updateData(msg)
+
     @staticmethod
     def getProperties():
         """
@@ -343,15 +348,6 @@ class PointsItem(abstract.TrackItem):
             raise Exception("Items not linked: %s and %s" %
                             (self.tiId, precedingItem.tiId))
 
-    def setActiveRoute(self, r, previous):
-        """Sets the active route information (see TrackItem.setActiveRoute()).
-        Here, this function also changes the points direction."""
-        if r.direction(self.tiId) == 0:
-            self.pointsReversed = False
-        else:
-            self.pointsReversed = True
-        super().setActiveRoute(r, previous)
-
     # ## Graphics methods ###############################################
 
     def graphicsPaint(self, p, options, itemId, widget=None):
@@ -388,7 +384,7 @@ class PointsItem(abstract.TrackItem):
         """This function is called by the owned TrackGraphicsItem to return
         its bounding rectangle. Reimplemented from TrackItem"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            if self.tiId < 0:
+            if self.tiId.startswith("__EDITOR__"):
                 # Toolbox item
                 return QtCore.QRectF(-50, -25, 100, 50)
             else:

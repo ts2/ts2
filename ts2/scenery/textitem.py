@@ -86,7 +86,7 @@ class TextItem(abstract.TrackItem):
         if self.text is None or self.text == "":
             return super().boundingRect()
         else:
-            if self.tiId < 0:
+            if self.tiId.startswith("__EDITOR__"):
                 # Toolbox item
                 return QtCore.QRectF(-36, -15, 100, 50)
             else:

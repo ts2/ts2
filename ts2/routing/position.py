@@ -393,7 +393,7 @@ class Position:
            self.positionOnTI == 0:
             return "<Null position>"
         if self.isValid():
-            return "(%i, %i, %f)" % (self.trackItem.tiId,
+            return "(%s, %s, %f)" % (self.trackItem.tiId,
                                      self.previousTI.tiId,
                                      self.positionOnTI)
         return "<Invalid position: %s, %s, %s>" % (self.trackItem,

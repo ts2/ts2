@@ -19,6 +19,8 @@
 #
 
 import os
+import sys
+from os import path
 
 from Qt import QtCore, QtWidgets
 
@@ -105,8 +107,8 @@ class XSettings(QtCore.QSettings):
             return os.getcwd()
         else:
             os.makedirs(os.path.join(homeDir, ".ts2", "data"), exist_ok=True)
-            os.makedirs(os.path.join(homeDir, ".ts2", "simulations"),
-                        exist_ok=True)
+            os.makedirs(os.path.join(homeDir, ".ts2", "simulations"), exist_ok=True)
+            os.makedirs(os.path.join(homeDir, ".ts2", "server"), exist_ok=True)
             return os.path.join(homeDir, ".ts2")
 
     @property
@@ -116,6 +118,21 @@ class XSettings(QtCore.QSettings):
     @property
     def userDataDir(self):
         return os.path.join(self._getUserDataDirectory(), "data")
+
+    @property
+    def serverDir(self):
+        return os.path.join(self._getUserDataDirectory(), "server")
+
+    @property
+    def serverFileName(self):
+        sfn = 'ts2-sim-server'
+        if sys.platform == 'win32':
+            sfn += '.exe'
+        return sfn
+
+    @property
+    def serverLoc(self):
+        return path.join(self.serverDir, self.serverFileName)
 
     def i(self, ki, default=None):
         """Return  value as int"""
