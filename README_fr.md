@@ -74,7 +74,7 @@ le logiciel.
 Que vous souhaitiez écrire votre propre simulation avec l'éditeur ou développer un nouveau client pour interagir avec TS2,
 allez voir notre manuel technique (en anglais):
 [HTML](https://github.com/ts2/ts2-sim-server/blob/master/docs/ts2-technical-manual.adoc) 
-[PDF](https://github.com/ts2/ts2-sim-server/blob/master/docs/ts2-technical-manual.pdf) 
+[PDF](https://github.com/ts2/ts2-sim-server/raw/master/docs/ts2-technical-manual.pdf) 
 
 ## Historique des versions
 

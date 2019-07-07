@@ -70,7 +70,7 @@ New simulations can be created with the editor provided with ts2.
 Whether you want to write your own simulation with the editor or to develop a new client to interact with TS2, 
 head over to our Technical Manual: 
 [HTML](https://github.com/ts2/ts2-sim-server/blob/master/docs/ts2-technical-manual.adoc) 
-[PDF](https://github.com/ts2/ts2-sim-server/blob/master/docs/ts2-technical-manual.pdf) 
+[PDF](https://github.com/ts2/ts2-sim-server/raw/master/docs/ts2-technical-manual.pdf) 
 
 ## Change log
 
