@@ -39,7 +39,7 @@
     <message>
         <location filename="../ts2/gui/dialogs.py" line="232"/>
         <source>Download server: </source>
-        <translation>Serveur de téléchargement :</translation>
+        <translation>Télécharger le serveur : </translation>
     </message>
     <message>
         <location filename="../ts2/gui/dialogs.py" line="239"/>
@@ -873,12 +873,12 @@ TS2 est distribueé sous les termes de la licence GNU GPL v2
     <message>
         <location filename="../ts2/gui/opendialog.py" line="39"/>
         <source>Open Simulation</source>
-        <translation type="unfinished"></translation>
+        <translation>Ouvrir une simulation</translation>
     </message>
     <message>
         <location filename="../ts2/gui/opendialog.py" line="59"/>
         <source>Sims</source>
-        <translation type="unfinished"></translation>
+        <translation>Simulations</translation>
     </message>
     <message>
         <location filename="../ts2/gui/opendialog.py" line="60"/>
@@ -888,7 +888,7 @@ TS2 est distribueé sous les termes de la licence GNU GPL v2
     <message>
         <location filename="../ts2/gui/opendialog.py" line="63"/>
         <source>Browse</source>
-        <translation type="unfinished"></translation>
+        <translation>Explorer</translation>
     </message>
     <message>
         <location filename="../ts2/gui/opendialog.py" line="66"/>
@@ -1106,12 +1106,12 @@ Voie %s</translation>
     <message>
         <location filename="../ts2/routing/route.py" line="134"/>
         <source>Invalid simulation: Route %s is not valid.</source>
-        <translation type="unfinished"></translation>
+        <translation>Simulation invalide: Route %s invalide.</translation>
     </message>
     <message>
         <location filename="../ts2/routing/route.py" line="252"/>
         <source>Invalid route %s. Impossible to link beginSignal with endSignal</source>
-        <translation type="unfinished"></translation>
+        <translation>Route %s invalide. Impossible de relier le signal d&apos;entrée et de sortie</translation>
     </message>
 </context>
 <context>
