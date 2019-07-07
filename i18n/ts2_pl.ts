@@ -1336,6 +1336,16 @@ Peron %s</translation>
         <source>Simulations Dir</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="159"/>
+        <source>&lt;span style=&quot;color: green;&quot;&gt;Server found in Server Dir&lt;/span&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="161"/>
+        <source>&lt;span style=&quot;color: red;&quot;&gt;Server not found. Click on Download&lt;/span&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SignalItem</name>

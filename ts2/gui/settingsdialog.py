@@ -156,9 +156,9 @@ class SettingsDialog(QtWidgets.QDialog):
     def updateServerLabel(self):
         pass
         if path.isfile(settings.serverLoc):
-            txt = '<span style="color: green;">Server found in Server Dir</span>'
+            txt = self.tr('<span style="color: green;">Server found in Server Dir</span>')
         else:
-            txt = '<span style="color: red;">Server not found. Click on Download</span>'
+            txt = self.tr('<span style="color: red;">Server not found. Click on Download</span>')
         self.txtServerFound.setText(txt)
 
     def loadSettings(self):

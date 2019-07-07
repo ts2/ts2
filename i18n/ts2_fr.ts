@@ -1350,6 +1350,16 @@ Voie %s</translation>
         <source>Simulations Dir</source>
         <translation>Dossier des simulations</translation>
     </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="159"/>
+        <source>&lt;span style=&quot;color: green;&quot;&gt;Server found in Server Dir&lt;/span&gt;</source>
+        <translation>&lt;span style=&quot;color: green;&quot;&gt;Serveur présent dans le dossier du serveur&lt;/span&gt;</translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="161"/>
+        <source>&lt;span style=&quot;color: red;&quot;&gt;Server not found. Click on Download&lt;/span&gt;</source>
+        <translation>&lt;span style=&quot;color: red;&quot;&gt;Serveur non trouvé. Cliquez sur Télécharger le serveur&lt;/span&gt;</translation>
+    </message>
 </context>
 <context>
     <name>SignalItem</name>
