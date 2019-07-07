@@ -3,27 +3,27 @@
 <context>
     <name>C</name>
     <message>
-        <location filename="../ts2/trains/service.py" line="249"/>
+        <location filename="../ts2/trains/service.py" line="248"/>
         <source>Code</source>
         <translation type="unfinished">Kod</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/service.py" line="252"/>
+        <location filename="../ts2/trains/service.py" line="251"/>
         <source>Next service code</source>
         <translation type="unfinished">Następny kod obsługi</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/service.py" line="255"/>
+        <location filename="../ts2/trains/service.py" line="254"/>
         <source>Auto reverse</source>
         <translation type="unfinished">Automatyczne odwracanie</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/service.py" line="258"/>
+        <location filename="../ts2/trains/service.py" line="257"/>
         <source>Planned Train Type</source>
         <translation type="unfinished">Planowany typ pociągu</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/service.py" line="261"/>
+        <location filename="../ts2/trains/service.py" line="260"/>
         <source>Description</source>
         <translation type="unfinished">Opis</translation>
     </message>
@@ -31,27 +31,27 @@
 <context>
     <name>DownloadSimulationsDialog</name>
     <message>
-        <location filename="../ts2/gui/dialogs.py" line="228"/>
+        <location filename="../ts2/gui/dialogs.py" line="230"/>
         <source>Download simulations from server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/gui/dialogs.py" line="232"/>
+        <location filename="../ts2/gui/dialogs.py" line="234"/>
         <source>Download server: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/gui/dialogs.py" line="239"/>
+        <location filename="../ts2/gui/dialogs.py" line="241"/>
         <source>&lt;em&gt;The download server must be the url of a valid GitHub repository.&lt;/em&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/gui/dialogs.py" line="242"/>
+        <location filename="../ts2/gui/dialogs.py" line="244"/>
         <source>Download</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/gui/dialogs.py" line="244"/>
+        <location filename="../ts2/gui/dialogs.py" line="246"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
@@ -59,12 +59,12 @@
 <context>
     <name>Editor</name>
     <message>
-        <location filename="../ts2/editor/editor.py" line="459"/>
+        <location filename="../ts2/editor/editor.py" line="672"/>
         <source>Format Error: invalid header %s detected</source>
         <translation>Błąd formatu: wykryto zły nagłówek %s</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editor.py" line="389"/>
+        <location filename="../ts2/editor/editor.py" line="486"/>
         <source>Invalid simulation: Not all items are linked or end items are missing.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -72,481 +72,534 @@
 <context>
     <name>EditorWindow</name>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="45"/>
+        <location filename="../ts2/editor/editorwindow.py" line="44"/>
         <source>ts2 - Train Signalling Simulation - Editor</source>
         <translation>ts2 - Symulator sygnalizacji koleji - Edytor</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="56"/>
+        <location filename="../ts2/editor/editorwindow.py" line="55"/>
         <source>&amp;New</source>
         <translation>&amp;Nowe</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="58"/>
+        <location filename="../ts2/editor/editorwindow.py" line="57"/>
         <source>Create a new simulation</source>
         <translation>Stwórz nową simulację</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="63"/>
+        <location filename="../ts2/editor/editorwindow.py" line="62"/>
         <source>&amp;Open...</source>
         <translation>&amp;Otwórz...</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="632"/>
+        <location filename="../ts2/editor/editorwindow.py" line="689"/>
         <source>Open a simulation</source>
         <translation>Otwórz symulację</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="70"/>
+        <location filename="../ts2/editor/editorwindow.py" line="69"/>
         <source>&amp;Save</source>
         <translation>&amp;Zapisz</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="72"/>
+        <location filename="../ts2/editor/editorwindow.py" line="71"/>
         <source>Save the current simulation</source>
         <translation>Zapisz aktualną symulację</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="77"/>
+        <location filename="../ts2/editor/editorwindow.py" line="76"/>
         <source>&amp;Save as...</source>
         <translation>&amp;Zapisz jako...</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="79"/>
+        <location filename="../ts2/editor/editorwindow.py" line="78"/>
         <source>Save the current simulation with a different file name</source>
         <translation>Zapisz symulację pod inną nazwą</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="85"/>
+        <location filename="../ts2/editor/editorwindow.py" line="84"/>
         <source>&amp;Close</source>
         <translation>&amp;Fermer</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="87"/>
+        <location filename="../ts2/editor/editorwindow.py" line="86"/>
         <source>Close the editor</source>
         <translation>Zamknij edytor</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="140"/>
+        <location filename="../ts2/editor/editorwindow.py" line="139"/>
         <source>&amp;About TS2...</source>
         <translation>&amp;O TS2...</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="141"/>
+        <location filename="../ts2/editor/editorwindow.py" line="140"/>
         <source>About TS2</source>
         <translation>O TS2</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="146"/>
+        <location filename="../ts2/editor/editorwindow.py" line="145"/>
         <source>About Qt...</source>
         <translation>O Qt...</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="147"/>
+        <location filename="../ts2/editor/editorwindow.py" line="146"/>
         <source>About Qt</source>
         <translation>O Qt</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="153"/>
+        <location filename="../ts2/editor/editorwindow.py" line="152"/>
         <source>&amp;File</source>
         <translation>&amp;Plik</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="169"/>
+        <location filename="../ts2/editor/editorwindow.py" line="168"/>
         <source>&amp;Help</source>
         <translation>&amp;Pomoc</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="181"/>
+        <location filename="../ts2/editor/editorwindow.py" line="180"/>
         <source>Tools</source>
         <translation>Narzędzia</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="206"/>
+        <location filename="../ts2/editor/editorwindow.py" line="205"/>
         <source>Properties</source>
         <translation>Właściwości</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="223"/>
+        <location filename="../ts2/editor/editorwindow.py" line="222"/>
         <source>Simulation title: </source>
         <translation>Tytuł symulacji: </translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="227"/>
+        <location filename="../ts2/editor/editorwindow.py" line="226"/>
         <source>Description: </source>
         <translation>Opis: </translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="231"/>
+        <location filename="../ts2/editor/editorwindow.py" line="230"/>
         <source>Options: </source>
         <translation>Optcje: </translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="253"/>
+        <location filename="../ts2/editor/editorwindow.py" line="252"/>
         <source>General</source>
         <translation>Ogólne</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="261"/>
+        <location filename="../ts2/editor/editorwindow.py" line="264"/>
         <source>Unlock Scenery</source>
         <translation>Odblokuj scenerię</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="266"/>
+        <location filename="../ts2/editor/editorwindow.py" line="269"/>
         <source>Validate Scenery</source>
         <translation>Sprawdź scenerię</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="285"/>
+        <location filename="../ts2/editor/editorwindow.py" line="305"/>
         <source>Scenery</source>
         <translation>Sceneria</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="303"/>
+        <location filename="../ts2/editor/editorwindow.py" line="331"/>
         <source>Add Route</source>
         <translation>Dodaj trasę</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="306"/>
+        <location filename="../ts2/editor/editorwindow.py" line="335"/>
         <source>Delete Route</source>
         <translation>usuń trasę</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="320"/>
+        <location filename="../ts2/editor/editorwindow.py" line="361"/>
         <source>Routes</source>
         <translation>Trasy</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="444"/>
+        <location filename="../ts2/editor/editorwindow.py" line="501"/>
         <source>Services</source>
         <translation>Obsługa</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="450"/>
+        <location filename="../ts2/editor/editorwindow.py" line="512"/>
         <source>Setup trains from services</source>
         <translation>Ustaw pociągi z obsługi</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="461"/>
-        <source>Reverse train direction</source>
-        <translation>Odwróć kieruniek pociągu</translation>
-    </message>
-    <message>
-        <location filename="../ts2/editor/editorwindow.py" line="469"/>
-        <source>Add new train</source>
-        <translation>Dodaj pociąg</translation>
-    </message>
-    <message>
-        <location filename="../ts2/editor/editorwindow.py" line="472"/>
-        <source>Remove train</source>
-        <translation>Usuń pociąg</translation>
-    </message>
-    <message>
-        <location filename="../ts2/editor/editorwindow.py" line="486"/>
+        <location filename="../ts2/editor/editorwindow.py" line="542"/>
         <source>Trains</source>
         <translation>Pociągi</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="599"/>
+        <location filename="../ts2/editor/editorwindow.py" line="656"/>
         <source>Close editor</source>
         <translation>Zamknij edytor</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="599"/>
+        <location filename="../ts2/editor/editorwindow.py" line="656"/>
         <source>Do you want to save your changes ?</source>
         <translation>Czy na pewno zapisać zmiany ?</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="710"/>
+        <location filename="../ts2/editor/editorwindow.py" line="764"/>
         <source>Save the simulation as</source>
         <translation>Zapisz symulację</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="729"/>
+        <location filename="../ts2/editor/editorwindow.py" line="783"/>
         <source>Simulation loaded</source>
         <translation>Simulatcja wczytana</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="729"/>
+        <location filename="../ts2/editor/editorwindow.py" line="783"/>
         <source>The current simulation will be closed.
 Do you want to continue?</source>
         <translation>Symulacja została zamknięta.
 Czy chcesz kontynuować ?</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="830"/>
+        <location filename="../ts2/editor/editorwindow.py" line="884"/>
         <source>Delete route</source>
         <translation>Usuń trasę</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="830"/>
-        <source>Are you sure you want to delete route %i?</source>
-        <translation>Czy na pewno chcesz usunąć trasę %i ?</translation>
-    </message>
-    <message>
-        <location filename="../ts2/editor/editorwindow.py" line="868"/>
+        <location filename="../ts2/editor/editorwindow.py" line="922"/>
         <source>Add train type</source>
         <translation>Dodaj typ pociągu</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="868"/>
+        <location filename="../ts2/editor/editorwindow.py" line="922"/>
         <source>Enter new train type code:</source>
         <translation>Wpisz kod typu pociągu:</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="895"/>
+        <location filename="../ts2/editor/editorwindow.py" line="949"/>
         <source>Delete train type</source>
         <translation>Usuń typ pociągu</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="895"/>
+        <location filename="../ts2/editor/editorwindow.py" line="949"/>
         <source>Are you sure you want to delete train type %s?</source>
         <translation>Czy na pewno chcesz usunąć typ pociągu %s ?</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="911"/>
+        <location filename="../ts2/editor/editorwindow.py" line="965"/>
         <source>Add service</source>
         <translation>Dodaj nową obsługi</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="911"/>
+        <location filename="../ts2/editor/editorwindow.py" line="965"/>
         <source>Enter new service code:</source>
         <translation>Wpisz le nouveau kod obsługi:</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="1020"/>
+        <location filename="../ts2/editor/editorwindow.py" line="1074"/>
         <source>Delete service</source>
         <translation>usuń obsługę</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="1020"/>
+        <location filename="../ts2/editor/editorwindow.py" line="1074"/>
         <source>Are you sure you want to delete the line at %s?</source>
         <translation>Czy na pewno chcesz usunąć linię na %s ?</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="1044"/>
+        <location filename="../ts2/editor/editorwindow.py" line="1098"/>
         <source>Import services</source>
         <translation>Importuj obsługę</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="1060"/>
+        <location filename="../ts2/editor/editorwindow.py" line="1222"/>
         <source>CSV files (*.csv)</source>
         <translation>Pliki CSV (*.csv)</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="1044"/>
+        <location filename="../ts2/editor/editorwindow.py" line="1098"/>
         <source>This will erase any existing service
 Are you sure you want to continue?</source>
         <translation>To usunie każdą istniejącą obsługę.
 Czy chcesz kontynuować ?</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="1060"/>
+        <location filename="../ts2/editor/editorwindow.py" line="1114"/>
         <source>Export services</source>
         <translation>Exportuj obsługę</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="1073"/>
+        <location filename="../ts2/editor/editorwindow.py" line="1235"/>
         <source>Setup trains</source>
         <translation>Ustaw pociągi</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="1073"/>
+        <location filename="../ts2/editor/editorwindow.py" line="1235"/>
         <source>This will erase any existing train, and will create a train for each service that do not follow another one.
 Are you sure you want to continue?</source>
         <translation>To usunie wszystkie istniejące pociągi i stworzy pociąg dla każdej obsługi która nie podąża za inną.
 Czy chcesz kontynuować ?</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="1109"/>
+        <location filename="../ts2/editor/editorwindow.py" line="1271"/>
         <source>Delete train</source>
         <translation>Usuń pociąg</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="1109"/>
+        <location filename="../ts2/editor/editorwindow.py" line="1271"/>
         <source>Are you sure you want to delete train %i?</source>
         <translation>Czy na pewno usunąć pociąg %i ?</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="92"/>
+        <location filename="../ts2/editor/editorwindow.py" line="91"/>
         <source>&amp;Pan tool</source>
         <translation>Narzędzie &amp;rączka</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="93"/>
+        <location filename="../ts2/editor/editorwindow.py" line="92"/>
         <source>Set the pan tool</source>
         <translation>Wybierz narzędzie rączki</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="99"/>
+        <location filename="../ts2/editor/editorwindow.py" line="98"/>
         <source>&amp;Selection tool</source>
         <translation>Narzędzie &amp;zaznaczania</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="101"/>
+        <location filename="../ts2/editor/editorwindow.py" line="100"/>
         <source>Set the selection tool</source>
         <translation>Ustaw narzędzie zaznaczania</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="112"/>
+        <location filename="../ts2/editor/editorwindow.py" line="111"/>
         <source>&amp;Copy</source>
         <translation>&amp;Kopiuj</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="114"/>
+        <location filename="../ts2/editor/editorwindow.py" line="113"/>
         <source>Copy the current selection to the clipboard</source>
         <translation>Kopiuj zaznaczenie do schowka</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="119"/>
+        <location filename="../ts2/editor/editorwindow.py" line="118"/>
         <source>&amp;Paste</source>
         <translation>Wk&amp;lej</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="121"/>
+        <location filename="../ts2/editor/editorwindow.py" line="120"/>
         <source>Paste the items of the clipboard</source>
         <translation>Wklej elementy ze schowka</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="126"/>
+        <location filename="../ts2/editor/editorwindow.py" line="125"/>
         <source>&amp;Delete</source>
         <translation>&amp;Usuń</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="128"/>
+        <location filename="../ts2/editor/editorwindow.py" line="127"/>
         <source>Delete the selected items</source>
         <translation>Usuń zaznaczone elementy</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="133"/>
+        <location filename="../ts2/editor/editorwindow.py" line="132"/>
         <source>&amp;Select All</source>
         <translation>Wybierz W&amp;szystko</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="135"/>
+        <location filename="../ts2/editor/editorwindow.py" line="134"/>
         <source>Select all the items</source>
         <translation>Wybierz wszystkie elementy czasowe</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="160"/>
+        <location filename="../ts2/editor/editorwindow.py" line="159"/>
         <source>&amp;Edit</source>
         <translation>&amp;Edycja</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="762"/>
+        <location filename="../ts2/editor/editorwindow.py" line="816"/>
         <source>Delete items</source>
         <translation>Usuń elementy</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="762"/>
+        <location filename="../ts2/editor/editorwindow.py" line="816"/>
         <source>Do you really want to delete all the selected items?</source>
         <translation>Czy na pewno chcesz usunąć wszystkie zaznaczone elementy?</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="365"/>
+        <location filename="../ts2/editor/editorwindow.py" line="521"/>
         <source>Add new</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="430"/>
+        <location filename="../ts2/editor/editorwindow.py" line="526"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="349"/>
+        <location filename="../ts2/editor/editorwindow.py" line="406"/>
         <source>Rolling Stock</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="378"/>
+        <location filename="../ts2/editor/editorwindow.py" line="435"/>
         <source>CSV</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="383"/>
+        <location filename="../ts2/editor/editorwindow.py" line="440"/>
         <source>Export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="389"/>
+        <location filename="../ts2/editor/editorwindow.py" line="446"/>
         <source>Import</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="403"/>
+        <location filename="../ts2/editor/editorwindow.py" line="460"/>
         <source>Lines</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="410"/>
+        <location filename="../ts2/editor/editorwindow.py" line="467"/>
         <source>Append New</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="420"/>
+        <location filename="../ts2/editor/editorwindow.py" line="477"/>
         <source>Insert New</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="710"/>
+        <location filename="../ts2/editor/editorwindow.py" line="764"/>
         <source>TS2 files (*.ts2 *.json);;TS2 simulation files (*.ts2);;JSON simulation files (*.json)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="661"/>
+        <location filename="../ts2/editor/editorwindow.py" line="716"/>
         <source>Error while loading the simulation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="673"/>
+        <location filename="../ts2/editor/editorwindow.py" line="728"/>
         <source>ts2 - Editor - %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="682"/>
+        <location filename="../ts2/editor/editorwindow.py" line="736"/>
         <source>Ready</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="696"/>
+        <location filename="../ts2/editor/editorwindow.py" line="750"/>
         <source>Error in simulation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="696"/>
+        <location filename="../ts2/editor/editorwindow.py" line="750"/>
         <source>%s
 
 Do you want to save anyway ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="860"/>
+        <location filename="../ts2/editor/editorwindow.py" line="914"/>
         <source>No route selected, or already exists</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="882"/>
+        <location filename="../ts2/editor/editorwindow.py" line="936"/>
         <source>Cannot add new train type, code already exists</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="932"/>
+        <location filename="../ts2/editor/editorwindow.py" line="986"/>
         <source>Cannot add, service code exists</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="945"/>
+        <location filename="../ts2/editor/editorwindow.py" line="999"/>
         <source>Are you sure you want to delete service %s ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="984"/>
+        <location filename="../ts2/editor/editorwindow.py" line="1038"/>
         <source>No service selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editorwindow.py" line="1010"/>
+        <location filename="../ts2/editor/editorwindow.py" line="1064"/>
         <source>Select a service line to remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/editor/editorwindow.py" line="370"/>
+        <source>Train Types</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/editor/editorwindow.py" line="509"/>
+        <source>Automation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/editor/editorwindow.py" line="531"/>
+        <source>Reverse direction</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/editor/editorwindow.py" line="884"/>
+        <source>Are you sure you want to delete route %s?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/editor/editorwindow.py" line="1134"/>
+        <source>Import track items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/editor/editorwindow.py" line="1134"/>
+        <source>This will erase any existing item
+Are you sure you want to continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/editor/editorwindow.py" line="1150"/>
+        <source>Export track items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/editor/editorwindow.py" line="1163"/>
+        <source>Import routes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/editor/editorwindow.py" line="1170"/>
+        <source>Import route</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/editor/editorwindow.py" line="1170"/>
+        <source>This will erase any existing route
+Are you sure you want to continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/editor/editorwindow.py" line="1186"/>
+        <source>Export routes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/editor/editorwindow.py" line="1206"/>
+        <source>Import train types</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/editor/editorwindow.py" line="1206"/>
+        <source>This will erase any existing train types
+Are you sure you want to continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/editor/editorwindow.py" line="1222"/>
+        <source>Export train types</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -576,37 +629,37 @@ Do you want to save anyway ?</source>
         <translation>Właściwa długość (m)</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/abstract.py" line="614"/>
+        <location filename="../ts2/scenery/abstract.py" line="616"/>
         <source>Type</source>
         <translation>Typ</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/abstract.py" line="615"/>
+        <location filename="../ts2/scenery/abstract.py" line="617"/>
         <source>id</source>
         <translation>ID</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/abstract.py" line="616"/>
+        <location filename="../ts2/scenery/abstract.py" line="618"/>
         <source>Name</source>
         <translation>Nazwa</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/abstract.py" line="617"/>
+        <location filename="../ts2/scenery/abstract.py" line="619"/>
         <source>Point 1</source>
         <translation>Punkt 1</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/abstract.py" line="618"/>
+        <location filename="../ts2/scenery/abstract.py" line="620"/>
         <source>Point 2</source>
         <translation>Punkt 2</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/abstract.py" line="619"/>
+        <location filename="../ts2/scenery/abstract.py" line="621"/>
         <source>Maximum speed (m/s)</source>
         <translation>Prędkość maksymalna (m/s)</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/abstract.py" line="621"/>
+        <location filename="../ts2/scenery/abstract.py" line="623"/>
         <source>Conflict item ID</source>
         <translation>ID konfliktującego przedmiotu</translation>
     </message>
@@ -614,202 +667,202 @@ Do you want to save anyway ?</source>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../ts2/mainwindow.py" line="70"/>
+        <location filename="../ts2/mainwindow.py" line="78"/>
         <source>&amp;Open...</source>
         <translation>&amp;Otwórz...</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="103"/>
+        <location filename="../ts2/mainwindow.py" line="116"/>
         <source>&amp;Quit</source>
         <translation>&amp;Zakończ</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="104"/>
+        <location filename="../ts2/mainwindow.py" line="117"/>
         <source>Ctrl+Q</source>
         <translation>Ctrl+Q</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="105"/>
+        <location filename="../ts2/mainwindow.py" line="118"/>
         <source>Quit TS2</source>
         <translation>Zakończ TS2</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="160"/>
+        <location filename="../ts2/mainwindow.py" line="172"/>
         <source>&amp;Editor</source>
         <translation>&amp;Edytor</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="109"/>
+        <location filename="../ts2/mainwindow.py" line="122"/>
         <source>Ctrl+E</source>
         <translation>Ctrl+E</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="110"/>
+        <location filename="../ts2/mainwindow.py" line="123"/>
         <source>Open the simulation editor</source>
         <translation>Otwórz edytor symulacji</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="136"/>
+        <location filename="../ts2/mainwindow.py" line="148"/>
         <source>&amp;About TS2...</source>
         <translation>&amp;O TS2...</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="644"/>
+        <location filename="../ts2/mainwindow.py" line="702"/>
         <source>About TS2</source>
         <translation>O TS2</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="140"/>
+        <location filename="../ts2/mainwindow.py" line="152"/>
         <source>About Qt...</source>
         <translation>O Qt...</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="141"/>
+        <location filename="../ts2/mainwindow.py" line="153"/>
         <source>About Qt</source>
         <translation>O Qt</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="148"/>
+        <location filename="../ts2/mainwindow.py" line="160"/>
         <source>&amp;File</source>
         <translation>&amp;Plik</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="165"/>
+        <location filename="../ts2/mainwindow.py" line="177"/>
         <source>&amp;Help</source>
         <translation>Po&amp;moc</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="263"/>
+        <location filename="../ts2/mainwindow.py" line="276"/>
         <source>Train Information</source>
         <translation>informacje o pociągu</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="282"/>
+        <location filename="../ts2/mainwindow.py" line="295"/>
         <source>Service Information</source>
         <translation>Informacje o obsłudze</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="319"/>
+        <location filename="../ts2/mainwindow.py" line="332"/>
         <source>Station Information</source>
         <translation>Informacje o stacjach</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="349"/>
+        <location filename="../ts2/mainwindow.py" line="362"/>
         <source>Trains</source>
         <translation>Pociągi</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="361"/>
+        <location filename="../ts2/mainwindow.py" line="374"/>
         <source>Services</source>
         <translation>Misje</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="60"/>
+        <location filename="../ts2/mainwindow.py" line="67"/>
         <source>ts2 - Train Signalling Simulation - %s</source>
         <translation>ts2 - Symulator sygnalizacji koleji - %s</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="374"/>
+        <location filename="../ts2/mainwindow.py" line="387"/>
         <source>Messages</source>
         <translation>Wiadomości</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="72"/>
+        <location filename="../ts2/mainwindow.py" line="80"/>
         <source>Open a simulation or a previously saved game</source>
         <translation>Otwórz symulację lub ostatnio zapisaną grę</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="83"/>
+        <location filename="../ts2/mainwindow.py" line="96"/>
         <source>Save the current game</source>
         <translation>Zapisz aktualną grę</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="90"/>
+        <location filename="../ts2/mainwindow.py" line="103"/>
         <source>Ctrl+P</source>
         <translation>Ctrl-P</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="93"/>
+        <location filename="../ts2/mainwindow.py" line="106"/>
         <source>Edit simulation properties</source>
         <translation>Zmień ustawienia symulacji</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="620"/>
+        <location filename="../ts2/mainwindow.py" line="678"/>
         <source>Save the simulation as</source>
         <translation>Zapisz symulację jako</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="620"/>
+        <location filename="../ts2/mainwindow.py" line="678"/>
         <source>TS2 game files (*.tsg)</source>
         <translation>Pliki TS2 (*.tsg)</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="76"/>
+        <location filename="../ts2/mainwindow.py" line="89"/>
         <source>Recent</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="81"/>
+        <location filename="../ts2/mainwindow.py" line="94"/>
         <source>&amp;Save game</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="88"/>
+        <location filename="../ts2/mainwindow.py" line="101"/>
         <source>Sim &amp;Properties...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="98"/>
+        <location filename="../ts2/mainwindow.py" line="111"/>
         <source>Settings...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="100"/>
+        <location filename="../ts2/mainwindow.py" line="113"/>
         <source>User Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="108"/>
+        <location filename="../ts2/mainwindow.py" line="121"/>
         <source>&amp;Open Editor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="113"/>
+        <location filename="../ts2/mainwindow.py" line="126"/>
         <source>&amp;Edit</source>
         <translation type="unfinished">&amp;Edycja</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="115"/>
+        <location filename="../ts2/mainwindow.py" line="127"/>
         <source>Open this sim in editor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="122"/>
+        <location filename="../ts2/mainwindow.py" line="134"/>
         <source>&amp;TS2 Homepage</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="126"/>
+        <location filename="../ts2/mainwindow.py" line="138"/>
         <source>&amp;TS2 Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="130"/>
+        <location filename="../ts2/mainwindow.py" line="142"/>
         <source>&amp;TS2 Bugs &amp;&amp; Feedback</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="763"/>
+        <location filename="../ts2/mainwindow.py" line="243"/>
         <source>Pause</source>
         <translation type="unfinished">Pauza</translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="487"/>
+        <location filename="../ts2/mainwindow.py" line="512"/>
         <source>ts2 - Train Signalling Simulator - %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="644"/>
+        <location filename="../ts2/mainwindow.py" line="702"/>
         <source>TS2 is a train signalling simulation.
 
 Version %s
@@ -822,78 +875,103 @@ TS2 is licensed under the terms of the GNU GPL v2
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="761"/>
-        <source>Paused</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ts2/mainwindow.py" line="180"/>
+        <location filename="../ts2/mainwindow.py" line="192"/>
         <source>Simulation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="188"/>
+        <location filename="../ts2/mainwindow.py" line="200"/>
         <source>Speed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="201"/>
+        <location filename="../ts2/mainwindow.py" line="213"/>
         <source>Zoom</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="211"/>
+        <location filename="../ts2/mainwindow.py" line="223"/>
         <source>Penalty</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/mainwindow.py" line="225"/>
+        <location filename="../ts2/mainwindow.py" line="237"/>
         <source>Clock</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/mainwindow.py" line="84"/>
+        <source>&amp;Close</source>
+        <translation type="unfinished">&amp;Fermer</translation>
+    </message>
+    <message>
+        <location filename="../ts2/mainwindow.py" line="86"/>
+        <source>Close the current simulation</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>OpenDialog</name>
     <message>
-        <location filename="../ts2/gui/opendialog.py" line="39"/>
+        <location filename="../ts2/gui/opendialog.py" line="40"/>
         <source>Open Simulation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/gui/opendialog.py" line="59"/>
+        <location filename="../ts2/gui/opendialog.py" line="60"/>
         <source>Sims</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/gui/opendialog.py" line="60"/>
+        <location filename="../ts2/gui/opendialog.py" line="61"/>
         <source>Recent</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/gui/opendialog.py" line="63"/>
+        <location filename="../ts2/gui/opendialog.py" line="64"/>
         <source>Browse</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/gui/opendialog.py" line="66"/>
+        <location filename="../ts2/gui/opendialog.py" line="67"/>
         <source>Network</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/gui/opendialog.py" line="95"/>
+        <location filename="../ts2/gui/opendialog.py" line="96"/>
         <source>Download</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/opendialog.py" line="145"/>
+        <source>Connect to simulation server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/opendialog.py" line="156"/>
+        <source>Host:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/opendialog.py" line="160"/>
+        <source>Port:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/opendialog.py" line="166"/>
+        <source>Connect</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>OptionsModel</name>
     <message>
-        <location filename="../ts2/editor/editor.py" line="123"/>
+        <location filename="../ts2/editor/editor.py" line="126"/>
         <source>Option</source>
         <translation>Opcja</translation>
     </message>
     <message>
-        <location filename="../ts2/editor/editor.py" line="125"/>
+        <location filename="../ts2/editor/editor.py" line="128"/>
         <source>Value</source>
         <translation>Wartość</translation>
     </message>
@@ -1050,27 +1128,27 @@ Peron %s</translation>
 <context>
     <name>PropertiesDialog</name>
     <message>
-        <location filename="../ts2/gui/dialogs.py" line="59"/>
+        <location filename="../ts2/gui/dialogs.py" line="61"/>
         <source>Simulation properties</source>
         <translation>Ustawienia symulacji</translation>
     </message>
     <message>
-        <location filename="../ts2/gui/dialogs.py" line="63"/>
+        <location filename="../ts2/gui/dialogs.py" line="65"/>
         <source>Simulation title:</source>
         <translation>Tytuł symulacji:</translation>
     </message>
     <message>
-        <location filename="../ts2/gui/dialogs.py" line="73"/>
+        <location filename="../ts2/gui/dialogs.py" line="75"/>
         <source>Description:</source>
         <translation>Opis:</translation>
     </message>
     <message>
-        <location filename="../ts2/gui/dialogs.py" line="80"/>
+        <location filename="../ts2/gui/dialogs.py" line="82"/>
         <source>Options:</source>
         <translation>Opcje:</translation>
     </message>
     <message>
-        <location filename="../ts2/gui/dialogs.py" line="86"/>
+        <location filename="../ts2/gui/dialogs.py" line="88"/>
         <source>Play simulation with track circuits</source>
         <translation>Uruchom symulację z układami trasy</translation>
     </message>
@@ -1078,17 +1156,12 @@ Peron %s</translation>
 <context>
     <name>Route</name>
     <message>
-        <location filename="../ts2/routing/route.py" line="257"/>
-        <source>Invalid route %i. Impossible to link beginSignal with endSignal</source>
-        <translation type="obsolete">Zła trasa %i. Nie można połączyć sygnału początkowego z końcowym</translation>
-    </message>
-    <message>
-        <location filename="../ts2/routing/route.py" line="134"/>
+        <location filename="../ts2/routing/route.py" line="133"/>
         <source>Invalid simulation: Route %s is not valid.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/routing/route.py" line="252"/>
+        <location filename="../ts2/routing/route.py" line="251"/>
         <source>Invalid route %s. Impossible to link beginSignal with endSignal</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1096,7 +1169,7 @@ Peron %s</translation>
 <context>
     <name>RouteSetCondition</name>
     <message>
-        <location filename="../ts2/scenery/signals/signalitem.py" line="1083"/>
+        <location filename="../ts2/scenery/signals/signalitem.py" line="1112"/>
         <source>Error in simulation definition: SignalItem %s references unknown route %s</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1125,32 +1198,9 @@ Peron %s</translation>
     </message>
 </context>
 <context>
-    <name>Scorer</name>
-    <message>
-        <location filename="../ts2/game/scorer.py" line="88"/>
-        <source>Train %s arrived at station %s on platform %s instead of %s</source>
-        <translation type="obsolete">Pociąg %s przyjechał na stację %s na perpm %s zamiast %s</translation>
-    </message>
-    <message>
-        <location filename="../ts2/game/scorer.py" line="118"/>
-        <source>Train %s badly routed</source>
-        <translation type="obsolete">Pociąg %s źle pokierowany</translation>
-    </message>
-    <message>
-        <location filename="../ts2/game/scorer.py" line="100"/>
-        <source>Train %s arrived %i minutes late at station %s (%+i minutes)</source>
-        <translation type="obsolete">Pociąg %s przyjechał na stację z %i opóźnieniem (%+i minut)</translation>
-    </message>
-    <message>
-        <location filename="../ts2/game/scorer.py" line="107"/>
-        <source>Train %s arrived on time at station %s</source>
-        <translation type="obsolete">Pociąg %s przyjechał na stację %s</translation>
-    </message>
-</context>
-<context>
     <name>ServiceAssignDialog</name>
     <message>
-        <location filename="../ts2/gui/dialogs.py" line="114"/>
+        <location filename="../ts2/gui/dialogs.py" line="116"/>
         <source>Choose a service to assign to this train</source>
         <translation>Wybierz obsługę by przypisać do pocigu</translation>
     </message>
@@ -1181,27 +1231,27 @@ Peron %s</translation>
 <context>
     <name>ServiceLinesModel</name>
     <message>
-        <location filename="../ts2/trains/service.py" line="459"/>
+        <location filename="../ts2/trains/service.py" line="458"/>
         <source>Place code</source>
         <translation>Wstaw kod</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/service.py" line="461"/>
+        <location filename="../ts2/trains/service.py" line="460"/>
         <source>Track code</source>
         <translation>Numer toru</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/service.py" line="463"/>
+        <location filename="../ts2/trains/service.py" line="462"/>
         <source>Arrival time</source>
         <translation>Czas przyjazdu</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/service.py" line="465"/>
+        <location filename="../ts2/trains/service.py" line="464"/>
         <source>Departure time</source>
         <translation>Czas odjazdu</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/service.py" line="467"/>
+        <location filename="../ts2/trains/service.py" line="466"/>
         <source>Stop</source>
         <translation>Stop</translation>
     </message>
@@ -1237,42 +1287,42 @@ Peron %s</translation>
 <context>
     <name>SignalItem</name>
     <message>
-        <location filename="../ts2/scenery/signals/signalitem.py" line="354"/>
+        <location filename="../ts2/scenery/signals/signalitem.py" line="362"/>
         <source>Signal: %s</source>
         <translation>Sygnał: %s</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/signals/signalitem.py" line="228"/>
+        <location filename="../ts2/scenery/signals/signalitem.py" line="234"/>
         <source>Reverse</source>
         <translation>Odwróć</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/signals/signalitem.py" line="230"/>
+        <location filename="../ts2/scenery/signals/signalitem.py" line="236"/>
         <source>Signal Type</source>
         <translation>Typ sygnału</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/signals/signalitem.py" line="1042"/>
+        <location filename="../ts2/scenery/signals/signalitem.py" line="1071"/>
         <source>Route set params</source>
         <translation>Parametry trasys</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/signals/signalitem.py" line="236"/>
+        <location filename="../ts2/scenery/signals/signalitem.py" line="242"/>
         <source>Berth Origin</source>
         <translation>Pochodzenie pociągu</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/signals/signalitem.py" line="182"/>
+        <location filename="../ts2/scenery/signals/signalitem.py" line="187"/>
         <source>This simulation uses %s signal types which are not available on this computer. You can download the missing files from the server in File-&gt;Open dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/signals/signalitem.py" line="942"/>
+        <location filename="../ts2/scenery/signals/signalitem.py" line="971"/>
         <source>No train params</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/signals/signalitem.py" line="992"/>
+        <location filename="../ts2/scenery/signals/signalitem.py" line="1021"/>
         <source>Train Present Params</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1280,52 +1330,32 @@ Peron %s</translation>
 <context>
     <name>Simulation</name>
     <message>
-        <location filename="../ts2/simulation.py" line="515"/>
-        <source>Conflicting route</source>
-        <translation type="obsolete">Kolidujące trasy</translation>
-    </message>
-    <message>
-        <location filename="../ts2/simulation.py" line="566"/>
+        <location filename="../ts2/simulation.py" line="586"/>
         <source>No route between signals</source>
         <translation>Brak połączenia pomiędzy sygnałami</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="613"/>
-        <source>Creating TrackItem links</source>
-        <translation type="obsolete">Tworzenie linków elementów trasy</translation>
-    </message>
-    <message>
-        <location filename="../ts2/simulation.py" line="653"/>
-        <source>Checking TrackItem links</source>
-        <translation type="obsolete">Sprawdzanie elementów trasy</translation>
-    </message>
-    <message>
-        <location filename="../ts2/simulation.py" line="667"/>
-        <source>TrackItem %i is unlinked at (%f, %f)</source>
-        <translation type="obsolete">Element trasy %i jest nie połączony w (%f, %f)</translation>
-    </message>
-    <message>
-        <location filename="../ts2/simulation.py" line="274"/>
+        <location filename="../ts2/simulation.py" line="283"/>
         <source>Simulation loaded</source>
         <translation>Wczytano symulację</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="240"/>
+        <location filename="../ts2/simulation.py" line="248"/>
         <source>Invalid simulation: Not all items are linked.</source>
         <translation>Błąd symulacji: Nie wszystkie przedmioty są połączone.</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="301"/>
+        <location filename="../ts2/simulation.py" line="313"/>
         <source>Saving simulation</source>
         <translation>Zapisywanie symulacji</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="308"/>
+        <location filename="../ts2/simulation.py" line="320"/>
         <source>Simulation saved</source>
         <translation>Zapisano symulację</translation>
     </message>
     <message>
-        <location filename="../ts2/simulation.py" line="232"/>
+        <location filename="../ts2/simulation.py" line="240"/>
         <source>Simulation initializing</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1333,12 +1363,12 @@ Peron %s</translation>
 <context>
     <name>SplitTrainDialog</name>
     <message>
-        <location filename="../ts2/gui/dialogs.py" line="167"/>
+        <location filename="../ts2/gui/dialogs.py" line="169"/>
         <source>Split a train</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/gui/dialogs.py" line="177"/>
+        <location filename="../ts2/gui/dialogs.py" line="179"/>
         <source>Split here</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1369,32 +1399,32 @@ Peron %s</translation>
 <context>
     <name>TrackItem</name>
     <message>
-        <location filename="../ts2/scenery/abstract.py" line="149"/>
+        <location filename="../ts2/scenery/abstract.py" line="151"/>
         <source>Type</source>
         <translation>Typ</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/abstract.py" line="161"/>
+        <location filename="../ts2/scenery/abstract.py" line="163"/>
         <source>id</source>
         <translation>ID</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/abstract.py" line="152"/>
+        <location filename="../ts2/scenery/abstract.py" line="154"/>
         <source>Name</source>
         <translation>Nazwa</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/abstract.py" line="153"/>
+        <location filename="../ts2/scenery/abstract.py" line="155"/>
         <source>Position</source>
         <translation>Pozycja</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/abstract.py" line="162"/>
+        <location filename="../ts2/scenery/abstract.py" line="164"/>
         <source>Maximum speed (m/s)</source>
         <translation>Prędkość maksymalna (m/s)</translation>
     </message>
     <message>
-        <location filename="../ts2/scenery/abstract.py" line="156"/>
+        <location filename="../ts2/scenery/abstract.py" line="158"/>
         <source>Conflict item ID</source>
         <translation>ID konfliktującego przedmiotu</translation>
     </message>
@@ -1430,44 +1460,19 @@ Peron %s</translation>
         <translation>Odwróć</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="820"/>
+        <location filename="../ts2/trains/train.py" line="811"/>
         <source>Reset a service</source>
         <translation>Zresetuj obsługę</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="820"/>
+        <location filename="../ts2/trains/train.py" line="811"/>
         <source>Are you sure you really want to reset service %s?</source>
         <translation>Czy na pewno zresetować obsługę %s ?</translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="588"/>
+        <location filename="../ts2/trains/train.py" line="590"/>
         <source>No service with code %s</source>
         <translation>Brak obsługi z kodem %s</translation>
-    </message>
-    <message>
-        <location filename="../ts2/trains/train.py" line="619"/>
-        <source>Train %s exited the area</source>
-        <translation type="obsolete">Pociąg %s opuścił obszar</translation>
-    </message>
-    <message>
-        <location filename="../ts2/trains/train.py" line="882"/>
-        <source>Train %s entered the area on time</source>
-        <translation type="obsolete">Pociąg %s przyjechał do strefy o czasie</translation>
-    </message>
-    <message>
-        <location filename="../ts2/trains/train.py" line="887"/>
-        <source>late</source>
-        <translation type="obsolete">później</translation>
-    </message>
-    <message>
-        <location filename="../ts2/trains/train.py" line="888"/>
-        <source>early</source>
-        <translation type="obsolete">wcześnie</translation>
-    </message>
-    <message>
-        <location filename="../ts2/trains/train.py" line="889"/>
-        <source>Train %s entered the area %i minutes %s</source>
-        <translation type="obsolete">Pociąg %s wjechał do strefy %i minut %s</translation>
     </message>
     <message>
         <location filename="../ts2/trains/train.py" line="467"/>
@@ -1475,18 +1480,23 @@ Peron %s</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="872"/>
+        <location filename="../ts2/trains/train.py" line="867"/>
         <source>This train cannot be split</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="838"/>
+        <location filename="../ts2/trains/train.py" line="833"/>
         <source>This train is not stopped</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ts2/trains/train.py" line="872"/>
+        <location filename="../ts2/trains/train.py" line="867"/>
         <source>Unable to split train</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/trains/train.py" line="469"/>
+        <source>Proceed with caution</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1614,7 +1624,7 @@ Peron %s</translation>
 <context>
     <name>TrainNotPresentOnItems</name>
     <message>
-        <location filename="../ts2/scenery/signals/signalitem.py" line="981"/>
+        <location filename="../ts2/scenery/signals/signalitem.py" line="1010"/>
         <source>Error in simulation definition: SignalItem %s references unknown track item %s</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1622,7 +1632,7 @@ Peron %s</translation>
 <context>
     <name>TrainPresentOnItems</name>
     <message>
-        <location filename="../ts2/scenery/signals/signalitem.py" line="1031"/>
+        <location filename="../ts2/scenery/signals/signalitem.py" line="1060"/>
         <source>Error in simulation definition: SignalItem %s references unknown track item %s</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1744,15 +1754,36 @@ Peron %s</translation>
 <context>
     <name>ZoomWidget</name>
     <message>
-        <location filename="../ts2/gui/widgets.py" line="52"/>
+        <location filename="../ts2/gui/widgets.py" line="55"/>
         <source>100%</source>
         <translation>100%</translation>
     </message>
 </context>
 <context>
+    <name>editor.upgradeSimulation</name>
+    <message>
+        <location filename="../ts2/editor/editor.py" line="300"/>
+        <source>Simulation files with version %s are not managed</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>mainWindow</name>
+    <message>
+        <location filename="../ts2/mainwindow.py" line="964"/>
+        <source>Connection closed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/mainwindow.py" line="964"/>
+        <source>The server closed the connection to the simulation.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>simulation.load</name>
     <message>
-        <location filename="../ts2/simulation.py" line="87"/>
+        <location filename="../ts2/simulation.py" line="91"/>
         <source>Loaded file is not a TS2 simulation</source>
         <translation type="unfinished"></translation>
     </message>
