@@ -78,12 +78,12 @@ allez voir notre
 
 ## Historique des versions
 
-###Version 0.7:
+### Version 0.7:
 - Nouvelle architecture client-serveur:
     - Mode multijoueur en connectant plusieurs joueurs sur la même simulation
     - API Websocket pour interagir avec la simulation
 
-###Version 0.6:
+### Version 0.6:
 - Nouvelle version Python3 / PyQt5
 - Déplacement du projet sur GitHub
 - Nouveau site
@@ -97,7 +97,7 @@ allez voir notre
 - Amélioration de l'interface
 - Meilleure gestion des erreurs
 
-###Version 0.5:
+### Version 0.5:
 - Dernière version PyQt4
 - Editeur amélioré incluant les caractéristiques suivantes: 
     - Sélections multiples

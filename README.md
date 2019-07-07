@@ -73,12 +73,12 @@ head over to our
 
 ## Change log
 
-###Version 0.7:
+### Version 0.7:
 - New client-server architecture:
     - Multiplayer by connecting several players on the same simulation
     - Websocket API to interact with the simulation
 
-###Version 0.6:
+### Version 0.6:
 - New release that is PyQt5 = Python3 only
 - Announce move and infrastructure to github
 - New home page, et all
@@ -92,7 +92,7 @@ head over to our
 - UI improvements (toolbars, etc.)
 - Catch exceptions when loading sims
 
-###Version 0.5:
+### Version 0.5:
 - Last PyQt4 version
 - Improved editor including the following features 
     - Multi-selection
