@@ -974,7 +974,7 @@ TS2 est distribueé sous les termes de la licence GNU GPL v2
     <message>
         <location filename="../ts2/gui/opendialog.py" line="166"/>
         <source>Connect</source>
-        <translation>Connextion</translation>
+        <translation>Connexion</translation>
     </message>
 </context>
 <context>
