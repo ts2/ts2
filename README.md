@@ -1,13 +1,6 @@
 # TS2 - Train Signalling Simulation
 
-version 0.6
-
-
-**IMPORTANT**
-
-* The 0.6 version and this `master` branch is the last version to use PyQt5 as integrated sim/gui/everything 
-* All new project effort is against 0.7  with documentation at [Next Architecture](https://github.com/ts2/ts2/wiki/New-Arch)
-* The 0.7  working branch is [`next-arch`](https://github.com/ts2/ts2/tree/nextarch) 
+version 0.7
 
 ## Overview
 **Train Signalling Simulation (TS2)** is a railways simulation game where you have to dispatch trains across an area and keep them on schedule. 
@@ -16,7 +9,6 @@ version 0.6
 * TS2 Homepage - [ts2.github.io](http://ts2.github.io/)
 * TS2 Chat - [irc.freenode.net#trainsigsim](irc://irc.freenode.net#trainsigsim)
 * TS2 Project at Github - [github.com/ts2](http://github.com/ts2/)
-* TS2 API Docs - autogen at [docs-ts2.rhcloud.com](http://docs-ts2.rhcloud.com/)
 
 ## Status
 TS2 is beta software, meaning it is playable, but still lacks many features that one would expect from a real simulation, will it ever be finished.
@@ -31,8 +23,10 @@ New simulations can be created with the editor provided with ts2.
 * Source installation:
     - Download and install Python v3 or above at [www.python.org](http://www.python.org).
     - Download and install PyQt v5 or above at [http://www.riverbankcomputing.co.uk](http://www.riverbankcomputing.co.uk).
-    - Grab the sources from GitHub development page.
+    - Grab the sources from [GitHub](https://github.com/ts2/ts2/releases/tag/v0.7.0).
     - Run start-ts2.py
+* Post Install
+    - Download the simulation server by opening the File->Settings menu and click on  "Download Server".
 
 ## Playing (QuickStart)
 * Load a simulation from the _simulation_ directory (or the _data_ directory if you have installed from sources).
@@ -71,8 +65,19 @@ New simulations can be created with the editor provided with ts2.
     Each time a train arrives late at a station, stops at the wrong platform or is routed to a wrong direction
     penalty points are added to the score.
 
+## Developing
+
+Whether you want to write your own simulation with the editor or to develop a new client to interact with TS2, 
+head over to our Technical Manual: 
+[HTML](https://github.com/ts2/ts2-sim-server/blob/master/docs/ts2-technical-manual.adoc) 
+[PDF](https://github.com/ts2/ts2-sim-server/blob/master/docs/ts2-technical-manual.pdf) 
 
 ## Change log
+
+###Version 0.7:
+- New client-server architecture:
+    - Multiplayer by connecting several players on the same simulation
+    - Websocket API to interact with the simulation
 
 ###Version 0.6:
 - New release that is PyQt5 = Python3 only
