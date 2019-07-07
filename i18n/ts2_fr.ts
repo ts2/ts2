@@ -1299,6 +1299,59 @@ Voie %s</translation>
     </message>
 </context>
 <context>
+    <name>SettingsDialog</name>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="42"/>
+        <source>Settings</source>
+        <translation>Options</translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="52"/>
+        <source>User Settings</source>
+        <translation>Options de l&apos;utilisateur</translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="64"/>
+        <source>Startup</source>
+        <translation>Démarrage</translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="74"/>
+        <source>Load last used sim</source>
+        <translation>Charger la dernière simulation</translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="81"/>
+        <source>Server</source>
+        <translation>Serveur</translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="90"/>
+        <source>Download server</source>
+        <translation>Télécharger le serveur</translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="111"/>
+        <source>Data Dir</source>
+        <translation>Dossier des données</translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="144"/>
+        <source>Default</source>
+        <translation>Par défaut</translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="124"/>
+        <source>Server Dir</source>
+        <translation>Dossier du serveur</translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="137"/>
+        <source>Simulations Dir</source>
+        <translation>Dossier des simulations</translation>
+    </message>
+</context>
+<context>
     <name>SignalItem</name>
     <message>
         <location filename="../ts2/scenery/signals/signalitem.py" line="362"/>

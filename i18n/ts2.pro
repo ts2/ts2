@@ -33,6 +33,7 @@ SOURCES =  \
 ../ts2/gui/opendialog.py \
 ../ts2/gui/servicelistview.py \
 ../ts2/gui/trainlistview.py \
+../ts2/gui/settingsdialog.py \
 ../ts2/gui/widgets.py \
 ../ts2/routing/__init__.py \
 ../ts2/routing/position.py \

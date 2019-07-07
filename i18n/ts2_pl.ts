@@ -1285,6 +1285,59 @@ Peron %s</translation>
     </message>
 </context>
 <context>
+    <name>SettingsDialog</name>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="42"/>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="52"/>
+        <source>User Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="64"/>
+        <source>Startup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="74"/>
+        <source>Load last used sim</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="81"/>
+        <source>Server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="90"/>
+        <source>Download server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="111"/>
+        <source>Data Dir</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="144"/>
+        <source>Default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="124"/>
+        <source>Server Dir</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ts2/gui/settingsdialog.py" line="137"/>
+        <source>Simulations Dir</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>SignalItem</name>
     <message>
         <location filename="../ts2/scenery/signals/signalitem.py" line="362"/>
