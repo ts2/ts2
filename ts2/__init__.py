@@ -46,6 +46,13 @@ __SIMULATIONS_REPO__ = "https://github.com/ts2/ts2-data"
 __SERVER_REPO__ = "https://github.com/ts2/ts2-sim-server"
 
 
+PLATFORMS_MAP = {
+    'linux': 'Linux',
+    'win32': 'Windows',
+    'darwin': 'Darwin',
+}
+
+
 def get_info():
     """ts2 info
 

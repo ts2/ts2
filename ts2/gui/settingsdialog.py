@@ -17,6 +17,9 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
+
+import os
+import stat
 import sys
 import zipfile
 from io import BytesIO
@@ -28,13 +31,6 @@ import ts2
 from Qt import QtWidgets, Qt
 from ts2.gui import widgets
 from ts2.utils import settings
-
-
-PLATFORMS_MAP = {
-    'linux': 'Linux',
-    'win32': 'Windows',
-    'darwin': 'Darwin',
-}
 
 
 class SettingsDialog(QtWidgets.QDialog):
@@ -94,8 +90,8 @@ class SettingsDialog(QtWidgets.QDialog):
         self.btnDownloadServer.setText(self.tr("Download server"))
         grid.addWidget(self.btnDownloadServer)
 
-        self.txtServerFound = QtWidgets.QLabel('<span style="color: green;">Server found in Server Dir</span>')
-        self.txtServerFound.setVisible(path.isfile(settings.serverLoc))
+        self.txtServerFound = QtWidgets.QLabel()
+        self.updateServerLabel()
         grid.addWidget(self.txtServerFound)
 
         grid.addStretch(1)
@@ -157,6 +153,14 @@ class SettingsDialog(QtWidgets.QDialog):
 
         self.loadSettings()
 
+    def updateServerLabel(self):
+        pass
+        if path.isfile(settings.serverLoc):
+            txt = '<span style="color: green;">Server found in Server Dir</span>'
+        else:
+            txt = '<span style="color: red;">Server not found. Click on Download</span>'
+        self.txtServerFound.setText(txt)
+
     def loadSettings(self):
         v = settings.b(settings.LOAD_LAST, False)
         self.chkLoadLast.setChecked(v)
@@ -176,7 +180,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def downloadServer(self):
         QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
-        if sys.maxsize > 2**32:
+        if sys.maxsize > 2 ** 32:
             bits = 'x86_64'
         else:
             bits = 'i386'
@@ -185,7 +189,7 @@ class SettingsDialog(QtWidgets.QDialog):
             ts2.get_info()['server_repo'],
             "releases/download/v%s" % ts2.get_info()['server_version'],
             "ts2-sim-server_%s_%s_%s.zip" % (ts2.get_info()['server_version'],
-                                             PLATFORMS_MAP[sys.platform],
+                                             ts2.PLATFORMS_MAP[sys.platform],
                                              bits)
         )
 
@@ -194,6 +198,8 @@ class SettingsDialog(QtWidgets.QDialog):
         with zipfile.ZipFile(BytesIO(response.content)) as zf:
             zf.extract(settings.serverFileName, settings.serverDir)
 
-        self.txtServerFound.setVisible(path.isfile(settings.serverLoc))
+        st = os.stat(settings.serverLoc)
+        os.chmod(settings.serverLoc, st.st_mode | stat.S_IEXEC)
+        self.updateServerLabel()
 
         QtWidgets.qApp.restoreOverrideCursor()

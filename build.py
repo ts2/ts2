@@ -14,8 +14,9 @@ def find_file(name, path):
         if name in files:
             return os.path.join(root, name)
 
-print("############# Generating translation files ###################")
+# print("############# Generating translation files ###################")
 # out = os.system("lrelease i18n/ts2.pro")
+
 
 print("############# Freezing TS2 as an executable ###################")
 build_exe_options = {
