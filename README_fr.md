@@ -1,5 +1,5 @@
 # TS2 - Train Signalling Simulation
-version 0.6
+version 0.7
 
 ## Présentation
 **Train Signalling Simulation (TS2)** est un jeu de simulation ferroviaire où vous
@@ -9,7 +9,6 @@ devez aiguiller les trains sur une zone et les garder à l'heure.
 * Site de TS2 - [ts2.github.io](http://ts2.github.io/)
 * Chat TS2 (en anglais) - [irc.freenode.net#trainsigsim](irc://irc.freenode.net#trainsigsim)
 * Page du projet TS2 sur Github - [github.com/ts2](http://github.com/ts2/)
-* Docs API TS2 - générées automatiquement [docs-ts2.rhcloud.com](http://docs-ts2.rhcloud.com/)
 
 ## Statut
 TS2 est un logiciel beta ce qui signifie qu'il est jouable, mais qu'il lui manque
@@ -26,8 +25,10 @@ le logiciel.
 * Installation à partir des sources:
     - Télécharger et installer Python v3 ou supérieur depuis [www.python.org](http://www.python.org).
     - Télécharger et installer PyQt v5 ou supérieur depuis [http://www.riverbankcomputing.co.uk](http://www.riverbankcomputing.co.uk).
-    - Récuperer les sources depuis le site de développement sur GitHub.
+    - Récuperer les sources depuis [GitHub](https://github.com/ts2/ts2/releases/tag/v0.7.0).
     - Lancer start-ts2.py.
+* Post installation:
+    - Télécharger le serveur de simulation en ouvrant le menu "Fichier->Options" et cliquer sur "Télécharger le serveur".
 
 ## Jeu (Guide rapide)
 * Charger une simulation depuis le dossier _simulation_ (ou le dossier _data_ si vous avez installé depuis les sources).
@@ -68,7 +69,19 @@ le logiciel.
     A chaque fois qu'un train arrive en retard à une gare, s'arrête sur le mauvais quai ou est aiguillé dans une
     mauvaise direction, des points de pénalité sont ajoutés au score.
 
+## Développement
+
+Que vous souhaitiez écrire votre propre simulation avec l'éditeur ou développer un nouveau client pour interagir avec TS2,
+allez voir notre manuel technique (en anglais):
+[HTML](https://github.com/ts2/ts2-sim-server/blob/master/docs/ts2-technical-manual.adoc) 
+[PDF](https://github.com/ts2/ts2-sim-server/blob/master/docs/ts2-technical-manual.pdf) 
+
 ## Historique des versions
+
+###Version 0.7:
+- Nouvelle architecture client-serveur:
+    - Mode multijoueur en connectant plusieurs joueurs sur la même simulation
+    - API Websocket pour interagir avec la simulation
 
 ###Version 0.6:
 - Nouvelle version Python3 / PyQt5
