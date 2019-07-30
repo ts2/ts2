@@ -32,12 +32,9 @@ class PlatformItem(abstract.ResizableItem):
     """
     def __init__(self, parameters):
         """Constructor for the PlatformItem class"""
+        self._placeCode = ""
+        self._trackCode = ""
         super().__init__(parameters)
-        x2 = parameters["xf"]
-        y2 = parameters["yf"]
-        self._end = QtCore.QPointF(x2, y2)
-        self._placeCode = parameters["placeCode"]
-        self._trackCode = parameters["trackCode"]
         pgi = helper.TrackGraphicsItem(self)
         pgi.setPos(self.origin)
         pgi.setCursor(Qt.PointingHandCursor)
@@ -47,6 +44,14 @@ class PlatformItem(abstract.ResizableItem):
         self.platformSelected.connect(
             placeitem.Place.selectedPlaceModel.setPlace
         )
+
+    def updateFromParameters(self, parameters):
+        super(PlatformItem, self).updateFromParameters(parameters)
+        x2 = parameters.get("xf", 0.0)
+        y2 = parameters.get("yf", 0.0)
+        self._end = QtCore.QPointF(x2, y2)
+        self._placeCode = parameters.get("placeCode", "")
+        self._trackCode = parameters.get("trackCode", "")
 
     def initialize(self, simulation):
         """Initialize the item after all items are loaded."""

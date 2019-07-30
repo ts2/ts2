@@ -473,10 +473,11 @@ class ServiceLinesModel(QtCore.QAbstractTableModel):
     @QtCore.pyqtSlot(str)
     def setServiceCode(self, serviceCode):
         """Sets the service linked with this model from its serviceCode."""
-        if serviceCode is None:
-            return
         self.beginResetModel()
-        self._service = self._editor.service(serviceCode)
+        if not serviceCode:
+            self._service = None
+        else:
+            self._service = self._editor.service(serviceCode)
         self.endResetModel()
 
     @property
