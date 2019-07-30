@@ -83,18 +83,16 @@ class TrackItem(QtCore.QObject):
         self.simulation = None
         self._parameters = parameters
         self.tiId = parameters['tiId']
-        self._name = parameters['name']
-        self._maxSpeed = float(parameters.get('maxSpeed', "0.0"))
+        self._name = ""
+        self._maxSpeed = 0
+        self._origin = QtCore.QPointF()
+        self._end = QtCore.QPointF()
         self._nextItem = None
         self._previousItem = None
         self.activeRoute = None
         self.activeRoutePreviousItem = None
         self._selected = False
         self.defaultZValue = 0
-        x = parameters['x']
-        y = parameters['y']
-        self._origin = QtCore.QPointF(x, y)
-        self._end = QtCore.QPointF(x + 10, y)
         self._realLength = 1.0
         self._trains = []
         self._trainHeads = []
@@ -105,12 +103,20 @@ class TrackItem(QtCore.QObject):
         self.toBeDeselected = False
         self.properties = []
         self.multiProperties = []
+        self.updateFromParameters(parameters)
+
+    def updateFromParameters(self, parameters):
+        self._parameters.update(parameters)
+        self._name = parameters.get('name', "")
+        self._maxSpeed = float(parameters.get('maxSpeed', "0.0"))
+        x = parameters.get('x', 0.0)
+        y = parameters.get('y', 0.0)
+        self._origin = QtCore.QPointF(x, y)
+        self._end = QtCore.QPointF(x + 10, y)
+        self._realLength = float(parameters.get('realLength', "1.0"))
 
     def initialize(self, simulation):
         """Initialize the item after all items are loaded."""
-        if not self._parameters:
-            raise Exception("Internal error: TrackItem %s already initialized"
-                            % self.tiId)
         self.simulation = simulation
         params = self._parameters
         self._nextItem = simulation.trackItem(params.get('nextTiId'))
@@ -118,7 +124,6 @@ class TrackItem(QtCore.QObject):
         self._conflictTrackItem = simulation.trackItem(
             params.get('conflictTiId')
         )
-        self._parameters = None
         self.properties = self.getProperties()
         self.multiProperties = self.getMultiProperties()
         for gi in self._gi.values():
@@ -596,13 +601,11 @@ class ResizableItem(TrackItem):
     :class:`~ts2.scenery.lineitem.LineItem`'s or
     :class:`~ts2.scenery.platformitem.PlatformItem`'s.
     """
-    def __init__(self, parameters):
-        """
-        :param dict parameters:
-        """
-        super().__init__(parameters)
-        xf = float(parameters['xf'])
-        yf = float(parameters['yf'])
+
+    def updateFromParameters(self, parameters):
+        super(ResizableItem, self).updateFromParameters(parameters)
+        xf = float(parameters.get('xf', 0.0))
+        yf = float(parameters.get('yf', 0.0))
         self._end = QtCore.QPointF(xf, yf)
 
     @staticmethod

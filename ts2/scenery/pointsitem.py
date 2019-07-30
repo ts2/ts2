@@ -75,19 +75,11 @@ class PointsItem(abstract.TrackItem):
         """
         :param dict paramaters:
         """
+        self._commonEnd = QtCore.QPointF()
+        self._normalEnd = QtCore.QPointF()
+        self._reverseEnd = QtCore.QPointF()
+        self._center = QtCore.QPointF()
         super().__init__(parameters)
-        x = parameters["x"]
-        y = parameters["y"]
-        cpx = parameters["xf"]
-        cpy = parameters["yf"]
-        npx = parameters["xn"]
-        npy = parameters["yn"]
-        rpx = parameters["xr"]
-        rpy = parameters["yr"]
-        self._commonEnd = QtCore.QPointF(cpx, cpy)
-        self._normalEnd = QtCore.QPointF(npx, npy)
-        self._reverseEnd = QtCore.QPointF(rpx, rpy)
-        self._center = QtCore.QPointF(x, y)
         self._pointsReversed = False
         self._reverseItem = None
         self.defaultZValue = 60
@@ -97,6 +89,21 @@ class PointsItem(abstract.TrackItem):
         pgi.setCursor(Qt.PointingHandCursor)
         pgi.setToolTip(self.toolTipText)
         self._gi[0] = pgi
+
+    def updateFromParameters(self, parameters):
+        super(PointsItem, self).updateFromParameters(parameters)
+        x = parameters.get("x", 0.0)
+        y = parameters.get("y", 0.0)
+        cpx = parameters.get("xf", 0.0)
+        cpy = parameters.get("yf", 0.0)
+        npx = parameters.get("xn", 0.0)
+        npy = parameters.get("yn", 0.0)
+        rpx = parameters.get("xr", 0.0)
+        rpy = parameters.get("yr", 0.0)
+        self._commonEnd = QtCore.QPointF(cpx, cpy)
+        self._normalEnd = QtCore.QPointF(npx, npy)
+        self._reverseEnd = QtCore.QPointF(rpx, rpy)
+        self._center = QtCore.QPointF(x, y)
 
     def initialize(self, simulation):
         """Initialize the item after all items are loaded."""

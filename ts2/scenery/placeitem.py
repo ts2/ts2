@@ -51,9 +51,9 @@ class Place(abstract.TrackItem):
 
     def __init__(self, parameters):
         """Constructor for the Place class"""
+        self._placeCode = ""
         super().__init__(parameters)
         self.simulation = None
-        self._placeCode = parameters["placeCode"]
         self._rect = QtCore.QRectF()
         self.updateBoundingRect()
         gi = helper.TrackGraphicsItem(self)
@@ -64,6 +64,10 @@ class Place(abstract.TrackItem):
         self._gi[0] = gi
         self._timetable = []
         self._tracks = {}
+
+    def updateFromParameters(self, parameters):
+        super(Place, self).updateFromParameters(parameters)
+        self._placeCode = parameters.get("placeCode", "")
 
     @staticmethod
     def getProperties():

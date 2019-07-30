@@ -133,9 +133,35 @@ class SignalItem(abstract.TrackItem):
         """
         :param dict parameters:
         """
-        super().__init__(parameters)
-        reverse = bool(parameters.get("reverse", 0))
+        self._reverse = False
         self._signalType = None
+        self._berthOrigin = QtCore.QPointF()
+        self._berthRect = None
+        super().__init__(parameters)
+        self.setBerthRect()
+        self._activeAspect = signalLibrary.signalAspects.get(parameters.get("activeAspect"))
+        self._previousActiveRoute = None
+        self._nextActiveRoute = None
+        self._trainId = None
+        self.defaultZValue = 50
+        sgi = helper.TrackGraphicsItem(self, SignalItem.SIGNAL_GRAPHIC_ITEM)
+        sgi.setPos(self.origin)
+        sgi.setCursor(Qt.PointingHandCursor)
+        sgi.setToolTip(self.toolTipText)
+        sgi.setZValue(self.defaultZValue)
+        if self._reverse:
+            sgi.setRotation(180)
+        self._gi[SignalItem.SIGNAL_GRAPHIC_ITEM] = sgi
+        bgi = helper.TrackGraphicsItem(self, SignalItem.BERTH_GRAPHIC_ITEM)
+        bgi.setPos(self._berthOrigin)
+        bgi.setCursor(Qt.PointingHandCursor)
+        bgi.setZValue(self.defaultZValue)
+        self._gi[SignalItem.BERTH_GRAPHIC_ITEM] = bgi
+        self.lightOn = True
+
+    def updateFromParameters(self, parameters):
+        super(SignalItem, self).updateFromParameters(parameters)
+        reverse = bool(parameters.get("reverse", 0))
         for key, customProperty in signalLibrary.tiProperties.items():
             # Initialize backend vars for custom properties
             propName = "_" + customProperty.name[:-3]
@@ -150,28 +176,7 @@ class SignalItem(abstract.TrackItem):
         except ValueError:
             yb = self.origin.y() + 5
         self._berthOrigin = QtCore.QPointF(xb, yb)
-        self._berthRect = None
-        self.setBerthRect()
-        self._activeAspect = signalLibrary.signalAspects.get(parameters.get("activeAspect"))
         self._reverse = reverse
-        self._previousActiveRoute = None
-        self._nextActiveRoute = None
-        self._trainId = None
-        self.defaultZValue = 50
-        sgi = helper.TrackGraphicsItem(self, SignalItem.SIGNAL_GRAPHIC_ITEM)
-        sgi.setPos(self.origin)
-        sgi.setCursor(Qt.PointingHandCursor)
-        sgi.setToolTip(self.toolTipText)
-        sgi.setZValue(self.defaultZValue)
-        if reverse:
-            sgi.setRotation(180)
-        self._gi[SignalItem.SIGNAL_GRAPHIC_ITEM] = sgi
-        bgi = helper.TrackGraphicsItem(self, SignalItem.BERTH_GRAPHIC_ITEM)
-        bgi.setPos(self._berthOrigin)
-        bgi.setCursor(Qt.PointingHandCursor)
-        bgi.setZValue(self.defaultZValue)
-        self._gi[SignalItem.BERTH_GRAPHIC_ITEM] = bgi
-        self.lightOn = True
 
     def initialize(self, simulation):
         """Initialize the signal item once everything is loaded."""
