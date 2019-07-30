@@ -1134,7 +1134,9 @@ class EditorWindow(QtWidgets.QMainWindow):
             if QtWidgets.QMessageBox.warning(
                     self,
                     self.tr("Import track items"),
-                    self.tr("This will erase any existing item\n"
+                    self.tr("This will update any existing item with the data from the CSV file\n"
+                            "and create items that do not exist. Existing items that are not\n"
+                            "in the CSV file will stay untouched."
                             "Are you sure you want to continue?"),
                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
             ) == QtWidgets.QMessageBox.Yes:
@@ -1242,7 +1244,15 @@ class EditorWindow(QtWidgets.QMainWindow):
                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
         ) == QtWidgets.QMessageBox.Yes:
             QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
-            self.editor.setupTrainsFromServices()
+            try:
+                self.editor.setupTrainsFromServices()
+            except Exception as e:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    self.tr("Setup trains from services"),
+                    str(e),
+                    QtWidgets.QMessageBox.Ok
+                )
             QtWidgets.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()

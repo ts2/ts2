@@ -244,10 +244,7 @@ class Simulation(QtCore.QObject):
         self.updatePlaces()
         for ti in self._trackItems.values():
             ti.initialize(self)
-        if not self.checkTrackItemsLinks():
-            raise utils.FormatException(
-                self.tr("Invalid simulation: Not all items are linked.")
-            )
+        self.checkTrackItemsLinks()
 
         for rte in self.routes.values():
             rte.initialize(self)
@@ -722,19 +719,17 @@ class Simulation(QtCore.QObject):
         """
         :return: Checks that all :class:`~ts2.scenery.abstract.TrackItem`'s are
         linked together
-        :rtype: bool
+        :raises FormatException if items are not linked.
 
         """
-        result = True
         for ti in self._trackItems.values():
             if not isinstance(ti, placeitem.Place) \
                     and not isinstance(ti, platformitem.PlatformItem) \
                     and not isinstance(ti, textitem.TextItem):
                 if ti.nextItem is None and not isinstance(ti, enditem.EndItem):
-                    result = False
+                    raise utils.FormatException("Item %s not linked to a next item" % ti.tiId)
                 if ti.previousItem is None:
-                    result = False
-        return result
+                    raise utils.FormatException("Item %s not linked to a previous item" % ti.tiId)
 
     @staticmethod
     def distanceBetween(p1, p2):

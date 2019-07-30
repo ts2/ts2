@@ -481,9 +481,10 @@ class Editor(simulation.Simulation):
                   valid, and False otherwise. If the simulation is not valid,
                   message describes the error.
         """
-        if not self.checkTrackItemsLinks():
-            return False, self.tr("Invalid simulation: Not all items are "
-                                  "linked or end items are missing.")
+        try:
+            self.checkTrackItemsLinks()
+        except utils.FormatException as e:
+            return False, e.args
         for ti in self.trackItems.values():
             try:
                 ti.setupTriggers()
@@ -523,7 +524,6 @@ class Editor(simulation.Simulation):
     def importTrackItemsFromFile(self, fileName):
         with open(fileName, newline='') as csvfile:
             reader = csv.DictReader(csvfile)
-            self._trackItems = collections.OrderedDict()
             trackItems = {}
             for row in reader:
                 ti = row.copy()
@@ -537,13 +537,18 @@ class Editor(simulation.Simulation):
                 for f in objectFields:
                     ti[f] = ti[f] and eval(ti[f]) or {}
                 trackItems[ti['tiId']] = ti
-        self.loadTrackItems(trackItems)
+        for tiId, tiData in trackItems.items():
+            if tiId in self.trackItems:
+                self.trackItems[tiId].updateFromParameters(tiData)
+            else:
+                self.loadTrackItems(trackItems)
         maxID = 1
         for ti in self.trackItems.values():
             try:
                 maxID = max(int(ti.tiId), maxID)
             except ValueError:
                 pass
+            ti.removeAllGraphicsItems()
             ti.initialize(self)
             self.expandBackgroundTo(ti)
         self._nextId = maxID + 1
@@ -876,14 +881,21 @@ class Editor(simulation.Simulation):
         TrackItems, checks and set sceneryValidated to True if succeeded"""
         self.updatePlaces()
         self.createTrackItemsLinks()
-        if self.checkTrackItemsLinks():
-            self.sceneryIsValidated.emit(True)
-            self._sceneryValidated = True
-            return True
-        else:
-            self.sceneryIsValidated.emit(False)
+
+        try:
+            self.checkTrackItemsLinks()
+        except utils.FormatException as e:
+            QtWidgets.QMessageBox.warning(
+                self.simulationWindow,
+                self.tr("Error in simulation"),
+                str(e),
+                QtWidgets.QMessageBox.Ok
+            )
             self._sceneryValidated = False
-            return False
+            return
+        self.sceneryIsValidated.emit(True)
+        self._sceneryValidated = True
+        return True
 
     @QtCore.pyqtSlot()
     def invalidateScenery(self):
@@ -1116,6 +1128,8 @@ class Editor(simulation.Simulation):
             pos = self.getValidPosition()
             if pos is None:
                 raise Exception("No valid position found. Check scenery.")
+            if not self.trainTypes:
+                raise Exception("No rolling stock found. Check Train Types tab")
             parameters = {
                 "serviceCode": list(self.services.values())[0].serviceCode,
                 "trainTypeCode": list(self.trainTypes.values())[0].code,

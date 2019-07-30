@@ -35,10 +35,10 @@ class LineItem(abstract.ResizableItem):
 
     def __init__(self, parameters):
         """Constructor for the LineItem class"""
-        super().__init__(parameters)
-        self._placeCode = parameters.get("placeCode")
+        self._placeCode = ""
         self._trackCode = ""
-        self._realLength = parameters.get('realLength', 1.0)
+        self._realLength = ""
+        super().__init__(parameters)
         self.defaultZValue = 1
         self._line = QtCore.QLineF()
         self._boundingRect = QtCore.QRectF()
@@ -48,6 +48,12 @@ class LineItem(abstract.ResizableItem):
         gli.setZValue(self.defaultZValue)
         self._gi[0] = gli
         self._tli = []
+
+    def updateFromParameters(self, parameters):
+        super(LineItem, self).updateFromParameters(parameters)
+        self._placeCode = parameters.get("placeCode", "")
+        self._trackCode = parameters.get("trackCode", "")
+        self._realLength = parameters.get('realLength', 1.0)
 
     def initialize(self, simulation):
         """Initialize the item after all items are loaded."""
@@ -63,6 +69,7 @@ class LineItem(abstract.ResizableItem):
             self._gi[0].setCursor(Qt.ArrowCursor)
         self.simulation = simulation
         self.drawTrain()
+        self.updateGeometry()
         super().initialize(simulation)
 
     @staticmethod
