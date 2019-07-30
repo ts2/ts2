@@ -35,6 +35,7 @@ from ts2.scenery import abstract, placeitem, lineitem, platformitem, \
     invisiblelinkitem, enditem, pointsitem, textitem
 from ts2.scenery.signals import signalitem
 from ts2.simulation import BUILTIN_OPTIONS
+from ts2.trains import service
 
 translate = QtWidgets.qApp.translate
 
@@ -347,22 +348,7 @@ class Editor(simulation.Simulation):
             del routes[rID]["routeNum"]
         # Services
         for sID, srv in services.copy().items():
-            pa = []
-            if srv.get("autoReverse"):
-                pa.append({
-                    "actionCode": "REVERSE",
-                    "actionParam": None,
-                })
-                del services[sID]["autoReverse"]
-            if srv.get("nextServiceCode"):
-                pa.append({
-                    "actionCode": "SET_SERVICE",
-                    "actionParam": srv.get("nextServiceCode"),
-                })
-                del services[sID]["nextServiceCode"]
-            if not isinstance(srv["plannedTrainType"], str):
-                services[sID]["plannedTrainType"] = ""
-            services[sID]["postActions"] = pa
+            services[sID] = self.updateWithPostActions(srv)
             for i, sl in enumerate(srv["lines"]):
                 services[sID]["lines"][i]["mustStop"] = bool(sl["mustStop"])
         # Trains
@@ -374,6 +360,26 @@ class Editor(simulation.Simulation):
             trns[i]["stoppedTime"] = int(trn["stoppedTime"])
 
         return options, trackItems, routes, trainTypes, services, trns, messageLogger, signalLibrary, fileName
+
+    @staticmethod
+    def updateWithPostActions(srv):
+        pa = []
+        if srv.get("autoReverse"):
+            pa.append({
+                "actionCode": "REVERSE",
+                "actionParam": None,
+            })
+            del srv["autoReverse"]
+        if srv.get("nextServiceCode"):
+            pa.append({
+                "actionCode": "SET_SERVICE",
+                "actionParam": srv.get("nextServiceCode"),
+            })
+            del srv["nextServiceCode"]
+        if not isinstance(srv["plannedTrainType"], str):
+            srv["plannedTrainType"] = ""
+        srv["postActions"] = pa
+        return srv
 
     sceneryIsValidated = QtCore.pyqtSignal(bool)
     trainsChanged = QtCore.pyqtSignal()
@@ -656,6 +662,8 @@ class Editor(simulation.Simulation):
     def importServicesFromFile(self, fileName):
         """Imports the services from the ts2 formatted CSV file given by
         fileName, deleting any previous service in the editor if any."""
+        self.servicesModel.beginResetModel()
+        self.serviceLinesModel.beginResetModel()
         self._services = {}
         allowedHeaders = [
             "serviceCode", "description", "nextServiceCode", "autoReverse",
@@ -672,7 +680,7 @@ class Editor(simulation.Simulation):
             # We have empty headers over service line columns
             if header != "":
                 if header not in allowedHeaders:
-                    raise Exception(self.tr(
+                    raise utils.FormatException(self.tr(
                         "Format Error: invalid header %s detected") % header)
                 if header == "places=>":
                     inPlaces = True
@@ -687,6 +695,7 @@ class Editor(simulation.Simulation):
                 params = [p.strip('" \n') for p in params]
                 serviceParameters = dict(zip(headers[:placesIndex],
                                              params[:placesIndex]))
+                serviceParameters = self.updateWithPostActions(serviceParameters)
                 serviceParameters["__type__"] = "Service"
                 lineLength = len(lineHeaders)
                 serviceLines = []
@@ -700,12 +709,11 @@ class Editor(simulation.Simulation):
                         serviceLines.append(lineParameters)
                 serviceParameters["lines"] = serviceLines
                 serviceCode = serviceParameters["serviceCode"]
-                jsonStr = json.dumps(serviceParameters, encoding='utf-8')
-                self.services[serviceCode] = json.loads(
-                    jsonStr, object_hook=json_hook, encoding='utf-8'
-                )
-                self.services[serviceCode].initialize(self)
+                self._services[serviceCode] = service.Service(serviceParameters)
+                self._services[serviceCode].initialize(self)
         file.close()
+        self.servicesModel.endResetModel()
+        self.serviceLinesModel.endResetModel()
 
     def registerGraphicsItem(self, graphicItem):
         """Adds the graphicItem to the scene or to the libraryScene.

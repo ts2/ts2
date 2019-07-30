@@ -47,7 +47,6 @@ def Main(args=None):
     ts2Translator.load(QtCore.QLocale.system(), "ts2", "_", "i18n", ".qm")
     app.installTranslator(ts2Translator)
     QtCore.qDebug(QtCore.QLocale.system().name())
-    # TODO: Uncomment in production
     try:
         mw = mainwindow.MainWindow(args=args)
         mw.show()
@@ -55,6 +54,7 @@ def Main(args=None):
     except:
         dialogs.ExceptionDialog.popupException(None)
         return 1
+
 
 if __name__ == "__main__":
     Main()

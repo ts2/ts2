@@ -1103,7 +1103,15 @@ class EditorWindow(QtWidgets.QMainWindow):
                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
             ) == QtWidgets.QMessageBox.Yes:
                 QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
-                self.editor.importServicesFromFile(fileName)
+                try:
+                    self.editor.importServicesFromFile(fileName)
+                except Exception as e:
+                    QtWidgets.QMessageBox.warning(
+                        self,
+                        self.tr("Import services"),
+                        str(e),
+                        QtWidgets.QMessageBox.Ok
+                    )
                 QtWidgets.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
@@ -1141,7 +1149,15 @@ class EditorWindow(QtWidgets.QMainWindow):
                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
             ) == QtWidgets.QMessageBox.Yes:
                 QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
-                self.editor.importTrackItemsFromFile(fileName)
+                try:
+                    self.editor.importTrackItemsFromFile(fileName)
+                except Exception as e:
+                    QtWidgets.QMessageBox.warning(
+                        self,
+                        self.tr("Import track items"),
+                        str(e),
+                        QtWidgets.QMessageBox.Ok
+                    )
                 QtWidgets.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
@@ -1177,7 +1193,15 @@ class EditorWindow(QtWidgets.QMainWindow):
                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
             ) == QtWidgets.QMessageBox.Yes:
                 QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
-                self.editor.importRoutesFromFile(fileName)
+                try:
+                    self.editor.importRoutesFromFile(fileName)
+                except Exception as e:
+                    QtWidgets.QMessageBox.warning(
+                        self,
+                        self.tr("Import route"),
+                        str(e),
+                        QtWidgets.QMessageBox.Ok
+                    )
                 QtWidgets.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
@@ -1213,7 +1237,15 @@ class EditorWindow(QtWidgets.QMainWindow):
                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
             ) == QtWidgets.QMessageBox.Yes:
                 QtWidgets.qApp.setOverrideCursor(Qt.WaitCursor)
-                self.editor.importTrainTypesFromFile(fileName)
+                try:
+                    self.editor.importTrainTypesFromFile(fileName)
+                except Exception as e:
+                    QtWidgets.QMessageBox.warning(
+                        self,
+                        self.tr("Import train types"),
+                        str(e),
+                        QtWidgets.QMessageBox.Ok
+                    )
                 QtWidgets.qApp.restoreOverrideCursor()
 
     @QtCore.pyqtSlot()
