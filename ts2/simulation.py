@@ -221,9 +221,6 @@ class Simulation(QtCore.QObject):
         for serviceCode, dct in services.items():
             dct["serviceCode"] = serviceCode
             lines = []
-            for line in dct["lines"]:
-                lines.append(service.ServiceLine(line))
-            dct["lines"] = lines
             self._services[serviceCode] = service.Service(dct)
 
     def loadTrains(self, trns):
@@ -470,10 +467,9 @@ class Simulation(QtCore.QObject):
         :return: a place defined by placeCode.
         :rtype:  :class:`~ts2.scenery.placeitem.Place` or ``None``
         """
-        if placeCode is not None and placeCode != "":
-            return self._places[placeCode]
-        else:
+        if not placeCode:
             return None
+        return self._places[placeCode]
 
     @property
     def places(self):

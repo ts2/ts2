@@ -510,7 +510,10 @@ class Service:
         self._plannedTrainType = parameters.get("plannedTrainType")
         self._current = None
         self.simulation = None
-        self._lines = parameters.get("lines", [])
+        lines = []
+        for lineData in parameters.get("lines", []):
+            lines.append(ServiceLine(lineData))
+        self._lines = lines
 
     def initialize(self, simulation):
         """Initialize the service once the simulation is loaded."""

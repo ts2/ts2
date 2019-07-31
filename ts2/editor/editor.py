@@ -473,12 +473,13 @@ class Editor(simulation.Simulation):
     def place(self, placeCode):
         """Returns the place defined by placeCode. Reimplemented from
         Simulation so as not to rely on the places dictionary."""
-        if placeCode is not None and placeCode != "":
-            for ti in self._trackItems.values():
-                if isinstance(ti, placeitem.Place) \
-                        and ti.placeCode == placeCode:
-                    return ti
-        return None
+        if not placeCode:
+            return None
+        for ti in self._trackItems.values():
+            if isinstance(ti, placeitem.Place) \
+                    and ti.placeCode == placeCode:
+                return ti
+        raise KeyError("Unknown Place with code %s" % placeCode)
 
     def checkSimulation(self):
         """Checks that the simulation is valid.
