@@ -314,7 +314,7 @@ class LineItem(abstract.ResizableItem):
         for i in range(len(lines), len(self._tli)):
             self._tli[i].hide()
             self._tli[i].update()
-            del self._tli[i]
+        del self._tli[len(lines):]
 
     def graphicsMousePressEvent(self, event, itemId):
         """This function is called by the owned TrackGraphicsItem to handle
