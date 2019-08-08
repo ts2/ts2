@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "TS2"
-#define MyAppVersion "0.7.4"
+#define MyAppVersion "0.7.5"
 #define MyAppPublisher "TS2 Team"
 #define MyAppURL "http://ts2.github.io"
 #define MyAppExeName "ts2.exe"
