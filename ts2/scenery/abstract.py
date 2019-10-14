@@ -374,8 +374,8 @@ class TrackItem(QtCore.QObject):
     def conflictTiId(self, value):
         """Setter function for the conflictTiId property."""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            if value is not None and value != 0:
-                self._conflictTrackItem = self.simulation.trackItem(int(value))
+            if value:
+                self._conflictTrackItem = self.simulation.trackItem(value)
             else:
                 self._conflictTrackItem = None
 
