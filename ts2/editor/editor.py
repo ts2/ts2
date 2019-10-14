@@ -470,7 +470,7 @@ class Editor(simulation.Simulation):
         """Returns the number of realOptions"""
         return len(self._options) - 3
 
-    def place(self, placeCode):
+    def place(self, placeCode, raise_if_not_found=True):
         """Returns the place defined by placeCode. Reimplemented from
         Simulation so as not to rely on the places dictionary."""
         if not placeCode:
@@ -479,7 +479,9 @@ class Editor(simulation.Simulation):
             if isinstance(ti, placeitem.Place) \
                     and ti.placeCode == placeCode:
                 return ti
-        raise KeyError("Unknown Place with code %s" % placeCode)
+        if raise_if_not_found:
+            raise KeyError("Unknown Place with code %s" % placeCode)
+        return None
 
     def checkSimulation(self):
         """Checks that the simulation is valid.

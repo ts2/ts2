@@ -135,8 +135,8 @@ class LineItem(abstract.ResizableItem):
     def placeCode(self, value):
         """Setter function for the placeCode property"""
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
-            place = self.simulation.place(value)
-            if place is not None:
+            place = self.simulation.place(value, raise_if_not_found=False)
+            if place:
                 self._placeCode = value
                 self._place = place
                 self._place.addTrack(self)

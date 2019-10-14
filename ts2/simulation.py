@@ -461,9 +461,10 @@ class Simulation(QtCore.QObject):
         """
         return self._trackItems.get(tiId, None)
 
-    def place(self, placeCode):
+    def place(self, placeCode, raise_if_not_found=True):
         """
         :param str placeCode:
+        :param bool raise_if_not_found:
         :return: a place defined by placeCode.
         :rtype:  :class:`~ts2.scenery.placeitem.Place` or ``None``
         """
