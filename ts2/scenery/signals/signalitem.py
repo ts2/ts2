@@ -895,7 +895,10 @@ def condition(cls):
 
         def _propertyStrSetter(self, value):
             if self.simulation.context == utils.Context.EDITOR_SCENERY:
-                value = collections.OrderedDict(eval(str(value)))
+                try:
+                    value = collections.OrderedDict(eval(str(value)))
+                except ValueError:
+                    value = None
                 if isinstance(value, dict):
                     setattr(self, "_" + propName, value)
                 else:
