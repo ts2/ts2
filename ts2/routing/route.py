@@ -65,7 +65,7 @@ class RoutesModel(QtCore.QAbstractTableModel):
         """Updates data when modified in the view"""
         if role == Qt.EditRole:
             if index.column() == 3:
-                routeNum = int(index.sibling(index.row(), 0).data())
+                routeNum = index.sibling(index.row(), 0).data()
                 self._editor.routes[routeNum].initialState = value
                 self.dataChanged.emit(index, index)
                 return True
