@@ -25,8 +25,8 @@
 ###############################################################
 
 
-__VERSION__ = "0.7.7"
-__SERVER_VERSION__ = "0.7.3"
+__VERSION__ = "0.7.8"
+__SERVER_VERSION__ = "0.7.6"
 __FILE_FORMAT__ = "0.7"
 __APP_SHORT__ = "ts2"
 __APP_LONG__ = "Train Signalling Simulation"
