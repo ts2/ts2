@@ -129,7 +129,11 @@ class OpenDialog(QtWidgets.QDialog):
 
         self.treeFiles = QtWidgets.QTreeView()
         self.treeFiles.setModel(self.filesModel)
-        self.treeFiles.setColumnWidth(0, 200)
+        self.treeFiles.setColumnWidth(0, 300)
+        self.treeFiles.setExpanded(self.filesModel.index(QtCore.QDir.homePath()), True)
+        path = QtCore.QDir.home()
+        while path.cdUp():
+            self.treeFiles.setExpanded(self.filesModel.index(path.path()), True)
 
         self.stackWidget.addWidget(self.treeFiles)
 
