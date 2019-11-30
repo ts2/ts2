@@ -125,9 +125,11 @@ class OpenDialog(QtWidgets.QDialog):
         self.filesModel = QtWidgets.QFileSystemModel()
         self.filesModel.setRootPath(QtCore.QDir.homePath())
         self.filesModel.setNameFilters(["*.ts2", "*.json"])
+        self.filesModel.setNameFilterDisables(False)
 
         self.treeFiles = QtWidgets.QTreeView()
         self.treeFiles.setModel(self.filesModel)
+        self.treeFiles.setColumnWidth(0, 200)
 
         self.stackWidget.addWidget(self.treeFiles)
 
