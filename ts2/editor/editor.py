@@ -562,6 +562,25 @@ class Editor(simulation.Simulation):
             self.expandBackgroundTo(ti)
         self._nextId = maxID + 1
 
+    def reloadSignalLibrary(self):
+        """Loads the local signal library into this simulation, overriding any existing signal
+        aspect or signal types with the same name."""
+        localSignalLibraryDict = signalitem.SignalLibrary.createSignalLibrary()
+        simSignalLibraryDict = json.loads(json.dumps(self.signalLibrary, separators=(',', ':'),
+                                                     for_json=True, encoding='utf-8'))
+        signalitem.SignalLibrary.update(simSignalLibraryDict, localSignalLibraryDict)
+        self.signalLibrary = signalitem.SignalLibrary(simSignalLibraryDict)
+        self.signalLibrary.initialize()
+        signalitem.signalLibrary = self.signalLibrary
+        # Relink every signal item to the new types based on their name
+        for signal in self.trackItems.values():
+            if not isinstance(signal, signalitem.SignalItem):
+                continue
+            signalTypes = self.signalLibrary.signalTypes
+            signal._signalType = signalTypes.get(
+                signal.signalType.name, signalTypes["UK_3_ASPECTS"]
+            )
+
     def exportRoutesToFile(self, fileName):
         with open(fileName, 'w', newline='') as csvfile:
             fieldnames = [

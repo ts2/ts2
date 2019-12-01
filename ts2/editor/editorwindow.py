@@ -289,6 +289,17 @@ class EditorWindow(QtWidgets.QMainWindow):
 
         toolbarScenery.addSeparator()
 
+        tbgsl = widgets.ToolBarGroup(title=self.tr("Signal Library"))
+        toolbarScenery.addWidget(tbgsl)
+
+        # Reload signal library
+        self.reloadSignalLibraryBtn = QtWidgets.QToolButton(self.sceneryWidget)
+        self.reloadSignalLibraryBtn.setText(self.tr("Reload"))
+        self.reloadSignalLibraryBtn.clicked.connect(self.reloadSignalLibrary)
+        tbgsl.addWidget(self.reloadSignalLibraryBtn)
+
+        toolbarScenery.addSeparator()
+
         self.zoomWidget = widgets.ZoomWidget(self.sceneryWidget)
         self.zoomWidget.valueChanged.connect(self.zoom)
         toolbarScenery.addWidget(self.zoomWidget)
@@ -871,6 +882,26 @@ class EditorWindow(QtWidgets.QMainWindow):
         self.editor.validateScenery()
         self.setDirty("Validated scenery")
         QtWidgets.qApp.restoreOverrideCursor()
+
+    @QtCore.pyqtSlot()
+    def reloadSignalLibrary(self):
+        """Loads the local signal library into this simulation, overriding any existing signal
+        aspect or signal types with the same name."""
+        if QtWidgets.QMessageBox.question(
+            self,
+            self.tr("Reload Signal Library"),
+            self.tr("Are you sure you want to reload the signal library ?\n"
+                    "Signal aspects and signal types of the simulation will "
+                    "be overwritten by those of the local signal library."),
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+        ) == QtWidgets.QMessageBox.Yes:
+            self.editor.reloadSignalLibrary()
+            QtWidgets.QMessageBox.information(
+                self,
+                self.tr("Signal Library reloaded"),
+                self.tr("The Signal Library has been reloaded"),
+                QtWidgets.QMessageBox.Ok
+            )
 
     @QtCore.pyqtSlot()
     def delRouteBtnClicked(self):
