@@ -897,8 +897,8 @@ def condition(cls):
             if self.simulation.context == utils.Context.EDITOR_SCENERY:
                 try:
                     value = collections.OrderedDict(eval(str(value)))
-                except (ValueError, SyntaxError):
-                    value = self.signalType.getCustomParams(self)[cls.code]
+                except (ValueError, SyntaxError, NameError):
+                    value = self.signalType.getCustomParams(self).get(cls.code)
                 if isinstance(value, dict):
                     setattr(self, "_" + propName, value)
                 else:
