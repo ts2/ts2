@@ -820,7 +820,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def onPlaceSelected(self):
         place = placeitem.Place.selectedPlaceModel.place
-        self.lblPlaceInfoName.setText(place.name)
+        if place:
+            self.lblPlaceInfoName.setText(place.name)
 
     def setControlsDisabled(self, state):
         if not state and self.fileName:
