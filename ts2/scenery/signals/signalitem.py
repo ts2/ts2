@@ -128,6 +128,7 @@ class SignalItem(abstract.TrackItem):
 
     SIGNAL_GRAPHIC_ITEM = 0
     BERTH_GRAPHIC_ITEM = 1
+    SIGNAL_NUMBER_ITEM = 2
 
     def __init__(self, parameters):
         """
@@ -158,6 +159,25 @@ class SignalItem(abstract.TrackItem):
         bgi.setZValue(self.defaultZValue)
         self._gi[SignalItem.BERTH_GRAPHIC_ITEM] = bgi
         self.lightOn = True
+
+    def display_signal_number(self):
+        sni = QtWidgets.QGraphicsSimpleTextItem()
+        font = sni.font()
+        font.setPixelSize(8)
+        font.setFamily("Courier New")
+        sni.setFont(font)
+        brush = sni.brush()
+        brush.setColor(Qt.white)
+        sni.setBrush(brush)
+        if self._reverse:
+            sni.setText(self.name)
+            sni.setPos(self.origin + QtCore.QPointF(0, 2))
+        else:
+            txt = (" " * 5 + self.name)[-5:]
+            sni.setText(txt)
+            sni.setPos(self.origin + QtCore.QPointF(-24, -10))
+        sni.setZValue(1)
+        self._gi[SignalItem.SIGNAL_NUMBER_ITEM] = sni
 
     def updateFromParameters(self, parameters):
         super(SignalItem, self).updateFromParameters(parameters)
@@ -199,6 +219,7 @@ class SignalItem(abstract.TrackItem):
         if simulation.context == utils.Context.GAME:
             self.signalSelected.connect(simulation.activateRoute)
             self.signalUnselected.connect(simulation.desactivateRoute)
+            self.display_signal_number()
         else:
             self.signalSelected.connect(simulation.prepareRoute)
             self.signalUnselected.connect(simulation.deselectRoute)
