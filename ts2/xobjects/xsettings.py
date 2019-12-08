@@ -65,6 +65,29 @@ class XSettings(QtCore.QSettings):
         self.setValue("recent", ts2.utils.to_json(lst))
         return lst
 
+    def getEditorRecent(self):
+        """List of recent files
+
+        :rtype: lst of str's
+        """
+        s = self.value("editorRecent")
+        if not s:
+            return []
+        return ts2.utils.from_json(s)
+
+    def addEditorRecent(self, filePath):
+        """Add a recent file"""
+        lst = self.getEditorRecent()
+        if filePath in lst:
+            # already in so remove, so move to front
+            lst.remove(filePath)
+        # insert at front
+        lst.insert(0, filePath)
+        if len(lst) > 10:
+            lst = lst[:10]
+        self.setValue("editorRecent", ts2.utils.to_json(lst))
+        return lst
+
     def saveWindow(self, window):
         """Save window geometry and state"""
         self.setValue("window/%s/geometry" % window.objectName(),
