@@ -781,7 +781,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def onRecent(self, act):
         """Open a  recent item"""
-        self.loadSimulation(fileName=act.text())
+        self.loadSimulation(fileName=act.iconText())
 
     def closeEvent(self, event):
         """Save window postions on close"""
