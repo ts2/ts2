@@ -71,6 +71,7 @@ class PointsItem(abstract.TrackItem):
     - Usually, the normal end is aligned with the common end and the reverse end
       is sideways, but this is not mandatory.
     """
+
     def __init__(self, parameters):
         """
         :param dict paramaters:
@@ -79,6 +80,7 @@ class PointsItem(abstract.TrackItem):
         self._normalEnd = QtCore.QPointF()
         self._reverseEnd = QtCore.QPointF()
         self._center = QtCore.QPointF()
+        self._pairedTiId = ""
         super().__init__(parameters)
         self._pointsReversed = False
         self._reverseItem = None
@@ -104,6 +106,7 @@ class PointsItem(abstract.TrackItem):
         self._normalEnd = QtCore.QPointF(npx, npy)
         self._reverseEnd = QtCore.QPointF(rpx, rpy)
         self._center = QtCore.QPointF(x, y)
+        self._pairedTiId = parameters.get("pairedTiId", "")
 
     def initialize(self, simulation):
         """Initialize the item after all items are loaded."""
@@ -140,7 +143,9 @@ class PointsItem(abstract.TrackItem):
                               False,
                               "enum",
                               getEndNames(),
-                              getEndValues())
+                              getEndValues()),
+            helper.TIProperty("pairedTiId", translate("PointsItem",
+                                                      "Coupled Points"))
         ]
 
     def for_json(self):
@@ -159,10 +164,10 @@ class PointsItem(abstract.TrackItem):
             "yn": self._normalEnd.y(),
             "xr": self._reverseEnd.x(),
             "yr": self._reverseEnd.y(),
+            "pairedTiId": self._pairedTiId,
             "reverseTiId": reverseTiId
         })
         return jsonData
-
 
     # ## Properties #####################################################
 
@@ -277,6 +282,29 @@ class PointsItem(abstract.TrackItem):
                                abstract.qPointFDetupler("reverseEnd"))
 
     # Other properties
+
+    def _getPairedTiId(self):
+        """
+        :return: the conflict trackitem ID.
+        :rtype: str
+        """
+        return self._pairedTiId
+
+    def _setPairedTiId(self, value):
+        """Setter function for the conflictTiId property."""
+        if self.simulation.context == utils.Context.EDITOR_SCENERY:
+            if value:
+                self._pairedTiId = value
+                pairedItem = self.simulation.trackItem(value)
+                if pairedItem:
+                    pairedItem._pairedTiId = self.tiId
+            else:
+                pairedItem = self.simulation.trackItem(self._pairedTiId)
+                if pairedItem:
+                    pairedItem._pairedTiId = ""
+                self._pairedTiId = ""
+
+    pairedTiId = property(_getPairedTiId, _setPairedTiId)
 
     @property
     def pointsReversed(self):
