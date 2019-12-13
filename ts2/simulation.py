@@ -565,10 +565,13 @@ class Simulation(QtCore.QObject):
             self._selectedSignal = si
         else:
             # Second signal selected
-            r = self.findRoute(self._selectedSignal, si)
-            if r is not None:
-                # There exists a route between both signals
-                r.activate(persistent)
+            routes = self.findRoutes(self._selectedSignal, si)
+            if routes:
+                # There exists at least a route between both signals
+                log_message = len(routes) == 1
+                for r in routes:
+                    # Mute messages if we have more than one route, because at least one will fail.
+                    r.activate(persistent, log_message)
                 self._selectedSignal.unselect()
                 self._selectedSignal = None
                 si.unselect()
@@ -662,21 +665,22 @@ class Simulation(QtCore.QObject):
             if isinstance(ti, placeitem.Place):
                 self._places[ti.placeCode] = ti
 
-    def findRoute(self, si1, si2):
-        """Checks whether a route exists between two signals.
+    def findRoutes(self, si1, si2):
+        """Returns routes between two signals.
 
         :param si1: The :class:`~ts2.scenery.signals.signalitem.SignalItem` of
         the first signal
         :param si2: The :class:`~ts2.scenery.signals.signalitem.SignalItem` of
         the second signal
-        :return: The route between signal si1 and si2 if it exists, otherwise
-        None
+        :return: A list of routes between si1 and si2 ordered by route number
         :rtype: :class:`~ts2.routing.route.Route` or None
         """
+        routes = []
         for r in self._routes.values():
             if r.links(si1, si2):
-                return r
-        return None
+                routes.append(r)
+        routes.sort(key=lambda x: x.routeNum)
+        return routes
 
     def createTrackItemsLinks(self):
         """Find the items that are linked together through their coordinates

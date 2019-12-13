@@ -263,12 +263,12 @@ class Route(QtCore.QObject):
             return True
         return False
 
-    def activate(self, persistent=False):
+    def activate(self, persistent=False, log_message=False):
         """ Called by the simulation when the route is
         activated."""
 
         def doRouteActivate(msg):
-            if msg["status"] != 'OK':
+            if msg["status"] != 'OK' and log_message:
                 self.simulation.messageLogger.addMessage(msg["message"], Message.PLAYER_WARNING_MSG)
                 return
 
@@ -294,47 +294,6 @@ class Route(QtCore.QObject):
     def onDeactivated(self):
         self.routeUnselected.emit()
 
-    def isActivable(self):
-        """
-        :return: ``True`` - if this route can be activated, i.e. that no other
-                    active route is conflicting with this route.
-        """
-        flag = False
-        for pos in self._positions:
-            if pos.trackItem != self.beginSignal and \
-                    pos.trackItem != self.endSignal:
-                if pos.trackItem.conflictTI is not None \
-                        and pos.trackItem.conflictTI.activeRoute is not None:
-                    # The trackItem has a conflict item and this conflict item
-                    # has an active route
-                    return False
-                if pos.trackItem.activeRoute is not None:
-                    # The trackItem already has an active route
-                    if isinstance(pos.trackItem, pointsitem.PointsItem) \
-                            and not flag:
-                        # The trackItem is a pointsItem and it is the first
-                        # trackItem with active route that we meet
-                        return False
-                    if pos.previousTI != pos.trackItem.activeRoutePreviousItem:
-                        # The direction of this route is different from that
-                        # of the active route of the TI
-                        return False
-                    if pos.trackItem.activeRoute == self:
-                        # Always allow to setup the same route again
-                        return True
-                    else:
-                        # We set flag to true to remember we have come across
-                        # a TI with activeRoute with same dir. This enables
-                        # the user to set a route ending with the same end
-                        # signal when it is cleared by a train still
-                        # on the route
-                        flag = True
-                elif flag:
-                    # We had a route with same direction but does not end with
-                    # the same signal
-                    return False
-        return True
-
     def highlight(self):
         for pos in self._positions:
             pos.trackItem.activeRoute = self
@@ -357,22 +316,24 @@ class Route(QtCore.QObject):
     def __eq__(self, other):
         """
         :return: ``True`` if two routes are equal if they have the same
-                     :func:`~ts2.routing.route.Route.routeNum` routeNum or if both
-                     beginSignal and endSignal are equal
+                     :func:`~ts2.routing.route.Route.routeNum` routeNum or if
+                     beginSignal, endSignal and directions are equal
         """
         if (self.routeNum == other.routeNum or
                 (self.beginSignal == other.beginSignal and
-                 self.endSignal == other.endSignal)):
+                 self.endSignal == other.endSignal and
+                 self.directions == other.directions)):
             return True
         else:
             return False
 
     def __ne__(self, other):
         """Two routes are not equal if they have different routeNum and if
-        at least one of beginSignal or endSignal is different"""
+        at least one of beginSignal or endSignal or directions is different"""
         if (self.routeNum != other.routeNum and
                 (self.beginSignal != other.beginSignal or
-                 self.endSignal != other.endSignal)):
+                 self.endSignal != other.endSignal or
+                 self.directions != other.directions)):
             return True
         else:
             return False
