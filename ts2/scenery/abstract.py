@@ -376,7 +376,11 @@ class TrackItem(QtCore.QObject):
         if self.simulation.context == utils.Context.EDITOR_SCENERY:
             if value:
                 self._conflictTrackItem = self.simulation.trackItem(value)
+                if self._conflictTrackItem:
+                    self._conflictTrackItem._conflictTrackItem = self
             else:
+                if self._conflictTrackItem:
+                    self._conflictTrackItem._conflictTrackItem = None
                 self._conflictTrackItem = None
 
     # ## Methods #########################################################
