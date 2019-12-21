@@ -52,7 +52,10 @@ BUILTIN_OPTIONS = {
     "defaultSignalVisibility": 100,
     "wrongPlatformPenalty": 5,
     "wrongDestinationPenalty": 100,
-    "latePenalty": 1
+    "latePenalty": 1,
+    "pointsSetupDelay": [(4, 6, 100)],
+    "routesSetupDelay": [(15, 25, 100)],
+    "routesCancelDelay": [(180, 180, 100)]
 }
 
 
@@ -107,7 +110,7 @@ def onRouteActivated(sim, msg):
 
 def onRouteDeactivated(sim, msg):
     rte = sim.routes[msg["id"]]
-    rte.onDeactivated()
+    rte.onDeactivated(msg["state"])
 
 
 def onClockChanged(sim, msg):

@@ -296,9 +296,13 @@ class Route(QtCore.QObject):
         self.simulation.simulationWindow.webSocket.sendRequest("route", "deactivate", params={"id": self.routeNum},
                                                                callback=onRouteDeactivated)
 
-    def onDeactivated(self):
-        self.activating = False
-        self.routeUnselected.emit()
+    def onDeactivated(self, state):
+        if state == 0:
+            self.activating = False
+            self.persistent = False
+            self.routeUnselected.emit()
+        else:
+            self.activating = True
 
     def highlight(self):
         for pos in self._positions:
