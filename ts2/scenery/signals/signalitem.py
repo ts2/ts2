@@ -158,7 +158,6 @@ class SignalItem(abstract.TrackItem):
         bgi.setCursor(Qt.PointingHandCursor)
         bgi.setZValue(self.defaultZValue)
         self._gi[SignalItem.BERTH_GRAPHIC_ITEM] = bgi
-        self.lightOn = True
 
     def display_signal_number(self):
         sni = QtWidgets.QGraphicsSimpleTextItem()
@@ -224,7 +223,6 @@ class SignalItem(abstract.TrackItem):
             self.signalSelected.connect(simulation.prepareRoute)
             self.signalUnselected.connect(simulation.deselectRoute)
         self.trainSelected.connect(simulation.trainSelected)
-        simulation.timeChanged.connect(self.updateBlink)
         super().initialize(simulation)
 
     def updateData(self, msg):
@@ -524,11 +522,6 @@ class SignalItem(abstract.TrackItem):
     def updateSignalParams(self):
         """Updates signal custom parameters according to the SignalType."""
         self.signalType.updateParams(self)
-
-    @QtCore.pyqtSlot()
-    def updateBlink(self):
-        self.lightOn = not self.lightOn
-        self.updateGraphics()
 
     @QtCore.pyqtSlot()
     def updateSignalState(self):

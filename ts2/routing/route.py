@@ -118,6 +118,7 @@ class Route(QtCore.QObject):
         self._initialState = parameters.get('initialState', 0)
         self.persistent = False
         self._positions = []
+        self.activating = False
 
     def initialize(self, simulation):
         """Initializes the route once all trackitems are loaded."""
@@ -276,8 +277,12 @@ class Route(QtCore.QObject):
                                                                                             "persistent": persistent},
                                                                callback=doRouteActivate)
 
-    def onActivated(self, persistent):
-        self.persistent = persistent
+    def onActivated(self, state):
+        self.activating = False
+        if state == 2:
+            self.persistent = True
+        elif state == 4:
+            self.activating = True
 
     def desactivate(self):
         """Called by the simulation when the route is
@@ -292,6 +297,7 @@ class Route(QtCore.QObject):
                                                                callback=onRouteDeactivated)
 
     def onDeactivated(self):
+        self.activating = False
         self.routeUnselected.emit()
 
     def highlight(self):

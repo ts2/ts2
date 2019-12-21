@@ -102,7 +102,7 @@ def onTrackItemChanged(sim, msg):
 
 def onRouteActivated(sim, msg):
     rte = sim.routes[msg["id"]]
-    rte.onActivated(msg["state"] == 2)
+    rte.onActivated(msg["state"])
 
 
 def onRouteDeactivated(sim, msg):

@@ -103,6 +103,7 @@ class TrackItem(QtCore.QObject):
         self.toBeDeselected = False
         self.properties = []
         self.multiProperties = []
+        self.lightOn = True
         self.updateFromParameters(parameters)
 
     def updateFromParameters(self, parameters):
@@ -126,6 +127,7 @@ class TrackItem(QtCore.QObject):
         )
         self.properties = self.getProperties()
         self.multiProperties = self.getMultiProperties()
+        simulation.timeChanged.connect(self.updateBlink)
         for gi in self._gi.values():
             simulation.registerGraphicsItem(gi)
         self.updateGraphics()
@@ -471,6 +473,11 @@ class TrackItem(QtCore.QObject):
     def updateGraphics(self):
         self.__updateGraphics()
 
+    @QtCore.pyqtSlot()
+    def updateBlink(self):
+        self.lightOn = not self.lightOn
+        self.updateGraphics()
+
     def updateTrain(self):
         """Updates the graphics item for train only"""
         self.updateGraphics()
@@ -487,7 +494,10 @@ class TrackItem(QtCore.QObject):
         pen.setJoinStyle(Qt.RoundJoin)
         pen.setCapStyle(Qt.RoundCap)
         if self.highlighted:
-            pen.setColor(Qt.white)
+            if self.activeRoute and self.activeRoute.activating and not self.lightOn:
+                pen.setColor(Qt.darkGray)
+            else:
+                pen.setColor(Qt.white)
         else:
             pen.setColor(Qt.darkGray)
         return pen

@@ -83,6 +83,7 @@ class PointsItem(abstract.TrackItem):
         self._pairedTiId = ""
         super().__init__(parameters)
         self._pointsReversed = False
+        self._pointsMoving = False
         self._reverseItem = None
         self.defaultZValue = 60
         pgi = helper.TrackGraphicsItem(self)
@@ -117,6 +118,8 @@ class PointsItem(abstract.TrackItem):
     def updateData(self, msg):
         if "reversed" in msg:
             self.pointsReversed = msg["reversed"]
+        if "moving" in msg:
+            self._pointsMoving = msg["moving"]
         super(PointsItem, self).updateData(msg)
 
     @staticmethod
@@ -412,7 +415,7 @@ class PointsItem(abstract.TrackItem):
             p.drawLine(self.commonEnd, self.middle)
             if self.pointsReversed:
                 p.drawLine(self.reverseEnd, self.middle)
-            else:
+            elif not self._pointsMoving:
                 p.drawLine(self.normalEnd, self.middle)
 
     def graphicsBoundingRect(self, itemId):
