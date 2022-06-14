@@ -22,7 +22,7 @@ New simulations can be created with the editor provided with ts2.
     - Other platforms: see source installation.
 * Source installation:
     - Download and install Python v3 or above at [www.python.org](http://www.python.org).
-    - Download and install PyQt v5 or above at [http://www.riverbankcomputing.co.uk](http://www.riverbankcomputing.co.uk).
+    - Download and install PyQt *v5* at [http://www.riverbankcomputing.co.uk](http://www.riverbankcomputing.co.uk). (Not V6)
     - install websocket by running "pip install websocket" and "pip install websocket-client"
     - install simplejson by running "pip install simplejson" (Refer to: https://stackoverflow.com/questions/2604841/importerror-no-module-named-simplejson) - this step can be eliminated if someone changes the code to import json as simplejson 
     - install requests by running "pip install requests"
