@@ -22,7 +22,8 @@ New simulations can be created with the editor provided with ts2.
     - Other platforms: see source installation.
 * Source installation:
     - Download and install Python v3 or above at [www.python.org](http://www.python.org).
-    - Download and install PyQt v5 or above at [http://www.riverbankcomputing.co.uk](http://www.riverbankcomputing.co.uk).
+    - Download and install PyQt *v5* at [http://www.riverbankcomputing.co.uk](http://www.riverbankcomputing.co.uk). (Not V6)
+    - Install websocket by running "pip install websocket"
     - Grab the sources from [GitHub](https://github.com/ts2/ts2/releases/tag/v0.7.0).
     - Run start-ts2.py
 * Post Install
