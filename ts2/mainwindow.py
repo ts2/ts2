@@ -484,7 +484,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 QtWidgets.qApp.restoreOverrideCursor()
                 QtWidgets.QMessageBox.critical(self, "Configuration Error",
                                                "ts2-sim-server executable not found in the server directory.\n"
-                                               "Go to File->Options to download it")
+                                               "Go to File->Settings to download it")
                 raise
             except OSError as e:
                 QtWidgets.qApp.restoreOverrideCursor()
