@@ -522,7 +522,7 @@ class Editor(simulation.Simulation):
             fieldnames = [
                 "tiId", "name", "nextTiId", "previousTiId", "reverseTiId", "x", "y", "xf", "yf", "xn", "yn", "xr", "yr",
                 "conflictTiId", "maxSpeed", "placeCode", "realLength", "trackCode", "signalType", "customProperties",
-                "reverse", "__type__"
+                "reverse", "pairedTiId", "__type__"
             ]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
